@@ -1,7 +1,9 @@
 Package: propr
 Title: What the Package Does (one line, title case)
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+URL: http://github.com/hadley/dplyr
+BugReports: http://github.com/hadley/dplyr/issues
+Authors@R: person("Thom", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends:
     R (>= 3.2.2)
