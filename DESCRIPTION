@@ -1,13 +1,16 @@
 Package: propr
-Title: What the Package Does (one line, title case)
+Title: Calculating Proportionality between Vectors of Compositional Data
 Version: 0.0.0.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
-Authors@R: person("Thom", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre"))
+Authors@R: c(
+  person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
+  person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "auth")
+  )
 Description: What the package does (one paragraph).
 Depends:
     R (>= 3.2.2)
-License: What license is it under?
+License: GPL-2
 LazyData: true
 RoxygenNote: 5.0.1
 Suggests: knitr,
