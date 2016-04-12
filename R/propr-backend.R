@@ -19,12 +19,12 @@ proprPhit <- function(counts, symmetrize = TRUE){
   counts.clr.var <- apply(counts.clr, 2, var)
   
   # Sweep out feature clr variance from the variation array
-  counts.phi <- sweep(counts.vlr, 2, counts.clr.var, FUN = "/")
+  phi <- sweep(counts.vlr, 2, counts.clr.var, FUN = "/")
   
   # Symmetrize matrix if symmetrize = TRUE
-  if(symmetrize) counts.phi <- proprSym(counts.phi)
+  if(symmetrize) phi <- proprSym(phi)
   
-  return(counts.phi)
+  return(phi)
 }
 
 #' Calculate proportionality metric p (Erb 2016).
@@ -65,9 +65,9 @@ proprPerb <- function(counts, ivar = 0){
   }
   
   # Calculate: p = 1 - (var(x - y))/(var(x) + var(y))
-  counts.prop <- 1 - counts.vlr
+  p <- 1 - counts.vlr
   
-  return(counts.prop)
+  return(p)
 }
 
 #' Calculates the variance of the log of the ratios.
