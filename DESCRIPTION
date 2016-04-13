@@ -5,7 +5,7 @@ URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
   person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
-  person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "auth")
+  person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut")
   )
 Description: What the package does (one paragraph).
 Depends:
