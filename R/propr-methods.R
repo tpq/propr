@@ -107,10 +107,11 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 
             # Plot *lr-Y by *lr-X
             df <- do.call(rbind, pairs)
-            p <- ggplot2::ggplot(data = df, aes(x = x.val,
-                                                y = y.val,
-                                                group = factor(group))) +
-              ggplot2::geom_path(aes(colour = factor(group))) +
+            p <- ggplot2::ggplot(data = df,
+                                 ggplot2::aes(x = x.val,
+                                              y = y.val,
+                                              group = factor(group))) +
+              ggplot2::geom_path(ggplot2::aes(colour = factor(group))) +
               ggplot2::labs(x = "Exprssion *LR mRNA[1]",
                             y = "Expression *LR mRNA[2]") +
               ggplot2::coord_equal(ratio = 1) +
