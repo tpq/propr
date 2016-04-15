@@ -1,10 +1,11 @@
-#' Calculate proportionality metric p.
+#' Calculate proportionality metric rho.
 #'
 #' \code{perb} returns a \code{propr} object containing measures of proportionality.
 #'
-#' Calculates proportionality metric p described in Lovell 2015 and expounded in Erb 2016. Uses
-#' centered log-ratio transformation of data by default, but will use additive log-ratio transformation
-#' of data if non-zero \code{ivar} provided.
+#' Calculates proportionality metric rho described in Lovell 2015 and expounded
+#'  in Erb 2016. Uses centered log-ratio transformation of data by default,
+#'  but will use additive log-ratio transformation of data if non-zero
+#'  \code{ivar} provided.
 #'
 #' @param ivar A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.
 #' @inheritParams phit
@@ -21,7 +22,7 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0
 
   if(!onlyDistr){
 
-    cat("Calculating all perb for actual counts...\n")
+    cat("Calculating all rho for actual counts...\n")
     prop <- new("propr")
     prop@counts <- as.data.frame(counts)
     if(ivar != 0){ prop@logratio <- as.data.frame(t(proprALR(t(prop@counts), ivar)))
@@ -44,7 +45,7 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0
   distr <- vector("numeric", iter * iterSize * (iterSize - 1) / 2)
   for(i in 1:iter){
 
-    cat(paste0("Calculating simulated phi for iter ", i, "...\n"))
+    cat(paste0("Calculating simulated rho for iter ", i, "...\n"))
 
     # Handle alr properly
     if(ivar != 0){
@@ -93,13 +94,13 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0
     rm(prop.i)
   }
 
-  cat("Fitting phi to distribution...\n")
+  cat("Fitting rho to distribution...\n")
   fit <- ecdf(1 - abs(distr))
   rm(distr)
 
   if(!onlyDistr){
 
-    cat("Using fit to convert phi into pval...\n")
+    cat("Using fit to convert rho into pval...\n")
     pval <- fit(1 - abs(prop@pairs$prop))
     # pval[pval >= .5] <- 1 - pval[pval >= .5] # make 2-tails
     # pval <- pval * 2 # scale 0 to 1
