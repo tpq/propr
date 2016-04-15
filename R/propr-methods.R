@@ -79,7 +79,7 @@ setMethod('$', signature(x = "propr"),
 #' @param title A character string. A title for the \code{propr} plot.
 #' @export
 setMethod("plot", signature(x = "propr", y = "missing"),
-          function(x, title = "Pairwise Proportionality"){
+          function(x, y, title = "Pairwise Proportionality"){
 
             if(!requireNamespace("ggplot2", quietly = TRUE)){
               stop("Uh oh! This plot method depends on ggplot2! ",

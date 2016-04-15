@@ -4,6 +4,7 @@
 \name{propr-class}
 \alias{$,propr-method}
 \alias{[,propr-method}
+\alias{plot,propr,missing-method}
 \alias{propr-class}
 \alias{show,propr-method}
 \alias{subset,propr-method}
@@ -16,6 +17,8 @@
 \S4method{[}{propr}(x, i, j, drop)
 
 \S4method{$}{propr}(x, name)
+
+\S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 }
 \arguments{
 \item{object, x}{An object of class \code{propr}.}
@@ -25,6 +28,8 @@
 \item{i, j, drop}{Subsets via \code{object@pairs[i, j, drop]}.}
 
 \item{name}{Subsets via \code{object@pairs[, name]}.}
+
+\item{title}{A character string. A title for the \code{propr} plot.}
 }
 \description{
 An S4 class to hold results from proportionality analysis.
@@ -38,6 +43,8 @@ An S4 class to hold results from proportionality analysis.
 \item \code{[}: Method to subset \code{propr} object.
 
 \item \code{$}: Method to subset \code{propr} object.
+
+\item \code{plot}: Method to plot \code{propr} object.
 }}
 \section{Slots}{
 
