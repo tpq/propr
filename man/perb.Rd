@@ -2,7 +2,7 @@
 % Please edit documentation in R/propr-perb.R
 \name{perb}
 \alias{perb}
-\title{Calculate proportionality metric p.}
+\title{Calculate proportionality metric rho.}
 \usage{
 perb(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0),
   iterHow = 1, onlyDistr = FALSE)
@@ -27,9 +27,10 @@ Returns a \code{propr} object.
 \code{perb} returns a \code{propr} object containing measures of proportionality.
 }
 \details{
-Calculates proportionality metric p described in Lovell 2015 and expounded in Erb 2016. Uses
-centered log-ratio transformation of data by default, but will use additive log-ratio transformation
-of data if non-zero \code{ivar} provided.
+Calculates proportionality metric rho described in Lovell 2015 and expounded
+ in Erb 2016. Uses centered log-ratio transformation of data by default,
+ but will use additive log-ratio transformation of data if non-zero
+ \code{ivar} provided.
 }
 \examples{
 randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/propr-backend.R
 \name{proprPerb}
 \alias{proprPerb}
-\title{Calculate proportionality metric p (Erb 2016).}
+\title{Calculate proportionality metric rho (Erb 2016).}
 \usage{
 proprPerb(counts, ivar = 0)
 }
