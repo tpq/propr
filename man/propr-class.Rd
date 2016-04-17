@@ -12,7 +12,7 @@
 \usage{
 \S4method{show}{propr}(object)
 
-\S4method{subset}{propr}(x, subset)
+\S4method{subset}{propr}(x, subset, select)
 
 \S4method{[}{propr}(x, i, j, drop)
 
@@ -23,7 +23,11 @@
 \arguments{
 \item{object, x}{An object of class \code{propr}.}
 
-\item{subset}{Subsets via \code{object@counts[subset, ]}.}
+\item{subset}{Subsets via \code{object@counts[subset, ]}.
+Use this argument to rearrange feature order.}
+
+\item{select}{Subsets via \code{object@counts[, select]}.
+Use this argument to rearrange subject order.}
 
 \item{i, j, drop}{Subsets via \code{object@pairs[i, j, drop]}.}
 
