@@ -23,15 +23,21 @@ setMethod("show", "propr",
 #'
 # #' @param x An object of class \code{propr}.
 #' @param subset Subsets via \code{object@counts[subset, ]}.
+#'  Use this argument to rearrange feature order.
+#' @param select Subsets via \code{object@counts[, select]}.
+#'  Use this argument to rearrange subject order.
 #' @export
 setMethod("subset", signature(x = "propr"),
-          function(x, subset){
-
-            x@counts <- x@counts[subset, ]
-            x@logratio <- x@logratio[subset, ]
-            x@matrix <- x@matrix[subset, subset]
+          function(x, subset, select){
+            
+            if(missing(subset)) subset <- rownames(x@counts)
+            if(missing(select)) select <- colnames(x@counts)
+            
+            x@counts <- x@counts[subset, select]
+            x@logratio <- x@logratio[subset, select]
+            x@matrix <- x@matrix[subset, subset, drop = FALSE]
             x@pairs <- proprPairs(x@matrix)
-
+            
             return(x)
           }
 )
