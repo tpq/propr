@@ -38,7 +38,7 @@ X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
                 c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
 ```
 
-Let $d$ represent any number of features measured across $n$ observations across a binary or continuous event. For example, $n$ could represent subjects differing in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $d$ rows and $n$ columns into a proportionality matrix of $d$ rows and $d$ columns containing a $\phi$ or $\rho$ measurement for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a similarity matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
+Let $d$ represent any number of features measured across $n$ observations across a binary or continuous event. For example, $n$ could represent subjects differing in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $d$ rows and $n$ columns into a proportionality matrix of $d$ rows and $d$ columns containing a $\phi$ or $\rho$ measurement for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
 
 * `@counts` A data.frame. Stores the original "counts matrix" input.
 * `@logratio` A data.frame. Stores the log-ratio transformed "counts matrix".
@@ -54,7 +54,7 @@ rho <- perb(counts, ivar = 0)
 
 ## Subsetting propr objects
 
-We have provided methods for conveniently subsetting objects belonging to the `propr` class. By using the familiar `$` and `[` methods, we can subset the *entire* `propr` object by any of the annotations found in the `@pairs` slot. Alternatively, using the `subset` function, we can subset the *entire* `propr` object by a vector of feature indices or names. In the examples below, we first subset by $\rho > .99$. Then, separately, we subset by the feature names "a" and "b".
+We have provided methods for conveniently subsetting objects belonging to the `propr` class. By using the familiar `$` and `[` methods, we can subset the *entire* `propr` object by any of the annotations found in the `@pairs` slot. Alternatively, using the `subset` function, we can subset the *entire* `propr` object by a vector of feature indices or names. This function also provides a convenient way to re-order feature and subject vectors for downstream visualization. In the examples below, we first subset by $\rho > .99$. Then, separately, we subset by the feature names "a" and "b".
 
 ```{r}
 rho99 <- rho[rho$prop > .99, ]
