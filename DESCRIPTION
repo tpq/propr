@@ -27,5 +27,7 @@ Suggests:
     rmarkdown,
     dendextend,
     ggplot2,
-    ggthemes
+    ggthemes,
+    compositions,
+    testthat
 VignetteBuilder: knitr
