@@ -29,15 +29,15 @@ setMethod("show", "propr",
 #' @export
 setMethod("subset", signature(x = "propr"),
           function(x, subset, select){
-            
+
             if(missing(subset)) subset <- rownames(x@counts)
             if(missing(select)) select <- colnames(x@counts)
-            
+
             x@counts <- x@counts[subset, select]
             x@logratio <- x@logratio[subset, select]
             x@matrix <- x@matrix[subset, subset, drop = FALSE]
             x@pairs <- proprPairs(x@matrix)
-            
+
             return(x)
           }
 )
@@ -129,3 +129,106 @@ setMethod("plot", signature(x = "propr", y = "missing"),
             return(p)
           }
 )
+
+#' @describeIn propr Method to plot \code{propr} object.
+#'
+# #' @param object An object of class \code{propr}.
+# #' @param title A character string. A title for the \code{propr} plot.
+#' @export
+setMethod("heatmap", signature(x = "propr"),
+          function(x, title = "*LR Transformed Heatmap"){
+
+            if(!requireNamespace("ggplot2", quietly = TRUE)){
+              stop("Uh oh! This plot method depends on ggplot2! ",
+                   "Try running: install.packages('ggplot2')")
+            }
+
+            # Melt *lr counts by feature
+            features <- vector("list", nrow(x@logratio))
+            for(i in 1:nrow(x@logratio)){
+
+              features[[i]] <- data.frame("feature" = rownames(x@logratio)[i],
+                                          "subject" = colnames(x@logratio),
+                                          "value" = unlist(x@logratio[i, ]),
+                                          stringsAsFactors = FALSE)
+            }
+
+            # Heatmap *lr counts
+            df <- do.call(rbind, features)
+            df$feature <- factor(df$feature, levels = unique(df$feature))
+            df$subject <- factor(df$subject, levels = unique(df$subject))
+            valMin <- floor(min(df$value))
+            valMax <- ceiling(max(df$value))
+
+            # Plot *lr for each subject
+            p <- ggplot2::ggplot(ggplot2::aes(x = subject, y = feature), data = df) +
+              ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+              ggplot2::scale_fill_gradient2(name = "Scaled *LR Expression",
+                                            # low = "grey0", high = "grey70", mid = "grey35",
+                                            low = "yellow", high = "red", mid = "orange",
+                                            midpoint = 0,
+                                            limit = c(valMin, valMax),
+                                            breaks = seq(valMin, valMax)) +
+              ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                             axis.title.y = ggplot2::element_blank(),
+                             axis.text.y = ggplot2::element_blank(),
+                             panel.grid.major = ggplot2::element_blank(),
+                             panel.border = ggplot2::element_blank(),
+                             panel.background = ggplot2::element_blank(),
+                             axis.ticks = ggplot2::element_blank(),
+                             legend.position = "bottom") +
+              ggplot2::ggtitle(title)
+            plot(p)
+
+            return(p)
+          }
+)
+
+#' @describeIn propr Method to plot \code{propr} object.
+#'
+# #' @param object An object of class \code{propr}.
+# #' @param title A character string. A title for the \code{propr} plot.
+#' @param group A character or numeric vector. Supply feature groups for coloring.
+#'  Feature groups expected in the order they appear in \code{@@counts}.
+#' @export
+dendrogram <- function(object, title = "Proportional Clusters", group){
+
+  if(!requireNamespace("dendextend", quietly = TRUE)){
+    stop("Uh oh! This plot method depends on dendextend! ",
+         "Try running: install.packages('dendextend')")
+  }
+
+  if(object@matrix[1, 1] == 0){
+
+    # Convert phi into dist matrix
+    dist <- as.dist(object@matrix)
+
+  }else if(object@matrix[1, 1] == 1){
+
+    # Convert rho into dist matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dist <- as.dist(1 - abs(object@matirx))
+  }
+
+  # Align features with groups in data.frame
+  if(missing(group)) group <- 1
+  colorKey <- data.frame("feature" = colnames(object@matrix),
+                         "group" = group, "color" = NA,
+                         stringsAsFactors = FALSE)
+
+  # Assign 'n' colors based on 'n' groups
+  grps <- unique(colorKey$group)
+  colors <- rainbow(length(grps))
+  for(i in 1:length(grps)){
+
+    colorKey[colorKey$group == grps[i], "color"] <- colors[i]
+  }
+
+  # Build tree and color branches
+  dend <- as.dendrogram(hclust(dist))
+  dendextend::labels_colors(dend) <- colorKey$color[order.dendrogram(dend)]
+  plot(dend, main = title)
+
+  return(dend)
+}
