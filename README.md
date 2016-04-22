@@ -23,8 +23,7 @@ data.absolute <- t(X) # Sets features as rows
 data.relative <- data.absolute / colSums(data.absolute)
 ```
 
-Calculate φ
------------
+### Calculate φ
 
 ``` r
 phi <- phit(data.relative)
@@ -54,8 +53,7 @@ phi@pairs
     ## 5        a        c 4.030168000
     ## 6        a        d 4.094198403
 
-Calculate ρ
------------
+### Calculate ρ
 
 ``` r
 rho <- perb(data.relative)
@@ -85,8 +83,7 @@ rho@pairs
     ## 5        a        d -0.9954194
     ## 6        c        d  0.9905436
 
-References
-----------
+### References
 
 1.  Erb, I. & Notredame, C. 2016. How should we measure proportionality on relative gene expression data? Theory Biosci.
 
