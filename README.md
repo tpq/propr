@@ -4,7 +4,7 @@ Quick start
 
 Welcome to the `propr` GitHub page!
 
-The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, \[$\phi\]$ and \(\rho\), introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
+The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, φ and ρ, introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
 
 ``` r
 library(devtools)
@@ -12,7 +12,7 @@ devtools::install_github("tpq/propr")
 library(propr)
 ```
 
-The principal functions in `propr` include: (1) `phit`, for the calculation of \(\phi\), and (2) `perb`, for the calculation of \(\rho\). In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and also pairwise. We refer you to the official vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
+The principal functions in `propr` include: (1) `phit`, for the calculation of φ, and (2) `perb`, for the calculation of ρ. In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and also pairwise. We refer you to the official vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
 
 ``` r
 set.seed(12345)
@@ -23,8 +23,8 @@ data.absolute <- t(X) # Sets features as rows
 data.relative <- data.absolute / colSums(data.absolute)
 ```
 
-Calculate \(\phi\)
-------------------
+Calculate φ
+-----------
 
 ``` r
 phi <- phit(data.relative)
@@ -54,8 +54,8 @@ phi@pairs
     ## 5        a        c 4.030168000
     ## 6        a        d 4.094198403
 
-Calculate \(\rho\)
-------------------
+Calculate ρ
+-----------
 
 ``` r
 rho <- perb(data.relative)
@@ -88,6 +88,6 @@ rho@pairs
 References
 ----------
 
-<sup>1</sup> Erb, I. & Notredame, C. How should we measure proportionality on relative gene expression data? Theory Biosci. (2016). <doi:10.1007/s12064-015-0220-8>
+1.  Erb, I. & Notredame, C. 2016. How should we measure proportionality on relative gene expression data? Theory Biosci.
 
-<sup>2</sup> Lovell, D., Pawlowsky-Glahn, V., Egozcue, J. J., Marguerat, S. & Bähler, J. Proportionality: A Valid Alternative to Correlation for Relative Data. PLoS Comput Biol 11, (2015).
+2.  Lovell, D., et al. 2015. Proportionality: A Valid Alternative to Correlation for Relative Data. PLoS Comput Biol 11.
