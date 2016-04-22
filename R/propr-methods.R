@@ -52,11 +52,11 @@ setMethod('[', signature(x = "propr"),
 
             if(!missing(j)){
 
-              return(x@pairs[i, j, drop])
+              return(x@pairs[i, j, drop = drop])
 
             }else{
 
-              x@pairs <- x@pairs[i, j, drop]
+              x@pairs <- x@pairs[i, j, drop = drop]
               index <- unique(c(x@pairs$feature1, x@pairs$feature2))
               x@matrix <- x@matrix[index, index]
               x@logratio <- x@logratio[index, ]
