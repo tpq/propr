@@ -4,17 +4,11 @@ Quick start
 
 Welcome to the `propr` GitHub page!
 
-The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, $\phi$ and $\rho$, introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
+The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, \[$\phi\]$ and \(\rho\), introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
 
 ``` r
 library(devtools)
 devtools::install_github("tpq/propr")
-```
-
-    ## Skipping install for github remote, the SHA1 (bb8c2738) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
-
-``` r
 library(propr)
 ```
 
@@ -94,6 +88,6 @@ rho@pairs
 References
 ----------
 
-<sup>1</sup> Erb, Ionas, and Cedric Notredame. “How Should We Measure Proportionality on Relative Gene Expression Data?” Theory in Biosciences = Theorie in Den Biowissenschaften, January 13, 2016. <doi:10.1007/s12064-015-0220-8>.
+<sup>1</sup> Erb, I. & Notredame, C. How should we measure proportionality on relative gene expression data? Theory Biosci. (2016). <doi:10.1007/s12064-015-0220-8>
 
-<sup>2</sup> Lovell, David, Vera Pawlowsky-Glahn, Juan José Egozcue, Samuel Marguerat, and Jürg Bähler. “Proportionality: A Valid Alternative to Correlation for Relative Data.” PLoS Computational Biology 11, no. 3 (March 16, 2015). <doi:10.1371/journal.pcbi.1004075>.
+<sup>2</sup> Lovell, D., Pawlowsky-Glahn, V., Egozcue, J. J., Marguerat, S. & Bähler, J. Proportionality: A Valid Alternative to Correlation for Relative Data. PLoS Comput Biol 11, (2015).
