@@ -11,14 +11,14 @@ library(devtools)
 devtools::install_github("tpq/propr")
 ```
 
-    ## Skipping install for github remote, the SHA1 (b1658bc8) has not changed since last install.
+    ## Skipping install for github remote, the SHA1 (62e70934) has not changed since last install.
     ##   Use `force = TRUE` to force installation
 
 ``` r
 library(propr)
 ```
 
-The principal functions in `propr` include: (1) `phit`, for the calculation of \(\phi\), and (2) `perb`, for the calculation of \(\rho\). In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and also pairwise. We refer you to the official vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
+The principal functions in `propr` include: (1) `phit`, for the calculation of , and (2) `perb`, for the calculation of . In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and also pairwise. We refer you to the official vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
 
 ``` r
 set.seed(12345)
@@ -28,6 +28,9 @@ X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
 data.absolute <- t(X) # set features as rows...
 data.relative <- data.absolute / colSums(data.absolute)
 ```
+
+Calculate 
+----------
 
 ``` r
 phi <- phit(data.relative)
@@ -56,6 +59,9 @@ phi@pairs
     ## 4        b        d 3.975472865
     ## 5        a        c 4.030168000
     ## 6        a        d 4.094198403
+
+Calculate 
+----------
 
 ``` r
 rho <- perb(data.relative)
@@ -88,6 +94,6 @@ rho@pairs
 References
 ----------
 
-\(^1\) Erb, Ionas, and Cedric Notredame. “How Should We Measure Proportionality on Relative Gene Expression Data?” Theory in Biosciences = Theorie in Den Biowissenschaften, January 13, 2016. <doi:10.1007/s12064-015-0220-8>.
+^1 Erb, Ionas, and Cedric Notredame. “How Should We Measure Proportionality on Relative Gene Expression Data?” Theory in Biosciences = Theorie in Den Biowissenschaften, January 13, 2016. <doi:10.1007/s12064-015-0220-8>.
 
-\(^2\) Lovell, David, Vera Pawlowsky-Glahn, Juan José Egozcue, Samuel Marguerat, and Jürg Bähler. “Proportionality: A Valid Alternative to Correlation for Relative Data.” PLoS Computational Biology 11, no. 3 (March 16, 2015). <doi:10.1371/journal.pcbi.1004075>.
+^2 Lovell, David, Vera Pawlowsky-Glahn, Juan José Egozcue, Samuel Marguerat, and Jürg Bähler. “Proportionality: A Valid Alternative to Correlation for Relative Data.” PLoS Computational Biology 11, no. 3 (March 16, 2015). <doi:10.1371/journal.pcbi.1004075>.
