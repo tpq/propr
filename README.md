@@ -4,7 +4,7 @@ Quick start
 
 Welcome to the `propr` GitHub page!
 
-The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, $\\phi$ and $\\rho$, introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
+The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, this approach lacks statistical validity when applied to relative count data. This might include, for example, those biological data produced by microarray assays or high-throughput RNA-sequencing. This package provides a set of functions for evaluating co-expression between relative features using compositional data analysis. Specifically, this package implements two measures of *proportionality*, $\phi$ and $\rho$, introduced in Lovell 2015 and expounded in Erb 2016. You can get started with `propr` by installing the most up-to-date version of this package directly from GitHub.
 
 ``` r
 library(devtools)
