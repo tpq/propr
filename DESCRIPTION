@@ -4,9 +4,9 @@ Version: 0.0.0.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
-  person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
-  person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut")
-  )
+    person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
+    person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut")
+    )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation based analyses. However, this approach lacks statistical validity
     when applied to relative data including those biological data produced by
@@ -17,11 +17,12 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
     on another proportionality metric, rho. This package introduces a programmatic
     framework for the calculation of differential gene co-expression using the
     compositional data methods introduced in the cited publications.
-Depends:
-    R (>= 3.2.2)
 License: GPL-2
 LazyData: true
+VignetteBuilder: knitr
 RoxygenNote: 5.0.1
+Depends:
+    R (>= 3.2.2)
 Suggests:
     knitr,
     rmarkdown,
@@ -30,4 +31,3 @@ Suggests:
     ggthemes,
     compositions,
     testthat
-VignetteBuilder: knitr
