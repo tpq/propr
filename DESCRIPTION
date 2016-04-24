@@ -24,10 +24,10 @@ RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.2)
 Suggests:
-    knitr,
-    rmarkdown,
+    compositions,
     dendextend,
     ggplot2,
     ggthemes,
-    compositions,
+    knitr,
+    rmarkdown,
     testthat
