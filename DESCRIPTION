@@ -23,12 +23,13 @@ VignetteBuilder: knitr
 RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.2)
+Imports:
+    methods
 Suggests:
     compositions,
     dendextend,
     ggplot2,
     ggthemes,
     knitr,
-    methods,
     rmarkdown,
     testthat
