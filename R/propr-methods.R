@@ -92,6 +92,7 @@ setMethod('$', signature(x = "propr"),
 #' \code{plot:} Method to plot \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
+#' @param y Missing. Ignore. Leftover from the generic method definition.
 #' @param title A character string. A title for the \code{propr} plot.
 #' @export
 setMethod("plot", signature(x = "propr", y = "missing"),

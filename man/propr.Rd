@@ -39,6 +39,8 @@ Use this argument to rearrange subject order.}
 
 \item{name}{Subsets via \code{object@pairs[, name]}.}
 
+\item{y}{Missing. Ignore. Leftover from the generic method definition.}
+
 \item{title}{A character string. A title for the \code{propr} plot.}
 
 \item{group}{A character or numeric vector. Supply feature groups for coloring.

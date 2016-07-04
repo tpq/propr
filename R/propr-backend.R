@@ -31,6 +31,7 @@ proprPhit <- function(counts, symmetrize = TRUE){
 #'
 #' Provided for backend use.
 #'
+#' @inheritParams phit
 #' @inheritParams perb
 #' @return Returns proportionality matrix.
 proprPerb <- function(counts, ivar = 0){

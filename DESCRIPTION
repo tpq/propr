@@ -29,5 +29,6 @@ Suggests:
     ggplot2,
     ggthemes,
     knitr,
+    methods,
     rmarkdown,
     testthat

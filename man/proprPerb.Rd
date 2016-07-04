@@ -7,6 +7,8 @@
 proprPerb(counts, ivar = 0)
 }
 \arguments{
+\item{counts}{A data.frame or matrix. See "count matrix" described in \code{\link{phit}} function details.}
+
 \item{ivar}{A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.}
 }
 \value{
