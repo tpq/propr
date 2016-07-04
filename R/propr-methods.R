@@ -144,16 +144,16 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 
 #' @rdname propr
 #' @section Methods (by generic):
-#' \code{heatmap:} Method to plot \code{propr} object.
+#' \code{image:} Method to plot \code{propr} object.
 #'
 #' @param cexRow Numeric. Size of x-axis label.
 #' @param cexCol Numeric. Size of y-axis label.
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
-#' @importFrom stats heatmap
+#' @importFrom stats graphics
 #' @export
-setMethod("heatmap", signature(x = "propr"),
-          function(x, cexRow = 10, cexCol = 10, title = "*LR Transformed Heatmap"){
+setMethod("image", signature(x = "propr"),
+          function(x, cexRow = 10, cexCol = 10, title = "*LR Transformed Image"){
 
             if(!requireNamespace("ggplot2", quietly = TRUE)){
               stop("Uh oh! This plot method depends on ggplot2! ",
@@ -170,7 +170,7 @@ setMethod("heatmap", signature(x = "propr"),
                                           stringsAsFactors = FALSE)
             }
 
-            # Heatmap *lr counts
+            # Image *lr counts
             df <- do.call(rbind, features)
             df$feature <- factor(df$feature, levels = unique(df$feature))
             df$subject <- factor(df$subject, levels = unique(df$subject))

@@ -5,7 +5,7 @@
 \alias{$,propr-method}
 \alias{[,propr-method}
 \alias{dendrogram}
-\alias{heatmap,propr-method}
+\alias{image,propr-method}
 \alias{plot,propr,missing-method}
 \alias{propr}
 \alias{show,propr-method}
@@ -22,8 +22,8 @@
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 
-\S4method{heatmap}{propr}(x, cexRow = 10, cexCol = 10,
-  title = "*LR Transformed Heatmap")
+\S4method{image}{propr}(x, cexRow = 10, cexCol = 10,
+  title = "*LR Transformed Image")
 
 dendrogram(object, title = "Proportional Clusters", group)
 }
@@ -83,7 +83,7 @@ To learn more about \code{propr} class methods, see below.
 \code{plot:} Method to plot \code{propr} object.
 
 
-\code{heatmap:} Method to plot \code{propr} object.
+\code{image:} Method to plot \code{propr} object.
 
 
 \code{plot:} Method to plot \code{propr} object.
