@@ -150,7 +150,6 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 #' @param cexCol Numeric. Size of y-axis label.
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
-#' @importFrom stats graphics
 #' @export
 setMethod("image", signature(x = "propr"),
           function(x, cexRow = 10, cexCol = 10, title = "*LR Transformed Image"){
