@@ -11,25 +11,29 @@ vignette: >
 
 ## Introduction
 
-The bioinformatic evaluation of gene co-expression often begins with correlation based analyses. However, as demonstrated thoroughly elsewhere, this approach lacks statistical validity when applied to relative data (Lovell 2015). This can include those biological data produced by microarray assays or high-throughput RNA-sequencing. As an alternative, Lovell et al propose a *proportionality* metric, $\phi$, derived from compositional data analysis, a branch of math dealing specifically with relative data. A subsequent publication expounded these efforts by elaborating on another *proportionality* metric, $\rho$ (Erb 2016). This package introduces a programmatic framework for the calculation of differential gene co-expression using the compositional data methods presented in the referenced publications.
+The bioinformatic evaluation of gene co-expression often begins with correlation-based analyses. However, as demonstrated thoroughly in a recent publication, this approach lacks statistical validity when applied to relative data (Lovell 2015). These data typify some of the most frequently studied biological data, including count data produced by microarray assays or high-throughput RNA-sequencing. As an alternative to correlation, Lovell et al propose a *proportionality* metric, $\phi$, as derived from compositional data (CoDa) analysis. A subsequent publication expounded these efforts by elaborating on another *proportionality* metric, $\rho$ (Erb 2016). This package introduces a programmatic framework for the calculation of differential gene co-expression using the compositional data methods presented in the referenced publications.
+
+Let $A_i$ and $A_j$ each represent a log-ratio transformed feature vector (e.g., a transformed vector of $d$ gene values measured across $n$ conditions). We then define the metrics $\phi$ and $\rho$ accordingly:
 
 $$\phi(A_i, A_j) = \frac{var(A_i - A_j)}{var(A_i)}$$
 
 $$\rho(A_i, A_j) = 1 - \frac{var(A_i - A_j)}{var(A_i) + var(A_j)}$$
 
-In the above formulae, we let $A_i$ and $A_j$ each represent a log-ratio transformed feature vector (e.g., a vector of $d$ gene values measured across $n$ conditions). Log-ratio transformation provides a means by which to normalize data in a manner that respects the nature of relative data. In other words, log-ratio transformation yields the *same* result whether applied to absolute or relative data.
-
-In this package, we make use two log-ratio transformations, the *centered log-ratio transformation* (clr) and the *additive log-ratio transformation* (alr). Although these transformations differ in definition, we sometimes will refer to them jointly using the acronym ***lr**. In clr-transformation, sample vectors undergo normalization based on the logarithm of the ratio between the individual elements and the geometric mean of the vector, $g(\textrm{x}) = \sqrt[D]{x_i...x_D}$. In alr-transformation, sample vectors undergo normalization based on the logarithm of the rato between the individual elements and chosen reference feature.
+In the definition above, we use the log-ratio transformation as a means by which to normalize data in a manner that respects the nature of relative data. In other words, log-ratio transformation yields the *same* result whether applied to absolute or relative data. In this package, we consider two log-ratio transformations of the feature vector $x$, the *centered log-ratio transformation* (clr) and the *additive log-ratio transformation* (alr). We define the metrics $clr(x)$ and $alr(x)$ accordingly:
 
 $$\textrm{clr(x)} = \left[\ln\frac{x_i}{g(\textrm{x})};...;\ln\frac{x_D}{g(\textrm{x})}\right]$$
 
 $$\textrm{alr(x)} = \left[\ln\frac{x_i}{x_D};...;\ln\frac{x_{D-1}}{x_D}\right]$$
 
-The first difference between $\phi$ and $\rho$ is scale. The values of $\phi$ range from $[0, \infty)$, with lower $\phi$ values indicating more proportionality. The values of $\rho$ range from $[-1, 1]$, with greater $|\rho|$ values indicating more proportionality and negative $\rho$ values indicating inverse proportionality. A second difference is that $\phi$ lacks symmetry. However, one can force symmetry by reflecting the lower left triangle of the matrix across the diagonal with the argument `symmetrize = TRUE`. A third difference is that $\rho$ corrects for the individual variance of each feature in the pair, rather than for just one.
+In clr-transformation, sample vectors undergo normalization based on the logarithm of the ratio between the individual elements and the geometric mean of the vector, $g(\textrm{x}) = \sqrt[D]{x_i...x_D}$. In alr-transformation, sample vectors undergo normalization based on the logarithm of the rato between the individual elements and chosen reference feature. Although these transformations differ in definition, we will sometimes will refer to them jointly using the acronym ***lr**.
 
 ## Calculating proportionality
 
-We provide two principal functions for calculating proportionality. The first function, `phit`, implements the calculation of $\phi$ described in Lovell et al (2015). This function makes use of clr transformation exclusively. The second function, `perb`, implements the calculation of $\rho$ described initially in Lovell et al (2015) and expounded by Erb and Notredame (2016). This function makes use of either clr or alr transformation. For now, we will focus on the implementations using clr transformation, saving a discussion of alr transformation for later. Let us begin by building an arbitrary dataset of 4 features (e.g., genes) measured across 100 subjects. In this example dataset, feature pairs "a" and "b" will show proportional change and also feature pairs "c" and "d".
+We provide two principal functions for calculating proportionality. The first function, `phit`, implements the calculation of $\phi$ described in Lovell et al (2015). This function makes use of clr transformation exclusively. The second function, `perb`, implements the calculation of $\rho$ described initially in Lovell et al (2015) and expounded by Erb and Notredame (2016). This function makes use of either clr or alr transformation.
+
+The first difference between $\phi$ and $\rho$ is scale. The values of $\phi$ range from $[0, \infty)$, with lower $\phi$ values indicating more proportionality. The values of $\rho$ range from $[-1, 1]$, with greater $|\rho|$ values indicating more proportionality and negative $\rho$ values indicating inverse proportionality. A second difference is that $\phi$ lacks symmetry. However, one can force symmetry by reflecting the lower left triangle of the matrix across the diagonal with the argument `symmetrize = TRUE`. A third difference is that $\rho$ corrects for the individual variance of each feature in the pair, rather than for just one.
+
+For now, we will explore just the implementations using clr transformation, saving a discussion of alr transformation for later. Let us begin by building an arbitrary dataset of 4 features (e.g., genes) measured across 100 subjects. In this example dataset, feature pairs "a" and "b" will show proportional change and also feature pairs "c" and "d".
 
 ```{r}
 set.seed(12345)
@@ -38,12 +42,12 @@ X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
                 c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
 ```
 
-Let $d$ represent any number of features measured across $n$ observations across a binary or continuous event. For example, $n$ could represent subjects differing in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $d$ rows and $n$ columns into a proportionality matrix of $d$ rows and $d$ columns containing a $\phi$ or $\rho$ measurement for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
+Let $d$ represent any number of features measured across $n$ observations undergoing a binary or continuous event $E$. For example, $n$ could represent subjects differing in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $d$ rows and $n$ columns into a proportionality matrix of $d$ rows and $d$ columns containing a $\phi$ or $\rho$ measurement for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
 
 * `@counts` A data.frame. Stores the original "counts matrix" input.
 * `@logratio` A data.frame. Stores the log-ratio transformed "counts matrix".
 * `@matrix` A matrix. Stores the proportionality matrix calculated by `phit` or `perb`.
-* `@slot` pairs A data.frame. Projects the proportionality matrix pairwise.
+* `@pairs` A data.frame. Projects the proportionality matrix pairwise.
 
 ```{r}
 counts <- t(X)
@@ -54,7 +58,7 @@ rho <- perb(counts, ivar = 0)
 
 ## Subsetting propr objects
 
-We have provided methods for conveniently subsetting objects belonging to the `propr` class. By using the familiar `$` and `[` methods, we can subset the *entire* `propr` object by any of the annotations found in the `@pairs` slot. Alternatively, using the `subset` function, we can subset the *entire* `propr` object by a vector of feature indices or names. This function also provides a convenient way to re-order feature and subject vectors for downstream visualization. In the examples below, we first subset by $\rho > .99$. Then, separately, we subset by the feature names "a" and "b".
+We have provided methods for conveniently subsetting objects belonging to the `propr` class. By using the familiar `$` and `[` methods, we can subset the *entire* `propr` object by any of the annotations found in the `@pairs` slot. Alternatively, using the `subset` method, we can subset the *entire* `propr` object by a vector of feature indices or names. This latter method also provides a convenient way to re-order feature and subject vectors for downstream visualization. In the examples below, we first subset by $\rho > .99$. Then, separately, we subset by the feature names "a" and "b".
 
 ```{r}
 rho99 <- rho[rho$prop > .99, ]
@@ -65,7 +69,7 @@ rho99@pairs
 rhoab <- subset(rho, c("a", "b"))
 rhoab@matrix
 ```
-
+<!--
 ## Empiric distributions
 
 The proportionality metrics generated by the `phit` and `perb` functions do not permit an easy interpretation of "How proportional is proportional enough?". For this reason, we include an option to generate a null distribution of proportionality metrics through the randomization of feature (e.g., gene) vectors. Effectively, this yields a kernel density function that estimates how likely `propr` would measure that degree of proportionality by chance alone. In its implementation, these empiric distributions consider only the absolute value of the proportionality metrics calculated by `perb`.
@@ -80,18 +84,19 @@ prop <- phit(counts, symmetrize = FALSE, iter = 50, iterSize = 500)
 sum(prop$pval < .01) # 20,422 pairs show rare proportionality
 sum(prop$fdr < .01) # ...but none survive FDR correction
 ```
+-->
 
 ## Visualizing pairs
 
 Each feature (e.g., gene) belonging to a highly proportional data pair should show approximately linearly correlated log-ratio transformed expression with one another across all subjects. The method `plot` provides a means by which to visually inspect whether this holds true. This function will plot **all** pairs in the `@pairs` slot. Therefore, we strongly recommend the user first subset the `propr` object before plotting. "Noisy" correlation between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
 
-```{r}
+```{r, fig.show = "hold", fig.keep = "last"}
 plot(rho[rho$prop > .99, ])
 ```
 
 ## Computational burden
 
-Calculating proportionality metrics, whether or not in conjunction with empiric distributions, necessarily uses a lot of RAM when applied to real biological data. Both microarray technology and high-throughput genomic sequencing have the ability to measure tens of thousands of features for each subject. The calculation of proportionality requires manipulating a matrix sized $d^2$. Below, we provide a small table that estimates the approximate amount of peak RAM needed based on the number of feature.
+Calculating proportionality metrics<!--, whether or not in conjunction with empiric distributions, necessarily--> uses a lot of RAM when applied to real biological datasets. Both microarray technology and high-throughput genomic sequencing have the ability to measure tens of thousands of features for each subject. The calculation of proportionality requires manipulating a matrix sized $d^2$. Below, we provide a small table that estimates the approximate amount of peak RAM needed based on the number of feature.
 
 | Features | Peak RAM (Mb)|
 |---------:|-------------:|
@@ -105,9 +110,9 @@ Calculating proportionality metrics, whether or not in conjunction with empiric 
 |64000   	 |192,276       |
 |100000    |466,940       |
 
-## Additive log-ratio
+## Limitations
 
-We recognize that this package utilizes concepts largely unintuitive to many. Since log-ratio transformations of relative data comprise a major portion of proportionality analysis, we decided to dedicate some extra space to this topic specifically. In this section, we will introduce the **additive log-ratio** (alr) and its intrinsic advantages. First, however, we will begin by making some count data for 5 features (e.g., genes) labelled "a", "b", "c", "d", and "e", as measured across 100 subjects.
+We recognize that this package utilizes concepts largely unintuitive to many. Since log-ratio transformations of relative data comprise a major portion of proportionality analysis, we decided to dedicate some extra space to this topic specifically. In this section, we will present the **additive log-ratio** (alr) and its intrinsic advantages. First, however, we begin by making some count data for 5 features (e.g., genes) labelled "a", "b", "c", "d", and "e", as measured across 100 subjects.
 
 ```{r}
 N <- 100
@@ -119,67 +124,118 @@ e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 ```
 
-Let us assume that these data `X` represent absolute abundance counts (i.e., not relative data). The following figures compare the absolute count data scatterplots with the corresponding relative count data scatterplots. We see quickly how these relative data yields *spurious correlation*. Although genes "c" and "d" do not correlate with one another absolutely, their relative quantities do.
+Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset $Y$ by distorting $X$ accordingly:
+
+```{r}
+Y <- X / rowSums(X) * abs(rnorm(N))
+```
+
+As a sanity check, we quickly validate that the new feature vectors contain the appropriate relative quantities by calculating the ratio of the second element to the first for both the absolute and relative datasets.
+
+```{r}
+all(round(X[, 2] / X[, 1] - Y[, 2] / Y[, 1], 5) == 0)
+```
+
+The following figures compare the absolute count data scatterplots with the corresponding relative count data scatterplots. We see quickly how these relative data yields *spurious correlation*. Although genes "c" and "d" do not correlate with one another absolutely, their relative quantities do.
 
 ```{r, fig.show = "hold"}
 pairs(X)
-pairs(X / rowSums(X))
+pairs(Y)
 ```
 
 Likewise, if we did calculate correlation directly, we would discover that the correlation coefficients differ for absolute and relative data. Here, we see numerically how relative data can yield spurious correlation.
 
 ```{r}
 cor(X)
-cor(X / rowSums(X))
+cor(Y)
 ```
 
-By calculating the **variance of the log-ratios** (vlr), we arrive at a single measure of covariation that does not change with respect to the use of absolute or relative data. This vlr constitutes the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric also.
+However, by calculating the **variance of the log-ratios** (vlr), we arrive at a single measure of covariation that does not change with respect to the nature of the data (i.e., absolute or relative), or with respect to the number of features included in the computation. The vlr, constituting the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric as well, is therefore called *sub-compositionally coherent*. Although vlr yields valid results for compositional data, it lacks a meaningful scale.
 
 ```{r}
+propr:::proprVLR(Y[, 1:4])
 propr:::proprVLR(X)
-propr:::proprVLR(X / rowSums(X))
 ```
 
-In the same way, transforming a counts matrix using the **centered log-ratio** (clr) makes the data *subcompositionally coherent* (i.e., equivalent for absolute and relative data types). When calculating proportionality, we use (by default) the variance about the clr-transformed data to normalize the variance of the log-ratios (vlr) by the variance of its individual constituents. In this way, the use of clr-transformed data shifts the vlr-matrix onto a "standardized" scale that compares across all feature pairs. However, it does not guard against the possibility of *spurious proportionality*. In the next figures, we compare log-ratio transformed absolute count data scatterplots with the corresponding log-transformed relative count data scatterplots. While equivalent, we see a relationship between "c" and "d" that should not exist, and one that is ultimately reflected (at least partially) in the results of `phit` and `perb` alike.
+Similarly, transforming a counts matrix using the **centered log-ratio** (clr) also makes the data *sub-compositionally coherent*. When calculating proportionality, we essentially use the variance about the clr-transformed data to normalize the variance of the log-ratios (vlr). In other words, we adjust the arbitrarily defined vlr by the variance of its individual constituents. In this way, the use of clr-transformed data shifts the vlr-matrix onto a "standardized" scale that compares across all feature pairs.
+
+In the next figures, we compare log-ratio transformed absolute count data scatterplots with four compositions of the corresponding log-transformed relative count data scatterplots. While equivalent, we see a relationship between "c" and "d" that should not exist, and one that is ultimately reflected (at least partially) in the results of `phit` and `perb` alike.
 
 ```{r, fig.show = "hold"}
+pairs(propr:::proprCLR(Y[, 1:4]))
 pairs(propr:::proprCLR(X))
-pairs(propr:::proprCLR(X / rowSums(X)))
+```
+
+Therefore, these proportionality metrics do not guard against the possibility of *spurious proportionality*. Moreover, the division of the vlr by the clr lacks *sub-compositional coherence*. As such, neither $\phi$ nor $\rho$, at least when calculated using clr, yield the same result for absolute and relative data.
+
+```{r}
+phit(t(Y[, 1:4]))@matrix
+phit(t(X))@matrix
 ```
 
 ```{r}
-phi <- phit(t(X))
-phi@matrix
-rho <- perb(t(X))
-rho@matrix
+perb(t(Y[, 1:4]))@matrix
+perb(t(X))@matrix
 ```
 
-With the **additive log-ratio** (alr), instead of using the geometric mean of the composition as the denominator, we select the value of one its components to use as a *reference*. If we select this reference as a feature (e.g., gene) with an *a priori* known fixed absolute count across all subjects, we can actually "back-calculate" absolute data from relative data. When crafting the data `X`, we included "e" as a fixed constant. Let us perform alr-transformation of the relative data with "e" as the reference. We will see in this figure that the spurious correlation between "c" and "d" disappears. Again, this gets reflected in the results of `perb`, when we select "e" as the reference.
+The reader should note that in this contrived example, $\phi(X)$ can equal $\phi(Y)$ if and only if *every* composition (i.e., feature vector) of $Y$ is available for the computation. The equivalency occurs when the sum of the feature parts in $Y$ can explain the whole of each subject. This is rarely the case when studying biological count data and alone does not imply *sub-compositional coherence*.
+
+## Additive log-ratio
+
+Unlike the **centered log-ratio** (clr) which corrects each subject vector by the geometric mean of that vector, the **additive log-ratio** (alr) corrects each subject vector by the value of one its own components, chosen as a *reference*. If we select as a reference some feature (e.g., gene), $D$, with an *a priori* known fixed absolute count across all subjects, we can effectively "back-calculate" absolute data from relative data. When initially crafting the data $X$, we included "e" as this fixed value.
+
+Below, we perform alr-transformation of the relative data, $Y$, with "e" as the reference. We will see in this figure that the spurious correlation between "c" and "d" disappears. Again, this gets reflected in the results of `perb` when we select "e" as the reference.
 
 ```{r}
-X.alr <- propr:::proprALR(X / rowSums(X), ivar = 5)
+Y.alr <- propr:::proprALR(Y, ivar = 5)
+pairs(Y.alr)
+```
+
+```{r}
+perb(t(Y), ivar = 5)@matrix
+```
+
+We emphasize here the similarity in the pairwise distributions between the alr-transformed count matrix, $Y$, and the absolute count matrix, $X$.
+
+```{r}
+pairs(X[, 1:4])
+```
+
+Now, let us assume these same data actually measure relative counts. In other words, $X$ is already relative and we do not know the real quantities which correspond to $X$ absolutely. Well, if we knew that "a" represented a known fixed quantity, we could use alr-transformation again to "back-calculate" the absolute abundances. We will see that "c", "d", and "e" actually do have proportional expression under these conditions. Although the measured quantity of "c", "d", and "e" do not change, the measured quantity of the known fixed feature did change. Whenever "a" increased while "c", "d", and "e" remained the same, the latter three features actually had decreased. Since they all decreased together, they acted as a highly proportional module. Again, this gets reflected in the results of `perb` when we select "a" as the reference.
+
+```{r}
+X.alr <- propr:::proprALR(X, ivar = 1)
 pairs(X.alr)
 ```
 
 ```{r}
-rho <- perb(t(X), ivar = 5)
-rho@matrix
+perb(t(X), ivar = 1)@matrix
 ```
 
-Now, let us assume these same data actually measure relative counts. In other words, `X` is already relative and we do not know the real quantities which correspond to `X` absolutely. Well, if we knew that "a" represented a known fixed quantity, we could use alr-transformation again to "back-calculate" the absolute abundances. We will see that "c", "d", and "e" actually do have proportional expression under these conditions. Although the measured quantity of "c", "d", and "e" do not change, the measured quantity of the known fixed feature did change. Whenever "a" increased while "c", "d", and "e" remained the same, the latter three features actually had decreased. Since they all decreased together, they acted as a highly proportional module. Again, this gets reflected in the results of `perb`, when we select "a" as the reference.
+Resuming our initial claim that the matrix $X$ contains absolute count data while the matrix $Y$ contains relative count data, we can show that alr-transformation not only corrects for *spurious proportionality*, but it also serves as a *sub-compositionally coherent* metric of co-variation. However, unlike the aforementioned vlr, $\rho$ has a meaningful scale. In the example below, we calculate $\rho$ using the alr-transformation about the reference "e" for four compositions of the relative count matrix, $Y$, as well as for the absolute count matrix, $X$. We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ yields identical results regardless of the nature of the data explored.
 
 ```{r}
-X.alr <- propr:::proprALR(X / rowSums(X), ivar = 1)
-pairs(X.alr)
+perb(t(Y[, 2:5]), ivar = 4)@pairs
+perb(t(X), ivar = 5)@pairs
 ```
 
-```{r}
-rho <- perb(t(X), ivar = 1)
-rho@matrix
-```
-
+Of course, this assumes that one can know a fixed absolute count across all subjects.
+<!--
 ## Experimental design
 
 [spike-in discussion here]
 
 [data-driven nature here]
+-->
+
+## Caveats
+
+Although we developed this package with biological data in mind, many of ostensibly compositional biological datasets do not behave in a truly compositional manner. For example, in the setting of gene expression data, measuring the expression of "Gene A" as 1 and the expression of "Gene B" as 2 in one subject (i.e., the feature vector $[1, 2]$), does not carry the same information as measuring the expression of "Gene A" as 1000 and the expression of "Gene B" as 2000 in another subject (i.e., the feature vector $[1000, 2000]$). As such, these data do not strictly meet the criteria for compositional data.
+
+Unfortunately, we do not yet have a model to adequately address this drawback. Therefore, we advise the investigator to proceed with caution when working with such "count compositional" data.
+
+## References
+
+1. Erb, I. & Notredame, C. 2016. How should we measure proportionality on relative gene expression data? Theory Biosci.
+
+2. Lovell, D. et al. 2015. Proportionality: A Valid Alternative to Correlation for Relative Data. PLoS Comput Biol 11.
