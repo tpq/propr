@@ -42,4 +42,26 @@ Use this argument to rearrange subject order.}
 \item{group}{A character or numeric vector. Supply feature groups for coloring.
 Feature groups expected in the order they appear in \code{@counts}.}
 }
+\section{Methods (by generic)}{
+
+\code{show:} Method to show \code{propr} object.
+
+
+\code{subset:} Method to subset \code{propr} object.
+
+
+\code{[:} Method to subset \code{propr} object.
+
+
+\code{$:} Method to subset \code{propr} object.
+
+
+\code{plot:} Method to plot \code{propr} object.
+
+
+\code{heatmap:} Method to plot \code{propr} object.
+
+
+\code{plot:} Method to plot \code{propr} object.
+}
 

@@ -1,4 +1,6 @@
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{show:} Method to show \code{propr} object.
 #'
 #' @param object,x An object of class \code{propr}.
 #' @export
@@ -20,6 +22,8 @@ setMethod("show", "propr",
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{subset:} Method to subset \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
 #' @param subset Subsets via \code{object@counts[subset, ]}.
@@ -43,6 +47,8 @@ setMethod("subset", signature(x = "propr"),
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{[:} Method to subset \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
 #' @param i,j,drop Subsets via \code{object@pairs[i, j, drop]}.
@@ -68,6 +74,8 @@ setMethod('[', signature(x = "propr"),
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{$:} Method to subset \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
 #' @param name Subsets via \code{object@pairs[, name]}.
@@ -80,6 +88,8 @@ setMethod('$', signature(x = "propr"),
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{plot:} Method to plot \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
 #' @param title A character string. A title for the \code{propr} plot.
@@ -131,6 +141,8 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{heatmap:} Method to plot \code{propr} object.
 #'
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
@@ -185,6 +197,8 @@ setMethod("heatmap", signature(x = "propr"),
 )
 
 #' @rdname propr
+#' @section Methods (by generic):
+#' \code{plot:} Method to plot \code{propr} object.
 #'
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
