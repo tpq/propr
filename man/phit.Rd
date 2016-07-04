@@ -40,6 +40,6 @@ counts <- matrix(randomNum, nrow = 2000, ncol = 22)
 prop <- phit(counts, symmetrize = TRUE, iter = 0)
 }
 \seealso{
-\code{\link{propr}}, \code{\link{perb}}
+\code{\link{propr}}, \code{\link{propr-class}}, \code{\link{perb}}
 }
 

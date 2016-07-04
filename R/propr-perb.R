@@ -11,7 +11,7 @@
 #' @inheritParams phit
 #' @return Returns a \code{propr} object.
 #'
-#' @seealso \code{\link{propr}}, \code{\link{phit}}
+#' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}
 #'
 #' @examples
 #' randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)
