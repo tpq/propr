@@ -1,5 +1,5 @@
-#' @name fs
-#' @rdname fs
+#' @name propr
+#' @rdname propr
 #'
 #' An S4 class to hold results from proportionality analysis.
 #'
