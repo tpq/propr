@@ -1,3 +1,6 @@
+#' @name fs
+#' @rdname fs
+#'
 #' An S4 class to hold results from proportionality analysis.
 #'
 #' @slot counts A data.frame. Stores the original "counts matrix" input.

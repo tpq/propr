@@ -17,7 +17,7 @@
 #' @param onlyDistr A logical. Provided for backend use. Evokes function to return only \code{ecdf} fit.
 #' @return Returns a \code{propr} object.
 #'
-#' @seealso \code{\link{propr-class}}, \code{\link{perb}}
+#' @seealso \code{\link{propr}}, \code{\link{perb}}
 #'
 #' @examples
 #' randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)

@@ -1,4 +1,4 @@
-#' @describeIn propr Method to show \code{propr} object.
+#' @rdname propr
 #'
 #' @param object,x An object of class \code{propr}.
 #' @export
@@ -19,7 +19,7 @@ setMethod("show", "propr",
           }
 )
 
-#' @describeIn propr Method to subset \code{propr} object.
+#' @rdname propr
 #'
 # #' @param x An object of class \code{propr}.
 #' @param subset Subsets via \code{object@counts[subset, ]}.
@@ -42,7 +42,7 @@ setMethod("subset", signature(x = "propr"),
           }
 )
 
-#' @describeIn propr Method to subset \code{propr} object.
+#' @rdname propr
 #'
 # #' @param x An object of class \code{propr}.
 #' @param i,j,drop Subsets via \code{object@pairs[i, j, drop]}.
@@ -67,7 +67,7 @@ setMethod('[', signature(x = "propr"),
           }
 )
 
-#' @describeIn propr Method to subset \code{propr} object.
+#' @rdname propr
 #'
 # #' @param x An object of class \code{propr}.
 #' @param name Subsets via \code{object@pairs[, name]}.
@@ -79,7 +79,7 @@ setMethod('$', signature(x = "propr"),
           }
 )
 
-#' @describeIn propr Method to plot \code{propr} object.
+#' @rdname propr
 #'
 # #' @param x An object of class \code{propr}.
 #' @param title A character string. A title for the \code{propr} plot.
@@ -130,7 +130,7 @@ setMethod("plot", signature(x = "propr", y = "missing"),
           }
 )
 
-#' @describeIn propr Method to plot \code{propr} object.
+#' @rdname propr
 #'
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
@@ -184,7 +184,7 @@ setMethod("heatmap", signature(x = "propr"),
           }
 )
 
-#' @describeIn propr Method to plot \code{propr} object.
+#' @rdname propr
 #'
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.

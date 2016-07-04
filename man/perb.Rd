@@ -38,6 +38,6 @@ counts <- matrix(randomNum, nrow = 2000, ncol = 22)
 prop <- perb(counts, ivar = 0, iter = 0)
 }
 \seealso{
-\code{\link{propr-class}}, \code{\link{phit}}
+\code{\link{propr}}, \code{\link{phit}}
 }
 
