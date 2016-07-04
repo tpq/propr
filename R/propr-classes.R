@@ -1,6 +1,4 @@
 #' @name propr
-NULL
-
 #' @rdname propr
 #'
 #' An S4 class to hold results from proportionality analysis.
