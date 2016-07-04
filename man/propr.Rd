@@ -22,7 +22,8 @@
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 
-\S4method{heatmap}{propr}(x, title = "*LR Transformed Heatmap")
+\S4method{heatmap}{propr}(x, cexRow = 10, cexCol = 10,
+  title = "*LR Transformed Heatmap")
 
 dendrogram(object, title = "Proportional Clusters", group)
 }
@@ -42,6 +43,10 @@ Use this argument to rearrange subject order.}
 \item{y}{Missing. Ignore. Leftover from the generic method definition.}
 
 \item{title}{A character string. A title for the \code{propr} plot.}
+
+\item{cexRow}{Numeric. Size of x-axis label.}
+
+\item{cexCol}{Numeric. Size of y-axis label.}
 
 \item{group}{A character or numeric vector. Supply feature groups for coloring.
 Feature groups expected in the order they appear in \code{@counts}.}

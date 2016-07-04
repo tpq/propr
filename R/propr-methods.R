@@ -3,6 +3,7 @@
 #' \code{show:} Method to show \code{propr} object.
 #'
 #' @param object,x An object of class \code{propr}.
+#' @importFrom methods show
 #' @export
 setMethod("show", "propr",
           function(object){
@@ -145,11 +146,14 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 #' @section Methods (by generic):
 #' \code{heatmap:} Method to plot \code{propr} object.
 #'
+#' @param cexRow Numeric. Size of x-axis label.
+#' @param cexCol Numeric. Size of y-axis label.
 # #' @param object An object of class \code{propr}.
 # #' @param title A character string. A title for the \code{propr} plot.
+#' @importFrom stats heatmap
 #' @export
 setMethod("heatmap", signature(x = "propr"),
-          function(x, title = "*LR Transformed Heatmap"){
+          function(x, cexRow = 10, cexCol = 10, title = "*LR Transformed Heatmap"){
 
             if(!requireNamespace("ggplot2", quietly = TRUE)){
               stop("Uh oh! This plot method depends on ggplot2! ",
@@ -185,7 +189,8 @@ setMethod("heatmap", signature(x = "propr"),
                                             breaks = seq(valMin, valMax)) +
               ggplot2::theme(axis.title.x = ggplot2::element_blank(),
                              axis.title.y = ggplot2::element_blank(),
-                             axis.text.y = ggplot2::element_blank(),
+                             axis.text.x = ggplot2::element_text(size = cexRow),
+                             axis.text.y = ggplot2::element_text(size = cexCol),
                              panel.grid.major = ggplot2::element_blank(),
                              panel.border = ggplot2::element_blank(),
                              panel.background = ggplot2::element_blank(),
