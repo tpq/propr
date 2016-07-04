@@ -14,9 +14,11 @@
 #' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}
 #'
 #' @examples
-#' randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)
-#' counts <- matrix(randomNum, nrow = 2000, ncol = 22)
+#' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
+#' counts <- matrix(randomNum, nrow = 25, ncol = 10)
 #' prop <- perb(counts, ivar = 0, iter = 0)
+#' @importFrom methods new
+#' @importFrom stats ecdf p.adjust
 #' @export
 perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0), iterHow = 1, onlyDistr = FALSE){
 

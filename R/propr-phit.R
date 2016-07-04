@@ -20,9 +20,11 @@
 #' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{perb}}
 #'
 #' @examples
-#' randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)
-#' counts <- matrix(randomNum, nrow = 2000, ncol = 22)
+#' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
+#' counts <- matrix(randomNum, nrow = 25, ncol = 10)
 #' prop <- phit(counts, symmetrize = TRUE, iter = 0)
+#' @importFrom methods new
+#' @importFrom stats ecdf p.adjust
 #' @export
 phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = nrow(counts), iterHow = 1, onlyDistr = FALSE){
 

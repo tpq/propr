@@ -35,8 +35,8 @@ Let x represent any number of features measured across multiple biological repli
 	as equivalent to a distance matrix, except that it has no symmetry by default.
 }
 \examples{
-randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)
-counts <- matrix(randomNum, nrow = 2000, ncol = 22)
+randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
+counts <- matrix(randomNum, nrow = 25, ncol = 10)
 prop <- phit(counts, symmetrize = TRUE, iter = 0)
 }
 \seealso{

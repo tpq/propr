@@ -16,7 +16,7 @@ proprPhit <- function(counts, symmetrize = TRUE){
 
   # Calculate feature variance across clr transformed treatments
   counts.clr <- proprCLR(t(counts))
-  counts.clr.var <- apply(counts.clr, 2, var)
+  counts.clr.var <- apply(counts.clr, 2, stats::var)
 
   # Sweep out feature clr variance from the variation array
   phi <- sweep(counts.vlr, 2, counts.clr.var, FUN = "/")
@@ -49,13 +49,13 @@ proprPerb <- function(counts, ivar = 0){
     # Calculate feature variance across alr transformed treatments
     counts.vlr <- counts.vlr[-ivar, -ivar] # returns one less dimension
     counts.alr <- proprALR(t(counts), ivar = ivar) # returns one less dimension
-    counts.var <- apply(counts.alr, 2, var)
+    counts.var <- apply(counts.alr, 2, stats::var)
 
   }else{
 
     # Calculate feature variance across clr transformed treatments
     counts.clr <- proprCLR(t(counts))
-    counts.var <- apply(counts.clr, 2, var)
+    counts.var <- apply(counts.clr, 2, stats::var)
   }
 
   # Divide variation array by sum of feature variances

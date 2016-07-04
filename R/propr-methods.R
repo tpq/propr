@@ -125,10 +125,10 @@ setMethod("plot", signature(x = "propr", y = "missing"),
             # Plot *lr-Y by *lr-X
             df <- do.call(rbind, pairs)
             p <- ggplot2::ggplot(data = df,
-                                 ggplot2::aes(x = x.val,
-                                              y = y.val,
-                                              group = factor(group))) +
-              ggplot2::geom_path(ggplot2::aes(colour = factor(group))) +
+                                 ggplot2::aes_string(x = "x.val",
+                                                     y = "y.val",
+                                                     group = "group")) +
+              ggplot2::geom_path(ggplot2::aes(colour = factor(df$group))) +
               ggplot2::labs(x = "Exprssion *LR mRNA[1]",
                             y = "Expression *LR mRNA[2]") +
               ggplot2::coord_equal(ratio = 1) +
@@ -174,8 +174,9 @@ setMethod("heatmap", signature(x = "propr"),
             valMax <- ceiling(max(df$value))
 
             # Plot *lr for each subject
-            p <- ggplot2::ggplot(ggplot2::aes(x = subject, y = feature), data = df) +
-              ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+            p <- ggplot2::ggplot(ggplot2::aes_string(x = "subject",
+                                                     y = "feature"), data = df) +
+              ggplot2::geom_tile(ggplot2::aes_string(fill = "value")) +
               ggplot2::scale_fill_gradient2(name = "Scaled *LR Expression",
                                             # low = "grey0", high = "grey70", mid = "grey35",
                                             low = "yellow", high = "red", mid = "orange",
@@ -205,6 +206,8 @@ setMethod("heatmap", signature(x = "propr"),
 # #' @param title A character string. A title for the \code{propr} plot.
 #' @param group A character or numeric vector. Supply feature groups for coloring.
 #'  Feature groups expected in the order they appear in \code{@@counts}.
+#' @importFrom stats as.dist as.dendrogram hclust order.dendrogram
+#' @importFrom grDevices rainbow
 #' @export
 dendrogram <- function(object, title = "Proportional Clusters", group){
 

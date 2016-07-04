@@ -19,8 +19,8 @@ An S4 class to hold results from proportionality analysis.
 \item{\code{pairs}}{A data.frame. Projects the proportionality matrix pairwise.}
 }}
 \examples{
-randomNum <- sample(1:1000, size = 2000 * 22, replace = TRUE)
-counts <- matrix(randomNum, nrow = 2000, ncol = 22)
+randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
+counts <- matrix(randomNum, nrow = 25, ncol = 10)
 prop <- perb(counts, ivar = 0, iter = 0)
 prop[1:5, ]
 prop$prop
