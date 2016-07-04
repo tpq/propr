@@ -1,5 +1,9 @@
 #' @name propr
 #' @rdname propr
+NULL
+
+#' @rdname propr
+#' @section Class:
 #'
 #' An S4 class to hold results from proportionality analysis.
 #'
