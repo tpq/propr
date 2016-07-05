@@ -1,4 +1,4 @@
-## s4core 1.1.0.0000
+## propr 1.1.0
 ---------------------
 * New orientation expected for input data
   * Updated back-end and vignette accordingly
@@ -6,7 +6,7 @@
 * Fixed rare subsetting errors
 * Tweaked plot methods
 
-## s4core 1.0.0.0000
+## propr 1.0.0
 ---------------------
 * Introduced `phit` function
   * Implements Lovell's \phi proportionality metric
