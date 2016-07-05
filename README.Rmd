@@ -22,14 +22,13 @@ library(propr)
 library(propr)
 ```
 
-The principal functions in `propr` include: (1) `phit`, for the calculation of &phi;, and (2) `perb`, for the calculation of &rho;. In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and also pairwise. We refer you to the official vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
+The principal functions in `propr` include: (1) `phit`, for the calculation of &phi;, and (2) `perb`, for the calculation of &rho;. In the example below, we calculate these proportionality scores for simulated relative data, printing the results as a proportionality matrix and as a pairwise summary. We refer you to the official package vignette for a comprehensive discussion of compositional data, proportionality, and everything this package has to offer.
 
 ```{r}
 set.seed(12345)
 N <- 10
-X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
-                c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
-data.absolute <- t(X) # Sets features as rows
+data.absolute <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
+                            c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
 data.relative <- data.absolute / colSums(data.absolute)
 ```
 

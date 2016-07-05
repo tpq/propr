@@ -1,4 +1,5 @@
 ## Test environments
+* local ubuntu 14.04, R 3.3.1
 * local ubuntu 16.04, R 3.3.1
 * win-builder (devel and release)
 
@@ -11,7 +12,7 @@
 ## Reverse dependencies
 
 This is a new release, so there are no reverse dependencies.
-
+<!--
 ---
 
 * I have run R CMD check on the NUMBER downstream dependencies.
@@ -20,3 +21,4 @@ This is a new release, so there are no reverse dependencies.
 * FAILURE SUMMARY
 
 * All revdep maintainers were notified of the release on RELEASE DATE.
+-->
