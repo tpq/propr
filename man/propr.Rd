@@ -3,6 +3,7 @@
 \docType{methods}
 \name{propr}
 \alias{$,propr-method}
+\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{dendrogram}
 \alias{image,propr-method}
@@ -16,7 +17,7 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr}(x, i, j, drop)
+\S4method{[}{propr,ANY,ANY}(x, i, j, drop)
 
 \S4method{$}{propr}(x, name)
 
