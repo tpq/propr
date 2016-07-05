@@ -54,7 +54,7 @@ setMethod("subset", signature(x = "propr"),
 # #' @param x An object of class \code{propr}.
 #' @param i,j,drop Subsets via \code{object@pairs[i, j, drop]}.
 #' @export
-setMethod('[', signature(x = "propr"),
+setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
           function(x, i, j, drop){
 
             if(!missing(j)){
