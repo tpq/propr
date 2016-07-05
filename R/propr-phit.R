@@ -30,7 +30,7 @@ phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = ncol(counts), i
 
   if(!onlyDistr){
 
-    cat("Calculating all phi for actual counts...\n")
+    cat("Calculating all phi for \"count matrix\"...\n")
     prop <- new("propr")
     prop@counts <- as.data.frame(counts)
     prop@logratio <- as.data.frame(proprCLR(prop@counts))

@@ -31,7 +31,7 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = ncol(counts) - (ivar > 0
 
   if(!onlyDistr){
 
-    cat("Calculating all rho for actual counts...\n")
+    cat("Calculating all rho for \"count matrix\"...\n")
     prop <- new("propr")
     prop@counts <- as.data.frame(counts)
     if(ivar != 0){ prop@logratio <- as.data.frame(proprALR(prop@counts, ivar))
