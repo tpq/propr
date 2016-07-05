@@ -9,10 +9,10 @@ setMethod("show", "propr",
           function(object){
 
             cat("@counts summary:",
-                nrow(object@counts), "features by", ncol(object@counts), "subjects\n")
+                nrow(object@counts), "subjects by", ncol(object@counts), "features\n")
 
             cat("@logratio summary:",
-                nrow(object@logratio), "features by", ncol(object@logratio), "subjects\n")
+                nrow(object@logratio), "subjects by", ncol(object@logratio), "features\n")
 
             cat("@matrix summary:",
                 nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
@@ -28,9 +28,9 @@ setMethod("show", "propr",
 #'
 # #' @param x An object of class \code{propr}.
 #' @param subset Subsets via \code{object@counts[subset, ]}.
-#'  Use this argument to rearrange feature order.
-#' @param select Subsets via \code{object@counts[, select]}.
 #'  Use this argument to rearrange subject order.
+#' @param select Subsets via \code{object@counts[, select]}.
+#'  Use this argument to rearrange feature order.
 #' @export
 setMethod("subset", signature(x = "propr"),
           function(x, subset, select){
@@ -38,9 +38,9 @@ setMethod("subset", signature(x = "propr"),
             if(missing(subset)) subset <- rownames(x@counts)
             if(missing(select)) select <- colnames(x@counts)
 
-            x@counts <- x@counts[subset, select]
-            x@logratio <- x@logratio[subset, select]
-            x@matrix <- x@matrix[subset, subset, drop = FALSE]
+            x@counts <- x@counts[subset, select, drop = FALSE]
+            x@logratio <- x@logratio[subset, colnames(x@counts), drop = FALSE]
+            x@matrix <- x@matrix[colnames(x@counts), colnames(x@counts), drop = FALSE]
             x@pairs <- proprPairs(x@matrix)
 
             return(x)
@@ -63,11 +63,11 @@ setMethod('[', signature(x = "propr"),
 
             }else{
 
-              x@pairs <- x@pairs[i, j, drop = drop]
+              x@pairs <- x@pairs[i, j, drop = FALSE]
               index <- unique(c(x@pairs$feature1, x@pairs$feature2))
-              x@matrix <- x@matrix[index, index]
-              x@logratio <- x@logratio[index, ]
-              x@counts <- x@counts[index, ]
+              x@matrix <- x@matrix[index, index, drop = FALSE]
+              x@logratio <- x@logratio[, colnames(x@matrix), drop = FALSE]
+              x@counts <- x@counts[, colnames(x@matrix), drop = FALSE]
 
               return(x)
             }
@@ -114,8 +114,8 @@ setMethod("plot", signature(x = "propr", y = "missing"),
             for(i in 1:nrow(x@pairs)){
 
               cat("Shaping pair", i, "...")
-              pairs[[i]] <- data.frame("x.val" = unlist(x@logratio[x$feature1[i], ]),
-                                       "y.val" = unlist(x@logratio[x$feature2[i], ]),
+              pairs[[i]] <- data.frame("x.val" = unlist(x@logratio[, x$feature1[i]]),
+                                       "y.val" = unlist(x@logratio[, x$feature2[i]]),
                                        "x.id" = x$feature1[i],
                                        "y.id" = x$feature2[i],
                                        "group" = i)
@@ -160,12 +160,12 @@ setMethod("image", signature(x = "propr"),
             }
 
             # Melt *lr counts by feature
-            features <- vector("list", nrow(x@logratio))
-            for(i in 1:nrow(x@logratio)){
+            features <- vector("list", ncol(x@logratio))
+            for(i in 1:ncol(x@logratio)){
 
-              features[[i]] <- data.frame("feature" = rownames(x@logratio)[i],
-                                          "subject" = colnames(x@logratio),
-                                          "value" = unlist(x@logratio[i, ]),
+              features[[i]] <- data.frame("feature" = colnames(x@logratio)[i],
+                                          "subject" = rownames(x@logratio),
+                                          "value" = unlist(x@logratio[, i]),
                                           stringsAsFactors = FALSE)
             }
 
@@ -230,7 +230,7 @@ dendrogram <- function(object, title = "Proportional Clusters", group){
     # Convert rho into dist matrix
     # See reference: http://research.stowers-institute.org/
     #  mcm/efg/R/Visualization/cor-cluster/index.htm
-    dist <- as.dist(1 - abs(object@matirx))
+    dist <- as.dist(1 - abs(object@matrix))
   }
 
   # Align features with groups in data.frame
