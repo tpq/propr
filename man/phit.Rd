@@ -4,11 +4,11 @@
 \alias{phit}
 \title{Calculate proportionality metric phi.}
 \usage{
-phit(counts, symmetrize = TRUE, iter = 0, iterSize = nrow(counts),
+phit(counts, symmetrize = TRUE, iter = 0, iterSize = ncol(counts),
   iterHow = 1, onlyDistr = FALSE)
 }
 \arguments{
-\item{counts}{A data.frame or matrix. See "count matrix" described in \code{\link{phit}} function details.}
+\item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
 \item{symmetrize}{A logical. If \code{TRUE}, forces symmetry by duplicating the "lower left triangle".}
 
@@ -27,12 +27,12 @@ Returns a \code{propr} object.
 \code{phit} returns a \code{propr} object containing measures of proportionality.
 }
 \details{
-Let x represent any number of features measured across multiple biological replicates
-	subjected to a binary or continuous event y. For example, y could represent case-control
+Let d represent any number of features measured across multiple biological replicates n
+	subjected to a binary or continuous event E. For example, E could represent case-control
 	status, treatment status, treatment dose, or time. This function converts a
-	"count matrix" with x rows and y columns into a proportionality matrix of x rows and x
-	columns containing phi measurements for each feature pair. One can think of this matrix
-	as equivalent to a distance matrix, except that it has no symmetry by default.
+	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
+	columns containing phi measurements for each feature pair. One can think of the resultant
+	matrix as equivalent to a distance matrix, except that it has no symmetry by default.
 }
 \examples{
 randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)

@@ -4,11 +4,11 @@
 \alias{perb}
 \title{Calculate proportionality metric rho.}
 \usage{
-perb(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0),
+perb(counts, ivar = 0, iter = 0, iterSize = ncol(counts) - (ivar > 0),
   iterHow = 1, onlyDistr = FALSE)
 }
 \arguments{
-\item{counts}{A data.frame or matrix. See "count matrix" described in \code{\link{phit}} function details.}
+\item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
 \item{ivar}{A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.}
 
@@ -31,6 +31,13 @@ Calculates proportionality metric rho described in Lovell 2015 and expounded
  in Erb 2016. Uses centered log-ratio transformation of data by default,
  but will use additive log-ratio transformation of data if non-zero
  \code{ivar} provided.
+
+Let d represent any number of features measured across multiple biological replicates n
+	subjected to a binary or continuous event E. For example, E could represent case-control
+	status, treatment status, treatment dose, or time. This function converts a
+	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
+	columns containing rho measurements for each feature pair. One can think of the resultant
+	matrix as equivalent to a correlation matrix.
 }
 \examples{
 randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)

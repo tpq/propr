@@ -7,7 +7,7 @@
 proprCLR(X, check = FALSE)
 }
 \arguments{
-\item{X}{A data.frame or matrix. For its intended use, supply a transposed "counts matrix".}
+\item{X}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
 \item{check}{A logical. If TRUE, function first checks for negative and NA values.}
 }

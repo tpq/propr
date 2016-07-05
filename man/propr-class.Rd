@@ -10,9 +10,9 @@ An S4 class to hold results from proportionality analysis.
 \section{Slots}{
 
 \describe{
-\item{\code{counts}}{A data.frame. Stores the original "counts matrix" input.}
+\item{\code{counts}}{A data.frame. Stores the original "count matrix" input.}
 
-\item{\code{logratio}}{A data.frame. Stores the log-ratio transformed "counts matrix".}
+\item{\code{logratio}}{A data.frame. Stores the log-ratio transformed "count matrix".}
 
 \item{\code{matrix}}{A matrix. Stores the proportionality matrix calculated by \code{phit} or \code{perb}.}
 

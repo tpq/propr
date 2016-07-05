@@ -31,10 +31,10 @@ dendrogram(object, title = "Proportional Clusters", group)
 \item{object, x}{An object of class \code{propr}.}
 
 \item{subset}{Subsets via \code{object@counts[subset, ]}.
-Use this argument to rearrange feature order.}
+Use this argument to rearrange subject order.}
 
 \item{select}{Subsets via \code{object@counts[, select]}.
-Use this argument to rearrange subject order.}
+Use this argument to rearrange feature order.}
 
 \item{i, j, drop}{Subsets via \code{object@pairs[i, j, drop]}.}
 

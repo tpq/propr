@@ -7,7 +7,7 @@
 proprPhit(counts, symmetrize = TRUE)
 }
 \arguments{
-\item{counts}{A data.frame or matrix. See "count matrix" described in \code{\link{phit}} function details.}
+\item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
 \item{symmetrize}{A logical. If \code{TRUE}, forces symmetry by duplicating the "lower left triangle".}
 }

@@ -7,7 +7,7 @@
 proprALR(X, ivar, check = FALSE)
 }
 \arguments{
-\item{X}{A data.frame or matrix. For its intended use, supply a transposed "counts matrix".}
+\item{X}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
 \item{ivar}{A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.}
 
