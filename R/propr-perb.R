@@ -7,6 +7,13 @@
 #'  but will use additive log-ratio transformation of data if non-zero
 #'  \code{ivar} provided.
 #'
+#' Let d represent any number of features measured across multiple biological replicates n
+#' 	subjected to a binary or continuous event E. For example, E could represent case-control
+#' 	status, treatment status, treatment dose, or time. This function converts a
+#' 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
+#' 	columns containing rho measurements for each feature pair. One can think of the resultant
+#' 	matrix as equivalent to a correlation matrix.
+#'
 #' @param ivar A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.
 #' @inheritParams phit
 #' @return Returns a \code{propr} object.
@@ -20,15 +27,15 @@
 #' @importFrom methods new
 #' @importFrom stats ecdf p.adjust
 #' @export
-perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0), iterHow = 1, onlyDistr = FALSE){
+perb <- function(counts, ivar = 0, iter = 0, iterSize = ncol(counts) - (ivar > 0), iterHow = 1, onlyDistr = FALSE){
 
   if(!onlyDistr){
 
     cat("Calculating all rho for actual counts...\n")
     prop <- new("propr")
     prop@counts <- as.data.frame(counts)
-    if(ivar != 0){ prop@logratio <- as.data.frame(t(proprALR(t(prop@counts), ivar)))
-    }else{ prop@logratio <- as.data.frame(t(proprCLR(t(prop@counts))))}
+    if(ivar != 0){ prop@logratio <- as.data.frame(proprALR(prop@counts, ivar))
+    }else{ prop@logratio <- as.data.frame(proprCLR(prop@counts))}
     prop@matrix <- proprPerb(prop@counts, ivar)
     prop@pairs <- proprPairs(prop@matrix)
 
@@ -54,32 +61,33 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = nrow(counts) - (ivar > 0
 
       if(iterHow == 1){
 
-        index.i <- sample(1:nrow(counts[-ivar, ]), iterSize)
-        counts.i <- t(apply(counts[-ivar, ][index.i, ], 1, sample))
+        index.i <- sample(1:ncol(counts[, -ivar]), iterSize)
+        counts.i <- apply(counts[, -ivar][, index.i], 2, sample)
 
       }else if(iterHow == 2){
 
-        counts.i <- apply(counts[-ivar, ], 2, sample, iterSize)
+
+        counts.i <- t(apply(counts[, -ivar], 1, sample, iterSize))
 
       }else{
 
         stop("Uh oh! Provided 'iterHow' not recognized! Select '1' for features and '2' for subject.")
       }
 
-      fixed <- counts[ivar, ]
-      counts.i <- rbind(counts.i, fixed)
-      ivar.i <- nrow(counts.i)
+      fixed <- counts[, ivar]
+      counts.i <- cbind(counts.i, fixed)
+      ivar.i <- ncol(counts.i)
 
     }else{
 
       if(iterHow == 1){
 
-        index.i <- sample(1:nrow(counts), iterSize)
-        counts.i <- t(apply(counts[index.i, ], 1, sample))
+        index.i <- sample(1:ncol(counts), iterSize)
+        counts.i <- apply(counts[, index.i], 2, sample)
 
       }else if(iterHow == 2){
 
-        counts.i <- apply(counts, 2, sample, iterSize)
+        counts.i <- t(apply(counts, 1, sample, iterSize))
 
       }else{
 

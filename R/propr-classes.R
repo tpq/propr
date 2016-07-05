@@ -20,8 +20,8 @@ NULL
 
 #' An S4 class to hold results from proportionality analysis.
 #'
-#' @slot counts A data.frame. Stores the original "counts matrix" input.
-#' @slot logratio A data.frame. Stores the log-ratio transformed "counts matrix".
+#' @slot counts A data.frame. Stores the original "count matrix" input.
+#' @slot logratio A data.frame. Stores the log-ratio transformed "count matrix".
 #' @slot matrix A matrix. Stores the proportionality matrix calculated by \code{phit} or \code{perb}.
 #' @slot pairs A data.frame. Projects the proportionality matrix pairwise.
 #'

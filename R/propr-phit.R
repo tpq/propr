@@ -2,14 +2,14 @@
 #'
 #' \code{phit} returns a \code{propr} object containing measures of proportionality.
 #'
-#' Let x represent any number of features measured across multiple biological replicates
-#' 	subjected to a binary or continuous event y. For example, y could represent case-control
+#' Let d represent any number of features measured across multiple biological replicates n
+#' 	subjected to a binary or continuous event E. For example, E could represent case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a
-#' 	"count matrix" with x rows and y columns into a proportionality matrix of x rows and x
-#' 	columns containing phi measurements for each feature pair. One can think of this matrix
-#' 	as equivalent to a distance matrix, except that it has no symmetry by default.
+#' 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
+#' 	columns containing phi measurements for each feature pair. One can think of the resultant
+#' 	matrix as equivalent to a distance matrix, except that it has no symmetry by default.
 #'
-#' @param counts A data.frame or matrix. See "count matrix" described in \code{\link{phit}} function details.
+#' @param counts A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry by duplicating the "lower left triangle".
 #' @param iter A numeric scalar. Fits \code{iter*iterSize*(iterSize-1)/2} values to an empiric distribution. Skip with \code{iter = 0}.
 #' @param iterSize A numeric scalar. Fits \code{iter*iterSize*(iterSize-1)/2} values to an empiric distribution.
@@ -26,14 +26,14 @@
 #' @importFrom methods new
 #' @importFrom stats ecdf p.adjust
 #' @export
-phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = nrow(counts), iterHow = 1, onlyDistr = FALSE){
+phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = ncol(counts), iterHow = 1, onlyDistr = FALSE){
 
   if(!onlyDistr){
 
     cat("Calculating all phi for actual counts...\n")
     prop <- new("propr")
     prop@counts <- as.data.frame(counts)
-    prop@logratio <- as.data.frame(t(proprCLR(t(prop@counts))))
+    prop@logratio <- as.data.frame(proprCLR(prop@counts))
     prop@matrix <- proprPhit(prop@counts, symmetrize)
     prop@pairs <- proprPairs(prop@matrix)
     if(iter == 0) return(prop)
@@ -53,12 +53,12 @@ phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = nrow(counts), i
 
     if(iterHow == 1){
 
-      index.i <- sample(1:nrow(counts), iterSize)
-      counts.i <- t(apply(counts[index.i, ], 1, sample))
+      index.i <- sample(1:ncol(counts), iterSize)
+      counts.i <- apply(counts[, index.i], 2, sample)
 
     }else if(iterHow == 2){
 
-      counts.i <- apply(counts, 2, sample, iterSize)
+      counts.i <- t(apply(counts, 1, sample, iterSize))
 
     }else{
 

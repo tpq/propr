@@ -10,11 +10,10 @@ e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 
 # Calculate phi
-counts <- t(X)
-phi <- propr:::proprPhit(counts, symmetrize = FALSE)
+phi <- propr:::proprPhit(X, symmetrize = FALSE)
 
 # Calculate beta
-counts.clr <- propr:::proprCLR(t(counts))
+counts.clr <- propr:::proprCLR(X)
 counts.clr.var <- apply(counts.clr, 2, var)
 A_j <- matrix(rep(counts.clr.var, length(counts.clr.var)), nrow = length(counts.clr.var))
 A_i <- counts.clr.var
@@ -24,9 +23,9 @@ beta <- sqrt(sweep(A_j, 2, A_i, "/"))
 rho <- 1 - phi/(1 + beta^2)
 
 test_that("calculating rho from phi matches propr:::proprPerb", {
-  
+
   expect_equal(
     rho,
-    propr:::proprPerb(counts, ivar = 0)
+    propr:::proprPerb(X, ivar = 0)
   )
 })

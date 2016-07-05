@@ -10,12 +10,12 @@ proprPhit <- function(counts, symmetrize = TRUE){
   counts[counts == 0] <- unique(sort(as.matrix(counts)))[2]
 
   # Calculate the variance of the log-ratio ("variation array")
-  counts.vlr <- proprVLR(t(counts))
-  colnames(counts.vlr) <- rownames(counts)
-  rownames(counts.vlr) <- rownames(counts)
+  counts.vlr <- proprVLR(counts)
+  colnames(counts.vlr) <- colnames(counts)
+  rownames(counts.vlr) <- colnames(counts)
 
   # Calculate feature variance across clr transformed treatments
-  counts.clr <- proprCLR(t(counts))
+  counts.clr <- proprCLR(counts)
   counts.clr.var <- apply(counts.clr, 2, stats::var)
 
   # Sweep out feature clr variance from the variation array
@@ -40,21 +40,21 @@ proprPerb <- function(counts, ivar = 0){
   counts[counts == 0] <- unique(sort(as.matrix(counts)))[2]
 
   # Calculate the variance of the log-ratio ("variation array")
-  counts.vlr <- proprVLR(t(counts))
-  colnames(counts.vlr) <- rownames(counts)
-  rownames(counts.vlr) <- rownames(counts)
+  counts.vlr <- proprVLR(counts)
+  colnames(counts.vlr) <- colnames(counts)
+  rownames(counts.vlr) <- colnames(counts)
 
   if(ivar != 0){
 
     # Calculate feature variance across alr transformed treatments
     counts.vlr <- counts.vlr[-ivar, -ivar] # returns one less dimension
-    counts.alr <- proprALR(t(counts), ivar = ivar) # returns one less dimension
+    counts.alr <- proprALR(counts, ivar = ivar) # returns one less dimension
     counts.var <- apply(counts.alr, 2, stats::var)
 
   }else{
 
     # Calculate feature variance across clr transformed treatments
-    counts.clr <- proprCLR(t(counts))
+    counts.clr <- proprCLR(counts)
     counts.var <- apply(counts.clr, 2, stats::var)
   }
 
@@ -75,7 +75,7 @@ proprPerb <- function(counts, ivar = 0){
 #'
 #' Provided for backend use.
 #'
-#' @param X A data.frame or matrix. For its intended use, supply a transposed "counts matrix".
+#' @param X A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
 #' @param check A logical. If TRUE, function first checks for negative and NA values.
 #' @return Returns a matrix containing the variance of the log of the ratios.
 proprVLR <- function(X, check = FALSE){
@@ -97,8 +97,7 @@ proprVLR <- function(X, check = FALSE){
 #'
 #' Provided for backend use.
 #'
-#' @param X A data.frame or matrix. For its intended use, supply a transposed "counts matrix".
-#' @param check A logical. If TRUE, function first checks for negative and NA values.
+#' @inheritParams proprVLR
 #' @return A matrix. Returns the centered log-ratio transformation of \code{X}.
 proprCLR <- function(X, check = FALSE){
 
@@ -116,9 +115,8 @@ proprCLR <- function(X, check = FALSE){
 #'
 #' Provided for backend use.
 #'
-#' @param X A data.frame or matrix. For its intended use, supply a transposed "counts matrix".
 #' @param ivar A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.
-#' @param check A logical. If TRUE, function first checks for negative and NA values.
+#' @inheritParams proprVLR
 #' @return A matrix. Returns the additive log-ratio transformation of \code{X}.
 proprALR <- function(X, ivar, check = FALSE){
 
@@ -139,6 +137,11 @@ proprALR <- function(X, ivar, check = FALSE){
 #' @param prop A data.frame or matrix. A proportionality matrix.
 #' @return A data.frame. Returns a table of feature pairs.
 proprPairs <- function(prop){
+
+  if(identical(dim(prop), as.integer(c(1, 1)))){
+
+    return(data.frame())
+  }
 
   index.i <- vector("numeric", length = (nrow(prop) - 1)*nrow(prop)/2)
   index.j <- vector("numeric", length = (nrow(prop) - 1)*nrow(prop)/2)
@@ -171,7 +174,7 @@ proprPairs <- function(prop){
 #'
 #' Provided for backend use.
 #'
-#' @param prop A data.frame or matrix. A proportionality matrix.
+#' @inheritParams proprPairs
 #' @return A vector. Returns the lower left triangle of a proportionality matrix.
 proprTri <- function(prop){
 
@@ -194,7 +197,7 @@ proprTri <- function(prop){
 #'
 #' Provided for backend use.
 #'
-#' @param prop A data.frame or matrix. A proportionality matrix.
+#' @inheritParams proprPairs
 #' @return A matrix. Returns a symmetrized proportionality matrix.
 proprSym <- function(prop){
 

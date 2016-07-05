@@ -10,11 +10,10 @@ e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 
 # Calculate phi
-counts <- t(X)
-phi <- propr:::proprPhit(counts, symmetrize = FALSE)
+phi <- propr:::proprPhit(X, symmetrize = FALSE)
 
 # Calculate beta
-counts.clr <- propr:::proprCLR(t(counts))
+counts.clr <- propr:::proprCLR(X)
 counts.clr.var <- apply(counts.clr, 2, var)
 A_j <- matrix(rep(counts.clr.var, length(counts.clr.var)), nrow = length(counts.clr.var))
 A_i <- counts.clr.var
