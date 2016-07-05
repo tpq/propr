@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality between Vectors of Compositional Data
-Version: 1.1.0
+Version: 1.1.0.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -16,7 +16,7 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
     subsequent publication, Erb and Nicodemus expounded these efforts by elaborating
     on another proportionality metric, rho. This package introduces a programmatic
     framework for the calculation of differential gene co-expression using the
-    compositional data methods introduced in the cited publications.
+    compositional data methods discussed in the cited publications.
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
