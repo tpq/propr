@@ -10,21 +10,23 @@ proprPhit <- function(counts, symmetrize = TRUE){
   counts[counts == 0] <- unique(sort(as.matrix(counts)))[2]
 
   # Calculate the variance of the log-ratio ("variation array")
-  counts.vlr <- proprVLR(counts)
-  colnames(counts.vlr) <- colnames(counts)
-  rownames(counts.vlr) <- colnames(counts)
+  mat <- proprVLR(counts)
+  colnames(mat) <- colnames(counts)
+  rownames(mat) <- colnames(counts)
 
   # Calculate feature variance across clr transformed treatments
   counts.clr <- proprCLR(counts)
-  counts.clr.var <- apply(counts.clr, 2, stats::var)
 
   # Sweep out feature clr variance from the variation array
-  phi <- sweep(counts.vlr, 2, counts.clr.var, FUN = "/")
+  for(i in 1:ncol(mat)){
+
+    mat[, i] <- mat[, i] / stats::var(counts.clr[, i])
+  }
 
   # Symmetrize matrix if symmetrize = TRUE
-  if(symmetrize) phi <- proprSym(phi)
+  if(symmetrize) mat <- proprSym(mat)
 
-  return(phi)
+  return(mat)
 }
 
 #' Calculate proportionality metric rho (Erb 2016).
@@ -86,11 +88,16 @@ proprVLR <- function(X, check = FALSE){
     if(any(is.na(X))) stop("NA values found")
   }
 
-  logX <- log(X)
-  Cov    <- stats::var(logX)  ## Note the avoidance of compositions::var
-  D      <- ncol(logX)
-  VarCol <- matrix(rep(diag(Cov), D), ncol = D)
-  return(-2 * Cov + VarCol + t(VarCol))
+  X <- log(X)
+  X <- stats::var(X)
+  X.diag <- diag(X)
+
+  for(col in 1:ncol(X)){
+
+    X[, col] <- -2 * X[, col] + X.diag + X.diag[col]
+  }
+
+  return(X)
 }
 
 #' Calculates the centered log-ratio transformation.
