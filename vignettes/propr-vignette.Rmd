@@ -97,7 +97,7 @@ plot(rho[rho$prop > .99, ])
 
 Both microarray technology and high-throughput genomic sequencing have the ability to measure tens of thousands of features for each subject. Since the calculation of proportionality requires manipulating a matrix sized $d^2$, this method<!--, whether or not in conjunction with empiric distributions, necessarily--> uses a lot of RAM when applied to real biological datasets. Below, we provide a small table that estimates the approximate amount of RAM needed based on the number of features studied.
 
-| Features | Peak RAM (Mb)|
+| Features | Peak RAM (MB)|
 |---------:|-------------:|
 |1000   	 |101           |
 |2000   	 |283           |
