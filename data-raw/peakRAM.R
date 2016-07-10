@@ -13,7 +13,7 @@ out <- lapply(list(counts),
                 for(n in c(10, 100, 500, 1000, 2000, 4000, 6000, 8000)){
 
                   counts.subset <- counts[, 1:n]
-                  z <- function() phit(counts.subset)
+                  z <- function() {phit(counts.subset)}
                   max <- miSciTools::peakRAM(z)
                   usage <- rbind(usage, data.frame("n" = n, "max" = max))
                 }
