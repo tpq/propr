@@ -9,12 +9,12 @@ proprPhit <- function(counts, symmetrize = TRUE){
   # Replace zeroes with next smallest number
   counts[counts == 0] <- unique(sort(as.matrix(counts)))[2]
 
-  # Calculate the variance of the log-ratio ("variation array")
+  # Calculate the variance of the log-ratio (i.e., "variation array")
   mat <- proprVLR(counts)
   colnames(mat) <- colnames(counts)
   rownames(mat) <- colnames(counts)
 
-  # Calculate feature variance across clr transformed treatments
+  # Perform clr-transformation of "count matrix"
   counts.clr <- proprCLR(counts)
 
   # Sweep out feature clr variance from the variation array
@@ -41,36 +41,34 @@ proprPerb <- function(counts, ivar = 0){
   # Replace zeroes with next smallest number
   counts[counts == 0] <- unique(sort(as.matrix(counts)))[2]
 
-  # Calculate the variance of the log-ratio ("variation array")
-  counts.vlr <- proprVLR(counts)
-  colnames(counts.vlr) <- colnames(counts)
-  rownames(counts.vlr) <- colnames(counts)
+  # Calculate the variance of the log-ratio (i.e., "variation array")
+  mat <- proprVLR(counts)
+  colnames(mat) <- colnames(counts)
+  rownames(mat) <- colnames(counts)
 
+  # Perform *lr-transformation of "count matrix"
   if(ivar != 0){
 
-    # Calculate feature variance across alr transformed treatments
-    counts.vlr <- counts.vlr[-ivar, -ivar] # returns one less dimension
-    counts.alr <- proprALR(counts, ivar = ivar) # returns one less dimension
-    counts.var <- apply(counts.alr, 2, stats::var)
+    mat <- mat[-ivar, -ivar] # returns one less dimension
+    counts.lr <- proprALR(counts, ivar = ivar) # returns one less dimension
 
   }else{
 
-    # Calculate feature variance across clr transformed treatments
-    counts.clr <- proprCLR(counts)
-    counts.var <- apply(counts.clr, 2, stats::var)
+    counts.lr <- proprCLR(counts)
   }
 
-  # Divide variation array by sum of feature variances
-  for(i in 1:ncol(counts.vlr)){
-    for(j in 1:nrow(counts.vlr)){
-      counts.vlr[i, j] <- counts.vlr[i, j] / (counts.var[i] + counts.var[j])
+  # Sweep out feature *lr variance from the variation array
+  var.lr <- apply(counts.lr, 2, stats::var)
+  for(i in 1:ncol(mat)){
+
+    for(j in 1:nrow(mat)){
+
+      # Calculate: rho = 1 - (var(x - y))/(var(x) + var(y))
+      mat[i, j] <- 1 - (mat[i, j] / (var.lr[i] + var.lr[j]))
     }
   }
 
-  # Calculate: p = 1 - (var(x - y))/(var(x) + var(y))
-  rho <- 1 - counts.vlr
-
-  return(rho)
+  return(mat)
 }
 
 #' Calculates the variance of the log of the ratios.
