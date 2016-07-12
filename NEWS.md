@@ -1,3 +1,9 @@
+## propr 1.1.0.9000
+---------------------
+* Rephrased code for `proprPhit`
+* Rephrased code for `proprPerb`
+* Rephrased code for `proprVLR`
+
 ## propr 1.1.0
 ---------------------
 * New orientation expected for input data
