@@ -24,7 +24,8 @@ RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.2)
 Imports:
-    methods
+    methods,
+    Rcpp
 Suggests:
     compositions,
     dendextend,
@@ -33,3 +34,4 @@ Suggests:
     knitr,
     rmarkdown,
     testthat
+LinkingTo: Rcpp
