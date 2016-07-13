@@ -11,6 +11,7 @@
 #'
 #' @param counts A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry by duplicating the "lower left triangle".
+#' @param lazyPairs A logical. If \code{TRUE}, \code{@@pairs} slot does not get populated until after subset (to improve performance).
 #' @param iter A numeric scalar. Fits \code{iter*iterSize*(iterSize-1)/2} values to an empiric distribution. Skip with \code{iter = 0}.
 #' @param iterSize A numeric scalar. Fits \code{iter*iterSize*(iterSize-1)/2} values to an empiric distribution.
 #' @param iterHow A numeric scalar. Select \code{1} to randomize feature vectors or \code{2} to randomize subject vectors.
@@ -26,7 +27,12 @@
 #' @importFrom methods new
 #' @importFrom stats ecdf p.adjust
 #' @export
-phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = ncol(counts), iterHow = 1, onlyDistr = FALSE){
+phit <- function(counts, symmetrize = TRUE, lazyPairs = TRUE, iter = 0, iterSize = ncol(counts), iterHow = 1, onlyDistr = FALSE){
+
+  if(lazyPairs & iter > 0){
+
+    stop("This function cannot return a fit distribution if lazily populating @pairs.")
+  }
 
   if(!onlyDistr){
 
@@ -35,8 +41,21 @@ phit <- function(counts, symmetrize = TRUE, iter = 0, iterSize = ncol(counts), i
     prop@counts <- as.data.frame(counts)
     prop@logratio <- as.data.frame(proprCLR(prop@counts))
     prop@matrix <- proprPhit(prop@counts, symmetrize)
-    prop@pairs <- proprPairs(prop@matrix)
-    if(iter == 0) return(prop)
+
+    # Do not populate @pairs slot until after subset
+    if(lazyPairs){
+
+      prop@pairs <- data.frame()
+
+    }else{
+
+      prop@pairs <- proprPairs(prop@matrix)
+    }
+
+    if(iter == 0){
+
+      return(prop)
+    }
 
   }else{
 
