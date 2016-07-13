@@ -27,7 +27,7 @@
 #' @importFrom methods new
 #' @importFrom stats ecdf p.adjust
 #' @export
-perb <- function(counts, ivar = 0, iter = 0, iterSize = ncol(counts) - (ivar > 0), iterHow = 1, onlyDistr = FALSE){
+perb <- function(counts, ivar = 0, lazyPairs = TRUE, iter = 0, iterSize = ncol(counts) - (ivar > 0), iterHow = 1, onlyDistr = FALSE){
 
   if(!onlyDistr){
 
@@ -37,11 +37,23 @@ perb <- function(counts, ivar = 0, iter = 0, iterSize = ncol(counts) - (ivar > 0
     if(ivar != 0){ prop@logratio <- as.data.frame(proprALR(prop@counts, ivar))
     }else{ prop@logratio <- as.data.frame(proprCLR(prop@counts))}
     prop@matrix <- proprPerb(prop@counts, ivar)
-    prop@pairs <- proprPairs(prop@matrix)
 
-    prop@pairs <- prop@pairs[rev(order(abs(prop@pairs$prop))), ]
-    rownames(prop@pairs) <- 1:nrow(prop@pairs)
-    if(iter == 0) return(prop)
+    # Do not populate @pairs slot until after subset
+    if(lazyPairs){
+
+      prop@pairs <- data.frame()
+
+    }else{
+
+      prop@pairs <- proprPairs(prop@matrix)
+      prop@pairs <- prop@pairs[rev(order(abs(prop@pairs$prop))), ]
+      rownames(prop@pairs) <- 1:nrow(prop@pairs)
+    }
+
+    if(iter == 0){
+
+      return(prop)
+    }
 
   }else{
 
