@@ -1,5 +1,13 @@
 ## propr 1.1.0.9000
 ---------------------
+* Added `lazyPairs` argument to `phit`
+  * Does not populate @pairs slot until after subset
+* Added `lazyPairs` argument to `perb`
+  * Does not populate @pairs slot until after subset
+* Adjusted `show` for `lazyPairs` update
+//* Adjusted `[` and `subset` for `lazyPairs` update
+//* Adjusted `$` for `lazyPairs` update
+//* Adjusted `plot` for `lazyPairs` update
 * Rephrased code for `proprPhit`
 * Rephrased code for `proprPerb`
 * Rephrased code for `proprVLR`

@@ -17,8 +17,16 @@ setMethod("show", "propr",
             cat("@matrix summary:",
                 nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
 
-            cat("@pairs summary:",
-                nrow(object@pairs), "feature pairs\n")
+            if(nrow(object@pairs) == 0 & nrow(object@matrix) > 0){
+
+              cat("@pairs summary:",
+                  "load with `[` or `subset`")
+
+            }else{
+
+              cat("@pairs summary:",
+                  nrow(object@pairs), "feature pairs\n")
+            }
           }
 )
 
