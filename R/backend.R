@@ -1,7 +1,3 @@
-#' @useDynLib propr
-#' @importFrom Rcpp sourceCpp
-NULL
-
 #' Calculate proportionality metric phi (Lovell 2015).
 #'
 #' Provided for backend use.

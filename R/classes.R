@@ -1,3 +1,7 @@
+#' @useDynLib propr
+#' @importFrom Rcpp sourceCpp
+NULL
+
 #' The propr Package
 #'
 #' @description
@@ -20,27 +24,25 @@ NULL
 
 #' An S4 class to hold results from proportionality analysis.
 #'
-#' @slot counts A data.frame. Stores the original "count matrix" input.
-#' @slot logratio A data.frame. Stores the log-ratio transformed "count matrix".
+#' @slot counts A matrix. Stores the original "count matrix" input.
+#' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
 #' @slot matrix A matrix. Stores the proportionality matrix calculated by \code{phit} or \code{perb}.
-#' @slot pairs A data.frame. Projects the proportionality matrix pairwise.
+#' @slot pairs A vector. Indexes the proportionality metrics of interest.
 #'
 #' @seealso \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
 #'
 #' @examples
 #' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
 #' counts <- matrix(randomNum, nrow = 25, ncol = 10)
-#' prop <- perb(counts, ivar = 0, iter = 0)
-#' prop[1:5, ]
-#' prop$prop
-#' prop[1:5, "prop"]
+#' prop <- perb(counts, ivar = 0)
+#' prop[">", .75]
 #' subset(prop, 1:5)
 #' @export
 setClass("propr",
          slots = c(
-           counts = "data.frame",
-           logratio = "data.frame",
+           counts = "matrix",
+           logratio = "matrix",
            matrix = "matrix",
-           pairs = "data.frame"
+           pairs = "numeric"
          )
 )
