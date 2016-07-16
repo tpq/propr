@@ -1,11 +1,10 @@
 # Set number of features in counts matrix
 i <- 8000
-counts <- data.frame("a" = sample(1:i), "b" = sample(1:i), "c" = sample(1:i),
-                     "d" = sample(1:i), "e" = sample(1:i), "f" = sample(1:i))
-counts <- t(counts)
+X <- t(data.frame("a" = sample(1:i), "b" = sample(1:i), "c" = sample(1:i),
+                  "d" = sample(1:i), "e" = sample(1:i), "f" = sample(1:i)))
 
 # Determine peak RAM needed for phi calculation
-out <- lapply(list(counts),
+out <- lapply(list(X),
               function(df){
 
                 usage <- data.frame()
