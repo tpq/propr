@@ -32,9 +32,9 @@ perb <- function(counts, ivar = 0){
   cat("Calculating rho from \"count matrix\".\n")
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
-  if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts, ivar)
-  }else{ prop@logratio <- clrRcpp(prop@counts)}
-  prop@matrix <- rhoRcpp(prop@counts, ivar)
+  if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts[], ivar) # [] forces copy
+  }else{ prop@logratio <- clrRcpp(prop@counts[])} # [] forces copy
+  prop@matrix <- rhoRcpp(prop@counts[], ivar) # [] forces copy
   prop@pairs <- vector("numeric")
 
   return(prop)

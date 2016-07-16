@@ -27,8 +27,8 @@ phit <- function(counts, symmetrize = TRUE){
     cat("Calculating phi from \"count matrix\".\n")
     prop <- new("propr")
     prop@counts <- as.matrix(counts)
-    prop@logratio <- clrRcpp(prop@counts)
-    prop@matrix <- phiRcpp(prop@counts, symmetrize)
+    prop@logratio <- clrRcpp(prop@counts[]) # [] forces copy
+    prop@matrix <- phiRcpp(prop@counts[], symmetrize) # [] forces copy
     prop@pairs <- vector("numeric")
 
     return(prop)
