@@ -29,7 +29,7 @@
 #' @export
 perb <- function(counts, ivar = 0){
 
-  cat("Calculating all rho for \"count matrix\"...\n")
+  cat("Calculating rho from \"count matrix\".\n")
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
   if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts, ivar)

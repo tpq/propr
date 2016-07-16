@@ -17,15 +17,13 @@ setMethod("show", "propr",
             cat("@matrix summary:",
                 nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
 
-            if(nrow(object@pairs) == 0 & nrow(object@matrix) > 0){
+            if(length(object@pairs) > 0 | nrow(object@matrix) == 0){
 
-              cat("@pairs summary:",
-                  "load with `[` or `subset`")
+              cat("@pairs summary:", length(object@pairs), "feature pairs\n")
 
             }else{
 
-              cat("@pairs summary:",
-                  nrow(object@pairs), "feature pairs\n")
+              cat("@pairs summary: index with `[` method\n")
             }
           }
 )
@@ -43,13 +41,23 @@ setMethod("show", "propr",
 setMethod("subset", signature(x = "propr"),
           function(x, subset, select){
 
-            if(missing(subset)) subset <- rownames(x@counts)
-            if(missing(select)) select <- colnames(x@counts)
+            if(missing(subset)) subset <- 1:nrow(x@counts)
+            if(missing(select)) select <- 1:ncol(x@counts)
+
+            if(is.character(select)){
+
+              select <- which(colnames(x@counts) %in% select)
+            }
 
             x@counts <- x@counts[subset, select, drop = FALSE]
-            x@logratio <- x@logratio[subset, colnames(x@counts), drop = FALSE]
-            x@matrix <- x@matrix[colnames(x@counts), colnames(x@counts), drop = FALSE]
-            x@pairs <- proprPairs(x@matrix)
+            x@logratio <- x@logratio[subset, select, drop = FALSE]
+            x@matrix <- x@matrix[select, select, drop = FALSE]
+
+            if(length(x@pairs) > 0){
+
+              cat("Alert: User must repopulate @pairs slot after `subset`.\n")
+              x@pairs <- vector("numeric")
+            }
 
             return(x)
           }
@@ -60,41 +68,40 @@ setMethod("subset", signature(x = "propr"),
 #' \code{[:} Method to subset \code{propr} object.
 #'
 # #' @param x An object of class \code{propr}.
-#' @param i,j,drop Subsets via \code{object@pairs[i, j, drop]}.
+#' @param i Operation used for the subset indexing. Select from
+#'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
+#' @param j Reference used for the subset indexing. Provide a numeric
+#'  value to which to compare the proportionality metrics.
 #' @aliases [,propr-method
 #' @docType methods
 #' @export
 setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
-          function(x, i, j, drop){
+          function(x, i = "all", j){
 
-            if(!missing(j)){
+            if(i == "all"){
 
-              return(x@pairs[i, j, drop = drop])
-
-            }else{
-
-              x@pairs <- x@pairs[i, j, drop = FALSE]
-              index <- unique(c(x@pairs$feature1, x@pairs$feature2))
-              x@matrix <- x@matrix[index, index, drop = FALSE]
-              x@logratio <- x@logratio[, colnames(x@matrix), drop = FALSE]
-              x@counts <- x@counts[, colnames(x@matrix), drop = FALSE]
-
+              x@pairs <- indexPairs(x@matrix, "all")
               return(x)
             }
-          }
-)
 
-#' @rdname propr
-#' @section Methods (by generic):
-#' \code{$:} Method to subset \code{propr} object.
-#'
-# #' @param x An object of class \code{propr}.
-#' @param name Subsets via \code{object@pairs[, name]}.
-#' @export
-setMethod('$', signature(x = "propr"),
-          function(x, name){
+            if(!i %in% c("==", "=", ">", ">=", "<", "<=", "!=")){
 
-            return(x@pairs[, name])
+              stop("Operator not recognized. Index using e.g., `prop[\">\", .95]`.")
+            }
+
+            if(missing(j) | !is.numeric(j) | length(j) != 1){
+
+              stop("Reference not found. Index using e.g., `prop[\">\", .95]`.")
+            }
+
+            x@pairs <- indexPairs(x@matrix, i, j)
+
+            if(length(x@pairs) == 0){
+
+              stop("Method failed to index any pairs.")
+            }
+
+            return(x)
           }
 )
 
@@ -119,28 +126,42 @@ setMethod("plot", signature(x = "propr", y = "missing"),
                    "Try running: install.packages('ggthemes')")
             }
 
+            if(length(x@pairs) == 0){
+
+              cat("Alert: Generating plot using all feature pairs.\n")
+              V <- indexPairs(x@matrix, "all")
+              coord <- indexToCoord(V, nrow(x@matrix))
+
+            }else{
+
+              cat("Alert: Generating plot using indexed feature pairs.\n")
+              V <- x@pairs
+              coord <- indexToCoord(V, nrow(x@matrix))
+            }
+
             # Melt *lr counts by feature pairs
-            pairs <- vector("list", nrow(x@pairs))
-            for(i in 1:nrow(x@pairs)){
+            nsubj <- nrow(x@logratio)
+            feat1 <- vector("numeric", length(V) * nsubj)
+            feat2 <- vector("numeric", length(V) * nsubj)
+            group <- vector("numeric", length(V) * nsubj)
+            for(i in 1:length(V)){
 
               cat("Shaping pair", i, "...")
-              pairs[[i]] <- data.frame("x.val" = unlist(x@logratio[, x$feature1[i]]),
-                                       "y.val" = unlist(x@logratio[, x$feature2[i]]),
-                                       "x.id" = x$feature1[i],
-                                       "y.id" = x$feature2[i],
-                                       "group" = i)
-
-              pairs[[i]] <- pairs[[i]][order(pairs[[i]]$x.val), ]
+              i.order <- order(x@logratio[, coord$feat1[i]])
+              feat1[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- x@logratio[, coord$feat1[i]][i.order]
+              feat2[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- x@logratio[, coord$feat2[i]][i.order]
+              group[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- i
             }
 
             # Plot *lr-Y by *lr-X
-            df <- do.call(rbind, pairs)
+            cat("\n")
+            df <- data.frame("x.val" = feat1, "y.val" = feat2, "group" = group)
             p <- ggplot2::ggplot(data = df,
                                  ggplot2::aes_string(x = "x.val",
                                                      y = "y.val",
                                                      group = "group")) +
               ggplot2::geom_path(ggplot2::aes(colour = factor(df$group))) +
-              ggplot2::labs(x = "Exprssion *LR mRNA[1]",
+              ggplot2::labs(x = "Expression *LR mRNA[1]",
                             y = "Expression *LR mRNA[2]") +
               ggplot2::coord_equal(ratio = 1) +
               ggthemes::theme_base() +
@@ -169,24 +190,53 @@ setMethod("image", signature(x = "propr"),
                    "Try running: install.packages('ggplot2')")
             }
 
-            # Melt *lr counts by feature
-            features <- vector("list", ncol(x@logratio))
-            for(i in 1:ncol(x@logratio)){
+            if(length(x@pairs) == 0){
 
-              features[[i]] <- data.frame("feature" = colnames(x@logratio)[i],
-                                          "subject" = rownames(x@logratio),
-                                          "value" = unlist(x@logratio[, i]),
-                                          stringsAsFactors = FALSE)
+              cat("Alert: Generating plot using all feature pairs.\n")
+              i.feat <- 1:nrow(x@matrix)
+
+            }else{
+
+              cat("Alert: Generating plot using indexed feature pairs.\n")
+              V <- x@pairs
+              coord <- indexToCoord(V, nrow(x@matrix))
+              i.feat <- sort(union(coord[[1]], coord[[2]]))
             }
 
-            # Image *lr counts
-            df <- do.call(rbind, features)
+            # Prepare features for melting
+            nfeat <- length(i.feat)
+            feat <- vector("character", nfeat * nsubj)
+            featnames <- colnames(x@logratio)[i.feat]
+            if(is.null(featnames)){
+              featnames <- paste("Feature", i.feat)
+              cexCol <- 0
+            }
+
+            # Prepare subjects for melting
+            nsubj <- nrow(x@logratio)
+            subj <- vector("character", nfeat * nsubj)
+            subjnames <- rownames(x@logratio)
+            if(is.null(subjnames)){
+              subjnames <- paste("Subject", 1:nsubj)
+              cexRow <- 0
+            }
+
+            # Melt *lr counts by feature
+            val <- vector("numeric", nfeat * nsubj)
+            for(i in 1:nfeat){
+
+              feat[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- featnames[i]
+              subj[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- subjnames
+              val[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- x@logratio[, i]
+            }
+
+            # Plot *lr for each subject
+            df <- data.frame("feature" = feat, "subject" = subj, "value" = val,
+                             stringsAsFactors = FALSE)
             df$feature <- factor(df$feature, levels = unique(df$feature))
             df$subject <- factor(df$subject, levels = unique(df$subject))
             valMin <- floor(min(df$value))
             valMax <- ceiling(max(df$value))
-
-            # Plot *lr for each subject
             p <- ggplot2::ggplot(ggplot2::aes_string(x = "subject",
                                                      y = "feature"), data = df) +
               ggplot2::geom_tile(ggplot2::aes_string(fill = "value")) +
@@ -230,34 +280,55 @@ dendrogram <- function(object, title = "Proportional Clusters", group){
          "Try running: install.packages('dendextend')")
   }
 
-  if(object@matrix[1, 1] == 0){
+  if(length(object@pairs) == 0){
 
-    # Convert phi into dist matrix
-    dist <- as.dist(object@matrix)
+    cat("Alert: Generating plot using all feature pairs.\n")
+    i.feat <- 1:nrow(object@matrix)
 
-  }else if(object@matrix[1, 1] == 1){
+  }else{
 
-    # Convert rho into dist matrix
-    # See reference: http://research.stowers-institute.org/
-    #  mcm/efg/R/Visualization/cor-cluster/index.htm
-    dist <- as.dist(1 - abs(object@matrix))
+    cat("Alert: Generating plot using indexed feature pairs.\n")
+    V <- object@pairs
+    coord <- indexToCoord(V, nrow(object@matrix))
+    i.feat <- sort(union(coord[[1]], coord[[2]]))
   }
 
   # Align features with groups in data.frame
   if(missing(group)) group <- 1
-  colorKey <- data.frame("feature" = colnames(object@matrix),
-                         "group" = group, "color" = NA,
+  featnames <- colnames(object@logratio)[i.feat]
+  if(is.null(featnames)){
+    featnames <- paste("Feature", i.feat)
+  }
+  colorKey <- data.frame("feature" = featnames,  "group" = group, "color" = NA,
                          stringsAsFactors = FALSE)
 
   # Assign 'n' colors based on 'n' groups
   grps <- unique(colorKey$group)
   colors <- rainbow(length(grps))
   for(i in 1:length(grps)){
-
     colorKey[colorKey$group == grps[i], "color"] <- colors[i]
   }
 
   # Build tree and color branches
+  if(object@matrix[1, 1] == 0){
+
+    # Convert phi into dist matrix
+    dist <- as.dist(object@matrix[i.feat, i.feat])
+    attr(dist, "Labels") <- featnames
+
+  }else if(object@matrix[1, 1] == 1){
+
+    # Convert rho into dist matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dist <- as.dist(1 - abs(object@matrix[i.feat, i.feat]))
+    attr(dist, "Labels") <- featnames
+
+  }else{
+
+    stop("Matrix style not recognized.")
+  }
+
   dend <- as.dendrogram(hclust(dist))
   dendextend::labels_colors(dend) <- colorKey$color[order.dendrogram(dend)]
   plot(dend, main = title)
