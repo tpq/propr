@@ -33,7 +33,7 @@ Let d represent any number of features measured across multiple biological repli
 \examples{
 randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
 counts <- matrix(randomNum, nrow = 25, ncol = 10)
-prop <- perb(counts, ivar = 0)
+rho <- perb(counts, ivar = 0)
 }
 \seealso{
 \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}

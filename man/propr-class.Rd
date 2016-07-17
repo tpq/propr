@@ -14,16 +14,19 @@ An S4 class to hold results from proportionality analysis.
 
 \item{\code{logratio}}{A matrix. Stores the log-ratio transformed "count matrix".}
 
-\item{\code{matrix}}{A matrix. Stores the proportionality matrix calculated by \code{phit} or \code{perb}.}
+\item{\code{matrix}}{A matrix. Stores the proportionality matrix calculated by
+\code{phiRcpp} or \code{rhoRcpp}.}
 
 \item{\code{pairs}}{A vector. Indexes the proportionality metrics of interest.}
 }}
 \examples{
-randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
-counts <- matrix(randomNum, nrow = 25, ncol = 10)
-prop <- perb(counts, ivar = 0)
-prop[">", .75]
-subset(prop, 1:5)
+set.seed(12345)
+N <- 100
+X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
+                c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
+rho <- perb(X, ivar = 0)
+rho[">", .99]
+subset(rho, 1:2)
 }
 \seealso{
 \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
