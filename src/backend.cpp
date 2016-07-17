@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+
 using namespace Rcpp;
 
 // Function for centering matrix (via: correlateR package)
@@ -280,22 +281,18 @@ List indexToCoord(IntegerVector V, const int N){
   );
 }
 
-// R code for testing and development
-
 /*** R
-i <- 2000
-X <- t(data.frame("a" = sample(1:i), "b" = sample(1:i), "c" = sample(1:i),
-                  "d" = sample(1:i), "e" = sample(1:i), "f" = sample(1:i)))
+X <- t(data.frame("a" = sample(1:10), "b" = sample(1:10), "c" = sample(1:10),
+                  "d" = sample(1:10), "e" = sample(1:10), "f" = sample(1:10)))
 
 if(!all(round(cov(X) - covRcpp(X), 5) == 0)) stop("covRcpp error!")
 if(!all(round(propr:::proprVLR(X) - vlrRcpp(X), 5) == 0)) stop("vlrRcpp error!")
 if(!all(round(propr:::proprCLR(X) - clrRcpp(X), 5) == 0)) stop("clrRcpp error!")
 if(!all(round(propr:::proprALR(X, ivar = 5) - alrRcpp(X, ivar = 5)[, -5], 5) == 0)) stop("alrRcpp error!")
 if(!all((propr:::proprSym(X) - symRcpp(X)) == 0)) stop("symRcpp error!")
+
 if(!all(round(propr:::proprPhit(X) - phiRcpp(X), 5) == 0)) stop("phiRcpp error!")
 if(!all(round(propr:::proprPerb(X) - rhoRcpp(X), 5) == 0)) stop("rhoRcpp error!")
-if(!sum(propr:::proprTri(phiRcpp(X) < .05)) == length(indexPairs(phiRcpp(X), "<", .05))) stop("indexPairs error!")
-if(!sum(propr:::proprTri(phiRcpp(X) > .05)) == length(indexPairs(phiRcpp(X), ">", .05))) stop("indexPairs error!")
 if(!all(propr:::proprTri(X) - X[indexPairs(X, "all")] == 0)) stop("indexPairs error!")
 
 */
