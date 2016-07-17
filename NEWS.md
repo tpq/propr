@@ -1,21 +1,40 @@
-## propr 1.1.0.9000
+## propr 2.0.0
 ---------------------
-* Added `lazyPairs` argument to `phit`
-  * Does not populate @pairs slot until after subset
-* Added `lazyPairs` argument to `perb`
-  * Does not populate @pairs slot until after subset
-* Adjusted `show` for `lazyPairs` update
-//* Adjusted `[` and `subset` for `lazyPairs` update
-//* Adjusted `$` for `lazyPairs` update
-//* Adjusted `plot` for `lazyPairs` update
-* Rephrased code for `proprPhit`
-* Rephrased code for `proprPerb`
-* Rephrased code for `proprVLR`
+* Modified `phit`, `perb` functions
+  * Permutation testing removed
+  * Added `lazyPairs` construct
+    * Slot @pairs not populated until after `[`
+* Modified `propr` Class
+  * `@pairs` slot now integer vector
+    * Populated with `indexPairs` function
+      * Translate with `indexToCoord` function
+  * `show` method updated for `lazyPairs` construct
+  * `[` method completely redesigned
+    * First argument specifies operation
+    * Second argument specifies reference
+    * Indexes @matrix based on these
+  * `subset` method revised but still copy-on-modify
+    * Resets @pairs when called
+  * `$` method removed
+* Visualization tools revised
+  * `plot`, `image`, `dendrogram` methods
+    * Improved performance
+    * Compatible with new @pairs indexing
+    * No longer requires column names
+* Modified backend code
+  * Rephrased code for `proprPhit`
+  * Rephrased code for `proprPerb`
+  * Rephrased code for `proprVLR`
+  * All functions translated into C++
+    * Estimated 80% reduction in RAM overhead
+    * Estimated 100-fold performance increase
+    * ALR methods no longer drop dimension
+    * All have modify-in-place behavior
 
 ## propr 1.1.0
 ---------------------
 * New orientation expected for input data
-  * Updated back-end and vignette accordingly
+  * Updated backend and vignette accordingly
   * Removed redundant transpositions
 * Fixed rare subsetting errors
 * Tweaked plot methods
