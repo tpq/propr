@@ -26,17 +26,20 @@ NULL
 #'
 #' @slot counts A matrix. Stores the original "count matrix" input.
 #' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
-#' @slot matrix A matrix. Stores the proportionality matrix calculated by \code{phit} or \code{perb}.
+#' @slot matrix A matrix. Stores the proportionality matrix calculated by
+#'  \code{phiRcpp} or \code{rhoRcpp}.
 #' @slot pairs A vector. Indexes the proportionality metrics of interest.
 #'
 #' @seealso \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
 #'
 #' @examples
-#' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
-#' counts <- matrix(randomNum, nrow = 25, ncol = 10)
-#' prop <- perb(counts, ivar = 0)
-#' prop[">", .75]
-#' subset(prop, 1:5)
+#' set.seed(12345)
+#' N <- 100
+#' X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
+#'                 c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
+#' rho <- perb(X, ivar = 0)
+#' rho[">", .99]
+#' subset(rho, 1:2)
 #' @export
 setClass("propr",
          slots = c(

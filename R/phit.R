@@ -18,7 +18,7 @@
 #' @examples
 #' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
 #' counts <- matrix(randomNum, nrow = 25, ncol = 10)
-#' prop <- phit(counts, symmetrize = TRUE)
+#' phi <- phit(counts, symmetrize = TRUE)
 #' @importFrom methods new
 #' @importFrom stats ecdf p.adjust
 #' @export
