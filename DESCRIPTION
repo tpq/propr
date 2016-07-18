@@ -15,8 +15,8 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
     analysis, a branch of math dealing specifically with relative data. In a
     subsequent publication, Erb and Nicodemus expounded these efforts by elaborating
     on another proportionality metric, rho. This package introduces a programmatic
-    framework for the calculation of feature dependence using proportionality and
-    other compositional data methods discussed in the cited publications.
+    framework for the calculation of feature dependence through proportionality, as
+    discussed in the cited publications.
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
