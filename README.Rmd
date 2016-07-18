@@ -34,7 +34,7 @@ data.relative <- data.absolute / colSums(data.absolute)
 
 ### Calculate &phi;
 
-```{r, fig.show = "hold"}
+```{r, fig.show = "hold", fig.keep = "last"}
 phi <- phit(data.relative)
 phi@matrix
 phi05 <- phi["<", .05]
@@ -44,7 +44,7 @@ plot(phi05)
 
 ### Calculate &rho;
 
-```{r, fig.show = "hold"}
+```{r, fig.show = "hold", fig.keep = "last"}
 rho <- perb(data.relative)
 rho@matrix
 rho99 <- rho[">", .99]
