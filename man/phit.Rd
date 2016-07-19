@@ -15,10 +15,10 @@ phit(counts, symmetrize = TRUE)
 Returns a \code{propr} object.
 }
 \description{
-\code{phit} returns a \code{propr} object containing measures of proportionality.
+\code{phit} returns a \code{propr} object containing a measure of proportionality.
 }
 \details{
-Let d represent any number of features measured across multiple biological replicates n
+Let d represent any number of features measured across n biological replicates
 	subjected to a binary or continuous event E. For example, E could represent case-control
 	status, treatment status, treatment dose, or time. This function converts a
 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d

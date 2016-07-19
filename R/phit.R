@@ -1,8 +1,8 @@
 #' Calculate proportionality metric phi.
 #'
-#' \code{phit} returns a \code{propr} object containing measures of proportionality.
+#' \code{phit} returns a \code{propr} object containing a measure of proportionality.
 #'
-#' Let d represent any number of features measured across multiple biological replicates n
+#' Let d represent any number of features measured across n biological replicates
 #' 	subjected to a binary or continuous event E. For example, E could represent case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a
 #' 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
@@ -20,7 +20,6 @@
 #' counts <- matrix(randomNum, nrow = 25, ncol = 10)
 #' phi <- phit(counts, symmetrize = TRUE)
 #' @importFrom methods new
-#' @importFrom stats ecdf p.adjust
 #' @export
 phit <- function(counts, symmetrize = TRUE){
 

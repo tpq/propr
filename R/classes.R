@@ -8,14 +8,14 @@ NULL
 #' Welcome to the \code{propr} package!
 #'
 #' To learn more about how to calculate metrics of proportionality,
-#'  see the help file for the method definitions \code{\link{phit}}
+#'  see the help file for the functions \code{\link{phit}}
 #'  and \code{\link{perb}}.
 #'
 #' To learn more about the resultant \code{propr} class object, see
 #'  the help file for the class definition \code{\link{propr-class}}.
 #'
 #' To learn more about compositional data analysis, and its relevance
-#'  to biological count data, see the attached vignette.
+#'  to biological count data, see the bundled vignette.
 #'
 #' To learn more about \code{propr} class methods, see below.
 #'
