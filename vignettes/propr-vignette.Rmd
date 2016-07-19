@@ -59,16 +59,26 @@ rho <- perb(X, ivar = 0)
 
 We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value. By design, this method never modifies the proportionality matrix, making that it scale well with large datasets. Alternatively, using the `subset` method, we can subset the *entire* `propr` object by a vector of feature indices or names. The `subset` method also provides a convenient way to re-order feature and subject vectors for downstream visualization tools (e.g., `image`). However, this method does copy-on-modify the proportionality matrix, making it unsuitable for large datasets.
 
-In the first example below, we use `[` to index the matrix by $\rho > .99$. This saves to the `@pairs` slot the location of all values satisfying the inequality that fall within the lower left triangle of the matrix. Indexing works, in part, to guide bundled visualization methods in lieu of copy-on-modify subsetting. In the second example below, we subset by the feature names "a" and "b".
+In the first example below, we use `[` to index the matrix by $\rho > .99$. This saves to the `@pairs` slot the location of all values satisfying the inequality that fall within the lower left triangle of the matrix. Indexing works, in part, to guide bundled visualization methods in lieu of copy-on-modify subsetting.
 
 ```{r}
 rho99 <- rho[">", .99]
 rho99@pairs
 ```
 
+In the second example, we subset by the feature names "a" and "b".
+
 ```{r}
 rhoab <- subset(rho, select = c("a", "b"))
 rhoab@matrix
+```
+
+Alternatively, we could subset by the index itself using the `indexToCoord` function as an intermediate. This function converts a vector of indices into a paired list of coordinates to subsequently use in the `subset` method. However, this function requires one additional argument, `N`, supplied as the size of each dimension in the proportionality matrix from which the indices derive.
+
+```{r}
+coord <- propr:::indexToCoord(rho99@pairs, N = nrow(rho99@matrix))
+coord.merge <- sort(union(coord[[1]], coord[[2]]))
+subset(rho, select = coord.merge)
 ```
 <!--
 ## Empiric distributions
