@@ -203,8 +203,10 @@ setMethod("image", signature(x = "propr"),
               i.feat <- sort(union(coord[[1]], coord[[2]]))
             }
 
-            # Prepare features for melting
             nfeat <- length(i.feat)
+            nsubj <- nrow(x@logratio)
+
+            # Prepare features for melting
             feat <- vector("character", nfeat * nsubj)
             featnames <- colnames(x@logratio)[i.feat]
             if(is.null(featnames)){
@@ -213,7 +215,6 @@ setMethod("image", signature(x = "propr"),
             }
 
             # Prepare subjects for melting
-            nsubj <- nrow(x@logratio)
             subj <- vector("character", nfeat * nsubj)
             subjnames <- rownames(x@logratio)
             if(is.null(subjnames)){
