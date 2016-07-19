@@ -47,15 +47,6 @@ phi05@pairs
 
     ## [1]  2 12
 
-``` r
-plot(phi05)
-```
-
-    ## Alert: Generating plot using indexed feature pairs.
-    ## Shaping pair 1 ...Shaping pair 2 ...
-
-![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
-
 ### Calculate ρ
 
 ``` r
@@ -80,15 +71,6 @@ rho99@pairs
 ```
 
     ## [1]  2 12
-
-``` r
-plot(rho99)
-```
-
-    ## Alert: Generating plot using indexed feature pairs.
-    ## Shaping pair 1 ...Shaping pair 2 ...
-
-![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 ### References
 

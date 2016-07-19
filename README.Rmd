@@ -34,22 +34,20 @@ data.relative <- data.absolute / colSums(data.absolute)
 
 ### Calculate &phi;
 
-```{r, fig.show = "hold", fig.keep = "last"}
+```{r}
 phi <- phit(data.relative)
 phi@matrix
 phi05 <- phi["<", .05]
 phi05@pairs
-plot(phi05)
 ```
 
 ### Calculate &rho;
 
-```{r, fig.show = "hold", fig.keep = "last"}
+```{r}
 rho <- perb(data.relative)
 rho@matrix
 rho99 <- rho[">", .99]
 rho99@pairs
-plot(rho99)
 ```
 
 ### References
