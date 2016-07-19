@@ -7,11 +7,13 @@
 
 0 errors | 0 warnings | 1 note
 
-* This is a new release.
+* Possibly mis-spelled words in DESCRIPTION:
+
+I have reviewed the DESCRIPTION and attest it does not contain any mis-spellings.
 
 ## Reverse dependencies
 
-This is a new release, so there are no reverse dependencies.
+No reverse dependencies.
 <!--
 ---
 

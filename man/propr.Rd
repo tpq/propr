@@ -2,6 +2,7 @@
 % Please edit documentation in R/classes.R, R/methods.R
 \docType{methods}
 \name{propr}
+\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{dendrogram}
 \alias{image,propr-method}
@@ -15,7 +16,7 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr}(x, i = "all", j)
+\S4method{[}{propr,ANY,ANY}(x, i = "all", j)
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 
