@@ -228,7 +228,7 @@ setMethod("image", signature(x = "propr"),
 
               feat[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- featnames[i]
               subj[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- subjnames
-              val[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- x@logratio[, i]
+              val[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- scale(x@logratio[, i])
             }
 
             # Plot *lr for each subject
