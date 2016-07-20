@@ -177,7 +177,7 @@ pairs(propr:::proprCLR(Y[, 1:4]))
 pairs(propr:::proprCLR(X))
 ```
 
-However, division of the vlr by the variance of the clr lacks *sub-compositional coherence*. As such, neither $\phi$ nor $\rho$, at least when calculated via clr, yield the same result for absolute and relative data. Therefore, measuring proportionality does not, *per se*, guard against the possibility of *spurious proportionality*.
+However, division of the vlr by the variance of the clr lacks *sub-compositional coherence*. As such, neither $\phi$ nor $\rho$, at least when calculated via clr, yield the same result for absolute and relative data. This may explain why these methods do not, *per se*, prevent the possible discovery of *spurious proportionality*.
 
 ```{r}
 phit(Y[, 1:4])@matrix
@@ -189,7 +189,14 @@ perb(Y[, 1:4])@matrix
 perb(X)@matrix
 ```
 
-The reader should note that in this contrived example, $\phi(X)$ can equal $\phi(Y)$ if and only if *every* composition (i.e., feature vector) of $Y$ is available for the computation. Such equivalency occurs when the sum of the feature parts in the relative dataset can explain the whole of each subject. This is rarely the case when studying biological count data and alone does not imply *sub-compositional coherence*.
+Still, in comparing the dependence between "c" and "d" as calculated by $cov(Y)$ with that of $\rho(Y)$, it appears that proportionality analysis does offer at least partial protection against spurious results.
+
+```{r}
+cor(Y)
+perb(Y)@matrix
+```
+
+Finally, the reader should note that in this contrived example, $\phi(X) = \phi(Y)$ and $\rho(X) = \rho(Y)$, but only because the sum of the feature parts in the relative dataset can explain the whole of absolute dataset. In other words, this comes from the fact that in crafting the relative dataset, we used information spanning the entire absolute dataset (i.e., `rowSums`). This is usually not the case when studying biological count data and alone does not imply *sub-compositional coherence*.
 
 ## An in-depth look at alr
 
@@ -226,11 +233,11 @@ We can visualize this *module* using the bundled visualization method `dendrogra
 dendrogram(perb(X, ivar = 1))
 ```
 
-Resuming our initial claim that the matrix $X$ contains absolute count data while the matrix $Y$ contains relative count data, we can show that alr-transformation not only corrects for *spurious proportionality*, but it also serves as a *sub-compositionally coherent* metric of dependence. However, unlike the aforementioned vlr, $\rho$ has a meaningful scale. In the example below, we calculate $\rho$ using the alr-transformation about the reference "e" for four compositions of the relative count matrix, $Y$, as well as for the absolute count matrix, $X$. We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects. Yet, at this point, one might also consider "back-calculating" the absolute abundances and measuring dependence through more conventional means.
+Resuming our initial claim that the matrix $X$ contains absolute count data while the matrix $Y$ contains relative count data, we can show that alr-transformation not only corrects for *spurious proportionality*, but it also serves as a *sub-compositionally coherent* metric of dependence. However, unlike the aforementioned vlr, $\rho$ has a meaningful scale. In the example below, we calculate $\rho$ using the alr-transformation about the reference "e" for four compositions of the relative count matrix, $Y$, as well as for the absolute count matrix, $X$. We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects. Still, at this point, one might also consider "back-calculating" the absolute abundances and measuring dependence through more conventional means.
 
 ```{r}
-perb(Y[, 2:5], ivar = 4)@pairs
-perb(X, ivar = 5)@pairs
+perb(Y[, 2:5], ivar = 4)@matrix
+perb(X, ivar = 5)@matrix
 ```
 <!--
 ## Experimental design
