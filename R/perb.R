@@ -32,6 +32,13 @@ perb <- function(counts, ivar = 0){
   cat("Calculating rho from \"count matrix\".\n")
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
+
+  if(any(0 == prop@counts)){
+
+    message("0s found in counts matrix. Replacing 0s with next smallest value.")
+    prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
+  }
+
   if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts[], ivar) # [] forces copy
   }else{ prop@logratio <- clrRcpp(prop@counts[])} # [] forces copy
   prop@matrix <- rhoRcpp(prop@counts[], ivar) # [] forces copy
