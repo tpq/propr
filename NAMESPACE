@@ -3,6 +3,7 @@
 export(dendrogram)
 export(perb)
 export(phit)
+export(simplify)
 exportClasses(propr)
 exportMethods("[")
 exportMethods(image)
