@@ -268,7 +268,6 @@ List indexToCoord(IntegerVector V, const int N){
 
   for(int i = 0; i < V.length(); i++){
 
-    int a = 5 % 2;
     int J = (V[i] - 1) / N + 1;
     cols.push_back(J);
     int I = (V[i] - 1) % N + 1;
