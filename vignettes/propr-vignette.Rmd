@@ -57,28 +57,28 @@ rho <- perb(X, ivar = 0)
 
 ## Subsetting propr objects
 
-We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value. By design, this method never modifies the proportionality matrix, making that it scale well with large datasets. Alternatively, using the `subset` method, we can subset the *entire* `propr` object by a vector of feature indices or names. The `subset` method also provides a convenient way to re-order feature and subject vectors for downstream visualization tools (e.g., `image`). However, this method does copy-on-modify the proportionality matrix, making it unsuitable for large datasets.
+We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value. By design, this method never modifies the proportionality matrix, making it scale well with large datasets.
 
-In the first example below, we use `[` to index the matrix by $\rho > .99$. This saves to the `@pairs` slot the location of all values satisfying the inequality that fall within the lower left triangle of the matrix. Indexing works, in part, to guide bundled visualization methods in lieu of copy-on-modify subsetting.
+In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide bundled visualization methods in lieu of copy-on-modify subsetting.
 
 ```{r}
 rho99 <- rho[">", .99]
 rho99@pairs
 ```
 
-In the second example, we subset by the feature names "a" and "b".
+Alternatively, using the `subset` method, we can subset an *entire* `propr` object by a vector of feature indices or names. The `subset` method also provides a convenient way to re-order feature and subject vectors for downstream visualization tools (e.g., `image`). However, this method does copy-on-modify the proportionality matrix, making it unsuitable for large datasets.
+
+In this second example, we subset by the feature names "a" and "b".
 
 ```{r}
 rhoab <- subset(rho, select = c("a", "b"))
 rhoab@matrix
 ```
 
-Alternatively, we could subset by the index itself using the `indexToCoord` function as an intermediate. This function converts a vector of indices into a paired list of coordinates to subsequently use in the `subset` method. However, this function requires one additional argument, `N`, supplied as the size of each dimension in the proportionality matrix from which the indices derive.
+The convenience function, `simplify`, can subset an *entire* `propr` object based on the index saved to its `@pairs` slot. This function converts the saved index into a paired list of coordinates and passes them along to the `subset` method. As such, this method does copy-on-modify the proportionality matrix, making it unsuitable for large datasets. Unlike `subset`, `simplify` returns an object with the `@pairs` slot updated.
 
 ```{r}
-coord <- propr:::indexToCoord(rho99@pairs, N = nrow(rho99@matrix))
-coord.merge <- sort(union(coord[[1]], coord[[2]]))
-subset(rho, select = coord.merge)
+simplify(rho99)
 ```
 <!--
 ## Empiric distributions
@@ -123,7 +123,7 @@ Both microarray technology and high-throughput genomic sequencing have the abili
 
 ## An in-depth look at clr
 
-We recognize that this package utilizes concepts largely unintuitive to many. Since the log-ratio transformation of relative data comprises a major portion of proportionality analysis, we decided to dedicate some extra space to this topic specifically. In this section, we discuss the **centered log-ratio** (clr) and its limitations in context of proportionality analysis. To this end, we begin by simulating count data for 5 features (e.g., genes) labeled "a", "b", "c", "d", and "e", as measured across 100 subjects.
+We recognize that this package builds off concepts that are not necessarily intuitive. Since the log-ratio transformation of relative data comprises a major portion of proportionality analysis, we decided to dedicate some extra space to this topic specifically. In this section, we discuss the **centered log-ratio** (clr) and its limitations in context of proportionality analysis. To this end, we begin by simulating count data for 5 features (e.g., genes) labeled "a", "b", "c", "d", and "e", as measured across 100 subjects.
 
 ```{r}
 N <- 100
