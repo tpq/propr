@@ -29,7 +29,7 @@ phit <- function(counts, symmetrize = TRUE){
 
   if(any(0 == prop@counts)){
 
-    message("0s found in counts matrix. Replacing 0s with next smallest value.")
+    message("Replacing zeroes in \"count matrix\" with next smallest value.")
     prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
   }
 
