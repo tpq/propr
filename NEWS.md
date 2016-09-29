@@ -1,3 +1,11 @@
+## propr 2.0.1
+---------------------
+* Modified `phit`, `perb` functions
+  * These functions now force zero removal.
+* New `simplify` function
+  * Subsets `propr` object based on index in `@pairs` slot.
+  * Returns an updated index.
+
 ## propr 2.0.0
 ---------------------
 * Modified `phit`, `perb` functions
