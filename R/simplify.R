@@ -28,7 +28,6 @@ simplify <- function(object){
 
   # Subset propr object based on index
   new <- subset(object, select = selection)
-  rm(object)
 
   # Repopulate the pairs slot
   for(i in 1:length(coords[[1]])){

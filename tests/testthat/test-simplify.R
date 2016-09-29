@@ -15,7 +15,7 @@ phi <- phit(X)
 phi.index <- phi["<", .5]
 simple <- simplify(phi.index)
 
-testthat("simplify correctly re-indexes proportionality matrix", {
+test_that("simplify correctly re-indexes proportionality matrix", {
 
   expect_equal(
     simple@matrix[simple@pairs],
