@@ -10,11 +10,11 @@ Authors@R: c(
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, this approach lacks statistical validity
     when applied to relative data, including those biological count data produced by
-    microarray assays or high-throughput RNA-sequencing. As an alternative, Lovell
-    et al propose a proportionality metric, phi, derived from compositional data
-    analysis, a branch of math dealing specifically with relative data. In a
-    subsequent publication, Erb and Nicodemus expounded these efforts by elaborating
-    on another proportionality metric, rho. This package introduces a programmatic
+    microarray assays or high-throughput RNA-sequencing. Two metrics of proportionality,
+    phi [Lovell et al (2015) <DOI:10.1371/journal.pcbi.1004075>] and rho [Erb and
+    Notredame (2016) <DOI:10.1007/s12064-015-0220-8>], both derived from compositional
+    data analysis, a branch of math dealing specifically with relative data,
+    represent novel alternatives to correlation. This package introduces a programmatic
     framework for the calculation of feature dependence through proportionality, as
     discussed in the cited publications.
 License: GPL-2
