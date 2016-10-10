@@ -7,6 +7,8 @@
 prism(rho, k)
 }
 \arguments{
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+
 \item{k}{A numeric scalar. The number of groups into which to
 cluster the subjects. Clusters calculated  using \code{hclust}.
 Optional parameter for \code{\link{bucket}} and

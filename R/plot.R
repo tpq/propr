@@ -47,8 +47,8 @@ plotCheck <- function(x){
 #'
 #' "It's pronounced, 'bouquet'." - Hyacinth Bucket
 #'
-#' @param A \code{propr} object created from \code{\link{perb}}.
-#' @param group. A character vector. Group or sub-group memberships,
+#' @param rho A \code{propr} object created from \code{\link{perb}}.
+#' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the column names in \code{@@counts} and
 #'  \code{@@logratio}. Parameter required for \code{\link{bucket}}
 #'  and optional for \code{\link{mds}}.
@@ -104,8 +104,8 @@ bucket <- function(rho, group, k){ # pronounced bouquet
 
   df <- data.frame(prop, weight, "col" = as.character(col))
   g <-
-    ggplot2::ggplot(df, aes(prop, weight)) +
-    ggplot2::geom_point(aes(colour = col)) +
+    ggplot2::ggplot(df, ggplot2::aes(prop, weight)) +
+    ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality between Features (rho)") +
@@ -148,7 +148,7 @@ prism <- function(rho, k){
   plotCheck(rho)
 
   # Calculate log-ratio transformed variances
-  var.ratio <- propr:::vlrRcpp(rho@counts[])
+  var.ratio <- vlrRcpp(rho@counts[])
   var.each <- apply(rho@logratio, 2, var)
 
   # Cluster if k is provided
@@ -178,8 +178,8 @@ prism <- function(rho, k){
 
   df <- data.frame(vlr, vls, "col" = as.character(col))
   g <-
-    ggplot2::ggplot(df, aes(vls, vlr)) +
-    ggplot2::geom_point(aes(colour = col)) +
+    ggplot2::ggplot(df, ggplot2::aes(vls, vlr)) +
+    ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
@@ -227,8 +227,9 @@ mds <- function(rho, group){
                    prcomp(rho@logratio)$x[, c(1, 2)])
   g <-
     ggplot2::ggplot() +
-    ggplot2::geom_point(aes(x = PC1, y = PC2, colour = group), data = df) +
-    ggplot2::geom_text(aes(x = PC1, y = PC2, label = id, colour = group), data = df, size = 3, vjust = -1) +
+    ggplot2::geom_point(ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"), data = df) +
+    ggplot2::geom_text(ggplot2::aes_string(x = "PC1", y = "PC2", label = "id", colour = "group"),
+                       data = df, size = 3, vjust = -1) +
     ggplot2::theme_bw() +
     ggplot2::xlab("First *lr-transformed component") +
     ggplot2::ylab("Second *lr-transformed component") +

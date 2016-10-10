@@ -7,17 +7,17 @@
 bucket(rho, group, k)
 }
 \arguments{
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+
+\item{group}{A character vector. Group or sub-group memberships,
+ordered according to the column names in \code{@counts} and
+\code{@logratio}. Parameter required for \code{\link{bucket}}
+and optional for \code{\link{mds}}.}
+
 \item{k}{A numeric scalar. The number of groups into which to
 cluster the subjects. Clusters calculated  using \code{hclust}.
 Optional parameter for \code{\link{bucket}} and
 \code{\link{prism}}.}
-
-\item{A}{\code{propr} object created from \code{\link{perb}}.}
-
-\item{group.}{A character vector. Group or sub-group memberships,
-ordered according to the column names in \code{@counts} and
-\code{@logratio}. Parameter required for \code{\link{bucket}}
-and optional for \code{\link{mds}}.}
 }
 \value{
 Returns cluster membership if \code{k} is provided.

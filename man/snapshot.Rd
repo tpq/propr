@@ -6,6 +6,9 @@
 \usage{
 snapshot(rho)
 }
+\arguments{
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+}
 \description{
 Plots the log-ratio transformed feature abundance as
  a heatmap, with the axes ordered by dendrogram. Heatmap

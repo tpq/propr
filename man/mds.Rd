@@ -6,6 +6,14 @@
 \usage{
 mds(rho, group)
 }
+\arguments{
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+
+\item{group}{A character vector. Group or sub-group memberships,
+ordered according to the column names in \code{@counts} and
+\code{@logratio}. Parameter required for \code{\link{bucket}}
+and optional for \code{\link{mds}}.}
+}
 \description{
 Plots the first two principal components as calculated
  using the log-ratio transformed feature vectors. This
