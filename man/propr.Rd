@@ -2,10 +2,8 @@
 % Please edit documentation in R/classes.R, R/methods.R
 \docType{methods}
 \name{propr}
-\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{dendrogram}
-\alias{image,propr-method}
 \alias{plot,propr,missing-method}
 \alias{propr}
 \alias{show,propr-method}
@@ -16,12 +14,9 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY}(x, i = "all", j)
+\S4method{[}{propr}(x, i = "all", j)
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
-
-\S4method{image}{propr}(x, cexRow = 10, cexCol = 10,
-  title = "*LR Transformed Image")
 
 dendrogram(object, title = "Proportional Clusters", group)
 }
@@ -43,10 +38,6 @@ value to which to compare the proportionality metrics.}
 \item{y}{Missing. Ignore. Leftover from the generic method definition.}
 
 \item{title}{A character string. A title for the \code{propr} plot.}
-
-\item{cexRow}{Numeric. Size of x-axis label.}
-
-\item{cexCol}{Numeric. Size of y-axis label.}
 
 \item{group}{A character or numeric vector. Supply feature groups for coloring.
 Feature groups expected in the order they appear in \code{@counts}.}
@@ -78,9 +69,6 @@ To learn more about \code{propr} class methods, see below.
 
 
 \code{plot:} Method to plot \code{propr} object.
-
-
-\code{image:} Method to plot \code{propr} object.
 
 
 \code{plot:} Method to plot \code{propr} object.
