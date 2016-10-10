@@ -6,10 +6,6 @@
 #' @param x An object of class \code{propr}.
 plotCheck <- function(x){
 
-  ###
-  # Add check for rho
-  ###
-
   if(!requireNamespace("ggplot2", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggplot2! ",
          "Try running: install.packages('ggplot2')")
@@ -31,6 +27,11 @@ plotCheck <- function(x){
             "0: Nevermind\n1: Proceed\n2: Hmm...")
     response <- readline(prompt="Which do you choose? ")
     if(!response == 1) stop("Plot method aborted.")
+  }
+
+  if(any(x@matrix) > 1){
+
+    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
   }
 }
 
@@ -107,7 +108,7 @@ bucket <- function(rho, group, k){ # pronounced bouquet
     ggplot2::ggplot(df, ggplot2::aes(prop, weight)) +
     ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
-    ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
+    ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality between Features (rho)") +
     ggplot2::ylab("Discrimination between Groups") +
     ggplot2::ggtitle("Distribution of lr*-transformed Variance") +
@@ -181,7 +182,7 @@ prism <- function(rho, k){
     ggplot2::ggplot(df, ggplot2::aes(vls, vlr)) +
     ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
-    ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
+    ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
     ggplot2::ylab("Variance of the Log Ratio (vlr)") +
     ggplot2::ggtitle("Distribution of lr*-transformed Variance") +
@@ -233,7 +234,7 @@ mds <- function(rho, group){
     ggplot2::theme_bw() +
     ggplot2::xlab("First *lr-transformed component") +
     ggplot2::ylab("Second *lr-transformed component") +
-    ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
+    ggplot2::scale_colour_brewer(palette = "Set3", name = "Group") +
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 
   plot(g)
