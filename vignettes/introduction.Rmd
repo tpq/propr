@@ -249,9 +249,7 @@ perb(X, ivar = 5)@matrix
 
 ## Limitations
 
-Although we developed this package with biological count data in mind, many of the ostensibly compositional biological datasets do not behave in a truly compositional manner. For example, in the setting of gene expression data, measuring the expression of "Gene A" as 1 in one subject and the expression of "Gene B" as 2 in another subject (i.e., the feature vector $[1, 2]$), does not carry the same information as measuring the expression of "Gene A" as 1000 in one subject and the expression of "Gene B" as 2000 in another subject (i.e., the feature vector $[1000, 2000]$). As such, these data do not strictly meet the criteria for compositional data.
-
-Unfortunately, we do not yet have a model to adequately address this drawback. Therefore, we advise the investigator to proceed with caution when working with such "count compositional" data.
+Although we developed this package with biological count data in mind, many of the ostensibly compositional biological datasets do not behave in a truly compositional manner. For example, in the setting of gene expression data, measuring the expression of "Gene A" as 1 in one subject and the expression of "Gene B" as 2 in another subject (i.e., the feature vector $[1, 2]$), does not carry the same information as measuring the expression of "Gene A" as 1000 in one subject and the expression of "Gene B" as 2000 in another subject (i.e., the feature vector $[1000, 2000]$). As such, these data do not strictly meet the criteria for compositional data. Unfortunately, we do not yet have a model to adequately address this drawback. Therefore, we advise the investigator to proceed with caution when working with such "count compositional" data.
 
 ## References
 
