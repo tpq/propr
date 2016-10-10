@@ -1,10 +1,20 @@
+## propr 2.0.1.9000
+---------------------
+* Altered `image` method
+  * Now includes dendrogram with heatmap
+  * No longer uses index pairs
+  * Now called `snapshot`
+* New `prism` function
+* New `bucket` function
+* New `mds` function
+
 ## propr 2.0.1
 ---------------------
 * Modified `phit`, `perb` functions
-  * These functions now force zero removal.
+  * These functions now force zero removal
 * New `simplify` function
-  * Subsets `propr` object based on index in `@pairs` slot.
-  * Returns an updated index.
+  * Subsets `propr` object based on index in `@pairs` slot
+  * Returns an updated index
 
 ## propr 2.0.0
 ---------------------
