@@ -6,6 +6,11 @@
 #' @param x An object of class \code{propr}.
 plotCheck <- function(x){
 
+  if(x@matrix[1, 1] != 1){
+
+    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
+  }
+
   if(!requireNamespace("ggplot2", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggplot2! ",
          "Try running: install.packages('ggplot2')")
@@ -25,13 +30,8 @@ plotCheck <- function(x){
 
     message("Uh oh! A large number of features were detected (>1000). Are you sure you want to plot them all?\n",
             "0: Nevermind\n1: Proceed\n2: Hmm...")
-    response <- readline(prompt="Which do you choose? ")
+    response <- readline(prompt = "Which do you choose? ")
     if(!response == 1) stop("Plot method aborted.")
-  }
-
-  if(any(x@matrix) > 1){
-
-    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
   }
 }
 
@@ -81,7 +81,11 @@ bucket <- function(rho, group, k){ # pronounced bouquet
   # Cluster if k is provided
   if(!missing(k)){
 
-    clust <- cutree(hclust(dist(rho@matrix)), k = k)
+    # Convert rho into dist matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dist <- as.dist(1 - abs(rho@matrix))
+    clust <- cutree(hclust(dist, k = k))
   }
 
   # Build graph components
@@ -155,7 +159,11 @@ prism <- function(rho, k){
   # Cluster if k is provided
   if(!missing(k)){
 
-    clust <- cutree(hclust(dist(rho@matrix)), k = k)
+    # Convert rho into dist matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dist <- as.dist(1 - abs(rho@matrix))
+    clust <- cutree(hclust(dist, k = k))
   }
 
   # Build graph components
