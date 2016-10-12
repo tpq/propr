@@ -1,0 +1,163 @@
+---
+title: "Understanding RNA-seq Data through Proportionality Analysis"
+author: "Thomas Quinn"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Understanding RNA-seq Data through Proportionality Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+In this vignette, we discuss how we can understand RNA-sequencing data through proportionality analysis. We place a particular emphasis here on the visualization of proportionality using the plot functions included with this package. To this end, we examine a real dataset as a use case. Although the biologist user may feel eager to start here, we strongly recommend first reading through the companion vignette, "Calculating the Proportionality Coefficients of Compositional Data".
+
+## Big Counts
+
+For this use case, we use raw counts from a published study on cane toad evolution and adaptation. This dataset contains transcript counts for 20 toads, sampled from locations in the wild. Sugar cane farmers introduced cane toads to Australia in 1935 as a pest control measure, but these toads quickly became pests themselves in the north-east and continue to spread. The two locations sampled in this study include the north-eastern early settlement region as well as the front of expansion into new territories. We conceive of these two locations as the experimental groups, and have an interest in understanding the genomic differences between the regional and invasive toads.
+
+```{r}
+library(propr)
+data(caneToad.counts)
+data(caneToad.groups)
+```
+
+We begin by calculating proportionality between all transcripts in the dataset. When working with a large number of transcripts (57,580 in this case), we may first want to filter non-informative transcripts to minimize the computational burden of analysis. However, while the variance of the log-ratio transformed feature pair (vlr) (i.e., the numerator portion of $phi$ and $rho$) remains fixed regardless of any pre-filter, the individual log-ratio transformed variances (vls) (i.e., the denominator portion of $phi$ and $rho$) do change. In other words, although vlr is sub-compositionally coherent, vls is not. Therefore, pre-filtering the data *may lead to spurious proportionality*.
+
+That said, in some circumstances, it is simply unfeasible to calculate a proportionality matrix using all features. Calculating pairwise proportionality in this case requires at least nearly 32 GB of RAM, not counting more for indexing and visualization.
+
+Moreover, proportionality analysis, while not perfectly sub-compositionally coherent, has a certian "robustness" to minor fluctuations in the composition. For now, we decline to endorse pre-filtering before proportionality analysis and deem it an area of active research. However, *for the sole purpose of making this example reproducible with a standard laptop computer*, we choose to pre-filter before calculating proportionality.
+
+As a pre-filter step (which should probably come *after* )-------------Next, we filter out the lowly-expressed transcripts. We do this based on a biological intuition that lowly-expressed transcripts will not [] informative because (a) high error at low counts due to assay configuration[]complicate cross-sample comparisons due , especially in the setting of proportionality (which depends on varianc variances). Note that removing these features at this stage will have no impact on [] on downstream the remaining transcripts. In this example, we keep all transcripts that have at least 10 counts in at least 10 samples.
+
+```{r}
+keep <- apply(caneToad.counts, 2, function(x) sum(x >= 10) >= 10)
+caneToad.subset <- caneToad.counts[, keep]
+```
+
+We recommend calculating $rho$, instead of $phi$, owing to its intuitive scale from [-1, 1]
+
+```{r}
+rho <- perb(caneToad.subset)
+```
+
+Once we establish a `propr` object, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $rho>0.99$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $rho<-0.99$ to include only "very unproportional" pairs.
+
+```{r, echo = FALSE}
+rm(caneToad.counts)
+rm(caneToad.subset)
+```
+
+```{r}
+best <- rho[">", .99]
+```
+
+## Index-aware Plots
+
+After indexing, it is a good idea to check the pair-wise distribution of the log-ratio transformed data using the `plot` function. This function only plots blah blah When interpreting this figure, a straight line
+confirms the pair is proportional. It means that as one gene increases in expression, so does the other. If you have 
+
+```{r}
+plot(best)
+```
+
+You can also inspect how the indexed pairs cluster using the `dendrogram` function. This function clusters features based on the proportionality matrix. This dendrogram matches the dendrogram used to label co-clusters in the `prism` and `bucket` plots, described below. Note that we use the dissimilarity measure `as.dist(1 - abs(rho@matrix))` for clustering with hierarchical clustering.
+
+```{r}
+dendrogram(best)
+```
+
+## Index-naive Plots
+
+The remaining visualization methods do not restrict plotting to indexed pairs. Instead, these functions incorporate all features present in the `propr` object. To exclude any features not belonging to an indexed feature pair, we use the `simplify` function.
+
+```{r}
+simple <- simplify(best)
+```
+
+Relative data, including relative count data, are not distributed in Euclidean space (ALDEX2 paper). Instead, they exist in a space known as the Aitchonson(sp?) complex. The log-ratio transformation, used for calculating proportionality, effectively transform our count data from the Aitchonson simplex to Euclidean space. We can then use the log-ratio counts (stored in the `@logratio` slot) in conventional pipelines[].
+
+First, we look at the multi-dimensional scaling (MDS) plot, a simple visualization of dimension reduction by principal components analysis (PCA), favored by . This package implements a valid implementation of data projection for relative count data (Gloor Review) by built using log-ratio transformed data.
+
+```{r}
+mds(simple, group = caneToad.groups)
+```
+
+Next, we get a []. This function works as a simple wrapper for the base R `heatmap` function, except that it uses the `@logratio` data from a `propr` object. By default, heatmap intensity is scaled across the feature vector to make it easier to assess visually the difference in the log-ratio transformed abundance between samples.
+
+```{r}
+snapshot(simple)
+```
+
+The next two functions [deal not only with log-ratio transformed data, but specifically with proportionality]
+
+Prism plot
+
+At a certain k, this plot method 
+
+[Since this colors co-clusters based on the dendrogram produced by the `dendrogram` function, it is helpful to use that plot to inform our choice of k.]
+
+```{r}
+clusts <- prism(simple, k = 5)
+```
+
+Bucket plot
+
+```{r}
+clusts <- bucket(simple, k = 2)
+```
+
+## Down-stream
+
+For convenience, the `prism` and `bucket` functions will return the cluster identities used to color the co-clusters in the figures. In interpreting the figures above, we appears as if cluster number [x] has (1) low proportionality in the setting of high individual feature variance and (2) a high estimate of separating the two subjects.
+
+We can extract this cluster from the `propr` object using the `subset` method.
+
+```{r}
+sub <- subset(simple, select = clusts == [x])
+```
+
+We can confirm we selected the correct cluster by plotting the data again with `prism`.
+
+```{r}
+prism(sub)
+```
+
+Now, I have a few questions about this cluster. First, how does this cluster, as discovered in a completely unsupervised fashion (well, excepting the `bucket` plot) separate the two experimental groups? Second, what function implications does this transcript module have?
+
+To answer the first question, we begin by looking at the MDS plot from this subset.
+
+```{r}
+
+
+```
+
+
+We could also try clustering the subjects []
+
+```{r}
+
+```
+
+To answer the second question, we could use a technique like gene-set enrichment analysis, although we exclude this from the vignette. However, we will sh
+
+```{r}
+transcripts <- colnames(sub@logratio)
+```
+
+## Conclusions
+
+We interpret the good separation [] by this module as evidence that we have *discovered* a highly co-regulated transcript module that has differential expression between the experimental groups. 
+
+Although we do not have a "p-value" for the transcripts within this module, we believe that some degree of "certainty" arises from the fact that we built this module using unsupervised methods.
+
+## References
+
+* Cane Toad
+* Gloor x 2
+
+1. Erb, I. & Notredame, C. 2016. How should we measure proportionality on relative gene expression data? Theory Biosci.
+
+2. Lovell, D. et al. 2015. Proportionality: A Valid Alternative to Correlation for Relative Data. PLoS Comput Biol 11.
+
