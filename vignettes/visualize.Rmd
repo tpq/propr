@@ -44,11 +44,6 @@ rho <- perb(caneToad.subset)
 
 Once we establish a `propr` object, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $rho>0.99$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $rho<-0.99$ to include only "very unproportional" pairs.
 
-```{r, echo = FALSE}
-rm(caneToad.counts)
-rm(caneToad.subset)
-```
-
 ```{r}
 best <- rho[">", .99]
 ```
