@@ -85,7 +85,7 @@ bucket <- function(rho, group, k){ # pronounced bouquet
     # See reference: http://research.stowers-institute.org/
     #  mcm/efg/R/Visualization/cor-cluster/index.htm
     dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(hclust(dist, k = k))
+    clust <- cutree(hclust(dist), k = k)
   }
 
   # Build graph components
@@ -163,7 +163,7 @@ prism <- function(rho, k){
     # See reference: http://research.stowers-institute.org/
     #  mcm/efg/R/Visualization/cor-cluster/index.htm
     dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(hclust(dist, k = k))
+    clust <- cutree(hclust(dist), k = k)
   }
 
   # Build graph components
