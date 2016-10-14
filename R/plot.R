@@ -246,8 +246,6 @@ mds <- function(rho, group){
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 
   plot(g)
-
-  return(TRUE)
 }
 
 #' Make Snapshot Plot
