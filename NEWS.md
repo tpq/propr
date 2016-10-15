@@ -1,4 +1,4 @@
-## propr 2.0.1.9000
+## propr 2.0.2
 ---------------------
 * Altered `image` method
   * Now includes dendrogram with heatmap
