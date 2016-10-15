@@ -131,13 +131,13 @@ bucket <- function(rho, group, k){ # pronounced bouquet
 
 #' Make Prism Plot
 #'
-#' Plots the variance of ratio of the log-ratio transformed feature
-#'  pair (vlr) versus the sum of the individual variances of each
-#'  log-ratio transformed feature (vls). The ratio of the vlr to
-#'  the vls equals \code{1 - rho}. As such, we use here seven
-#'  rainbow colored lines to indicate where \code{rho} equals
-#'  \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going from
-#'  red to violet.
+#' Plots the variance of the ratio of the log-ratio transformed
+#'  feature pair (vlr) versus the sum of the individual variances
+#'  of each log-ratio transformed feature (vls). The ratio of
+#'  the vlr to the vls equals \code{1 - rho}. As such, we use
+#'  here seven rainbow colored lines to indicate where \code{rho}
+#'  equals \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going
+#'  from red to violet.
 #'
 #' Providing the argument \code{k} will color feature pairs
 #'  by co-cluster membership. In other words, a feature pair
