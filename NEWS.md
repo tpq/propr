@@ -7,6 +7,7 @@
 * New `prism` function
 * New `bucket` function
 * New `mds` function
+* New vignette
 
 ## propr 2.0.1
 ---------------------
