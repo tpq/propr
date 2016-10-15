@@ -6,6 +6,11 @@
 #' @param x An object of class \code{propr}.
 plotCheck <- function(x){
 
+  if(!class(x) == "propr"){
+
+    stop("Uh oh! You can only simplify an indexed 'propr' object.")
+  }
+
   if(x@matrix[1, 1] != 1){
 
     stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
@@ -16,12 +21,7 @@ plotCheck <- function(x){
          "Try running: install.packages('ggplot2')")
   }
 
-  if(!class(x) == "propr"){
-
-    stop("Uh oh! You can only simplify an indexed 'propr' object.")
-  }
-
-  if(length(x@pairs) == 0){
+  if(length(x@pairs) != 0){
 
     message("Note that this plot method plots all pairs, and not only indexed pairs.")
   }
