@@ -242,7 +242,7 @@ dendrogram <- function(object, title = "Proportional Clusters", group){
 
   dend <- as.dendrogram(hclust(dist))
   dendextend::labels_colors(dend) <- colorKey$color[order.dendrogram(dend)]
-  plot(dend, main = title)
+  suppressWarnings(plot(dend, main = title))
 
   return(dend)
 }

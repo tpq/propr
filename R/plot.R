@@ -242,7 +242,7 @@ mds <- function(rho, group){
     ggplot2::theme_bw() +
     ggplot2::xlab("First *lr-transformed component") +
     ggplot2::ylab("Second *lr-transformed component") +
-    ggplot2::scale_colour_brewer(palette = "Set3", name = "Group") +
+    ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 
   plot(g)
