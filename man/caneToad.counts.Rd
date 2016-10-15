@@ -6,7 +6,7 @@
 \title{Example Cane Toad Count Data}
 \format{An object of class \code{matrix} with 20 rows and 57580 columns.}
 \source{
-doi:10.1111/mec.13184
+<DOI:10.1111/mec.13184>
 }
 \usage{
 data(caneToad.counts)

@@ -1,16 +1,16 @@
+#' @useDynLib propr
+#' @importFrom Rcpp sourceCpp
+NULL
+
 #' Example Cane Toad Count Data
-#' @source doi:10.1111/mec.13184
+#' @source <DOI:10.1111/mec.13184>
 #' @usage data(caneToad.counts)
 "caneToad.counts"
 
 #' Example Cane Toad Group Data
-#' @source doi:10.1111/mec.13184
+#' @source <DOI:10.1111/mec.13184>
 #' @usage data(caneToad.groups)
 "caneToad.groups"
-
-#' @useDynLib propr
-#' @importFrom Rcpp sourceCpp
-NULL
 
 #' The propr Package
 #'

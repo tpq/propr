@@ -11,7 +11,7 @@ vignette: >
 
 ## Introduction
 
-In this vignette, we use a real dataset to show how we can apply proportionality analysis to RNA-seq count data. We place a particular emphasis here on documenting the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "Calculating the Proportionality Coefficients of Compositional Data".
+In this vignette, we use a real dataset to show how we can apply proportionality analysis to understand RNA-seq count data. We place a particular emphasis here on documenting the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "Calculating the Proportionality Coefficients of Compositional Data".
 
 ## Big Counts
 

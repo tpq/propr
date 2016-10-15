@@ -6,7 +6,7 @@
 \title{Example Cane Toad Group Data}
 \format{An object of class \code{character} of length 20.}
 \source{
-doi:10.1111/mec.13184
+<DOI:10.1111/mec.13184>
 }
 \usage{
 data(caneToad.groups)
