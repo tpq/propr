@@ -115,7 +115,7 @@ bucket <- function(rho, group, k){ # pronounced bouquet
     ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality between Features (rho)") +
     ggplot2::ylab("Discrimination between Groups") +
-    ggplot2::ggtitle("Distribution of lr*-transformed Variance") +
+    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::xlim(-1, 1) +
     ggplot2::ylim(0, max(df$weight)) +
     ggplot2::geom_hline(yintercept = -log(.05 / nrow(df)), color = "lightgrey") +
@@ -193,7 +193,7 @@ prism <- function(rho, k){
     ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
     ggplot2::ylab("Variance of the Log Ratio (vlr)") +
-    ggplot2::ggtitle("Distribution of lr*-transformed Variance") +
+    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::geom_abline(slope = 1.99, intercept = 0, color = "violet") +
     ggplot2::geom_abline(slope = 1.95, intercept = 0, color = "purple") +
     ggplot2::geom_abline(slope = 1.50, intercept = 0, color = "blue") +
