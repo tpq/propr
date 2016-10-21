@@ -29,3 +29,11 @@ test_that("calculating rho from phi matches propr:::proprPerb", {
     propr:::proprPerb(X, ivar = 0)
   )
 })
+
+test_that("perb accepts ivar name or index", {
+
+  expect_equal(
+    perb(X, 2),
+    perb(X, "b")
+  )
+})

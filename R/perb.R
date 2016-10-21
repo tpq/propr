@@ -39,6 +39,13 @@ perb <- function(counts, ivar = 0){
     prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
   }
 
+  if(class(ivar) == "character"){
+
+    index <- ivar == colnames(prop@counts)
+    if(any(index)){ ivar <- which(index)
+    }else{ stop("Uh oh! Provided ivar reference not found in data.")}
+  }
+
   if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts[], ivar) # [] forces copy
   }else{ prop@logratio <- clrRcpp(prop@counts[])} # [] forces copy
   prop@matrix <- rhoRcpp(prop@counts[], ivar) # [] forces copy

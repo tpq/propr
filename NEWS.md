@@ -1,5 +1,7 @@
 ## propr 2.0.2
 ---------------------
+* Modified `perb` function
+  * User can now specify name of `ivar` reference
 * Altered `image` method
   * Now includes dendrogram with heatmap
   * No longer uses index pairs
