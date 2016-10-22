@@ -186,7 +186,7 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 #' @export
 dendrogram <- function(object, title = "Proportional Clusters", group){
 
-  if(!requireNamespace("dendextend", quietly = TRUE)){
+  if(suppressWarnings(!requireNamespace("dendextend", quietly = TRUE))){
     stop("Uh oh! This plot method depends on dendextend! ",
          "Try running: install.packages('dendextend')")
   }
@@ -241,9 +241,8 @@ dendrogram <- function(object, title = "Proportional Clusters", group){
   }
 
   dend <- as.dendrogram(hclust(dist))
-  suppressWarnings(dendextend::labels_colors(dend) <-
-                     colorKey$color[order.dendrogram(dend)])
-  suppressWarnings(plot(dend, main = title))
+  dendextend::labels_colors(dend) <- colorKey$color[order.dendrogram(dend)]
+  plot(dend, main = title)
 
   return(dend)
 }

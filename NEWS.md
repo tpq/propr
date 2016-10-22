@@ -1,4 +1,4 @@
-## propr 2.0.2.9000
+## propr 2.0.3
 ---------------------
 * Modified `subset` method
   * Argument `select` now correctly rearranges features
