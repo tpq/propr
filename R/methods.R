@@ -46,7 +46,7 @@ setMethod("subset", signature(x = "propr"),
 
             if(is.character(select)){
 
-              select <- which(colnames(x@counts) %in% select)
+              select <- match(select, colnames(x@counts))
             }
 
             x@counts <- x@counts[subset, select, drop = FALSE]

@@ -1,3 +1,13 @@
+## propr 2.0.2.9000
+---------------------
+* Modified `subset` method
+  * Argument `select` now correctly rearranges features
+* Modified `rhoRcpp` function
+  * Now accommodates new `perb` function feature
+* Modified `perb` function
+  * New `select` argument returns subsetted matrix
+  * This subset does not alter values of rho
+
 ## propr 2.0.2
 ---------------------
 * Modified `perb` function
