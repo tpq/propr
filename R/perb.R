@@ -15,7 +15,12 @@
 #'  this function will return \code{rho = 0} for each pair containing the
 #'  reference feature.
 #'
-#' @param ivar A numeric scalar. Specificies reference feature for additive log-ratio transformation.
+#' @param ivar A numeric scalar. Specificies a reference feature
+#'  for additive log-ratio transformation. Argument will now accept
+#'  the feature name instead of index.
+#' @param select Subsets via \code{object@counts[, select]}.
+#'  Optional. Use this argument to subset the proportionality
+#'  matrix without impacting the value of \code{rho}.
 #' @inheritParams phit
 #' @return Returns a \code{propr} object.
 #'
@@ -27,7 +32,7 @@
 #' rho <- perb(counts, ivar = 0)
 #' @importFrom methods new
 #' @export
-perb <- function(counts, ivar = 0){
+perb <- function(counts, ivar = 0, select){
 
   cat("Calculating rho from \"count matrix\".\n")
   prop <- new("propr")
@@ -48,7 +53,24 @@ perb <- function(counts, ivar = 0){
 
   if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts[], ivar) # [] forces copy
   }else{ prop@logratio <- clrRcpp(prop@counts[])} # [] forces copy
-  prop@matrix <- rhoRcpp(prop@counts[], ivar) # [] forces copy
+
+  if(!missing(select)){
+
+    # Make select boolean (it's OK if it's integer)
+    if(is.character(select)) select <- match(select, colnames(prop@counts))
+    if(any(is.na(select))) stop("Uh oh! Provided select reference not found in data.")
+
+    # Map ivar to new subset (else assign it 0)
+    mapping <- (1:ncol(prop@counts))[select]
+    if(any(ivar == mapping)){ ivar <- which(ivar == mapping)
+    }else{ ivar <- 0}
+
+    # Now OK to drop the unchanged reference
+    prop@counts <- prop@counts[, select]
+    prop@logratio <- prop@logratio[, select]
+  }
+
+  prop@matrix <- rhoRcpp(prop@counts[], prop@logratio[], ivar)
   prop@pairs <- vector("numeric")
 
   return(prop)

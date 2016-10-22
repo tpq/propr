@@ -156,28 +156,14 @@ NumericMatrix phiRcpp(NumericMatrix X,
 // Function for rho
 // [[Rcpp::export]]
 NumericMatrix rhoRcpp(NumericMatrix X,
+                      NumericMatrix lr,
                       const int ivar = 0){
-
 
   // Make vlr from "count matrix" X (using a copy)
   NumericMatrix counts = clone(X);
   NumericMatrix mat = vlrRcpp(counts);
-
-  // Create lr matrix container
   int nsubjs = X.nrow();
   int nfeats = X.ncol();
-  NumericMatrix lr(nsubjs, nfeats);
-
-  if(ivar == 0){
-
-    // Make clr from "count matrix" X
-    lr = clrRcpp(X);
-
-  }else{
-
-    // Make alr from "count matrix" X
-    lr = alrRcpp(X, ivar);
-  }
 
   // Calculate variance of the i-th clr composition
   NumericVector vars(nfeats);
@@ -291,7 +277,7 @@ if(!all(round(propr:::proprALR(X, ivar = 5) - alrRcpp(X, ivar = 5)[, -5], 5) == 
 if(!all((propr:::proprSym(X) - symRcpp(X)) == 0)) stop("symRcpp error!")
 
 if(!all(round(propr:::proprPhit(X) - phiRcpp(X), 5) == 0)) stop("phiRcpp error!")
-if(!all(round(propr:::proprPerb(X) - rhoRcpp(X), 5) == 0)) stop("rhoRcpp error!")
+if(!all(round(propr:::proprPerb(X) - rhoRcpp(X, propr:::proprCLR(X)), 5) == 0)) stop("rhoRcpp error!")
 if(!all(propr:::proprTri(X) - X[indexPairs(X, "all")] == 0)) stop("indexPairs error!")
 
 */

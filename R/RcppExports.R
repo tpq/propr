@@ -25,8 +25,8 @@ phiRcpp <- function(X, sym = 1L) {
     .Call('propr_phiRcpp', PACKAGE = 'propr', X, sym)
 }
 
-rhoRcpp <- function(X, ivar = 0L) {
-    .Call('propr_rhoRcpp', PACKAGE = 'propr', X, ivar)
+rhoRcpp <- function(X, lr, ivar = 0L) {
+    .Call('propr_rhoRcpp', PACKAGE = 'propr', X, lr, ivar)
 }
 
 indexPairs <- function(X, op = "==", ref = 0) {

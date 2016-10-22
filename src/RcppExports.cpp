@@ -75,14 +75,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // rhoRcpp
-NumericMatrix rhoRcpp(NumericMatrix X, const int ivar);
-RcppExport SEXP propr_rhoRcpp(SEXP XSEXP, SEXP ivarSEXP) {
+NumericMatrix rhoRcpp(NumericMatrix X, NumericMatrix lr, const int ivar);
+RcppExport SEXP propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type lr(lrSEXP);
     Rcpp::traits::input_parameter< const int >::type ivar(ivarSEXP);
-    rcpp_result_gen = Rcpp::wrap(rhoRcpp(X, ivar));
+    rcpp_result_gen = Rcpp::wrap(rhoRcpp(X, lr, ivar));
     return rcpp_result_gen;
 END_RCPP
 }
