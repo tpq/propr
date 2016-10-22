@@ -38,12 +38,12 @@ test_that("Rcpp backend matches original R backend", {
 
   expect_equivalent(
     propr:::proprPerb(X, 0),
-    rhoRcpp(X, 0)
+    rhoRcpp(X, clrRcpp(X[]), 0)
   )
 
   expect_equivalent(
     propr:::proprPerb(X, 5),
-    rhoRcpp(X, 5)[-5, -5]
+    rhoRcpp(X, alrRcpp(X[], 5), 5)[-5, -5]
   )
 })
 
