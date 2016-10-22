@@ -4,12 +4,18 @@
 \alias{perb}
 \title{Calculate proportionality metric rho.}
 \usage{
-perb(counts, ivar = 0)
+perb(counts, ivar = 0, select)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
 
-\item{ivar}{A numeric scalar. Specificies reference feature for additive log-ratio transformation.}
+\item{ivar}{A numeric scalar. Specificies a reference feature
+for additive log-ratio transformation. Argument will now accept
+the feature name instead of index.}
+
+\item{select}{Subsets via \code{object@counts[, select]}.
+Optional. Use this argument to subset the proportionality
+matrix without impacting the value of \code{rho}.}
 }
 \value{
 Returns a \code{propr} object.
