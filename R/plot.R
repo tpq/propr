@@ -249,6 +249,8 @@ prism <- function(rho, k, prompt = TRUE){
     ggplot2::xlab("Variance of the Log Sum (vls)") +
     ggplot2::ylab("Variance of the Log Ratio (vlr)") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
+    ggplot2::xlim(0, max(df$VLS)) +
+    ggplot2::ylim(0, max(df$VLR)) +
     ggplot2::geom_abline(slope = 1.99, intercept = 0, color = "violet") +
     ggplot2::geom_abline(slope = 1.95, intercept = 0, color = "purple") +
     ggplot2::geom_abline(slope = 1.50, intercept = 0, color = "blue") +
