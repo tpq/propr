@@ -1,3 +1,14 @@
+## propr 2.0.3.9000
+---------------------
+* Modified functions that use `plotCheck`
+  * New `prompt` argument turns off large data prompt
+* New `slate` function
+  * Returns a table of VLR, VLS, and rho
+<!-- New `contextualize` function-->
+<!-- New `conceptualize` function-->
+* Modified `prism` function
+  * Now calls `slate` function
+
 ## propr 2.0.3
 ---------------------
 * Modified `subset` method
