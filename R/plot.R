@@ -142,6 +142,9 @@ plotCheck <- function(rho, prompt){
 #'
 #' @inheritParams bucket
 #' @return Returns a \code{data.frame} of pairwise relationships.
+#'  If the argument \code{k} is provided, returns a list of
+#'  the \code{data.frame} of pairwise relationships and the
+#'  cluster membership.
 #'
 #' @export
 slate <- function(rho, k, prompt = TRUE){
@@ -173,7 +176,7 @@ slate <- function(rho, k, prompt = TRUE){
   vlr <- vector("numeric", llt) # var log ratio
   vls <- vector("numeric", llt) # var log sum
   rho <- vector("numeric", llt) # 1 - vlr/vls
-  col <- vector("numeric", llt) # cluster k
+  col <- vector("numeric", llt) # co-cluster
   count <- 1
   for(j in 2:nrow(var.ratio)){
     for(i in 1:(j-1)){
@@ -191,13 +194,18 @@ slate <- function(rho, k, prompt = TRUE){
     }
   }
 
-  final <- data.frame("Partner" = feat1, "Pair 2" = feat2,
-                      "cluster" = as.character(col),
-                      "VLR" = vlr, "VLS" = vls,
-                      "rho" = rho)
+  final <- data.frame("Partner" = feat1, "Pair" = feat2,
+                      "VLR" = vlr, "VLS" = vls, "rho" = rho)
 
+  if(!missing(k)){
 
-  return(final)
+    final$CoCluster <- as.character(col)
+    return(list(final, clust))
+
+  }else{
+
+    return(final)
+  }
 }
 
 #' Make Prism Plot
@@ -222,9 +230,20 @@ slate <- function(rho, k, prompt = TRUE){
 prism <- function(rho, k, prompt = TRUE){
 
   df <- slate(rho, k, prompt)
+
+  if(!missing(k)){
+
+    clust <- df[[2]]
+    df <- df[[1]]
+
+  }else{
+
+    df$CoCluster <- as.character(0)
+  }
+
   g <-
     ggplot2::ggplot(df, ggplot2::aes(VLS, VLR)) +
-    ggplot2::geom_point(ggplot2::aes(colour = cluster)) +
+    ggplot2::geom_point(ggplot2::aes(colour = CoCluster)) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +

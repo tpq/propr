@@ -19,6 +19,9 @@ the prompt when plotting a large number of features.}
 }
 \value{
 Returns a \code{data.frame} of pairwise relationships.
+ If the argument \code{k} is provided, returns a list of
+ the \code{data.frame} of pairwise relationships and the
+ cluster membership.
 }
 \description{
 This function builds a table of VLR, VLS, and rho
