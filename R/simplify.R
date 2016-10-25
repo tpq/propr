@@ -1,12 +1,12 @@
 #' Simplify Indexed Matrix
 #'
-#' This convenience function takes an indexed \code{\link{propr}} object and
-#'  subsets the object based on that index. In addition, it populates
-#'  the \code{@@pairs} slot of the new object with an updated version
+#' This convenience function takes an indexed \code{\link{propr}} object
+#'  and subsets the object based on that index. Then, it populates the
+#'  \code{@@pairs} slot of the new object with an updated version
 #'  of the original index.
 #'
 #' @inheritParams propr
-#' @return Returns a subsetted and indexed \code{propr} object.
+#' @return Returns a \code{propr} object.
 #'
 #' @export
 simplify <- function(object){
