@@ -168,12 +168,12 @@ slate <- function(rho, k, prompt = TRUE){
 
   # Build table components
   llt <- ncol(var.ratio) * (ncol(var.ratio)-1) * 1/2 # size of lower-left triangle
-  feat1 <- vector("numeric", llt)
-  feat2 <- vector("numeric", llt)
+  feat1 <- vector("numeric", llt) # feature name 1
+  feat2 <- vector("numeric", llt) # feature name 2
   vlr <- vector("numeric", llt) # var log ratio
   vls <- vector("numeric", llt) # var log sum
-  rho <- vector("numeric", llt)
-  col <- vector("numeric", llt)
+  rho <- vector("numeric", llt) # 1 - vlr/vls
+  col <- vector("numeric", llt) # cluster k
   count <- 1
   for(j in 2:nrow(var.ratio)){
     for(i in 1:(j-1)){
@@ -191,9 +191,11 @@ slate <- function(rho, k, prompt = TRUE){
     }
   }
 
-  final <- data.frame("Feature 1" = feat1, "Feature 2" = feat2,
-                      "VLR" = vlr, "VLS" = vls, "rho" = rho,
-                      "cluster" = as.character(col))
+  final <- data.frame("Partner" = feat1, "Pair 2" = feat2,
+                      "cluster" = as.character(col),
+                      "VLR" = vlr, "VLS" = vls,
+                      "rho" = rho)
+
 
   return(final)
 }
