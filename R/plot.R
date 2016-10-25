@@ -1,40 +1,3 @@
-#' Plot Check
-#'
-#' Performs data checks before plotting, triggering messages
-#'  or errors when appropriate. For back-end use only.
-#'
-#' @param x An object of class \code{propr}.
-plotCheck <- function(x){
-
-  if(!class(x) == "propr"){
-
-    stop("Uh oh! You can only simplify an indexed 'propr' object.")
-  }
-
-  if(x@matrix[1, 1] != 1){
-
-    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
-  }
-
-  if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggplot2! ",
-         "Try running: install.packages('ggplot2')")
-  }
-
-  if(length(x@pairs) != 0){
-
-    message("Note that this plot method plots all pairs, and not only indexed pairs.")
-  }
-
-  if(nrow(x@matrix) > 1000){
-
-    message("Uh oh! A large number of features were detected (>1000). Are you sure you want to plot them all?\n",
-            "0: Nevermind\n1: Proceed\n2: Hmm...")
-    response <- readline(prompt = "Which do you choose? ")
-    if(!response == 1) stop("Plot method aborted.")
-  }
-}
-
 #' Make Bucket Plot
 #'
 #' Plots an estimation of the degree to which a feature pair
@@ -57,14 +20,16 @@ plotCheck <- function(x){
 #'  cluster the subjects. Clusters calculated  using \code{hclust}.
 #'  Optional parameter for \code{\link{bucket}} and
 #'  \code{\link{prism}}.
+#' @param prompt A logical scalar. Set to \code{FALSE} to disable
+#'  the prompt when plotting a large number of features.
 #'
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @importFrom stats as.formula lm aov cutree hclust dist
 #' @export
-bucket <- function(rho, group, k){ # pronounced bouquet
+bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
 
-  plotCheck(rho)
+  plotCheck(rho, prompt)
 
   # Calculate discriminating power of each feature
   numfeats <- ncol(rho@logratio)
@@ -129,6 +94,110 @@ bucket <- function(rho, group, k){ # pronounced bouquet
   }
 }
 
+#' Plot Check
+#'
+#' Performs data checks before plotting, triggering messages
+#'  or errors when appropriate. For back-end use only.
+#'
+#' @inheritParams bucket
+plotCheck <- function(rho, prompt){
+
+  if(!class(rho) == "propr"){
+
+    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
+  }
+
+  if(rho@matrix[1, 1] != 1){
+
+    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
+  }
+
+  if(!requireNamespace("ggplot2", quietly = TRUE)){
+    stop("Uh oh! This plot method depends on ggplot2! ",
+         "Try running: install.packages('ggplot2')")
+  }
+
+  if(length(rho@pairs) != 0){
+
+    message("Note that this plot method plots all pairs, and not only indexed pairs.")
+  }
+
+  if(nrow(rho@matrix) > 1000 & prompt){
+
+    message("Uh oh! A large number of features were detected (>1000).\n",
+            "Are you sure you want to plot them all?\n",
+            "0: Nevermind\n1: Proceed\n2: Hmm...")
+    response <- readline(prompt = "Which do you choose? ")
+    if(!response == 1) stop("Plot method aborted.")
+  }
+}
+
+#' Build \code{propr} Table
+#'
+#' This function builds a table of VLR, VLS, and rho
+#'  for each feature pair in a \code{propr} object. If the
+#'  argument \code{k} is provided, the table will also
+#'  include co-cluster membership (as matching the
+#'  \code{\link{bucket}} or \code{\link{prism}} plots).
+#'
+#' @inheritParams bucket
+#' @return Returns a \code{data.frame} of pairwise relationships.
+#'
+#' @export
+slate <- function(rho, k, prompt = TRUE){
+
+  plotCheck(rho, prompt)
+
+  # Enforce some kind of colnames
+  if(!is.null(colnames(rho@logratio))){ feat.each <- colnames(rho@logratio)
+  }else{ feat.each <- as.character(1:ncol(rho@logratio))}
+
+  # Calculate log-ratio transformed variances
+  var.ratio <- vlrRcpp(rho@counts[])
+  var.each <- apply(rho@logratio, 2, var)
+
+  # Cluster if k is provided
+  if(!missing(k)){
+
+    # Convert rho into dist matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dist <- as.dist(1 - abs(rho@matrix))
+    clust <- cutree(hclust(dist), k = k)
+  }
+
+  # Build table components
+  llt <- ncol(var.ratio) * (ncol(var.ratio)-1) * 1/2 # size of lower-left triangle
+  feat1 <- vector("numeric", llt)
+  feat2 <- vector("numeric", llt)
+  vlr <- vector("numeric", llt) # var log ratio
+  vls <- vector("numeric", llt) # var log sum
+  rho <- vector("numeric", llt)
+  col <- vector("numeric", llt)
+  count <- 1
+  for(j in 2:nrow(var.ratio)){
+    for(i in 1:(j-1)){
+
+      vlr[count] <- var.ratio[j, i]
+      vls[count] <- var.each[j] + var.each[i]
+      rho[count] <- 1 - vlr[count] / vls[count]
+      feat1[count] <- feat.each[j]
+      feat2[count] <- feat.each[i]
+
+      # Since each col initializes as zero
+      if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
+
+      count <- count + 1
+    }
+  }
+
+  final <- data.frame("Feature 1" = feat1, "Feature 2" = feat2,
+                      "VLR" = vlr, "VLS" = vls, "rho" = rho,
+                      "cluster" = as.character(col))
+
+  return(final)
+}
+
 #' Make Prism Plot
 #'
 #' Plots the variance of the ratio of the log-ratio transformed
@@ -148,47 +217,12 @@ bucket <- function(rho, group, k){ # pronounced bouquet
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @export
-prism <- function(rho, k){
+prism <- function(rho, k, prompt = TRUE){
 
-  plotCheck(rho)
-
-  # Calculate log-ratio transformed variances
-  var.ratio <- vlrRcpp(rho@counts[])
-  var.each <- apply(rho@logratio, 2, var)
-
-  # Cluster if k is provided
-  if(!missing(k)){
-
-    # Convert rho into dist matrix
-    # See reference: http://research.stowers-institute.org/
-    #  mcm/efg/R/Visualization/cor-cluster/index.htm
-    dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(hclust(dist), k = k)
-  }
-
-  # Build graph components
-  llt <- ncol(var.ratio) * (ncol(var.ratio)-1) * 1/2 # size of lower-left triangle
-  vlr <- vector("numeric", llt) # var log ratio
-  vls <- vector("numeric", llt) # var log sum
-  col <- vector("numeric", llt)
-  count <- 1
-  for(j in 2:nrow(var.ratio)){
-    for(i in 1:(j-1)){
-
-      vlr[count] <- var.ratio[j, i]
-      vls[count] <- var.each[j] + var.each[i]
-
-      # Since each col initializes as zero
-      if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
-
-      count <- count + 1
-    }
-  }
-
-  df <- data.frame(vlr, vls, "col" = as.character(col))
+  df <- slate(rho, k, prompt)
   g <-
-    ggplot2::ggplot(df, ggplot2::aes(vls, vlr)) +
-    ggplot2::geom_point(ggplot2::aes(colour = col)) +
+    ggplot2::ggplot(df, ggplot2::aes(VLS, VLR)) +
+    ggplot2::geom_point(ggplot2::aes(colour = cluster)) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
@@ -223,9 +257,9 @@ prism <- function(rho, k){
 #' @inheritParams bucket
 #'
 #' @export
-mds <- function(rho, group){
+mds <- function(rho, group, prompt = TRUE){
 
-  plotCheck(rho)
+  plotCheck(rho, prompt)
 
   if(missing(group)){
 
@@ -236,9 +270,11 @@ mds <- function(rho, group){
                    prcomp(rho@logratio)$x[, c(1, 2)])
   g <-
     ggplot2::ggplot() +
-    ggplot2::geom_point(ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"), data = df) +
-    ggplot2::geom_text(ggplot2::aes_string(x = "PC1", y = "PC2", label = "id", colour = "group"),
-                       data = df, size = 3, vjust = -1) +
+    ggplot2::geom_point(
+      ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"), data = df) +
+    ggplot2::geom_text(
+      ggplot2::aes_string(x = "PC1", y = "PC2", label = "id", colour = "group"),
+      data = df, size = 3, vjust = -1) +
     ggplot2::theme_bw() +
     ggplot2::xlab("First *lr-transformed component") +
     ggplot2::ylab("Second *lr-transformed component") +
@@ -259,8 +295,8 @@ mds <- function(rho, group){
 #' @inheritParams bucket
 #'
 #' @export
-snapshot <- function(rho){
+snapshot <- function(rho, prompt = TRUE){
 
-  plotCheck(rho)
+  plotCheck(rho, prompt)
   heatmap(rho@logratio, scale = "col", labCol = "")
 }
