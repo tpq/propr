@@ -10,12 +10,12 @@ simplify(object)
 \item{object}{An object of class \code{propr}.}
 }
 \value{
-Returns a subsetted and indexed \code{propr} object.
+Returns a \code{propr} object.
 }
 \description{
-This convenience function takes an indexed \code{\link{propr}} object and
- subsets the object based on that index. In addition, it populates
- the \code{@pairs} slot of the new object with an updated version
+This convenience function takes an indexed \code{\link{propr}} object
+ and subsets the object based on that index. Then, it populates the
+ \code{@pairs} slot of the new object with an updated version
  of the original index.
 }
 

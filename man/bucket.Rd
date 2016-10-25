@@ -4,7 +4,7 @@
 \alias{bucket}
 \title{Make Bucket Plot}
 \usage{
-bucket(rho, group, k)
+bucket(rho, group, k, prompt = TRUE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
@@ -18,6 +18,9 @@ and optional for \code{\link{mds}}.}
 cluster the subjects. Clusters calculated  using \code{hclust}.
 Optional parameter for \code{\link{bucket}} and
 \code{\link{prism}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the prompt when plotting a large number of features.}
 }
 \value{
 Returns cluster membership if \code{k} is provided.

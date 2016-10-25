@@ -4,7 +4,7 @@
 \alias{prism}
 \title{Make Prism Plot}
 \usage{
-prism(rho, k)
+prism(rho, k, prompt = TRUE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
@@ -13,6 +13,9 @@ prism(rho, k)
 cluster the subjects. Clusters calculated  using \code{hclust}.
 Optional parameter for \code{\link{bucket}} and
 \code{\link{prism}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the prompt when plotting a large number of features.}
 }
 \value{
 Returns cluster membership if \code{k} is provided.

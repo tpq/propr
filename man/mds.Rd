@@ -4,7 +4,7 @@
 \alias{mds}
 \title{Make MDS Plot}
 \usage{
-mds(rho, group)
+mds(rho, group, prompt = TRUE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
@@ -13,6 +13,9 @@ mds(rho, group)
 ordered according to the column names in \code{@counts} and
 \code{@logratio}. Parameter required for \code{\link{bucket}}
 and optional for \code{\link{mds}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the prompt when plotting a large number of features.}
 }
 \description{
 Plots the first two principal components as calculated

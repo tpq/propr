@@ -4,10 +4,13 @@
 \alias{snapshot}
 \title{Make Snapshot Plot}
 \usage{
-snapshot(rho)
+snapshot(rho, prompt = TRUE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the prompt when plotting a large number of features.}
 }
 \description{
 Plots the log-ratio transformed feature abundance as

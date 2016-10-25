@@ -4,10 +4,13 @@
 \alias{plotCheck}
 \title{Plot Check}
 \usage{
-plotCheck(x)
+plotCheck(rho, prompt)
 }
 \arguments{
-\item{x}{An object of class \code{propr}.}
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the prompt when plotting a large number of features.}
 }
 \description{
 Performs data checks before plotting, triggering messages
