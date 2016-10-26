@@ -1,13 +1,16 @@
 ## propr 2.0.3.9000
 ---------------------
+* Modified `dendrogram` function
+  * Now uses `fastcluster::hclust` implementation
+  * Now returns an `hclust` object
 * Modified functions that use `plotCheck`
   * New `prompt` argument turns off large data prompt
 * New `slate` function
   * Returns a table of VLR, VLS, and rho
-<!-- New `contextualize` function-->
-<!-- New `conceptualize` function-->
+* Modified `bucket` and `prism` functions
+  * Now uses `fastcluster::hclust` implementation
 * Modified `prism` function
-  * Now calls `slate` function
+  * Now depends on `slate` function
 
 ## propr 2.0.3
 ---------------------

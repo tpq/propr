@@ -25,9 +25,14 @@
 #'
 #' @return Returns cluster membership if \code{k} is provided.
 #'
-#' @importFrom stats as.formula lm aov cutree hclust dist
+#' @importFrom stats as.formula lm aov cutree
 #' @export
 bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
+
+  if(suppressWarnings(!requireNamespace("fastcluster", quietly = TRUE))){
+    stop("Uh oh! This plot method depends on fastcluster! ",
+         "Try running: install.packages('fastcluster')")
+  }
 
   plotCheck(rho, prompt)
 
@@ -50,7 +55,7 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
     # See reference: http://research.stowers-institute.org/
     #  mcm/efg/R/Visualization/cor-cluster/index.htm
     dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(hclust(dist), k = k)
+    clust <- cutree(fastcluster::hclust(dist), k = k)
   }
 
   # Build graph components
@@ -149,6 +154,11 @@ plotCheck <- function(rho, prompt){
 #' @export
 slate <- function(rho, k, prompt = TRUE){
 
+  if(suppressWarnings(!requireNamespace("fastcluster", quietly = TRUE))){
+    stop("Uh oh! This plot method depends on fastcluster! ",
+         "Try running: install.packages('fastcluster')")
+  }
+
   plotCheck(rho, prompt)
 
   # Enforce some kind of colnames
@@ -166,7 +176,7 @@ slate <- function(rho, k, prompt = TRUE){
     # See reference: http://research.stowers-institute.org/
     #  mcm/efg/R/Visualization/cor-cluster/index.htm
     dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(hclust(dist), k = k)
+    clust <- cutree(fastcluster::hclust(dist), k = k)
   }
 
   # Build table components

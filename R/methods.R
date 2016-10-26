@@ -181,10 +181,15 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 # #' @param title A character string. A title for the \code{propr} plot.
 #' @param group A character or numeric vector. Supply feature groups for coloring.
 #'  Feature groups expected in the order they appear in \code{@@counts}.
-#' @importFrom stats as.dist as.dendrogram hclust order.dendrogram
+#' @importFrom stats as.dist as.dendrogram order.dendrogram
 #' @importFrom grDevices rainbow
 #' @export
 dendrogram <- function(object, title = "Proportional Clusters", group){
+
+  if(suppressWarnings(!requireNamespace("fastcluster", quietly = TRUE))){
+    stop("Uh oh! This plot method depends on fastcluster! ",
+         "Try running: install.packages('fastcluster')")
+  }
 
   if(suppressWarnings(!requireNamespace("dendextend", quietly = TRUE))){
     stop("Uh oh! This plot method depends on dendextend! ",
@@ -240,9 +245,10 @@ dendrogram <- function(object, title = "Proportional Clusters", group){
     stop("Matrix style not recognized.")
   }
 
-  dend <- as.dendrogram(hclust(dist))
+  hc <- fastcluster::hclust(dist)
+  dend <- as.dendrogram(hc)
   dendextend::labels_colors(dend) <- colorKey$color[order.dendrogram(dend)]
   plot(dend, main = title)
 
-  return(dend)
+  return(hc)
 }

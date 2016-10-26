@@ -30,6 +30,7 @@ Imports:
 Suggests:
     compositions,
     dendextend,
+    fastcluster,
     ggplot2,
     ggthemes,
     knitr,
