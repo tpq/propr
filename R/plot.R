@@ -252,8 +252,8 @@ prism <- function(rho, k, prompt = TRUE){
   }
 
   g <-
-    ggplot2::ggplot(df, ggplot2::aes(VLS, VLR)) +
-    ggplot2::geom_point(ggplot2::aes(colour = CoCluster)) +
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "VLS", y = "VLR")) +
+    ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
