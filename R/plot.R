@@ -82,7 +82,7 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
     ggplot2::ggplot(df, ggplot2::aes(prop, weight)) +
     ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
-    ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
+    ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality between Features (rho)") +
     ggplot2::ylab("Discrimination between Groups") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
@@ -109,12 +109,12 @@ plotCheck <- function(rho, prompt){
 
   if(!class(rho) == "propr"){
 
-    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
+    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
   }
 
   if(rho@matrix[1, 1] != 1){
 
-    stop("Uh oh! You can only plot a 'propr' object created by 'perb'.")
+    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
   }
 
   if(!requireNamespace("ggplot2", quietly = TRUE)){
@@ -124,7 +124,7 @@ plotCheck <- function(rho, prompt){
 
   if(length(rho@pairs) != 0){
 
-    message("Note that this plot method plots all pairs, and not only indexed pairs.")
+    message("Note that this display method displays all pairs, and not only indexed pairs.")
   }
 
   if(nrow(rho@matrix) > 1000 & prompt){
@@ -183,19 +183,23 @@ slate <- function(rho, k, prompt = TRUE){
   llt <- ncol(var.ratio) * (ncol(var.ratio)-1) * 1/2 # size of lower-left triangle
   feat1 <- vector("numeric", llt) # feature name 1
   feat2 <- vector("numeric", llt) # feature name 2
-  vlr <- vector("numeric", llt) # var log ratio
+  vl1 <- vector("numeric", llt) # var log feature 1
+  vl2 <- vector("numeric", llt) # var log feature 2
   vls <- vector("numeric", llt) # var log sum
+  vlr <- vector("numeric", llt) # var log ratio
   rho <- vector("numeric", llt) # 1 - vlr/vls
   col <- vector("numeric", llt) # co-cluster
   count <- 1
   for(j in 2:nrow(var.ratio)){
     for(i in 1:(j-1)){
 
-      vlr[count] <- var.ratio[j, i]
-      vls[count] <- var.each[j] + var.each[i]
-      rho[count] <- 1 - vlr[count] / vls[count]
       feat1[count] <- feat.each[j]
       feat2[count] <- feat.each[i]
+      vl1[count] <- var.each[j]
+      vl2[count] <- var.each[i]
+      vls[count] <- var.each[j] + var.each[i]
+      vlr[count] <- var.ratio[j, i]
+      rho[count] <- 1 - vlr[count] / vls[count]
 
       # Since each col initializes as zero
       if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
@@ -205,7 +209,9 @@ slate <- function(rho, k, prompt = TRUE){
   }
 
   final <- data.frame("Partner" = feat1, "Pair" = feat2,
-                      "VLR" = vlr, "VLS" = vls, "rho" = rho)
+                      "VL1" = vl1, "VL2" = vl2,
+                      "VLR" = vlr, "VLS" = vls,
+                      "rho" = rho)
 
   if(!missing(k)){
 
@@ -255,7 +261,7 @@ prism <- function(rho, k, prompt = TRUE){
     ggplot2::ggplot(df, ggplot2::aes_string(x = "VLS", y = "VLR")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
-    ggplot2::scale_colour_brewer(palette = "Set3", name = "Co-Cluster") +
+    ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Variance of the Log Sum (vls)") +
     ggplot2::ylab("Variance of the Log Ratio (vlr)") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
