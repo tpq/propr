@@ -83,8 +83,8 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
     ggplot2::geom_point(ggplot2::aes(colour = col)) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
-    ggplot2::xlab("Proportionality between Features (rho)") +
-    ggplot2::ylab("Discrimination between Groups") +
+    ggplot2::xlab("Proportionality Between Features (rho)") +
+    ggplot2::ylab("Discrimination Between Groups") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::xlim(-1, 1) +
     ggplot2::ylim(0, max(df$weight)) +
@@ -262,8 +262,8 @@ prism <- function(rho, k, prompt = TRUE){
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
-    ggplot2::xlab("Variance of the Log Sum (vls)") +
-    ggplot2::ylab("Variance of the Log Ratio (vlr)") +
+    ggplot2::xlab("Variance of the Log Sum (VLS)") +
+    ggplot2::ylab("Variance of the Log Ratio (VLR)") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::xlim(0, max(df$VLS)) +
     ggplot2::ylim(0, max(df$VLR)) +
@@ -315,8 +315,8 @@ mds <- function(rho, group, prompt = TRUE){
       ggplot2::aes_string(x = "PC1", y = "PC2", label = "id", colour = "group"),
       data = df, size = 3, vjust = -1) +
     ggplot2::theme_bw() +
-    ggplot2::xlab("First *lr-transformed component") +
-    ggplot2::ylab("Second *lr-transformed component") +
+    ggplot2::xlab("First *lr-transformed Component") +
+    ggplot2::ylab("Second *lr-transformed Component") +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 

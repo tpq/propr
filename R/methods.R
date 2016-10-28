@@ -161,8 +161,8 @@ setMethod("plot", signature(x = "propr", y = "missing"),
                                                      y = "y.val",
                                                      group = "group")) +
               ggplot2::geom_path(ggplot2::aes(colour = factor(df$group))) +
-              ggplot2::labs(x = "Expression *LR mRNA[1]",
-                            y = "Expression *LR mRNA[2]") +
+              ggplot2::labs(x = "*lr-transformed Abundance[1]",
+                            y = "*lr-transformed Abundance[2]") +
               ggplot2::coord_equal(ratio = 1) +
               ggthemes::theme_base() +
               ggplot2::theme(legend.position = "none") +
