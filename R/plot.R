@@ -18,8 +18,8 @@
 #'  and optional for \code{\link{mds}}.
 #' @param k A numeric scalar. The number of groups into which to
 #'  cluster the subjects. Clusters calculated  using \code{hclust}.
-#'  Optional parameter for \code{\link{bucket}} and
-#'  \code{\link{prism}}.
+#'  Optional parameter for \code{\link{bucket}}, \code{\link{prism}},
+#'  and \code{\link{bokeh}}.
 #' @param prompt A logical scalar. Set to \code{FALSE} to disable
 #'  the prompt when plotting a large number of features.
 #'
@@ -85,7 +85,7 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality Between Features (rho)") +
     ggplot2::ylab("Discrimination Between Groups") +
-    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
+    ggplot2::ggtitle("Group Discrimination by Feature Pair") +
     ggplot2::xlim(-1, 1) +
     ggplot2::ylim(0, max(df$weight)) +
     ggplot2::geom_hline(yintercept = -log(.05 / nrow(df)), color = "lightgrey") +
@@ -274,6 +274,64 @@ prism <- function(rho, k, prompt = TRUE){
     ggplot2::geom_abline(slope = 0.50, intercept = 0, color = "yellow") +
     ggplot2::geom_abline(slope = 0.05, intercept = 0, color = "orange") +
     ggplot2::geom_abline(slope = 0.01, intercept = 0, color = "red")
+
+  plot(g)
+
+  if(!missing(k)){
+
+    return(clust)
+  }
+}
+
+#' Make Bokeh Plot
+#'
+#' Plots the individual feature variances for each feature
+#'  pair in the \code{propr} object. Highly proportional
+#'  pairs will aggregate near the \code{y = x} diagonal.
+#'  Clusters that appear toward the top-right of the
+#'  figure contain features with fixed abundance across
+#'  all samples. Clusters that appear toward the
+#'  bottom-left of the figure contain features with highly
+#'  variable abundance across all samples.
+#'
+#' Providing the argument \code{k} will color feature pairs
+#'  by co-cluster membership. In other words, a feature pair
+#'  will receive a color if and only if both features belong
+#'  to same the cluster (calculated using \code{hclust}).
+#'
+#' @inheritParams bucket
+#' @return Returns cluster membership if \code{k} is provided.
+#'
+#' @export
+bokeh <- function(rho, k, prompt){
+
+  df <- slate(rho, k, prompt)
+
+  if(!missing(k)){
+
+    clust <- df[[2]]
+    df <- df[[1]]
+
+  }else{
+
+    df$CoCluster <- as.character(0)
+  }
+
+  df$VL1 <- -log(df$VL1)
+  df$VL2 <- -log(df$VL2)
+
+  g <-
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "VL1", y = "VL2")) +
+    ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
+    ggplot2::theme_bw() +
+    ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
+    ggplot2::scale_alpha_continuous(limits = c(-1, 1), name = "Proportionality") +
+    ggplot2::xlab("Log-fold *lr-transformed Variance[1]") +
+    ggplot2::ylab("Log-fold *lr-transformed Variance[2]") +
+    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
+    ggplot2::xlim(min(df$VL1), max(df$VL1)) +
+    ggplot2::ylim(min(df$VL2), max(df$VL2)) +
+    ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
 
   plot(g)
 

@@ -11,8 +11,8 @@ slate(rho, k, prompt = TRUE)
 
 \item{k}{A numeric scalar. The number of groups into which to
 cluster the subjects. Clusters calculated  using \code{hclust}.
-Optional parameter for \code{\link{bucket}} and
-\code{\link{prism}}.}
+Optional parameter for \code{\link{bucket}}, \code{\link{prism}},
+and \code{\link{bokeh}}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the prompt when plotting a large number of features.}
