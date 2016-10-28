@@ -1,16 +1,15 @@
-## propr 2.0.3.9000
+## propr 2.0.4
 ---------------------
+* New visualization tools
+  * `slate` returns a table of VLR, VLS, and rho
+  * `bokeh` plots pairs by the individual variances
+* Modified index-naive plot functions
+  * Now uses `fastcluster::hclust` implementation
+  * New `prompt` argument turns off big data prompt
+  * `prism` now depends on `slate` function
 * Modified `dendrogram` function
   * Now uses `fastcluster::hclust` implementation
   * Now returns an `hclust` object
-* Modified functions that use `plotCheck`
-  * New `prompt` argument turns off large data prompt
-* New `slate` function
-  * Returns a table of VLR, VLS, and rho
-* Modified `bucket` and `prism` functions
-  * Now uses `fastcluster::hclust` implementation
-* Modified `prism` function
-  * Now depends on `slate` function
 
 ## propr 2.0.3
 ---------------------
