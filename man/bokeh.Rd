@@ -4,7 +4,7 @@
 \alias{bokeh}
 \title{Make Bokeh Plot}
 \usage{
-bokeh(rho, k, prompt)
+bokeh(rho, k, prompt = TRUE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}

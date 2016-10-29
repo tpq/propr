@@ -151,6 +151,7 @@ plotCheck <- function(rho, prompt){
 #'  the \code{data.frame} of pairwise relationships and the
 #'  cluster membership.
 #'
+#' @importFrom stats var
 #' @export
 slate <- function(rho, k, prompt = TRUE){
 
@@ -353,6 +354,7 @@ bokeh <- function(rho, k, prompt = TRUE){
 #'
 #' @inheritParams bucket
 #'
+#' @importFrom stats prcomp
 #' @export
 mds <- function(rho, group, prompt = TRUE){
 
@@ -391,6 +393,7 @@ mds <- function(rho, group, prompt = TRUE){
 #'
 #' @inheritParams bucket
 #'
+#' @importFrom stats heatmap
 #' @export
 snapshot <- function(rho, prompt = TRUE){
 
