@@ -303,7 +303,7 @@ prism <- function(rho, k, prompt = TRUE){
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @export
-bokeh <- function(rho, k, prompt){
+bokeh <- function(rho, k, prompt = TRUE){
 
   df <- slate(rho, k, prompt)
 
