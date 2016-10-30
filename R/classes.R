@@ -12,6 +12,15 @@ NULL
 #' @usage data(caneToad.groups)
 "caneToad.groups"
 
+#' Example propr Object
+#'
+#' Includes cane toad transcripts with at least 10 counts
+#'  across at least 10 samples. Used for vignette.
+#'
+#' @source <DOI:10.1111/mec.13184>
+#' @usage data(top)
+"top"
+
 #' The propr Package
 #'
 #' @description
