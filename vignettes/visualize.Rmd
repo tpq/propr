@@ -43,10 +43,10 @@ The proportionality metric $\rho$ has two advantages compared to $\phi$. First, 
 rho <- perb(caneToad.counts, select = keep)
 ```
 
-Next, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $\rho>0.99$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $\rho<-0.99$ to include only "very unproportional" pairs.
+Next, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $\rho>0.99$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $\rho<-0.99$ to include only "very unproportional" pairs. However, take note that we use a more stringent threshold here so that the vignette renders more quickly.
 
 ```{r, eval = FALSE}
-best <- rho[">", .99]
+best <- rho[">", .995]
 ```
 
 ## Index-aware Plots
@@ -114,7 +114,7 @@ These figures help us conceptualize high-dimensional data and select a highly pr
 We can extract cluster 3 from the `propr` object using the `subset` method.
 
 ```{r, results = "hide"}
-sub <- subset(top, select = (clusts == 3))
+sub <- subset(top, select = (clusts == 4))
 ```
 
 Now, we can use the `mds` and `snapshot` functions to see how well this cluster differentiates the two experimental groups based on unsupervised methods. We see below in the `mds` plot that projecting our samples across this highly proportional module leads to a near perfect separation between the two experimental groups, excepting the samples "RM0010" and "RM0169". This matches the separation achieved in the source publication which used `edgeR` for feature selection (Rollins 2015).
