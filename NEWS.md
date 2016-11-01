@@ -1,3 +1,7 @@
+## propr 2.0.4.9000
+---------------------
+* Update README and DESCRIPTION
+
 ## propr 2.0.4
 ---------------------
 * New visualization tools

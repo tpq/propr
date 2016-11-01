@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 2.0.4
+Version: 2.0.4.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -9,14 +9,15 @@ Authors@R: c(
     )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, this approach lacks statistical validity
-    when applied to relative data, including those biological count data produced by
-    microarray assays or high-throughput RNA-sequencing. Two metrics of proportionality,
-    phi [Lovell et al (2015) <DOI:10.1371/journal.pcbi.1004075>] and rho [Erb and
-    Notredame (2016) <DOI:10.1007/s12064-015-0220-8>], both derived from compositional
-    data analysis, a branch of math dealing specifically with relative data,
-    represent novel alternatives to correlation. This package introduces a programmatic
-    framework for the calculation of feature dependence through proportionality, as
-    discussed in the cited publications.
+    when applied to relative count data. This includes, for example, biological data
+    produced by high-throughput RNA-sequencing, chromatin immunoprecipitation (ChIP),
+    ChIP-sequencing, Methyl-Capture sequencing, and other techniques. Two metrics of
+    proportionality, phi [Lovell et al (2015) <DOI:10.1371/journal.pcbi.1004075>]
+    and rho [Erb and Notredame (2016) <DOI:10.1007/s12064-015-0220-8>], both derived
+    from compositional data analysis, a branch of math dealing specifically with
+    relative data, represent novel alternatives to correlation. This package
+    introduces a programmatic framework for calculating feature dependence through
+    proportionality, as discussed in the cited publications.
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
