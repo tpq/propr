@@ -74,13 +74,13 @@ setMethod("subset", signature(x = "propr"),
 #'  value to which to compare the proportionality metrics.
 #' @param bool A logical scalar. Toggles whether to return the result
 #'  as a hard thresholded adjacency matrix of 1s and 0s.
-#' @param drop A logical scalar. Toggles whether to pass the indexed
+#' @param tiny A logical scalar. Toggles whether to pass the indexed
 #'  result through \code{\link{simplify}}.
 #' @aliases [,propr-method
 #' @docType methods
 #' @export
 setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
-          function(x, i = "all", j, bool = FALSE, drop = FALSE){
+          function(x, i = "all", j, bool = FALSE, tiny = FALSE){
 
             if(i == "all"){
 
@@ -105,17 +105,19 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
               stop("Method failed to index any pairs.")
             }
 
-            if(drop){
-
-              x <- simplify(x)
-            }
-
             if(bool){
 
               a_bool(x@matrix)
             }
 
-            return(x)
+            if(tiny){
+
+              return(simplify(x))
+
+            }else{
+
+              return(x)
+            }
           }
 )
 
