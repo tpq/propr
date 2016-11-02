@@ -76,11 +76,15 @@ setMethod("subset", signature(x = "propr"),
 #'  as a hard thresholded adjacency matrix of 1s and 0s.
 #' @param tiny A logical scalar. Toggles whether to pass the indexed
 #'  result through \code{\link{simplify}}.
+#' @param copy A logical scalar. Toggles whether to modify-on-copy
+#'  during hard thresholding. Setting this to \code{FALSE} while
+#'  \code{bool = TRUE} will overwrite the input matrix,
+#'  conserving RAM.
 #' @aliases [,propr-method
 #' @docType methods
 #' @export
 setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
-          function(x, i = "all", j, bool = FALSE, tiny = FALSE){
+          function(x, i = "all", j, bool = FALSE, tiny = FALSE, copy = TRUE){
 
             if(i == "all"){
 
@@ -107,7 +111,8 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
 
             if(bool){
 
-              a_bool(x@matrix)
+              if(copy){ x@matrix <- a_bool(x@matrix[])
+              }else{ x@matrix <- a_bool(x@matrix)}
             }
 
             if(tiny){

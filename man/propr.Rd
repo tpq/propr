@@ -15,7 +15,8 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY}(x, i = "all", j, bool = FALSE, tiny = FALSE)
+\S4method{[}{propr,ANY,ANY}(x, i = "all", j, bool = FALSE, tiny = FALSE,
+  copy = TRUE)
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 
@@ -41,6 +42,11 @@ as a hard thresholded adjacency matrix of 1s and 0s.}
 
 \item{tiny}{A logical scalar. Toggles whether to pass the indexed
 result through \code{\link{simplify}}.}
+
+\item{copy}{A logical scalar. Toggles whether to modify-on-copy
+during hard thresholding. Setting this to \code{FALSE} while
+\code{bool = TRUE} will overwrite the input matrix,
+conserving RAM.}
 
 \item{y}{Missing. Ignore. Leftover from the generic method definition.}
 

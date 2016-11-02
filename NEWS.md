@@ -3,8 +3,9 @@
 * Modified backend code
   * New `a_bool` function returns thresholded boolean matrix
 * Modified `[` method
-  * New `tiny` argument toggles whether to use `simplify`
   * New `bool` argument toggles whether to use `a_bool`
+  * New `tiny` argument toggles whether to use `simplify`
+  * New `copy` argument toggles `a_bool` copy-on-modify
 
 ## propr 2.0.4
 ---------------------
