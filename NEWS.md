@@ -1,6 +1,10 @@
 ## propr 2.0.4.9000
 ---------------------
-* Update README and DESCRIPTION
+* Modified backend code
+  * New `a_bool` function returns thresholded boolean matrix
+* Modified `[` method
+  * New `drop` argument toggles whether to use `simplify`
+  * New `bool` argument toggles whether to use `a_bool`
 
 ## propr 2.0.4
 ---------------------
