@@ -80,7 +80,7 @@ setMethod("subset", signature(x = "propr"),
 #' @docType methods
 #' @export
 setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
-          function(x, i = "all", j, bool, drop){
+          function(x, i = "all", j, bool = FALSE, drop = FALSE){
 
             if(i == "all"){
 

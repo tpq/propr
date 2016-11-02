@@ -15,7 +15,7 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY}(x, i = "all", j)
+\S4method{[}{propr,ANY,ANY}(x, i = "all", j, bool = FALSE, drop = FALSE)
 
 \S4method{plot}{propr,missing}(x, y, title = "Pairwise Proportionality")
 
@@ -35,6 +35,12 @@ Use this argument to rearrange feature order.}
 
 \item{j}{Reference used for the subset indexing. Provide a numeric
 value to which to compare the proportionality metrics.}
+
+\item{bool}{A logical scalar. Toggles whether to return the result
+as a hard thresholded adjacency matrix of 1s and 0s.}
+
+\item{drop}{A logical scalar. Toggles whether to pass the indexed
+result through \code{\link{simplify}}.}
 
 \item{y}{Missing. Ignore. Leftover from the generic method definition.}
 
