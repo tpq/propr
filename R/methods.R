@@ -111,8 +111,8 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
 
             if(bool){
 
-              if(copy){ x@matrix <- a_bool(x@matrix[])
-              }else{ x@matrix <- a_bool(x@matrix)}
+              if(copy){ x@matrix <- a_bool(x@matrix[], i, j)
+              }else{ x@matrix <- a_bool(x@matrix, i, j)}
             }
 
             if(tiny){
