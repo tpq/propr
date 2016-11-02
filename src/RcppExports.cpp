@@ -112,3 +112,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// a_bool
+NumericMatrix a_bool(NumericMatrix& X, const String op, const double ref);
+RcppExport SEXP propr_a_bool(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const String >::type op(opSEXP);
+    Rcpp::traits::input_parameter< const double >::type ref(refSEXP);
+    rcpp_result_gen = Rcpp::wrap(a_bool(X, op, ref));
+    return rcpp_result_gen;
+END_RCPP
+}
