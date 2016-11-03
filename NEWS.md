@@ -1,4 +1,4 @@
-## propr 2.0.4.9000
+## propr 2.0.5
 ---------------------
 * Modified backend code
   * New `a_bool` function returns thresholded boolean matrix
