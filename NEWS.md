@@ -1,3 +1,10 @@
+## propr 2.0.5.9000
+---------------------
+* Modified backend code
+  * Temporarily removed `a_bool` function
+* Modified `[` method
+  * Removed `bool` and `copy` arguments
+
 ## propr 2.0.5
 ---------------------
 * Modified backend code
