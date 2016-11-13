@@ -93,7 +93,7 @@ Second, we look at `snapshot`, a function for visualizing the scaled intensity o
 snapshot(top)
 ```
 
-Finally, we look at `prism`, `bokeh`, and `bucket` (pronounced *bouquet*), three functions for visualizing co-clusters of proportional features. We mention these plot functions together because they share some key similiarities. First, these functions are "index-naive" and plot all $\rho$ in the `@matrix` slot of the `propr` object. Second, these functions identify the feature pairs where both constituents co-cluster (with the total number of co-clusters toggled by the argument `k`). Third, these functions return a vector of cluster memberships in the order that the features appear in the `propr` object.
+Finally, we look at `prism`, `bokeh`, and `bucket` (pronounced *bouquet*), three functions for visualizing the co-clustering of proportional features. We mention these plot functions together because they share some key similiarities. First, these functions are "index-naive" and plot all $\rho$ in the `@matrix` slot of the `propr` object. Second, these functions identify the feature pairs where both of the constituents co-cluster (with the total number of clusters toggled by the argument `k`). Third, these functions return a vector of cluster memberships for the features appear in the `propr` object.
 
 The `prism` function plots the variance of the ratio of the log-ratio transformed feature pair (VLR) versus the sum of the individual variances of each log-ratio transformed feature (VLS). The ratio of the VLR to the VLS equals $1 - \rho$. As such, we use here seven rainbow colored lines to indicate where $\rho = [.01, .05, .50, 0, 1.50, 1.95, 1.99]$, going from red to violet. A low VLR with a high VLS suggests that the feature pair remains in an equilibrium despite high variability among the individual features ($\rho \approx 1$). A very high VLR with a high VLS suggests that the feature pair remains in an inverted equilibrium despite high variability among the individual features ($\rho \approx -1$).
 
@@ -101,7 +101,7 @@ The `prism` function plots the variance of the ratio of the log-ratio transforme
 clusts <- prism(top, k = 5)
 ```
 
-The `bokeh` function plots the feature pairs across the individual variances of their constituent log-ratio transformed features. For clarity of visualization, the figure projects the data on a log-fold scale. Therefore, highly variable co-clusters appear in the top-right of the figure while lowly variable co-clusters appear in the bottom-left. Meanwhile, highly proportional pairs tend to aggregate around the $y=x$ diagonal. The user can retrieve the table used to generate the `prism` and `bokeh` plots by passing the `propr` object through the `slate` function.
+The `bokeh` function plots pairs across the individual variances of the constituent log-ratio transformed features. For clarity of visualization, the figure projects the data on a log-fold scale. Therefore, highly variable co-clusters appear in the top-right of the figure while lowly variable co-clusters appear in the bottom-left. Meanwhile, highly proportional pairs tend to aggregate around the $y=x$ diagonal. The user can retrieve the table used to generate the `prism` and `bokeh` plots by passing the `propr` object through the `slate` function.
 
 ```{r, results = "hide", message = FALSE}
 clusts <- bokeh(top, k = 5)
