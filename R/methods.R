@@ -72,19 +72,13 @@ setMethod("subset", signature(x = "propr"),
 #'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
 #' @param j Reference used for the subset indexing. Provide a numeric
 #'  value to which to compare the proportionality metrics.
-#' @param bool A logical scalar. Toggles whether to return the result
-#'  as a hard thresholded adjacency matrix of 1s and 0s.
 #' @param tiny A logical scalar. Toggles whether to pass the indexed
 #'  result through \code{\link{simplify}}.
-#' @param copy A logical scalar. Toggles whether to modify-on-copy
-#'  during hard thresholding. Setting this to \code{FALSE} while
-#'  \code{bool = TRUE} will overwrite the input matrix,
-#'  conserving RAM.
 #' @aliases [,propr-method
 #' @docType methods
 #' @export
 setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
-          function(x, i = "all", j, bool = FALSE, tiny = FALSE, copy = TRUE){
+          function(x, i = "all", j, tiny = FALSE){
 
             if(i == "all"){
 
@@ -107,12 +101,6 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
             if(length(x@pairs) == 0){
 
               stop("Method failed to index any pairs.")
-            }
-
-            if(bool){
-
-              if(copy){ x@matrix <- a_bool(x@matrix[], i, j)
-              }else{ x@matrix <- a_bool(x@matrix, i, j)}
             }
 
             if(tiny){
