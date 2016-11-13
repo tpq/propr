@@ -37,7 +37,3 @@ indexToCoord <- function(V, N) {
     .Call('propr_indexToCoord', PACKAGE = 'propr', V, N)
 }
 
-a_bool <- function(X, op = "==", ref = 0) {
-    .Call('propr_a_bool', PACKAGE = 'propr', X, op, ref)
-}
-

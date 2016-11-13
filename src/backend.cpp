@@ -266,46 +266,6 @@ List indexToCoord(IntegerVector V, const int N){
   );
 }
 
-// Function for hard thresholding a matrix
-// [[Rcpp::export]]
-NumericMatrix a_bool(NumericMatrix & X,
-                     const String op = "==",
-                     const double ref = 0){
-
-  for(int i = 0; i < X.nrow(); i++){
-    for(int j = 0; j < X.ncol(); j++){
-
-      int val = 0;
-
-      if(op == "==" | op == "="){
-        val = X(i, j) == ref;
-      }else if(op == ">"){
-        val = X(i, j) > ref;
-      }else if(op == ">="){
-        val = X(i, j) >= ref;
-      }else if(op == "<"){
-        val = X(i, j) < ref;
-      }else if(op == "<="){
-        val = X(i, j) <= ref;
-      }else if(op == "!="){
-        val = X(i, j) != ref;
-
-      }else if(op == "all"){
-
-        val = 1;
-
-      }else{
-
-        stop("Operator not found.");
-      }
-
-      X(i, j) = val;
-    }
-  }
-
-  return X;
-}
-
 /*** R
 X <- t(data.frame("a" = sample(1:10), "b" = sample(1:10), "c" = sample(1:10),
                   "d" = sample(1:10), "e" = sample(1:10), "f" = sample(1:10)))
@@ -322,7 +282,4 @@ if(!all(propr:::proprTri(X) - X[indexPairs(X, "all")] == 0)) stop("indexPairs er
 
 X <- t(data.frame("a" = sample(-5:10), "b" = sample(-5:10), "c" = sample(-5:10),
                   "d" = sample(-5:10), "e" = sample(-5:10), "f" = sample(-5:10)))
-
-if(!all((a_bool(X[], ">", 5) - (X > 5)) == 0)) stop('a_bool ">" failed!')
-if(!all((a_bool(X[], "<", 5) - (X < 5)) == 0)) stop('a_bool "<" failed!')
 */
