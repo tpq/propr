@@ -318,8 +318,8 @@ bokeh <- function(rho, k, prompt = TRUE){
     df$CoCluster <- as.character(0)
   }
 
-  df$VL1 <- -log(df$VL1)
-  df$VL2 <- -log(df$VL2)
+  df$VL1 <- log(df$VL1)
+  df$VL2 <- log(df$VL2)
 
   g <-
     ggplot2::ggplot(df, ggplot2::aes_string(x = "VL1", y = "VL2")) +
@@ -330,8 +330,8 @@ bokeh <- function(rho, k, prompt = TRUE){
     ggplot2::xlab("Log-fold *lr-transformed Variance[1]") +
     ggplot2::ylab("Log-fold *lr-transformed Variance[2]") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
-    ggplot2::xlim(min(df$VL1), max(df$VL1)) +
-    ggplot2::ylim(min(df$VL2), max(df$VL2)) +
+    ggplot2::xlim(min(c(df$VL1, df$VL2)), max(c(df$VL1, df$VL2))) +
+    ggplot2::ylim(min(c(df$VL1, df$VL2)), max(c(df$VL1, df$VL2))) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
 
   plot(g)
