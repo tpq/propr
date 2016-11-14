@@ -12,9 +12,9 @@ NULL
 #' @usage data(caneToad.groups)
 "caneToad.groups"
 
-#' Small propr Object
+#' Mock Mail Count Data
 #'
-#' Includes mock mail data for 5 days and 4 zip codes.
+#' Includes mock count data for 5 days and 4 zip codes.
 #'
 #' @usage data(mail)
 "mail"
