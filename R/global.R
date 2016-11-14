@@ -34,7 +34,7 @@ NULL
 #'  or errors when appropriate. For back-end use only.
 #'
 #' @inheritParams bucket
-#' @param indexNaive Toggles whether to check for an
+#' @param indexNaive Toggles whether to perform checks for an
 #'  "index-naive" plot function.
 plotCheck <- function(rho, prompt, plotly, indexNaive){
 
@@ -57,6 +57,11 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
   }
 
   if(indexNaive){
+
+    if(!requireNamespace("fastcluster", quietly = TRUE)){
+      stop("Uh oh! This plot method depends on fastcluster! ",
+           "Try running: install.packages('fastcluster')")
+    }
 
     if(rho@matrix[1, 1] != 1){
 

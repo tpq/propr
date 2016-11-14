@@ -1,5 +1,12 @@
-## propr 2.0.5.9000
+## propr 2.1.0.9000
 ---------------------
+* Modified visualization tools
+  * `plotCheck` extended to all plot functions
+  * `plot` method now calls `smear` function
+  * `dendrogram` plot now rendered using `ggplot2`
+  * `snapshot` plot now rendered using `ggplot2`
+  * `bokeh` plot now on positive log scale
+  * `plotly` support added
 * Modified backend code
   * Temporarily removed `a_bool` function
 * Modified `[` method

@@ -1,3 +1,168 @@
+#' @rdname propr
+#' @section Methods (by generic):
+#' \code{plot:} Method to plot \code{propr} object.
+#'
+# #' @param x An object of class \code{propr}.
+#' @param y Missing. Ignore. Leftover from the generic method definition.
+#' @export
+setMethod("plot", signature(x = "propr", y = "missing"),
+          function(x, y) smear(x))
+
+#' Make Smear Plot
+#'
+#' Plots *lr-transformed abundances for all indexed pairs.
+#'
+#' @inheritParams bucket
+#'
+#' @export
+smear <- function(rho, plotly = FALSE){
+
+  rho <- plotCheck(rho, prompt = FALSE, plotly = plotly, indexNaive = FALSE)
+
+  if(length(rho@pairs) == 0){
+
+    cat("Alert: Generating plot using all feature pairs.\n")
+    V <- indexPairs(rho@matrix, "all")
+    coord <- indexToCoord(V, nrow(rho@matrix))
+
+  }else{
+
+    cat("Alert: Generating plot using indexed feature pairs.\n")
+    V <- rho@pairs
+    coord <- indexToCoord(V, nrow(rho@matrix))
+  }
+
+  # Melt *lr counts by feature pairs
+  nsubj <- nrow(rho@logratio)
+  L <- length(V) * nsubj
+  partner <- vector("character", L)
+  pair <- vector("character", L)
+  feat1 <- vector("numeric", L)
+  feat2 <- vector("numeric", L)
+  group <- vector("numeric", length(V) * nsubj)
+  for(i in 1:length(V)){
+
+    cat("Shaping pair ", i, "...", sep = "")
+    i.order <- order(rho@logratio[, coord$feat1[i]])
+    partner[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- colnames(rho@logratio)[coord$feat1[i]]
+    pair[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- colnames(rho@logratio)[coord$feat2[i]]
+    feat1[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- rho@logratio[, coord$feat1[i]][i.order]
+    feat2[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- rho@logratio[, coord$feat2[i]][i.order]
+    group[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- i
+  }
+
+  # Plot *lr-Y by *lr-X
+  cat("\n")
+  df <- data.frame("X" = feat1, "Y" = feat2, "group" = group, "Partner" = partner, "Pair" = pair)
+  df$group <- factor(df$group)
+  g <-
+    ggplot2::ggplot(data = df, ggplot2::aes_string(x = "X", y = "Y", group = "group",
+                                                   Partner = "Partner", Pair = "Pair")) +
+    ggplot2::geom_path(ggplot2::aes_string(colour = "group")) +
+    ggplot2::labs(x = "*lr-transformed Abundance[1]",
+                  y = "*lr-transformed Abundance[2]") +
+    ggplot2::coord_equal(ratio = 1) + ggplot2::theme_bw() +
+    ggplot2::ggtitle("Distribution of *lr-transformed Abundances") +
+    ggplot2::theme(legend.position = "none")
+
+  if(plotly){
+
+    plotly::ggplotly(g)
+
+  }else{
+
+    plot(g)
+  }
+
+  return(g)
+}
+
+#' Make Dendrogram Plot
+#'
+#' Plots a dendrogram and heatmap for all indexed pairs.
+#'
+#' @inheritParams bucket
+#' @return A dendrogram object made from \code{hclust}.
+#'
+#' @export
+dendrogram <- function(rho, plotly = FALSE){
+
+  dendroCheck()
+  rho <- plotCheck(rho, prompt = FALSE, plotly = plotly, indexNaive = FALSE)
+
+  if(length(rho@pairs) == 0){
+
+    cat("Alert: Generating plot using all feature pairs.\n")
+    i.feat <- 1:nrow(rho@matrix)
+
+  }else{
+
+    cat("Alert: Generating plot using indexed feature pairs.\n")
+    V <- rho@pairs
+    coord <- indexToCoord(V, nrow(rho@matrix))
+    i.feat <- sort(union(coord[[1]], coord[[2]]))
+  }
+
+  rho <- subset(rho, select = i.feat)
+
+  if(rho@matrix[1, 1] == 0){
+
+    # Convert phi into dis matrix
+    dis <- as.dist(rho@matrix)
+
+  }else if(rho@matrix[1, 1] == 1){
+
+    # Convert rho into dis matrix
+    # See reference: http://research.stowers-institute.org/
+    #  mcm/efg/R/Visualization/cor-cluster/index.htm
+    dis <- as.dist(1 - abs(rho@matrix))
+
+  }else{
+
+    stop("Matrix not recognized.")
+  }
+
+  # Build a blank figure
+  p_empty <- ggplot2::ggplot() + ggplot2::geom_blank() + ggplot2::theme_minimal()
+
+  # Build the column and row dendrograms
+  dd.col <- stats::as.dendrogram(fastcluster::hclust(dis))
+  px <- ggdend(dd.row)
+  py <- px + ggplot2::coord_flip()
+
+  # Build the heatmap
+  col.ord <- stats::order.dendrogram(dd.col)
+  xx <- rho@matrix[col.ord, col.ord]
+  df <- as.data.frame(xx)
+  colnames(df) <- colnames(rho@logratio)[col.ord]
+  rownames(df) <- colnames(df)
+  df$row <- rownames(df)
+  df$row <- with(df, factor(row, levels = row, ordered = TRUE))
+  mdf <- reshape2::melt(df, id.vars = "row")
+  colnames(mdf) <- c("Samples", "Features", "rho")
+  p <-
+    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Features", y = "Samples")) +
+    ggplot2::xlab("Features") + ggplot2::ylab("Features") +
+    ggplot2::geom_tile(ggplot2::aes_string(fill = "rho")) +
+    ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
+    ggplot2::theme(axis.text = ggplot2::element_blank())
+
+  if(plotly){
+
+    p <- p + ggplot2::scale_fill_distiller(limits = c(-1, 1), name = "Proportionality",
+                                           palette = "Spectral")
+    plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01)
+    return(list(px, p_empty, p, py))
+
+  }else{
+
+    p <- p + ggplot2::scale_fill_distiller(limits = c(-1, 1), name = "Proportionality",
+                                           palette = "Spectral", guide = FALSE)
+    multiplot(px, p, p_empty, py, cols = 2)
+    return(dd.col)
+  }
+}
+
 #' Make Bucket Plot
 #'
 #' Plots an estimation of the degree to which a feature pair
@@ -22,19 +187,18 @@
 #'  and \code{\link{bokeh}}.
 #' @param prompt A logical scalar. Set to \code{FALSE} to disable
 #'  the prompt when plotting a large number of features.
+#' @param plotly A logical scalar. Set to \code{TRUE} to produce
+#'  a dynamic plot using the \code{plotly} package. This will also
+#'  have the function return the internal \code{ggplot} object(s),
+#'  useful for customization of the figure.
 #'
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @importFrom stats as.formula lm aov cutree
 #' @export
-bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
+bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced bouquet
 
-  if(suppressWarnings(!requireNamespace("fastcluster", quietly = TRUE))){
-    stop("Uh oh! This plot method depends on fastcluster! ",
-         "Try running: install.packages('fastcluster')")
-  }
-
-  plotCheck(rho, prompt)
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
 
   # Calculate discriminating power of each feature
   numfeats <- ncol(rho@logratio)
@@ -91,12 +255,22 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
     ggplot2::geom_hline(yintercept = -log(.05 / nrow(df)), color = "lightgrey") +
     ggplot2::geom_hline(yintercept = -log(.05^2 / nrow(df)), color = "black")
 
-  plot(g)
+  if(plotly){
 
-  if(!missing(k)){
+    plotly::ggplotly(g)
+    return(g)
 
-    return(clust)
+  }else{
+
+    plot(g)
+
+    if(!missing(k)){
+
+      return(clust)
+    }
   }
+
+  return(g)
 }
 
 #' Build \code{propr} Table
@@ -115,20 +289,12 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
 #'
 #' @importFrom stats var
 #' @export
-slate <- function(rho, k, prompt = TRUE){
+slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
-  if(suppressWarnings(!requireNamespace("fastcluster", quietly = TRUE))){
-    stop("Uh oh! This plot method depends on fastcluster! ",
-         "Try running: install.packages('fastcluster')")
-  }
-
-  plotCheck(rho, prompt)
-
-  # Enforce some kind of colnames
-  if(!is.null(colnames(rho@logratio))){ feat.each <- colnames(rho@logratio)
-  }else{ feat.each <- as.character(1:ncol(rho@logratio))}
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
 
   # Calculate log-ratio transformed variances
+  feat.each <- colnames(rho@logratio)
   var.ratio <- vlrRcpp(rho@counts[])
   var.each <- apply(rho@logratio, 2, var)
 
@@ -206,9 +372,9 @@ slate <- function(rho, k, prompt = TRUE){
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @export
-prism <- function(rho, k, prompt = TRUE){
+prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
-  df <- slate(rho, k, prompt)
+  df <- slate(rho, k, prompt, plotly)
 
   if(!missing(k)){
 
@@ -238,12 +404,22 @@ prism <- function(rho, k, prompt = TRUE){
     ggplot2::geom_abline(slope = 0.05, intercept = 0, color = "orange") +
     ggplot2::geom_abline(slope = 0.01, intercept = 0, color = "red")
 
-  plot(g)
+  if(plotly){
 
-  if(!missing(k)){
+    plotly::ggplotly(g)
+    return(g)
 
-    return(clust)
+  }else{
+
+    plot(g)
+
+    if(!missing(k)){
+
+      return(clust)
+    }
   }
+
+  return(g)
 }
 
 #' Make Bokeh Plot
@@ -266,9 +442,9 @@ prism <- function(rho, k, prompt = TRUE){
 #' @return Returns cluster membership if \code{k} is provided.
 #'
 #' @export
-bokeh <- function(rho, k, prompt = TRUE){
+bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
-  df <- slate(rho, k, prompt)
+  df <- slate(rho, k, prompt, plotly)
 
   if(!missing(k)){
 
@@ -280,13 +456,10 @@ bokeh <- function(rho, k, prompt = TRUE){
     df$CoCluster <- as.character(0)
   }
 
-  df$VL1 <- log(df$VL1)
-  df$VL2 <- log(df$VL2)
-
   g <-
     ggplot2::ggplot(df, ggplot2::aes_string(x = "VL1", y = "VL2")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
-    ggplot2::theme_bw() +
+    ggplot2::theme_bw() + ggplot2::scale_y_log10() + ggplot2::scale_x_log10() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::scale_alpha_continuous(limits = c(-1, 1), name = "Proportionality") +
     ggplot2::xlab("Log-fold *lr-transformed Variance[1]") +
@@ -296,12 +469,22 @@ bokeh <- function(rho, k, prompt = TRUE){
     ggplot2::ylim(min(c(df$VL1, df$VL2)), max(c(df$VL1, df$VL2))) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
 
-  plot(g)
+  if(plotly){
 
-  if(!missing(k)){
+    plotly::ggplotly(g)
+    return(g)
 
-    return(clust)
+  }else{
+
+    plot(g)
+
+    if(!missing(k)){
+
+      return(clust)
+    }
   }
+
+  return(g)
 }
 
 #' Make MDS Plot
@@ -318,9 +501,9 @@ bokeh <- function(rho, k, prompt = TRUE){
 #'
 #' @importFrom stats prcomp
 #' @export
-mds <- function(rho, group, prompt = TRUE){
+mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
-  plotCheck(rho, prompt)
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
 
   if(missing(group)){
 
@@ -342,23 +525,68 @@ mds <- function(rho, group, prompt = TRUE){
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 
-  plot(g)
+  if(plotly){
+
+    plotly::ggplotly(g)
+
+  }else{
+
+    plot(g)
+  }
+
+  return(g)
 }
 
 #' Make Snapshot Plot
 #'
 #' Plots the log-ratio transformed feature abundance as
 #'  a heatmap, with the axes ordered by dendrogram. Heatmap
-#'  intensity is scaled across the feature vector to make it
-#'  easier to assess visually the difference in the
-#'  log-ratio transformed abundance between samples.
+#'  intensity is not scaled.
 #'
 #' @inheritParams bucket
 #'
-#' @importFrom stats heatmap
 #' @export
-snapshot <- function(rho, prompt = TRUE){
+snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
-  plotCheck(rho, prompt)
-  heatmap(rho@logratio, scale = "col", labCol = "")
+  dendroCheck()
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
+
+  # Build a blank figure
+  p_empty <- ggplot2::ggplot() + ggplot2::geom_blank() + ggplot2::theme_minimal()
+
+  # Build the column and row dendrograms
+  dd.col <- stats::as.dendrogram(fastcluster::hclust(dist(rho@logratio)))
+  dd.row <- stats::as.dendrogram(fastcluster::hclust(dist(t(rho@logratio))))
+  px <- ggdend(dd.row)
+  py <- ggdend(dd.col) + ggplot2::coord_flip()
+
+  # Build the heatmap
+  col.ord <- stats::order.dendrogram(dd.col)
+  row.ord <- stats::order.dendrogram(dd.row)
+  xx <- rho@logratio[col.ord, row.ord]
+  df <- as.data.frame(xx)
+  colnames(df) <- colnames(rho@logratio)[col.ord]
+  rownames(df) <- rownames(rho@logratio)[row.ord]
+  df$row <- rownames(df)
+  df$row <- with(df, factor(row, levels = row, ordered = TRUE))
+  mdf <- reshape2::melt(df, id.vars = "row")
+  colnames(mdf) <- c("Samples", "Features", "lrAbundance")
+  p <-
+    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Features", y = "Samples")) +
+    ggplot2::geom_tile(ggplot2::aes_string(fill = "lrAbundance")) +
+    ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
+    ggplot2::theme(axis.text = ggplot2::element_blank())
+
+  if(plotly){
+
+    p <- p + ggplot2::scale_fill_distiller("*lr", palette = "Spectral")
+    plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01)
+    return(list(px, p_empty, p, py))
+
+  }else{
+
+    p <- p + ggplot2::scale_fill_distiller(palette = "Spectral", guide = FALSE)
+    multiplot(px, p, p_empty, py, cols = 2)
+    return(dd.col)
+  }
 }
