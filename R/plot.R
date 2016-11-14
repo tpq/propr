@@ -99,44 +99,6 @@ bucket <- function(rho, group, k, prompt = TRUE){ # pronounced bouquet
   }
 }
 
-#' Plot Check
-#'
-#' Performs data checks before plotting, triggering messages
-#'  or errors when appropriate. For back-end use only.
-#'
-#' @inheritParams bucket
-plotCheck <- function(rho, prompt){
-
-  if(!class(rho) == "propr"){
-
-    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
-  }
-
-  if(rho@matrix[1, 1] != 1){
-
-    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
-  }
-
-  if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggplot2! ",
-         "Try running: install.packages('ggplot2')")
-  }
-
-  if(length(rho@pairs) != 0){
-
-    message("Note that this display method displays all pairs, and not only indexed pairs.")
-  }
-
-  if(nrow(rho@matrix) > 1000 & prompt){
-
-    message("Uh oh! A large number of features were detected (>1000).\n",
-            "Are you sure you want to plot them all?\n",
-            "0: Nevermind\n1: Proceed\n2: Hmm...")
-    response <- readline(prompt = "Which do you choose? ")
-    if(!response == 1) stop("Plot method aborted.")
-  }
-}
-
 #' Build \code{propr} Table
 #'
 #' This function builds a table of VLR, VLS, and rho
