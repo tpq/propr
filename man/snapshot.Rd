@@ -13,9 +13,7 @@ snapshot(rho, prompt = TRUE, plotly = FALSE)
 the prompt when plotting a large number of features.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
-a dynamic plot using the \code{plotly} package. This will also
-have the function return the internal \code{ggplot} object(s),
-useful for customization of the figure.}
+a dynamic plot using the \code{plotly} package.}
 }
 \description{
 Plots the log-ratio transformed feature abundance as

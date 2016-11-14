@@ -2,11 +2,15 @@
 #' @section Methods (by generic):
 #' \code{plot:} Method to plot \code{propr} object.
 #'
-# #' @param x An object of class \code{propr}.
+#' @inheritParams bucket
 #' @param y Missing. Ignore. Leftover from the generic method definition.
 #' @export
 setMethod("plot", signature(x = "propr", y = "missing"),
-          function(x, y) smear(x))
+          function(x, y, plotly = FALSE){
+
+            smear(x, plotly = plotly)
+          }
+)
 
 #' Make Smear Plot
 #'
@@ -67,7 +71,7 @@ smear <- function(rho, plotly = FALSE){
 
   if(plotly){
 
-    plotly::ggplotly(g)
+    return(plotly::ggplotly(g))
 
   }else{
 
@@ -151,8 +155,7 @@ dendrogram <- function(rho, plotly = FALSE){
 
     p <- p + ggplot2::scale_fill_distiller(limits = c(-1, 1), name = "Proportionality",
                                            palette = "Spectral")
-    plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01)
-    return(list(px, p_empty, p, py))
+    return(plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01))
 
   }else{
 
@@ -188,9 +191,7 @@ dendrogram <- function(rho, plotly = FALSE){
 #' @param prompt A logical scalar. Set to \code{FALSE} to disable
 #'  the prompt when plotting a large number of features.
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
-#'  a dynamic plot using the \code{plotly} package. This will also
-#'  have the function return the internal \code{ggplot} object(s),
-#'  useful for customization of the figure.
+#'  a dynamic plot using the \code{plotly} package.
 #'
 #' @return Returns cluster membership if \code{k} is provided.
 #'
@@ -257,8 +258,7 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
 
   if(plotly){
 
-    plotly::ggplotly(g)
-    return(g)
+    return(plotly::ggplotly(g))
 
   }else{
 
@@ -406,8 +406,7 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   if(plotly){
 
-    plotly::ggplotly(g)
-    return(g)
+    return(plotly::ggplotly(g))
 
   }else{
 
@@ -456,23 +455,25 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
     df$CoCluster <- as.character(0)
   }
 
+  df$logVL1 <- log(df$VL1)
+  df$logVL2 <- log(df$VL2)
+
   g <-
-    ggplot2::ggplot(df, ggplot2::aes_string(x = "VL1", y = "VL2")) +
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "logVL1", y = "logVL2")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
-    ggplot2::theme_bw() + ggplot2::scale_y_log10() + ggplot2::scale_x_log10() +
+    ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::scale_alpha_continuous(limits = c(-1, 1), name = "Proportionality") +
-    ggplot2::xlab("Log-fold *lr-transformed Variance[1]") +
-    ggplot2::ylab("Log-fold *lr-transformed Variance[2]") +
-    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
-    ggplot2::xlim(min(c(df$VL1, df$VL2)), max(c(df$VL1, df$VL2))) +
-    ggplot2::ylim(min(c(df$VL1, df$VL2)), max(c(df$VL1, df$VL2))) +
+    ggplot2::xlab("Log *lr-transformed Variance[1]") +
+    ggplot2::ylab("Log *lr-transformed Variance[2]") +
+    ggplot2::ggtitle("Distribution of Log *lr-transformed Variance") +
+    ggplot2::xlim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
+    ggplot2::ylim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
 
   if(plotly){
 
-    plotly::ggplotly(g)
-    return(g)
+    return(plotly::ggplotly(g))
 
   }else{
 
@@ -527,7 +528,7 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
   if(plotly){
 
-    plotly::ggplotly(g)
+    return(plotly::ggplotly(g))
 
   }else{
 
@@ -578,8 +579,7 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
   if(plotly){
 
     p <- p + ggplot2::scale_fill_distiller("*lr", palette = "Spectral")
-    plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01)
-    return(list(px, p_empty, p, py))
+    return(plotly::subplot(px, p_empty, p, py, nrows = 2, margin = 0.01))
 
   }else{
 

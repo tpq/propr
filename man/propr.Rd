@@ -16,7 +16,7 @@
 
 \S4method{[}{propr,ANY,ANY}(x, i = "all", j, tiny = FALSE)
 
-\S4method{plot}{propr,missing}(x, y)
+\S4method{plot}{propr,missing}(x, y, plotly = FALSE)
 }
 \arguments{
 \item{object, x}{An object of class \code{propr}.}
@@ -37,6 +37,9 @@ value to which to compare the proportionality metrics.}
 result through \code{\link{simplify}}.}
 
 \item{y}{Missing. Ignore. Leftover from the generic method definition.}
+
+\item{plotly}{A logical scalar. Set to \code{TRUE} to produce
+a dynamic plot using the \code{plotly} package.}
 }
 \description{
 Welcome to the \code{propr} package!

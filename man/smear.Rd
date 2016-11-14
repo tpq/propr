@@ -10,9 +10,7 @@ smear(rho, plotly = FALSE)
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
-a dynamic plot using the \code{plotly} package. This will also
-have the function return the internal \code{ggplot} object(s),
-useful for customization of the figure.}
+a dynamic plot using the \code{plotly} package.}
 }
 \description{
 Plots *lr-transformed abundances for all indexed pairs.
