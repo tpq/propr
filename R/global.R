@@ -87,6 +87,11 @@ dendroCheck <- function(rho){
          "Try running: install.packages('reshape2')")
   }
 
+  if(!requireNamespace("grid", quietly = TRUE)){
+    stop("Uh oh! This plot method depends on grid! ",
+         "Try running: install.packages('grid')")
+  }
+
   if(is.null(colnames(rho@logratio))){
 
     stop("Uh oh! The @logratio slot must have column names.")
@@ -117,4 +122,45 @@ ggdend <- function(dendrogram){
     ggplot2::theme(axis.text = ggplot2::element_blank())
 
   return(g)
+}
+
+#' Plot Multiple Graphs
+#'
+#' Easily plot multiple graphs within the same window. Code adapted from
+#'  http://www.cookbook-r.com/. For back-end use only.
+#'
+#' @param ... Multiple plots.
+#' @param cols A numeric scalar. The number of plot columns.
+multiplot <- function(..., cols = 1){
+
+  # Layout a list of plots
+  plots <- list(...)
+  numPlots <- length(plots)
+  layout <- matrix(seq(from = 1, to = cols * ceiling(numPlots/cols)),
+                   ncol = cols, nrow = ceiling(numPlots/cols))
+
+  if(numPlots == 1){
+
+    print(plots[[1]])
+
+  }else{
+
+    # Set up the page
+    grid::grid.newpage()
+    grid::pushViewport(
+      grid::viewport(layout = grid::grid.layout(nrow(layout), ncol(layout)))
+    )
+
+    # Place each plot, in the correct location
+    for(i in 1:numPlots){
+
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      print(
+        plots[[i]],
+        vp = grid::viewport(layout.pos.row = matchidx$row,
+                            layout.pos.col = matchidx$col)
+      )
+    }
+  }
 }
