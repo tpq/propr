@@ -34,7 +34,6 @@ Suggests:
     dendextend,
     fastcluster,
     ggplot2,
-    ggthemes,
     knitr,
     rmarkdown,
     testthat

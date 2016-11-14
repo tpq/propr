@@ -16,7 +16,6 @@ NULL
 #'
 #' Includes mock mail data for 5 days and 4 zip codes.
 #'
-#' @source Artificial
 #' @usage data(mail)
 "mail"
 
@@ -42,11 +41,6 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
   if(!requireNamespace("ggplot2", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggplot2! ",
          "Try running: install.packages('ggplot2')")
-  }
-
-  if(!requireNamespace("ggthemes", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggthemes! ",
-         "Try running: install.packages('ggthemes')")
   }
 
   if(plotly){
@@ -82,23 +76,6 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
       response <- readline(prompt = "Which do you choose? ")
       if(!response == 1) stop("Plot method aborted.")
     }
-
-  }else{
-
-    if(length(rho@pairs) == 0){
-
-      cat("Alert: Generating plot using all feature pairs.\n")
-      i.feat <- 1:nrow(rho@matrix)
-
-    }else{
-
-      cat("Alert: Generating plot using indexed feature pairs.\n")
-      V <- rho@pairs
-      coord <- indexToCoord(V, nrow(rho@matrix))
-      i.feat <- sort(union(coord[[1]], coord[[2]]))
-    }
-
-    rho <- subset(rho, select = i.feat)
   }
 
   # Force some kind of column names
@@ -121,6 +98,11 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
 #'  or errors when appropriate. For back-end use only.
 dendroCheck <- function(){
 
+  if(!requireNamespace("reshape2", quietly = TRUE)){
+    stop("Uh oh! This plot method depends on reshape2! ",
+         "Try running: install.packages('reshape2')")
+  }
+
   if(!requireNamespace("ggdendro", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggdendro! ",
          "Try running: install.packages('ggdendro')")
@@ -129,11 +111,6 @@ dendroCheck <- function(){
   if(!requireNamespace("fastcluster", quietly = TRUE)){
     stop("Uh oh! This plot method depends on fastcluster! ",
          "Try running: install.packages('fastcluster')")
-  }
-
-  if(!requireNamespace("reshape2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on reshape2! ",
-         "Try running: install.packages('reshape2')")
   }
 
   if(!requireNamespace("grid", quietly = TRUE)){
