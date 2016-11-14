@@ -1,4 +1,4 @@
-## propr 2.1.0.9000
+## propr 2.0.5.9000
 ---------------------
 * Modified visualization tools
   * `plotCheck` extended to all plot functions

@@ -127,7 +127,7 @@ dendrogram <- function(rho, plotly = FALSE){
 
   # Build the column and row dendrograms
   dd.col <- stats::as.dendrogram(fastcluster::hclust(dis))
-  px <- ggdend(dd.row)
+  px <- ggdend(dd.col)
   py <- px + ggplot2::coord_flip()
 
   # Build the heatmap
@@ -565,8 +565,6 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
   row.ord <- stats::order.dendrogram(dd.row)
   xx <- rho@logratio[col.ord, row.ord]
   df <- as.data.frame(xx)
-  colnames(df) <- colnames(rho@logratio)[col.ord]
-  rownames(df) <- rownames(rho@logratio)[row.ord]
   df$row <- rownames(df)
   df$row <- with(df, factor(row, levels = row, ordered = TRUE))
   mdf <- reshape2::melt(df, id.vars = "row")

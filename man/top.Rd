@@ -3,7 +3,7 @@
 \docType{data}
 \name{top}
 \alias{top}
-\title{Large propr Object}
+\title{Example propr Object}
 \format{An object of class \code{propr} of length 1.}
 \source{
 <DOI:10.1111/mec.13184>

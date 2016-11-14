@@ -16,4 +16,4 @@ best.995 <- rho[">", .995]
 top <- simplify(best.995)
 
 # Use data
-devtools::use_data(caneToad.counts, caneToad.groups, top, overwrite = TRUE)
+devtools::use_data(caneToad.counts, caneToad.groups, top)

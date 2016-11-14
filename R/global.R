@@ -19,7 +19,7 @@ NULL
 #' @usage data(mail)
 "mail"
 
-#' Large propr Object
+#' Example propr Object
 #'
 #' Includes cane toad transcripts with at least 10 counts
 #'  across at least 10 samples. Used for vignette.
@@ -137,7 +137,7 @@ ggdend <- function(dendrogram){
   g <-
     ggplot2::ggplot() +
     ggplot2::geom_segment(
-      ggplot2::aes(x = x, y = y, xend = xend, yend = yend), data = df) +
+      ggplot2::aes_string(x = "x", y = "y", xend = "xend", yend = "yend"), data = df) +
     ggplot2::xlab("") + ggplot2::ylab("") + ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank()) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
