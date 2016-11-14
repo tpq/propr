@@ -12,7 +12,15 @@ NULL
 #' @usage data(caneToad.groups)
 "caneToad.groups"
 
-#' Example propr Object
+#' Small propr Object
+#'
+#' Includes mock mail data for 5 days and 4 zip codes.
+#'
+#' @source Artificial
+#' @usage data(mail)
+"mail"
+
+#' Large propr Object
 #'
 #' Includes cane toad transcripts with at least 10 counts
 #'  across at least 10 samples. Used for vignette.
@@ -27,50 +35,91 @@ NULL
 #'  or errors when appropriate. For back-end use only.
 #'
 #' @inheritParams bucket
-plotCheck <- function(rho, prompt){
-
-  if(!class(rho) == "propr"){
-
-    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
-  }
-
-  if(rho@matrix[1, 1] != 1){
-
-    stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
-  }
+#' @param indexNaive Toggles whether to check for an
+#'  "index-naive" plot function.
+plotCheck <- function(rho, prompt, plotly, indexNaive){
 
   if(!requireNamespace("ggplot2", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggplot2! ",
          "Try running: install.packages('ggplot2')")
   }
 
-  if(length(rho@pairs) != 0){
-
-    message("Note that this display method displays all pairs, and not only indexed pairs.")
+  if(!requireNamespace("ggthemes", quietly = TRUE)){
+    stop("Uh oh! This plot method depends on ggthemes! ",
+         "Try running: install.packages('ggthemes')")
   }
 
-  if(nrow(rho@matrix) > 1000 & prompt){
+  if(plotly){
 
-    message("Uh oh! A large number of features were detected (>1000).\n",
-            "Are you sure you want to plot them all?\n",
-            "0: Nevermind\n1: Proceed\n2: Hmm...")
-    response <- readline(prompt = "Which do you choose? ")
-    if(!response == 1) stop("Plot method aborted.")
+    if(!requireNamespace("plotly", quietly = TRUE)){
+      stop("Uh oh! This plot method depends on plotly! ",
+           "Try running: install.packages('plotly')")
+    }
   }
+
+  if(!class(rho) == "propr"){
+
+    stop("Uh oh! You can only display a 'propr' object with this function.")
+  }
+
+  if(indexNaive){
+
+    if(rho@matrix[1, 1] != 1){
+
+      stop("Uh oh! You can only display a 'propr' object created by 'perb'.")
+    }
+
+    if(length(rho@pairs) != 0){
+
+      message("Note that this display method displays all pairs, and not only indexed pairs.")
+    }
+
+    if(nrow(rho@matrix) > 1000 & prompt){
+
+      message("Uh oh! A large number of features were detected (>1000).\n",
+              "Are you sure you want to plot them all?\n",
+              "0: Nevermind\n1: Proceed\n2: Hmm...")
+      response <- readline(prompt = "Which do you choose? ")
+      if(!response == 1) stop("Plot method aborted.")
+    }
+
+  }else{
+
+    if(length(rho@pairs) == 0){
+
+      cat("Alert: Generating plot using all feature pairs.\n")
+      i.feat <- 1:nrow(rho@matrix)
+
+    }else{
+
+      cat("Alert: Generating plot using indexed feature pairs.\n")
+      V <- rho@pairs
+      coord <- indexToCoord(V, nrow(rho@matrix))
+      i.feat <- sort(union(coord[[1]], coord[[2]]))
+    }
+
+    rho <- subset(rho, select = i.feat)
+  }
+
+  # Force some kind of column names
+  if(is.null(colnames(rho@logratio))){
+
+    colnames(rho@logratio) <- as.character(1:ncol(rho@logratio))
+  }
+
+  if(is.null(rownames(rho@logratio))){
+
+    rownames(rho@logratio) <- as.character(1:nrow(rho@logratio))
+  }
+
+  return(rho)
 }
 
 #' Dendrogram Plot Check
 #'
 #' Performs data checks before plotting, triggering messages
 #'  or errors when appropriate. For back-end use only.
-#'
-#' @inheritParams bucket
-dendroCheck <- function(rho){
-
-  if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggplot2! ",
-         "Try running: install.packages('ggplot2')")
-  }
+dendroCheck <- function(){
 
   if(!requireNamespace("ggdendro", quietly = TRUE)){
     stop("Uh oh! This plot method depends on ggdendro! ",
@@ -91,16 +140,6 @@ dendroCheck <- function(rho){
     stop("Uh oh! This plot method depends on grid! ",
          "Try running: install.packages('grid')")
   }
-
-  if(is.null(colnames(rho@logratio))){
-
-    stop("Uh oh! The @logratio slot must have column names.")
-  }
-
-  if(is.null(rownames(rho@logratio))){
-
-    stop("Uh oh! The @logratio slot must have row names.")
-  }
 }
 
 #' Dendrogram Plot Wrapper
@@ -113,10 +152,11 @@ ggdend <- function(dendrogram){
   dg <- ggdendro::dendro_data(dendrogram)
   df <- dg$segments
 
-  g <- ggplot2::ggplot() +
-    ggplot2::geom_segment(data = df, ggplot2::aes(x = x, y = y, xend = xend, yend = yend)) +
-    ggplot2::xlab("") + ggplot2::ylab("") +
-    ggplot2::theme_minimal() +
+  g <-
+    ggplot2::ggplot() +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = x, y = y, xend = xend, yend = yend), data = df) +
+    ggplot2::xlab("") + ggplot2::ylab("") + ggplot2::theme_minimal() +
     ggplot2::theme(panel.grid = ggplot2::element_blank()) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
     ggplot2::theme(axis.text = ggplot2::element_blank())
