@@ -9,6 +9,9 @@ ggdend(dendrogram)
 \arguments{
 \item{dendrogram}{A result from \code{as.dendrogram}.}
 }
+\value{
+Returns a \code{ggplot} object.
+}
 \description{
 Builds \code{ggplot2} dendrograms. For back-end use only.
 }

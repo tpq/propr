@@ -30,7 +30,8 @@ Returns a \code{data.frame} of pairwise relationships.
 This function builds a table of VLR, VLS, and rho
  for each feature pair in a \code{propr} object. If the
  argument \code{k} is provided, the table will also
- include co-cluster membership (as matching the
- \code{\link{bucket}} or \code{\link{prism}} plots).
+ include co-cluster membership (as used in the
+ \code{\link{bucket}}, \code{\link{prism}}, and
+ \code{\link{bokeh}} plots).
 }
 

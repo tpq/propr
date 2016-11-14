@@ -12,6 +12,9 @@ smear(rho, plotly = FALSE)
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}
 }
+\value{
+Returns a \code{ggplot} object.
+}
 \description{
 Plots *lr-transformed abundances for all indexed pairs.
 }

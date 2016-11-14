@@ -13,7 +13,7 @@ dendrogram(rho, plotly = FALSE)
 a dynamic plot using the \code{plotly} package.}
 }
 \value{
-A dendrogram object made from \code{hclust}.
+Returns a dendrogram object made from \code{hclust}.
 }
 \description{
 Plots a dendrogram and heatmap for all indexed pairs.

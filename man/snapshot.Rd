@@ -15,9 +15,12 @@ the prompt when plotting a large number of features.}
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}
 }
+\value{
+Returns a dendrogram object made from \code{hclust}.
+}
 \description{
 Plots the log-ratio transformed feature abundance as
- a heatmap, with the axes ordered by dendrogram. Heatmap
- intensity is not scaled.
+ a heatmap, along with the respective dendrograms.
+ Heatmap intensity is not scaled.
 }
 

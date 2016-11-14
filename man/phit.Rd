@@ -2,7 +2,7 @@
 % Please edit documentation in R/phit.R
 \name{phit}
 \alias{phit}
-\title{Calculate proportionality metric phi.}
+\title{Calculate phi}
 \usage{
 phit(counts, symmetrize = TRUE)
 }
@@ -15,15 +15,15 @@ phit(counts, symmetrize = TRUE)
 Returns a \code{propr} object.
 }
 \description{
-\code{phit} returns a \code{propr} object containing a measure of proportionality.
+\code{phit} returns a \code{propr} object containing a measure of proportionality, phi.
 }
 \details{
-Let d represent any number of features measured across n biological replicates
+Let D represent any number of features measured across N biological replicates
 	subjected to a binary or continuous event E. For example, E could represent case-control
 	status, treatment status, treatment dose, or time. This function converts a
-	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
-	columns containing phi measurements for each feature pair. One can think of the resultant
-	matrix as equivalent to a distance matrix, except that it has no symmetry unless forced.
+	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
+	columns containing a value of phi for each feature pair. One can think of the resultant
+	matrix as analogous to a distance matrix, except that it has no symmetry unless forced.
 }
 \examples{
 randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)

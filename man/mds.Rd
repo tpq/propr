@@ -11,8 +11,8 @@ mds(rho, group, prompt = TRUE, plotly = FALSE)
 
 \item{group}{A character vector. Group or sub-group memberships,
 ordered according to the column names in \code{@counts} and
-\code{@logratio}. Parameter required for \code{\link{bucket}}
-and optional for \code{\link{mds}}.}
+\code{@logratio}. Required parameter for \code{\link{bucket}}
+and optional parameter for \code{\link{mds}}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the prompt when plotting a large number of features.}
@@ -20,12 +20,15 @@ the prompt when plotting a large number of features.}
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}
 }
+\value{
+Returns a \code{ggplot} object.
+}
 \description{
 Plots the first two principal components as calculated
  using the log-ratio transformed feature vectors. This
  provides a statistically valid alternative to
- conventional principal components analysis (PCA) and
- multi-dimensional scaling (MDS) plotting.
+ conventional principal components analysis (PCA) used
+ in multi-dimensional scaling (MDS) plotting.
 }
 \details{
 For more information, see DOI:10.1139/cjm-2015-0821.

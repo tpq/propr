@@ -36,6 +36,8 @@ NULL
 #' @inheritParams bucket
 #' @param indexNaive Toggles whether to perform checks for an
 #'  "index-naive" plot function.
+#' @return Returns a \code{propr} object with guaranteed
+#'  column names and row names.
 plotCheck <- function(rho, prompt, plotly, indexNaive){
 
   if(!requireNamespace("ggplot2", quietly = TRUE)){
@@ -129,6 +131,7 @@ dendroCheck <- function(){
 #' Builds \code{ggplot2} dendrograms. For back-end use only.
 #'
 #' @param dendrogram A result from \code{as.dendrogram}.
+#' @return Returns a \code{ggplot} object.
 ggdend <- function(dendrogram){
 
   dg <- ggdendro::dendro_data(dendrogram)

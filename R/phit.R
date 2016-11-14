@@ -1,13 +1,13 @@
-#' Calculate proportionality metric phi.
+#' Calculate phi
 #'
-#' \code{phit} returns a \code{propr} object containing a measure of proportionality.
+#' \code{phit} returns a \code{propr} object containing a measure of proportionality, phi.
 #'
-#' Let d represent any number of features measured across n biological replicates
+#' Let D represent any number of features measured across N biological replicates
 #' 	subjected to a binary or continuous event E. For example, E could represent case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a
-#' 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
-#' 	columns containing phi measurements for each feature pair. One can think of the resultant
-#' 	matrix as equivalent to a distance matrix, except that it has no symmetry unless forced.
+#' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
+#' 	columns containing a value of phi for each feature pair. One can think of the resultant
+#' 	matrix as analogous to a distance matrix, except that it has no symmetry unless forced.
 #'
 #' @param counts A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry by reflecting the "lower left triangle".

@@ -22,16 +22,17 @@ a dynamic plot using the \code{plotly} package.}
 }
 \value{
 Returns cluster membership if \code{k} is provided.
+ Otherwise, returns a \code{ggplot} object.
 }
 \description{
-Plots the individual feature variances for each feature
- pair in the \code{propr} object. Highly proportional
+Plots the feature variances for each log-ratio transformed
+ feature pair in the \code{propr} object. Highly proportional
  pairs will aggregate near the \code{y = x} diagonal.
  Clusters that appear toward the top-right of the
- figure contain features with fixed abundance across
+ figure contain features with highly variable abundance across
  all samples. Clusters that appear toward the
- bottom-left of the figure contain features with highly
- variable abundance across all samples.
+ bottom-left of the figure contain features with fixed
+ abundance across all samples. Uses a log scale.
 }
 \details{
 Providing the argument \code{k} will color feature pairs

@@ -1,26 +1,26 @@
-#' Calculate proportionality metric rho.
+#' Calculate rho
 #'
-#' \code{perb} returns a \code{propr} object containing a measure of proportionality.
+#' \code{perb} returns a \code{propr} object containing a measure of proportionality, rho.
 #'
-#' Let d represent any number of features measured across n biological replicates
+#' Let D represent any number of features measured across n biological replicates
 #' 	subjected to a binary or continuous event E. For example, E could represent case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a
-#' 	"count matrix" with n rows and d columns into a proportionality matrix of d rows and d
-#' 	columns containing rho measurements for each feature pair. One can think of the resultant
-#' 	matrix as equivalent to a correlation matrix.
+#' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
+#' 	columns containing a value of rho for each feature pair. One can think of the resultant
+#' 	matrix as analogous to a correlation matrix.
 #'
 #' This function uses a centered log-ratio transformation of the data by default,
-#'  but will use an additive log-ratio transformation of the data if a non-zero
+#'  but will use an additive log-ratio transformation instead if a non-zero
 #'  \code{ivar} is provided. When using an additive log-ratio transformation,
-#'  this function will return \code{rho = 0} for each pair containing the
-#'  reference feature.
+#'  this function will return \code{rho = 0} for the column and row in the
+#'  \code{@@matrix} slot that would contain the reference feature.
 #'
 #' @param ivar A numeric scalar. Specificies a reference feature
-#'  for additive log-ratio transformation. Argument will now accept
-#'  the feature name instead of index.
+#'  for additive log-ratio transformation. The argument will also
+#'  accept a feature name instead of the index position.
 #' @param select Subsets via \code{object@counts[, select]}.
 #'  Optional. Use this argument to subset the proportionality
-#'  matrix without impacting the value of \code{rho}.
+#'  matrix without altering the final value of \code{rho}.
 #' @inheritParams phit
 #' @return Returns a \code{propr} object.
 #'

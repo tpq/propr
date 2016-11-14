@@ -71,7 +71,8 @@ setMethod("subset", signature(x = "propr"),
 #' @param i Operation used for the subset indexing. Select from
 #'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
 #' @param j Reference used for the subset indexing. Provide a numeric
-#'  value to which to compare the proportionality metrics.
+#'  value to which to compare the proportionality measures in the
+#'  \code{@@matrix} slot.
 #' @param tiny A logical scalar. Toggles whether to pass the indexed
 #'  result through \code{\link{simplify}}.
 #' @aliases [,propr-method

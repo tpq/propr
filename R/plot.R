@@ -17,6 +17,7 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 #' Plots *lr-transformed abundances for all indexed pairs.
 #'
 #' @inheritParams bucket
+#' @return Returns a \code{ggplot} object.
 #'
 #' @export
 smear <- function(rho, plotly = FALSE){
@@ -86,8 +87,7 @@ smear <- function(rho, plotly = FALSE){
 #' Plots a dendrogram and heatmap for all indexed pairs.
 #'
 #' @inheritParams bucket
-#'
-#' @return A dendrogram object made from \code{hclust}.
+#' @return Returns a dendrogram object made from \code{hclust}.
 #'
 #' @export
 dendrogram <- function(rho, plotly = FALSE){
@@ -183,8 +183,8 @@ dendrogram <- function(rho, plotly = FALSE){
 #' @param rho A \code{propr} object created from \code{\link{perb}}.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the column names in \code{@@counts} and
-#'  \code{@@logratio}. Parameter required for \code{\link{bucket}}
-#'  and optional for \code{\link{mds}}.
+#'  \code{@@logratio}. Required parameter for \code{\link{bucket}}
+#'  and optional parameter for \code{\link{mds}}.
 #' @param k A numeric scalar. The number of groups into which to
 #'  cluster the subjects. Clusters calculated  using \code{hclust}.
 #'  Optional parameter for \code{\link{bucket}}, \code{\link{prism}},
@@ -195,6 +195,7 @@ dendrogram <- function(rho, plotly = FALSE){
 #'  a dynamic plot using the \code{plotly} package.
 #'
 #' @return Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #'
 #' @importFrom stats as.formula lm aov cutree
 #' @export
@@ -286,8 +287,9 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
 #' This function builds a table of VLR, VLS, and rho
 #'  for each feature pair in a \code{propr} object. If the
 #'  argument \code{k} is provided, the table will also
-#'  include co-cluster membership (as matching the
-#'  \code{\link{bucket}} or \code{\link{prism}} plots).
+#'  include co-cluster membership (as used in the
+#'  \code{\link{bucket}}, \code{\link{prism}}, and
+#'  \code{\link{bokeh}} plots).
 #'
 #' @inheritParams bucket
 #' @return Returns a \code{data.frame} of pairwise relationships.
@@ -378,6 +380,7 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 #'
 #' @inheritParams bucket
 #' @return Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #'
 #' @export
 prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
@@ -432,14 +435,14 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
 #' Make Bokeh Plot
 #'
-#' Plots the individual feature variances for each feature
-#'  pair in the \code{propr} object. Highly proportional
+#' Plots the feature variances for each log-ratio transformed
+#'  feature pair in the \code{propr} object. Highly proportional
 #'  pairs will aggregate near the \code{y = x} diagonal.
 #'  Clusters that appear toward the top-right of the
-#'  figure contain features with fixed abundance across
+#'  figure contain features with highly variable abundance across
 #'  all samples. Clusters that appear toward the
-#'  bottom-left of the figure contain features with highly
-#'  variable abundance across all samples.
+#'  bottom-left of the figure contain features with fixed
+#'  abundance across all samples. Uses a log scale.
 #'
 #' Providing the argument \code{k} will color feature pairs
 #'  by co-cluster membership. In other words, a feature pair
@@ -448,6 +451,7 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 #'
 #' @inheritParams bucket
 #' @return Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #'
 #' @export
 bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
@@ -503,12 +507,13 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 #' Plots the first two principal components as calculated
 #'  using the log-ratio transformed feature vectors. This
 #'  provides a statistically valid alternative to
-#'  conventional principal components analysis (PCA) and
-#'  multi-dimensional scaling (MDS) plotting.
+#'  conventional principal components analysis (PCA) used
+#'  in multi-dimensional scaling (MDS) plotting.
 #'
 #' For more information, see DOI:10.1139/cjm-2015-0821.
 #'
 #' @inheritParams bucket
+#' @return Returns a \code{ggplot} object.
 #'
 #' @importFrom stats prcomp
 #' @export
@@ -551,12 +556,11 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 #' Make Snapshot Plot
 #'
 #' Plots the log-ratio transformed feature abundance as
-#'  a heatmap, with the axes ordered by dendrogram. Heatmap
-#'  intensity is not scaled.
+#'  a heatmap, along with the respective dendrograms.
+#'  Heatmap intensity is not scaled.
 #'
 #' @inheritParams bucket
-#'
-#' @return A dendrogram object made from \code{hclust}.
+#' @return Returns a dendrogram object made from \code{hclust}.
 #'
 #' @export
 snapshot <- function(rho, prompt = TRUE, plotly = FALSE){

@@ -18,6 +18,10 @@ a dynamic plot using the \code{plotly} package.}
 \item{indexNaive}{Toggles whether to perform checks for an
 "index-naive" plot function.}
 }
+\value{
+Returns a \code{propr} object with guaranteed
+ column names and row names.
+}
 \description{
 Performs data checks before plotting, triggering messages
  or errors when appropriate. For back-end use only.

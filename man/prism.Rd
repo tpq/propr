@@ -22,6 +22,7 @@ a dynamic plot using the \code{plotly} package.}
 }
 \value{
 Returns cluster membership if \code{k} is provided.
+ Otherwise, returns a \code{ggplot} object.
 }
 \description{
 Plots the variance of the ratio of the log-ratio transformed
