@@ -57,12 +57,12 @@ smear <- function(rho, plotly = FALSE){
 
   # Plot *lr-Y by *lr-X
   cat("\n")
-  df <- data.frame("X" = feat1, "Y" = feat2, "group" = group, "Partner" = partner, "Pair" = pair)
-  df$group <- factor(df$group)
+  df <- data.frame("X" = feat1, "Y" = feat2, "Group" = group, "Partner" = partner, "Pair" = pair)
+  df$Group <- factor(df$Group)
   g <-
-    ggplot2::ggplot(data = df, ggplot2::aes_string(x = "X", y = "Y", group = "group",
-                                                   Partner = "Partner", Pair = "Pair")) +
-    ggplot2::geom_path(ggplot2::aes_string(colour = "group")) +
+    ggplot2::ggplot(
+      ggplot2::aes_string(x = "X", y = "Y", Partner = "Partner", Pair = "Pair"), data = df) +
+    ggplot2::geom_path(ggplot2::aes_string(colour = "Group")) +
     ggplot2::labs(x = "*lr-transformed Abundance[1]",
                   y = "*lr-transformed Abundance[2]") +
     ggplot2::coord_equal(ratio = 1) + ggplot2::theme_bw() +
@@ -86,6 +86,7 @@ smear <- function(rho, plotly = FALSE){
 #' Plots a dendrogram and heatmap for all indexed pairs.
 #'
 #' @inheritParams bucket
+#'
 #' @return A dendrogram object made from \code{hclust}.
 #'
 #' @export
@@ -143,9 +144,9 @@ dendrogram <- function(rho, plotly = FALSE){
   df$row <- rownames(df)
   df$row <- with(df, factor(row, levels = row, ordered = TRUE))
   mdf <- reshape2::melt(df, id.vars = "row")
-  colnames(mdf) <- c("Samples", "Features", "rho")
+  colnames(mdf) <- c("Sample", "Feature", "rho")
   p <-
-    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Features", y = "Samples")) +
+    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Feature", y = "Sample")) +
     ggplot2::xlab("Features") + ggplot2::ylab("Features") +
     ggplot2::geom_tile(ggplot2::aes_string(fill = "rho")) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
@@ -224,7 +225,10 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
   }
 
   # Build graph components
+  feat.each <- colnames(rho@logratio)
   llt <- ncol(rho@matrix) * (ncol(rho@matrix)-1) * 1/2 # size of lower-left triangle
+  feat1 <- vector("numeric", llt) # feature name 1
+  feat2 <- vector("numeric", llt) # feature name 2
   prop <- vector("numeric", llt)
   weight <- vector("numeric", llt)
   col <- vector("numeric", llt)
@@ -234,6 +238,8 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
 
       prop[count] <- rho@matrix[j, i]
       weight[count] <- -log(p.val[i] * p.val[j])
+      feat1[count] <- feat.each[j]
+      feat2[count] <- feat.each[i]
 
       # Since each col initializes as zero
       if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
@@ -242,17 +248,19 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
     }
   }
 
-  df <- data.frame(prop, weight, "col" = as.character(col))
+  df <- data.frame("Partner" = feat1, "Pair" = feat2, "CoCluster" = as.character(col),
+                   "rho" = prop, "Score" = weight)
   g <-
-    ggplot2::ggplot(df, ggplot2::aes(prop, weight)) +
-    ggplot2::geom_point(ggplot2::aes(colour = col)) +
+    ggplot2::ggplot(
+      df, ggplot2::aes_string(x = "rho", y = "Score", Partner = "Partner", Pair = "Pair")) +
+    ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality Between Features (rho)") +
     ggplot2::ylab("Discrimination Between Groups") +
     ggplot2::ggtitle("Group Discrimination by Feature Pair") +
     ggplot2::xlim(-1, 1) +
-    ggplot2::ylim(0, max(df$weight)) +
+    ggplot2::ylim(0, max(df$Score)) +
     ggplot2::geom_hline(yintercept = -log(.05 / nrow(df)), color = "lightgrey") +
     ggplot2::geom_hline(yintercept = -log(.05^2 / nrow(df)), color = "black")
 
@@ -387,7 +395,8 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
   }
 
   g <-
-    ggplot2::ggplot(df, ggplot2::aes_string(x = "VLS", y = "VLR")) +
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "VLS", y = "VLR", rho = "rho",
+                                            Partner = "Partner", Pair = "Pair")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
@@ -459,7 +468,8 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
   df$logVL2 <- log(df$VL2)
 
   g <-
-    ggplot2::ggplot(df, ggplot2::aes_string(x = "logVL1", y = "logVL2")) +
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "logVL1", y = "logVL2", VLR = "VLR",
+                                            Partner = "Partner", Pair = "Pair")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
@@ -511,15 +521,12 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
     group <- rep("None", nrow(rho@logratio))
   }
 
-  df <- data.frame("id" = rownames(rho@logratio), "group" = as.character(group),
+  df <- data.frame("ID" = rownames(rho@logratio), "Group" = as.character(group),
                    prcomp(rho@logratio)$x[, c(1, 2)])
   g <-
-    ggplot2::ggplot() +
+    ggplot2::ggplot(ggplot2::aes_string(ID = "ID"), data = df) +
     ggplot2::geom_point(
-      ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"), data = df) +
-    ggplot2::geom_text(
-      ggplot2::aes_string(x = "PC1", y = "PC2", label = "id", colour = "group"),
-      data = df, size = 3, vjust = -1) +
+      ggplot2::aes_string(x = "PC1", y = "PC2", colour = "Group")) +
     ggplot2::theme_bw() +
     ggplot2::xlab("First *lr-transformed Component") +
     ggplot2::ylab("Second *lr-transformed Component") +
@@ -532,6 +539,9 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
   }else{
 
+    g <- g + ggplot2::geom_text(
+      ggplot2::aes_string(x = "PC1", y = "PC2", label = "ID", colour = "Group"),
+      data = df, size = 3, vjust = -1)
     plot(g)
   }
 
@@ -545,6 +555,8 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 #'  intensity is not scaled.
 #'
 #' @inheritParams bucket
+#'
+#' @return A dendrogram object made from \code{hclust}.
 #'
 #' @export
 snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
@@ -569,9 +581,10 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
   df$row <- rownames(df)
   df$row <- with(df, factor(row, levels = row, ordered = TRUE))
   mdf <- reshape2::melt(df, id.vars = "row")
-  colnames(mdf) <- c("Samples", "Features", "lrAbundance")
+  colnames(mdf) <- c("Sample", "Feature", "lrAbundance")
   p <-
-    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Features", y = "Samples")) +
+    ggplot2::ggplot(mdf, ggplot2::aes_string(x = "Feature", y = "Sample")) +
+    ggplot2::xlab("Features") + ggplot2::ylab("Samples") +
     ggplot2::geom_tile(ggplot2::aes_string(fill = "lrAbundance")) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
     ggplot2::theme(axis.text = ggplot2::element_blank())
