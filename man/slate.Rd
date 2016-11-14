@@ -4,7 +4,7 @@
 \alias{slate}
 \title{Build \code{propr} Table}
 \usage{
-slate(rho, k, prompt = TRUE)
+slate(rho, k, prompt = TRUE, plotly = FALSE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
@@ -16,6 +16,11 @@ and \code{\link{bokeh}}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the prompt when plotting a large number of features.}
+
+\item{plotly}{A logical scalar. Set to \code{TRUE} to produce
+a dynamic plot using the \code{plotly} package. This will also
+have the function return the internal \code{ggplot} object(s),
+useful for customization of the figure.}
 }
 \value{
 Returns a \code{data.frame} of pairwise relationships.
