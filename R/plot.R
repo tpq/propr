@@ -67,7 +67,7 @@ smear <- function(rho, plotly = FALSE){
     ggplot2::labs(x = "*lr-transformed Abundance[1]",
                   y = "*lr-transformed Abundance[2]") +
     ggplot2::coord_equal(ratio = 1) + ggplot2::theme_bw() +
-    ggplot2::ggtitle("Distribution of *lr-transformed Abundances") +
+    ggplot2::ggtitle("Distribution of *lr-transformed Abundance") +
     ggplot2::theme(legend.position = "none")
 
   if(plotly){
@@ -472,15 +472,16 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
   df$logVL2 <- log(df$VL2)
 
   g <-
-    ggplot2::ggplot(df, ggplot2::aes_string(x = "logVL1", y = "logVL2", VLR = "VLR",
-                                            Partner = "Partner", Pair = "Pair")) +
+    ggplot2::ggplot(
+      df, ggplot2::aes_string(x = "logVL1", y = "logVL2", VLS = "VLS", VLR = "VLR",
+                              Partner = "Partner", Pair = "Pair")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::scale_alpha_continuous(limits = c(-1, 1), name = "Proportionality") +
     ggplot2::xlab("Log *lr-transformed Variance[1]") +
     ggplot2::ylab("Log *lr-transformed Variance[2]") +
-    ggplot2::ggtitle("Distribution of Log *lr-transformed Variance") +
+    ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::xlim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
     ggplot2::ylim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
@@ -533,8 +534,7 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
     ggplot2::geom_point(
       ggplot2::aes_string(x = "PC1", y = "PC2", colour = "Group")) +
     ggplot2::theme_bw() +
-    ggplot2::xlab("First *lr-transformed Component") +
-    ggplot2::ylab("Second *lr-transformed Component") +
+    ggplot2::xlab("First Component") + ggplot2::ylab("Second Component") +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
     ggplot2::ggtitle("*lr-transformed MDS Plot")
 
