@@ -108,7 +108,7 @@ dendrogram <- function(rho, plotly = FALSE){
     i.feat <- sort(union(coord[[1]], coord[[2]]))
   }
 
-  rho <- subset(rho, select = i.feat)
+  rho <- suppressMessages(subset(rho, select = i.feat))
 
   if(rho@matrix[1, 1] == 0){
 

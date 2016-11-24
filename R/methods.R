@@ -55,7 +55,7 @@ setMethod("subset", signature(x = "propr"),
 
             if(length(x@pairs) > 0){
 
-              cat("Alert: User must repopulate @pairs slot after `subset`.\n")
+              message("Alert: User must repopulate @pairs slot after `subset`.")
               x@pairs <- vector("numeric")
             }
 
