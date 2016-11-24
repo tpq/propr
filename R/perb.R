@@ -2,7 +2,7 @@
 #'
 #' \code{perb} returns a \code{propr} object containing a measure of proportionality, rho.
 #'
-#' Let D represent any number of features measured across n biological replicates
+#' Let D represent any number of features measured across N biological replicates
 #' 	subjected to a binary or continuous event E. For example, E could represent case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a
 #' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
