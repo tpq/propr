@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <math.h>
 
 using namespace Rcpp;
 
@@ -292,6 +293,31 @@ List indexToCoord(IntegerVector V, const int N){
     _["feat1"] = rows,
     _["feat2"] = cols
   );
+}
+
+// Function for Lin's Z and standard deviation
+// [[Rcpp::export]]
+NumericMatrix linRcpp(NumericMatrix & rho,
+                      NumericMatrix lr){
+
+  int N = lr.nrow();
+  NumericMatrix r = corRcpp(lr);
+
+  for(int i = 1; i < rho.nrow(); i++){
+    for(int j = 0; j < i; j++){
+
+      // Calculate Z and variance of Z
+      double var_ij = (1 - pow(r(i, j), 2)) * pow(rho(i, j), 2) /
+        (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
+      double z_ij = atanh(rho(i, j));
+
+      // Replace r with Z and sd(Z)
+      r(j, i) = sqrt(var_ij);
+      r(i, j) = z_ij;
+    }
+  }
+
+  return r;
 }
 
 /*** R

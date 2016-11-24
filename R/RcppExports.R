@@ -41,3 +41,7 @@ indexToCoord <- function(V, N) {
     .Call('propr_indexToCoord', PACKAGE = 'propr', V, N)
 }
 
+linRcpp <- function(rho, lr) {
+    .Call('propr_linRcpp', PACKAGE = 'propr', rho, lr)
+}
+
