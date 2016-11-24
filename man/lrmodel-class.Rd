@@ -9,21 +9,21 @@
 \S4method{predict}{lrmodel}(object, newdata)
 }
 \arguments{
-\item{object}{An \code{lrmodel} object containing the log-ratio rule.}
+\item{object}{An \code{lrmodel} object.}
 
-\item{newdata}{A non-negative count matrix to transform.}
+\item{newdata}{A non-negative count matrix.}
 }
 \description{
 An S4 class to hold results from proportionality analysis.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{predict}: This method applies a log-ratio rule to new data.
+\item \code{predict}: Log-ratio transform new data.
 }}
 \section{Slots}{
 
 \describe{
-\item{\code{MARGIN}}{Denotes the \code{MARGIN} which contains the sample
+\item{\code{MARGIN}}{Specifies the \code{MARGIN} that contains the sample
 data. If \code{MARGIN = 1}, rows contain sample data.
 If \code{MARGIN = 2}, columns contain sample data.}
 

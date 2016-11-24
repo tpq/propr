@@ -16,4 +16,7 @@ If \code{MARGIN = 2}, columns contain sample data.}
 This function encapsulates the rule for a clr-transformation to apply
  to an independent dataset (via \code{predict}).
 }
+\seealso{
+\code{\link{lrmodel-class}}
+}
 

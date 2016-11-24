@@ -1,6 +1,6 @@
 #' An S4 class to hold results from proportionality analysis.
 #'
-#' @slot MARGIN Denotes the \code{MARGIN} which contains the sample
+#' @slot MARGIN Specifies the \code{MARGIN} that contains the sample
 #'  data. If \code{MARGIN = 1}, rows contain sample data.
 #'  If \code{MARGIN = 2}, columns contain sample data.
 #' @slot replace Stores the smallest non-zero value of the raw data,
@@ -41,6 +41,8 @@ setClass("lrmodel",
 #' @param MARGIN If \code{MARGIN = 1}, rows contain sample data.
 #'  If \code{MARGIN = 2}, columns contain sample data.
 #'
+#' @seealso \code{\link{lrmodel-class}}
+#'
 #' @export
 modelCLR <- function(x, MARGIN = 1){
 
@@ -63,10 +65,10 @@ modelCLR <- function(x, MARGIN = 1){
       raw = x)
 }
 
-#' @describeIn lrmodel This method applies a log-ratio rule to new data.
+#' @describeIn lrmodel Log-ratio transform new data.
 #'
-#' @param object An \code{lrmodel} object containing the log-ratio rule.
-#' @param newdata A non-negative count matrix to transform.
+#' @param object An \code{lrmodel} object.
+#' @param newdata A non-negative count matrix.
 #'
 #' @export
 setMethod("predict", "lrmodel",
