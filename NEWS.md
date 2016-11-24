@@ -5,6 +5,7 @@
   * Use `predict` to deploy this rule to new data
 * Modified backend code
   * Added `corRcpp` function from `correlateR` package
+  * Added `linRcpp` function for Z-transformation
 
 ## propr 2.0.6
 ---------------------
