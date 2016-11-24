@@ -1,3 +1,7 @@
+## propr 2.0.6.9000
+---------------------
+* 
+
 ## propr 2.0.6
 ---------------------
 * Modified visualization tools
