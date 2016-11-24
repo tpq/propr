@@ -13,6 +13,34 @@ NumericMatrix centerNumericMatrix(NumericMatrix & X){
   return X;
 }
 
+// Function for cor (via: correlateR package)
+// [[Rcpp::export]]
+Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix & X){
+
+  const int m = X.ncol();
+
+  // Centering the matrix
+  X = centerNumericMatrix(X);
+
+  // Compute 1 over the sample standard deviation
+  Rcpp::NumericVector inv_sqrt_ss(m);
+  for (int i = 0; i < m; ++i) {
+    inv_sqrt_ss(i) = 1 / sqrt(Rcpp::sum(X(Rcpp::_, i) * X(Rcpp::_, i)));
+  }
+
+  // Computing the correlation matrix
+  Rcpp::NumericMatrix cor(m, m);
+  for (int i = 0; i < m; ++i) {
+    for (int j = 0; j <= i; ++j) {
+      cor(i, j) = Rcpp::sum(X(Rcpp::_,i) * X(Rcpp::_,j)) *
+        inv_sqrt_ss(i) * inv_sqrt_ss(j);
+      cor(j, i) = cor(i, j);
+    }
+  }
+
+  return cor;
+}
+
 // Function for cov (via: correlateR package)
 // [[Rcpp::export]]
 NumericMatrix covRcpp(NumericMatrix & X,
@@ -22,8 +50,8 @@ NumericMatrix covRcpp(NumericMatrix & X,
   const int m = X.ncol();
   const int df = n - 1 + norm_type;
 
-  // Centering the matrix!
-  X = centerNumericMatrix(X);  // Defined in aux_functions
+  // Centering the matrix
+  X = centerNumericMatrix(X);
 
   // Computing the covariance matrix
   NumericMatrix cov(m, m);
@@ -270,6 +298,7 @@ List indexToCoord(IntegerVector V, const int N){
 X <- t(data.frame("a" = sample(1:10), "b" = sample(1:10), "c" = sample(1:10),
                   "d" = sample(1:10), "e" = sample(1:10), "f" = sample(1:10)))
 
+if(!all(round(cor(X) - corRcpp(X), 5) == 0)) stop("corRcpp error!")
 if(!all(round(cov(X) - covRcpp(X), 5) == 0)) stop("covRcpp error!")
 if(!all(round(propr:::proprVLR(X) - vlrRcpp(X), 5) == 0)) stop("vlrRcpp error!")
 if(!all(round(propr:::proprCLR(X) - clrRcpp(X), 5) == 0)) stop("clrRcpp error!")

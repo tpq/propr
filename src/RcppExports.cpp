@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// corRcpp
+Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix& X);
+RcppExport SEXP propr_corRcpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(corRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // covRcpp
 NumericMatrix covRcpp(NumericMatrix& X, const int norm_type);
 RcppExport SEXP propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP) {

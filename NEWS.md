@@ -3,6 +3,8 @@
 * New `lrmodel` class
   * Use `modelCLR` to capture the clr-transformation rule
   * Use `predict` to deploy this rule to new data
+* Modified backend code
+  * Added `corRcpp` function from `correlateR` package
 
 ## propr 2.0.6
 ---------------------
