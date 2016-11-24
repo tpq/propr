@@ -41,14 +41,14 @@ NULL
 plotCheck <- function(rho, prompt, plotly, indexNaive){
 
   if(!requireNamespace("ggplot2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggplot2! ",
+    stop("Uh oh! This display method depends on ggplot2! ",
          "Try running: install.packages('ggplot2')")
   }
 
   if(plotly){
 
     if(!requireNamespace("plotly", quietly = TRUE)){
-      stop("Uh oh! This plot method depends on plotly! ",
+      stop("Uh oh! This display method depends on plotly! ",
            "Try running: install.packages('plotly')")
     }
   }
@@ -61,7 +61,7 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
   if(indexNaive){
 
     if(!requireNamespace("fastcluster", quietly = TRUE)){
-      stop("Uh oh! This plot method depends on fastcluster! ",
+      stop("Uh oh! This display method depends on fastcluster! ",
            "Try running: install.packages('fastcluster')")
     }
 
@@ -106,22 +106,22 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
 dendroCheck <- function(){
 
   if(!requireNamespace("reshape2", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on reshape2! ",
+    stop("Uh oh! This display method depends on reshape2! ",
          "Try running: install.packages('reshape2')")
   }
 
   if(!requireNamespace("ggdendro", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on ggdendro! ",
+    stop("Uh oh! This display method depends on ggdendro! ",
          "Try running: install.packages('ggdendro')")
   }
 
   if(!requireNamespace("fastcluster", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on fastcluster! ",
+    stop("Uh oh! This display method depends on fastcluster! ",
          "Try running: install.packages('fastcluster')")
   }
 
   if(!requireNamespace("grid", quietly = TRUE)){
-    stop("Uh oh! This plot method depends on grid! ",
+    stop("Uh oh! This display method depends on grid! ",
          "Try running: install.packages('grid')")
   }
 }
