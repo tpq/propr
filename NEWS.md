@@ -1,6 +1,8 @@
 ## propr 2.0.6.9000
 ---------------------
-* 
+* New `lrmodel` class
+  * Use `modelCLR` to capture the clr-transformation rule
+  * Use `predict` to deploy this rule to new data
 
 ## propr 2.0.6
 ---------------------
