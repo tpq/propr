@@ -295,7 +295,7 @@ List indexToCoord(IntegerVector V, const int N){
   );
 }
 
-// Function for Lin's Z and standard deviation
+// Function for Lin's Z and its variance
 // [[Rcpp::export]]
 NumericMatrix linRcpp(NumericMatrix & rho,
                       NumericMatrix lr){
@@ -311,8 +311,8 @@ NumericMatrix linRcpp(NumericMatrix & rho,
         (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
       double z_ij = atanh(rho(i, j));
 
-      // Replace r with Z and sd(Z)
-      r(j, i) = sqrt(var_ij);
+      // Replace r with Z and var
+      r(j, i) = var_ij;
       r(i, j) = z_ij;
     }
   }
