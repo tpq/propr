@@ -12,7 +12,7 @@ dat <- data.frame("values" = c(swept[, 1], swept[, 2]),
 ccc <- cccUst(dat, "values", "method")
 names(ccc) <- NULL
 
-lin <- linRcpp(rho@matrix, rho@logratio)
+lin <- propr:::linRcpp(rho@matrix, rho@logratio)
 
 test_that("linRcpp performs Z-transformation correctly (alr)", {
 
