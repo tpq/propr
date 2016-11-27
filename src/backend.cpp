@@ -16,7 +16,7 @@ NumericMatrix centerNumericMatrix(NumericMatrix & X){
 
 // Function for cor (via: correlateR package)
 // [[Rcpp::export]]
-Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix & X){
+NumericMatrix corRcpp(NumericMatrix & X){
 
   const int m = X.ncol();
 
@@ -24,16 +24,16 @@ Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix & X){
   X = centerNumericMatrix(X);
 
   // Compute 1 over the sample standard deviation
-  Rcpp::NumericVector inv_sqrt_ss(m);
+  NumericVector inv_sqrt_ss(m);
   for (int i = 0; i < m; ++i) {
-    inv_sqrt_ss(i) = 1 / sqrt(Rcpp::sum(X(Rcpp::_, i) * X(Rcpp::_, i)));
+    inv_sqrt_ss(i) = 1 / sqrt(sum(X(_, i) * X(_, i)));
   }
 
   // Computing the correlation matrix
-  Rcpp::NumericMatrix cor(m, m);
+  NumericMatrix cor(m, m);
   for (int i = 0; i < m; ++i) {
     for (int j = 0; j <= i; ++j) {
-      cor(i, j) = Rcpp::sum(X(Rcpp::_,i) * X(Rcpp::_,j)) *
+      cor(i, j) = sum(X(_,i) * X(_,j)) *
         inv_sqrt_ss(i) * inv_sqrt_ss(j);
       cor(j, i) = cor(i, j);
     }
@@ -308,7 +308,7 @@ NumericMatrix linRcpp(NumericMatrix & rho,
 
       // Calculate Z and variance of Z
       double var_ij = (1 - pow(r(i, j), 2)) * pow(rho(i, j), 2) /
-        (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
+      (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
       double z_ij = atanh(rho(i, j));
 
       // Replace r with Z and var
@@ -320,12 +320,74 @@ NumericMatrix linRcpp(NumericMatrix & rho,
   return r;
 }
 
+// Function to return lower left triangle
+// [[Rcpp::export]]
+NumericVector lltRcpp(NumericMatrix & X){
+
+  int nfeats = X.nrow();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericVector result(llt);
+  int counter = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      result(counter) = X(i, j);
+      counter += 1;
+    }
+  }
+
+  return result;
+}
+
+// Function to return upper right triangle
+// [[Rcpp::export]]
+NumericVector urtRcpp(NumericMatrix & X){
+
+  int nfeats = X.nrow();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericVector result(llt);
+  int counter = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      result(counter) = X(j, i);
+      counter += 1;
+    }
+  }
+
+  return result;
+}
+
+// Function to label a half matrix
+// [[Rcpp::export]]
+List labRcpp(int nfeats){
+
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::IntegerVector partner(llt);
+  Rcpp::IntegerVector pair(llt);
+  int counter = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      partner(counter) = i + 1;
+      pair(counter) = j + 1;
+      counter += 1;
+    }
+  }
+
+  return List::create(
+    _["Partner"] = partner,
+    _["Pair"] = pair
+  );
+}
+
 /*** R
 X <- t(data.frame("a" = sample(1:10), "b" = sample(1:10), "c" = sample(1:10),
                   "d" = sample(1:10), "e" = sample(1:10), "f" = sample(1:10)))
 
 if(!all(round(cor(X) - corRcpp(X), 5) == 0)) stop("corRcpp error!")
 if(!all(round(cov(X) - covRcpp(X), 5) == 0)) stop("covRcpp error!")
+
 if(!all(round(propr:::proprVLR(X) - vlrRcpp(X), 5) == 0)) stop("vlrRcpp error!")
 if(!all(round(propr:::proprCLR(X) - clrRcpp(X), 5) == 0)) stop("clrRcpp error!")
 if(!all(round(propr:::proprALR(X, ivar = 5) - alrRcpp(X, ivar = 5)[, -5], 5) == 0)) stop("alrRcpp error!")

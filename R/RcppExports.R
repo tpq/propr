@@ -45,3 +45,15 @@ linRcpp <- function(rho, lr) {
     .Call('propr_linRcpp', PACKAGE = 'propr', rho, lr)
 }
 
+lltRcpp <- function(X) {
+    .Call('propr_lltRcpp', PACKAGE = 'propr', X)
+}
+
+urtRcpp <- function(X) {
+    .Call('propr_urtRcpp', PACKAGE = 'propr', X)
+}
+
+labRcpp <- function(nfeats) {
+    .Call('propr_labRcpp', PACKAGE = 'propr', nfeats)
+}
+

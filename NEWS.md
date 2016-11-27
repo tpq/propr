@@ -6,6 +6,8 @@
 * Modified backend code
   * Added `corRcpp` function from `correlateR` package
   * Added `linRcpp` function for Z-transformation
+  * Added `lltRcpp` and `urtRcpp` to retrieve a half-matrix
+  * Added `labRcpp` to label a half-matrix
 
 ## propr 2.0.6
 ---------------------

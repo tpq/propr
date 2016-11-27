@@ -21,3 +21,19 @@ test_that("linRcpp performs Z-transformation correctly (alr)", {
     lin[2, 1]
   )
 })
+
+test_that("lltRcpp returns lower left triangle", {
+
+  expect_equal(
+    propr:::lltRcpp(lin),
+    propr:::proprTri(lin)
+  )
+})
+
+test_that("urtRcpp returns upper right triangle", {
+
+  expect_equal(
+    propr:::urtRcpp(lin),
+    propr:::proprTri(t(lin))
+  )
+})
