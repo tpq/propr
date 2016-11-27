@@ -8,6 +8,9 @@
   * Added `linRcpp` function for Z-transformation
   * Added `lltRcpp` and `urtRcpp` to retrieve a half-matrix
   * Added `labRcpp` to label a half-matrix
+* New `prop2prob` function
+  * Allows hypothesis testing of rho equals naught
+  * Tests differential proportionality
 
 ## propr 2.0.6
 ---------------------
@@ -120,10 +123,10 @@
 ## propr 1.0.0
 ---------------------
 * Introduced `phit` function
-  * Implements Lovell's \phi proportionality metric
+  * Implements Lovell's phi proportionality metric
   * Returns object of class `propr`
 * Introduced `perb` function
-  * Implements Erb's \rho proportionality metric
+  * Implements Erb's rho proportionality metric
   * Returns object of class `propr`
 * Introduced `propr` Class
   * `show` method
