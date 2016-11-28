@@ -1,4 +1,4 @@
-## propr 2.0.6.9000
+## propr 2.0.7
 ---------------------
 * New `lrmodel` class
   * Use `modelCLR` to capture the clr-transformation rule
