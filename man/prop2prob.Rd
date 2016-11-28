@@ -11,6 +11,9 @@ prop2prob(x, y)
 
 \item{y}{A \code{propr} object. Optional.}
 }
+\value{
+A \code{data.table} of p-values.
+}
 \description{
 This experimental helper function calculates probability from
  proportionality. When supplying one \code{propr} object,
@@ -18,21 +21,20 @@ This experimental helper function calculates probability from
  each proportionality coefficient occurred by chance alone.
  When supplying two \code{propr} objects, \code{prop2prob}
  estimates the probability that each proportionality
- coefficient differs between the two groups, called
- differential proportionality.
+ coefficient differs between the two objects.
 }
 \details{
-All calculations use formula derived for the concordance
+All calculations use formulae derived for the concordance
  correlation coefficient under the constraint that all means
  equal zero. We defend this constraint on the grounds that
  we can shift the mean of log-ratio transformed feature vectors
  without changing the proportionality coefficient, rho.
- See Zar's Biostatistical Analysis text (4ed, pg 407)
- for more information.
+ See Zar's Biostatistical Analysis text (4ed, pg 407-10)
+ for more information on the method used.
 
 When calculating differential proportionality, it is the
  responsibility of the user to ensure that the two groups
- have no overlapping samples. All p-values calculated as
+ have no overlapping samples. All p-values returned as
  twice the result of \code{\link{pnorm}}, thereby correcting
  for "two-tails". Please make sure to interpret p-values
  in the context of multiple testing! For more information,

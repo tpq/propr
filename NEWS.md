@@ -1,3 +1,8 @@
+## propr 2.0.7.9000
+---------------------
+* Modified `prop2prob` function
+  * Return p-values as a `data.table`
+
 ## propr 2.0.7
 ---------------------
 * New `lrmodel` class
