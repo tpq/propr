@@ -126,7 +126,7 @@ abstract <- function(x, y, select){
   }
 
   rho <- new("propr")
-  rho@counts <- rbind(x@counts, y@logratio)
+  rho@counts <- rbind(x@counts, y@counts)
   rho@logratio <- rbind(x@logratio, y@logratio) # OK because clr(x) works on subject vectors
   rho@matrix <- 1 - abs(x@matrix - y@matrix)
 
