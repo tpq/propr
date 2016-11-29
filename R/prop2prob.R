@@ -68,11 +68,15 @@ prop2prob <- function(x, y){
   z <- pnorm(z, lower.tail = FALSE) * 2
 
   labels <- labRcpp(ncol(x@logratio))
-  data.table::data.table(
+  dt <- data.table::data.table(
     "Partner" = labels[[1]],
     "Pair" = labels[[2]],
-    "Probability" = z
+    "Probability" = z,
+    "Bonferroni" = p.adjust(z, method = "bonferroni"),
+    key = "Probability"
   )
+
+  return(dt)
 }
 
 #' Abstract Two propr Objects
@@ -88,8 +92,12 @@ prop2prob <- function(x, y){
 #'  The \code{@@counts} and \code{@@logratio} slots contain a
 #'  join of the original slots via \code{rbind}. Meanwhile,
 #'  the \code{@@matrix} slot contains a difference matrix defined as
-#'  \code{1 - abs(x@matrix - y@matrix)}. This difference matrix
-#'  may help summarize \code{\link{prop2prob}} results.
+#'  \code{1 - abs(x@matrix - y@matrix)}. Viewing this difference
+#'  matrix with \code{\link{dendrogram}} may help summarize
+#'  the results of \code{\link{prop2prob}}. Note that this
+#'  difference matrix now also informs co-cluster assignment for
+#'  \code{\link{bucket}}, \code{\link{prism}}, and
+#'  \code{\link{bokeh}}.
 #'
 #' @param x,y A \code{propr} object.
 #' @inheritParams perb
