@@ -1,7 +1,9 @@
 ## propr 2.0.7.9000
 ---------------------
+* Modified visualization tools
+  * `bucket` now depends on `slate` function
 * Modified `prop2prob` function
-  * Return p-values as a `data.table`
+  * Return p-values as a sorted `data.table`
 * New `abstract` function
   * Combines two `propr` objects
 

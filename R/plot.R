@@ -201,7 +201,17 @@ dendrogram <- function(rho, plotly = FALSE){
 #' @export
 bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced bouquet
 
-  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
+  df <- slate(rho, k, prompt, plotly)
+
+  if(!missing(k)){
+
+    clust <- df[[2]]
+    df <- df[[1]]
+
+  }else{
+
+    df$CoCluster <- as.character(0)
+  }
 
   # Calculate discriminating power of each feature
   numfeats <- ncol(rho@logratio)
@@ -215,42 +225,17 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
     p.val[i] <- res[[1]]$'Pr(>F)'[1]
   }
 
-  # Cluster if k is provided
-  if(!missing(k)){
-
-    # Convert rho into dist matrix
-    # See reference: http://research.stowers-institute.org/
-    #  mcm/efg/R/Visualization/cor-cluster/index.htm
-    dist <- as.dist(1 - abs(rho@matrix))
-    clust <- cutree(fastcluster::hclust(dist), k = k)
-  }
-
-  # Build graph components
-  feat.each <- colnames(rho@logratio)
-  llt <- ncol(rho@matrix) * (ncol(rho@matrix)-1) * 1/2 # size of lower-left triangle
-  feat1 <- vector("numeric", llt) # feature name 1
-  feat2 <- vector("numeric", llt) # feature name 2
-  prop <- vector("numeric", llt)
-  weight <- vector("numeric", llt)
-  col <- vector("numeric", llt)
+  # Add discriminating power to slate result
+  llt <- ncol(rho@matrix) * (ncol(rho@matrix)-1) * 1/2
+  df$Score <- 0
   count <- 1
   for(j in 2:numfeats){
     for(i in 1:(j-1)){
-
-      prop[count] <- rho@matrix[j, i]
-      weight[count] <- -log(p.val[i] * p.val[j])
-      feat1[count] <- feat.each[j]
-      feat2[count] <- feat.each[i]
-
-      # Since each col initializes as zero
-      if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
-
+      df$Score[count] <- -log(p.val[i] * p.val[j])
       count <- count + 1
     }
   }
 
-  df <- data.frame("Partner" = feat1, "Pair" = feat2, "CoCluster" = as.character(col),
-                   "rho" = prop, "Score" = weight)
   g <-
     ggplot2::ggplot(
       df, ggplot2::aes_string(x = "rho", y = "Score", Partner = "Partner", Pair = "Pair")) +
