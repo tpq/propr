@@ -12,9 +12,10 @@
 #'  correlation coefficient under the constraint that all means
 #'  equal zero. We defend this constraint on the grounds that
 #'  we can shift the mean of log-ratio transformed feature vectors
-#'  without changing the proportionality coefficient, rho.
-#'  See Zar's Biostatistical Analysis text (4ed, pg 407-10)
-#'  for more information on the method used.
+#'  without changing the proportionality coefficient, rho, or
+#'  Pearson's correlation coefficient, r. We refer the reader to
+#'  Zar's Biostatistical Analysis text (4ed, pg 407-10) for
+#'  more information on the method used.
 #'
 #' When calculating differential proportionality, it is the
 #'  responsibility of the user to ensure that the two groups
@@ -24,11 +25,18 @@
 #'  in the context of multiple testing! For more information,
 #'  see \code{\link{p.adjust}}.
 #'
-#' @return A \code{data.table} of p-values.
-#'
 #' @param x A \code{propr} object.
 #' @param y A \code{propr} object. Optional.
 #'
+#' @return A \code{data.table} of p-values.
+#'
+#' @seealso \code{\link{propr}}, \code{\link{abstract}}
+#'
+#' @examples
+#' library(propr)
+#' data(mail)
+#' rho <- perb(mail)
+#' prop2prob(rho)
 #' @export
 prop2prob <- function(x, y){
 
@@ -37,15 +45,7 @@ prop2prob <- function(x, y){
          "Try running: install.packages('data.table')")
   }
 
-  if(class(x) != "propr") stop("Uh oh! This function requires a 'propr' object for 'x'.")
-  if(!x@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
-  if(!missing(y)){
-    if(class(y) != "propr") stop("Uh oh! This function requires a 'propr' object for 'y'.")
-    if(!y@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
-    if(!identical(colnames(x@logratio), colnames(y@logratio))){
-      stop("Uh oh! Make sure both 'propr' objects have the same features.")
-    }
-  }
+  differentialCheck(x, y, forceBoth = FALSE)
 
   X <- linRcpp(x@matrix, x@logratio)
   z <- lltRcpp(X)
@@ -73,4 +73,54 @@ prop2prob <- function(x, y){
     "Pair" = labels[[2]],
     "Probability" = z
   )
+}
+
+#' Abstract Two propr Objects
+#'
+#' This function abstracts a new \code{propr} object from
+#'  two existing \code{propr} objects. The two \code{propr}
+#'  objects should not have any overlapping samples. Typically,
+#'  the two objects represent different experimental groups.
+#'  The resultant abstracted object inherits all plot functions
+#'  available for the original \code{propr} objects.
+#'
+#' The abstracted \code{propr} object has the following properties:
+#'  The \code{@@counts} and \code{@@logratio} slots contain a
+#'  join of the original slots via \code{rbind}. Meanwhile,
+#'  the \code{@@matrix} slot contains a difference matrix defined as
+#'  \code{1 - abs(x@matrix - y@matrix)}. This difference matrix
+#'  may help summarize \code{\link{prop2prob}} results.
+#'
+#' @param x,y A \code{propr} object.
+#' @inheritParams perb
+#'
+#' @return An abstracted \code{propr} object.
+#'
+#' @seealso \code{\link{propr}}, \code{\link{prop2prob}}
+#'
+#' @examples
+#' library(propr)
+#' data(mail)
+#' mail1 <- mail[1:2, ]
+#' mail2 <- mail[3:4, ]
+#' rho1 <- perb(mail1)
+#' rho2 <- perb(mail2)
+#' abstract(rho1, rho2)
+#' @export
+abstract <- function(x, y, select){
+
+  differentialCheck(x, y, forceBoth = TRUE)
+
+  if(!missing(select)){
+
+    x <- subset(x, select = select)
+    y <- subset(y, select = select)
+  }
+
+  rho <- new("propr")
+  rho@counts <- rbind(x@counts, y@logratio)
+  rho@logratio <- rbind(x@logratio, y@logratio) # OK because clr(x) works on subject vectors
+  rho@matrix <- 1 - abs(x@matrix - y@matrix)
+
+  return(rho)
 }

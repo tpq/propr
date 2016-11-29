@@ -28,9 +28,10 @@ All calculations use formulae derived for the concordance
  correlation coefficient under the constraint that all means
  equal zero. We defend this constraint on the grounds that
  we can shift the mean of log-ratio transformed feature vectors
- without changing the proportionality coefficient, rho.
- See Zar's Biostatistical Analysis text (4ed, pg 407-10)
- for more information on the method used.
+ without changing the proportionality coefficient, rho, or
+ Pearson's correlation coefficient, r. We refer the reader to
+ Zar's Biostatistical Analysis text (4ed, pg 407-10) for
+ more information on the method used.
 
 When calculating differential proportionality, it is the
  responsibility of the user to ensure that the two groups
@@ -39,5 +40,14 @@ When calculating differential proportionality, it is the
  for "two-tails". Please make sure to interpret p-values
  in the context of multiple testing! For more information,
  see \code{\link{p.adjust}}.
+}
+\examples{
+library(propr)
+data(mail)
+rho <- perb(mail)
+prop2prob(rho)
+}
+\seealso{
+\code{\link{propr}}, \code{\link{abstract}}
 }
 

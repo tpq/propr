@@ -2,6 +2,8 @@
 ---------------------
 * Modified `prop2prob` function
   * Return p-values as a `data.table`
+* New `abstract` function
+  * Combines two `propr` objects
 
 ## propr 2.0.7
 ---------------------
