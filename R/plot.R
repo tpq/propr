@@ -89,6 +89,7 @@ smear <- function(rho, plotly = FALSE){
 #' @inheritParams bucket
 #' @return Returns a dendrogram object made from \code{hclust}.
 #'
+#' @importFrom stats as.dist
 #' @export
 dendrogram <- function(rho, plotly = FALSE){
 
@@ -547,6 +548,7 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 #' @inheritParams bucket
 #' @return Returns a dendrogram object made from \code{hclust}.
 #'
+#' @importFrom stats dist
 #' @export
 snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 

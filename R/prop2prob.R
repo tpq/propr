@@ -37,6 +37,7 @@
 #' data(mail)
 #' rho <- perb(mail)
 #' prop2prob(rho)
+#' @importFrom stats pnorm p.adjust
 #' @export
 prop2prob <- function(x, y){
 
