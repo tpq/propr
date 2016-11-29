@@ -1,3 +1,47 @@
+#' The propr Package
+#'
+#' @description
+#' Welcome to the \code{propr} package!
+#'
+#' To learn more about how to calculate proportionality, see
+#'  see \code{\link{phit}} and \code{\link{perb}}.
+#'
+#' To learn more about the resultant \code{propr} class object, see
+#'  see the class definition \code{\link{propr-class}}.
+#'
+#' To learn more about \code{propr} plots, see \code{\link{smear}},
+#'  \code{\link{dendrogram}}, \code{\link{bucket}}, \code{\link{prism}},
+#'  \code{\link{bokeh}}, \code{\link{mds}}, and \code{\link{snapshot}}.
+#'
+#' To learn more about differential proportionality, see
+#'  \code{\link{prop2prob}} and \code{\link{abstract}}.
+#'
+#' To learn more about compositional data analysis, and its relevance
+#'  to biological count data, see the bundled vignette.
+#'
+#' @name propr
+NULL
+
+#' An S4 class to hold results from proportionality analysis.
+#'
+#' @slot counts A matrix. Stores the original "count matrix" input.
+#' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
+#' @slot matrix A matrix. Stores the proportionality matrix calculated by
+#'  \code{phiRcpp} or \code{rhoRcpp}.
+#' @slot pairs A vector. Indexes the proportionality metrics of interest.
+#'
+#' @seealso \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
+#'
+#' @export
+setClass("propr",
+         slots = c(
+           counts = "matrix",
+           logratio = "matrix",
+           matrix = "matrix",
+           pairs = "numeric"
+         )
+)
+
 #' @useDynLib propr
 #' @importFrom Rcpp sourceCpp
 NULL
@@ -123,6 +167,35 @@ dendroCheck <- function(){
   if(!requireNamespace("grid", quietly = TRUE)){
     stop("Uh oh! This display method depends on grid! ",
          "Try running: install.packages('grid')")
+  }
+}
+
+#' Differential Proportionality Check
+#'
+#' Performs data checks when comparing two \code{propr} objects,
+#'  triggering messages or errors when appropriate. For back-end
+#'  use only.
+#'
+#' @inheritParams prop2prob
+#' @param forceBoth Toggles whether to perform checks for the
+#'  second \code{propr} object.
+differentialCheck <- function(x, y, forceBoth){
+
+  if(class(x) != "propr") stop("Uh oh! This function requires a 'propr' object for 'x'.")
+  if(!x@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
+  if(is.null(colnames(x@logratio))){
+    colnames(x@logratio) <- as.character(1:ncol(x@logratio))
+  }
+
+  if(!missing(y) | forceBoth){
+    if(class(y) != "propr") stop("Uh oh! This function requires a 'propr' object for 'y'.")
+    if(!y@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
+    if(is.null(colnames(y@logratio))){
+      colnames(y@logratio) <- as.character(1:ncol(y@logratio))
+    }
+    if(!identical(colnames(x@logratio), colnames(y@logratio))){
+      stop("Uh oh! Make sure both 'propr' objects have the same features.")
+    }
   }
 }
 
