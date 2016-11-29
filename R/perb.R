@@ -27,9 +27,9 @@
 #' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}
 #'
 #' @examples
-#' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
-#' counts <- matrix(randomNum, nrow = 25, ncol = 10)
-#' rho <- perb(counts, ivar = 0)
+#' library(propr)
+#' data(mail)
+#' rho <- perb(mail, ivar = 0)
 #' @importFrom methods new
 #' @export
 perb <- function(counts, ivar = 0, select){

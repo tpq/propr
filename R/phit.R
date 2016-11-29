@@ -16,9 +16,9 @@
 #' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{perb}}
 #'
 #' @examples
-#' randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
-#' counts <- matrix(randomNum, nrow = 25, ncol = 10)
-#' phi <- phit(counts, symmetrize = TRUE)
+#' library(propr)
+#' data(mail)
+#' phi <- phit(mail, symmetrize = TRUE)
 #' @importFrom methods new
 #' @export
 phit <- function(counts, symmetrize = TRUE){

@@ -38,9 +38,9 @@ This function uses a centered log-ratio transformation of the data by default,
  \code{@matrix} slot that would contain the reference feature.
 }
 \examples{
-randomNum <- sample(1:1000, size = 25 * 10, replace = TRUE)
-counts <- matrix(randomNum, nrow = 25, ncol = 10)
-rho <- perb(counts, ivar = 0)
+library(propr)
+data(mail)
+rho <- perb(mail, ivar = 0)
 }
 \seealso{
 \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}
