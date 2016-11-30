@@ -51,7 +51,7 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
     message("Uh oh! A large proportionality matrix was detected (> 1 GB).\n",
             "This operation requires about 5 times the size of 'x' in additional RAM.\n",
             "Are you sure you want to calculate ",
-            ncol(rho@matrix) * (ncol(rho@matrix)-1) * 1/2, " p-values?\n",
+            ncol(x@matrix) * (ncol(x@matrix)-1) * 1/2, " p-values?\n",
             "0: Nevermind\n1: Proceed\n2: Hmm...")
     response <- readline(prompt = "Which do you choose? ")
     if(!response == 1) stop("prop2prob method aborted.")
