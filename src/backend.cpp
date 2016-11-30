@@ -295,6 +295,16 @@ List indexToCoord(IntegerVector V, const int N){
   );
 }
 
+// Function for pair indexing
+// [[Rcpp::export]]
+IntegerVector coordToIndex(IntegerVector row,
+                           IntegerVector col,
+                           const int N){
+
+  IntegerVector V = (col - 1) * N + row;
+  return V;
+}
+
 // Function for Lin's Z and its variance
 // [[Rcpp::export]]
 NumericMatrix linRcpp(NumericMatrix & rho,

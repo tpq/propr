@@ -123,6 +123,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// coordToIndex
+IntegerVector coordToIndex(IntegerVector row, IntegerVector col, const int N);
+RcppExport SEXP propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type row(rowSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type col(colSEXP);
+    Rcpp::traits::input_parameter< const int >::type N(NSEXP);
+    rcpp_result_gen = Rcpp::wrap(coordToIndex(row, col, N));
+    return rcpp_result_gen;
+END_RCPP
+}
 // linRcpp
 NumericMatrix linRcpp(NumericMatrix& rho, NumericMatrix lr);
 RcppExport SEXP propr_linRcpp(SEXP rhoSEXP, SEXP lrSEXP) {

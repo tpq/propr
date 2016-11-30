@@ -2,6 +2,8 @@
 ---------------------
 * Modified visualization tools
   * `bucket` now depends on `slate` function
+* Modified backend code
+  * New `coordToIndex` performs inverse of `indexToCoord`
 * Modified `prop2prob` function
   * Return p-values as a sorted `data.table`
   * Now lets user select `method` for p-value adjustment
