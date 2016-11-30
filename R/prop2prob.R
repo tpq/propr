@@ -48,14 +48,14 @@ prop2prob <- function(x, y){
 
   differentialCheck(x, y, forceBoth = FALSE)
 
-  X <- linRcpp(x@matrix, x@logratio)
+  X <- linRcpp(x@matrix[], x@logratio[])
   z <- lltRcpp(X)
   var <- urtRcpp(X)
   rm(X); gc()
 
   if(!missing(y)){
 
-    Y <- linRcpp(y@matrix, y@logratio)
+    Y <- linRcpp(y@matrix[], y@logratio[])
     z <- z - lltRcpp(Y)
     var <- var + urtRcpp(Y)
     rm(Y); gc()

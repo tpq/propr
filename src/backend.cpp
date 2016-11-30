@@ -301,8 +301,7 @@ NumericMatrix linRcpp(NumericMatrix & rho,
                       NumericMatrix lr){
 
   int N = lr.nrow();
-  NumericMatrix lr2 = clone(lr);
-  NumericMatrix r = corRcpp(lr2);
+  NumericMatrix r = corRcpp(lr);
 
   for(int i = 1; i < rho.nrow(); i++){
     for(int j = 0; j < i; j++){
