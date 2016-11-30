@@ -93,7 +93,7 @@ prop2prob <- function(x, y){
 #'  The \code{@@counts} and \code{@@logratio} slots contain a
 #'  join of the original slots via \code{rbind}. Meanwhile,
 #'  the \code{@@matrix} slot contains a difference matrix defined as
-#'  \code{1 - abs(x@matrix - y@matrix)}. Viewing this difference
+#'  \code{(x@matrix - y@matrix) / 2}. Viewing this difference
 #'  matrix with \code{\link{dendrogram}} may help summarize
 #'  the results of \code{\link{prop2prob}}. Note that this
 #'  difference matrix now also informs co-cluster assignment for
@@ -129,7 +129,7 @@ abstract <- function(x, y, select){
   rho <- new("propr")
   rho@counts <- rbind(x@counts, y@counts)
   rho@logratio <- rbind(x@logratio, y@logratio) # OK because clr(x) works on subject vectors
-  rho@matrix <- 1 - abs(x@matrix - y@matrix)
+  rho@matrix <- (x@matrix - y@matrix) / 2
 
   return(rho)
 }

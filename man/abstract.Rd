@@ -29,7 +29,7 @@ The abstracted \code{propr} object has the following properties:
  The \code{@counts} and \code{@logratio} slots contain a
  join of the original slots via \code{rbind}. Meanwhile,
  the \code{@matrix} slot contains a difference matrix defined as
- \code{1 - abs(x@matrix - y@matrix)}. Viewing this difference
+ \code{(x@matrix - y@matrix) / 2}. Viewing this difference
  matrix with \code{\link{dendrogram}} may help summarize
  the results of \code{\link{prop2prob}}. Note that this
  difference matrix now also informs co-cluster assignment for

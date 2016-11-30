@@ -6,7 +6,7 @@
   * Return p-values as a sorted `data.table`
   * Fix pass by reference bug in `linRcpp`
 * New `abstract` function
-  * Combines two `propr` objects
+  * Combines two `propr` objects into one
 
 ## propr 2.0.7
 ---------------------
