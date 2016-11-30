@@ -27,6 +27,10 @@
 #'
 #' @param x A \code{propr} object.
 #' @param y A \code{propr} object. Optional.
+#' @param method A character string. Selects method used to
+#'  adjust p-values for multiple comparisons. Argument
+#'  passed to \code{\link{p.adjust}}. Defaults to the
+#'  more conservative Bonferroni correction.
 #'
 #' @return A \code{data.table} of p-values.
 #'
@@ -39,7 +43,7 @@
 #' prop2prob(rho)
 #' @importFrom stats pnorm p.adjust
 #' @export
-prop2prob <- function(x, y){
+prop2prob <- function(x, y, method = "bonferroni"){
 
   if(!requireNamespace("data.table", quietly = TRUE)){
     stop("Uh oh! This display method depends on data.table! ",
@@ -67,13 +71,14 @@ prop2prob <- function(x, y){
 
   # Calculate probability
   z <- pnorm(z, lower.tail = FALSE) * 2
+  a <- p.adjust(z, method = method)
 
   labels <- labRcpp(ncol(x@logratio))
   dt <- data.table::data.table(
     "Partner" = labels[[1]],
     "Pair" = labels[[2]],
     "Probability" = z,
-    "Bonferroni" = p.adjust(z, method = "bonferroni"),
+    "Adjusted" = a,
     key = "Probability"
   )
 

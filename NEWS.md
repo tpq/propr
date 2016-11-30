@@ -4,6 +4,7 @@
   * `bucket` now depends on `slate` function
 * Modified `prop2prob` function
   * Return p-values as a sorted `data.table`
+  * Let user select `method` for p-value adjustment
   * Fix pass by reference bug in `linRcpp`
 * New `abstract` function
   * Combines two `propr` objects into one
