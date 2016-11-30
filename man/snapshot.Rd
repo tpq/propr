@@ -10,7 +10,7 @@ snapshot(rho, prompt = TRUE, plotly = FALSE)
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
-the prompt when plotting a large number of features.}
+the courtesy prompt when working with big data.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}

@@ -4,7 +4,7 @@
 \alias{prop2prob}
 \title{Calculate Probability from Proportionality}
 \usage{
-prop2prob(x, y, method = "bonferroni")
+prop2prob(x, y, method = "bonferroni", prompt = TRUE)
 }
 \arguments{
 \item{x}{A \code{propr} object.}
@@ -15,6 +15,9 @@ prop2prob(x, y, method = "bonferroni")
 adjust p-values for multiple comparisons. Argument
 passed to \code{\link{p.adjust}}. Defaults to the
 more conservative Bonferroni correction.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the courtesy prompt when working with big data.}
 }
 \value{
 A \code{data.table} of p-values.

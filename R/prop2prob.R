@@ -31,6 +31,7 @@
 #'  adjust p-values for multiple comparisons. Argument
 #'  passed to \code{\link{p.adjust}}. Defaults to the
 #'  more conservative Bonferroni correction.
+#' @inheritParams bucket
 #'
 #' @return A \code{data.table} of p-values.
 #'
@@ -43,7 +44,18 @@
 #' prop2prob(rho)
 #' @importFrom stats pnorm p.adjust
 #' @export
-prop2prob <- function(x, y, method = "bonferroni"){
+prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
+
+  if(object.size(x) > 10^9 & prompt){
+
+    message("Uh oh! A large proportionality matrix was detected (> 1 GB).\n",
+            "This operation requires about 5 times the size of 'x' in additional RAM.\n",
+            "Are you sure you want to calculate ",
+            ncol(rho@matrix) * (ncol(rho@matrix)-1) * 1/2, " p-values?\n",
+            "0: Nevermind\n1: Proceed\n2: Hmm...")
+    response <- readline(prompt = "Which do you choose? ")
+    if(!response == 1) stop("prop2prob method aborted.")
+  }
 
   if(!requireNamespace("data.table", quietly = TRUE)){
     stop("Uh oh! This display method depends on data.table! ",
