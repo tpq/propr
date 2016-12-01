@@ -29,7 +29,8 @@ Depends:
 Imports:
     methods,
     Rcpp,
-    stats
+    stats,
+    utils
 Suggests:
     cccrm,
     compositions,
