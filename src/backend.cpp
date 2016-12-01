@@ -318,7 +318,7 @@ NumericMatrix linRcpp(NumericMatrix & rho,
 
       // Calculate Z and variance of Z
       double var_ij = (1 - pow(r(i, j), 2)) * pow(rho(i, j), 2) /
-      (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
+        (1 - pow(rho(i, j), 2)) / pow(r(i, j), 2) / (N - 2);
       double z_ij = atanh(rho(i, j));
 
       // Replace r with Z and var

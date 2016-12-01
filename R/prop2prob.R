@@ -78,7 +78,7 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
   }
 
   # Calculate normal deviate
-  z <- abs(z / sqrt(var))
+  z <- suppressWarnings(abs(z / sqrt(var)))
   rm(var); gc()
 
   # Calculate probability
@@ -94,7 +94,16 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
     key = "Probability"
   )
 
-  return(dt)
+  ind <- !is.na(dt$Probability)
+  if(any(ind)){
+
+    message("Removing NAs due to NaN variance or alr-transformation.")
+    return(dt[ind, ])
+
+  }else{
+
+    return(dt)
+  }
 }
 
 #' Abstract Two propr Objects
@@ -149,6 +158,13 @@ abstract <- function(x, y, select){
   rho@logratio <- rbind(x@logratio, y@logratio) # clr(x) transforms subject vectors
   rho@matrix <- tanh(atanh(x@matrix) - atanh(y@matrix))
   diag(rho@matrix) <- 1
+
+  ind <- is.na(rho@matrix)
+  if(any(ind)){
+
+    message("Replacing NAs due to NaN variance with 0.")
+    rho@matrix[ind] <- 0
+  }
 
   return(rho)
 }
