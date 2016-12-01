@@ -1,4 +1,4 @@
-## propr 2.0.7.9000
+## propr 2.0.8
 ---------------------
 * Modified visualization tools
   * `bucket` now depends on `slate` function
