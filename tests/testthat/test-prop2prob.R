@@ -94,3 +94,15 @@ test_that("coordToIndex works as inverse to indexToCoord", {
     v
   )
 })
+
+test_that("abstract calls simplify correctly", {
+
+  a1 <- abstract(rho1, rho2, dt, colBy = "Probability", cutoff = .05)
+  a2 <- abstract(rho1, rho2)
+  small <- dt[dt$Probability < .05,]
+
+  expect_equal(
+    a2@matrix[propr:::coordToIndex(small$Partner, small$Pair, nrow(rho1@matrix))],
+    a1@matrix[a1@pairs]
+  )
+})
