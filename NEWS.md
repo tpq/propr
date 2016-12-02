@@ -2,6 +2,8 @@
 ---------------------
 * Modified `abstract` function
   * New `dt` argument indexes significant results in `@pairs`
+* Modified `simplify` function
+  * Now builds index of lower left triangle of matrix
 * New `adjacent` function
   * Uses `@pairs` slot to build an adjacency matrix
 

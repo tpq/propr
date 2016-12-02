@@ -7,17 +7,13 @@
 #'  \code{[} method using the argument \code{tiny}.
 #'
 #' @inheritParams propr
+#'
 #' @return Returns a \code{propr} object.
 #'
 #' @export
 simplify <- function(object){
 
-  if(!class(object) == "propr"){
-
-    stop("Uh oh! You can only simplify an indexed 'propr' object.")
-  }
-
-  if(length(object@pairs) == 0){
+  if(!class(object) == "propr" | length(object@pairs) == 0){
 
     stop("Uh oh! You can only simplify an indexed 'propr' object.")
   }
@@ -37,7 +33,38 @@ simplify <- function(object){
     coords[[2]][i] <- which(selection == coords[[2]][i])
   }
 
-  new@pairs <- (coords[[1]] - 1) * nrow(new@matrix) + (coords[[2]] - 1) + 1
+  new@pairs <- (coords[[2]] - 1) * nrow(new@matrix) + (coords[[1]] - 1) + 1
 
   return(new)
+}
+
+
+#' Make Adjacency Object
+#'
+#' This function uses pairs indexed in the \code{@@pairs}
+#'  slot to build a symmetric adjacency matrix.
+#'
+#' @inheritParams propr
+#'
+#' @return Returns a \code{propr} object with the adjacency
+#'  matrix saved to the \code{@@matrix} slot.
+#'
+#' @export
+adjacent <- function(object){
+
+  if(length(object@pairs) == 0 | class(object) != "propr"){
+
+    stop("Uh oh! This function requires an indexed 'propr' object.")
+  }
+
+  N <- nrow(object@matrix)
+  mat <- matrix(0, N, N)
+  mat[object@pairs] <- 1
+  diag(mat) <- 1
+  symRcpp(mat)
+
+  adj <- object
+  adj@matrix <- mat
+
+  return(adj)
 }
