@@ -40,8 +40,9 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
   }
 
   # Build coordinates from index
-  if(prompt) promptCheck(length(V))
   coord <- indexToCoord(V, nrow(rho@matrix))
+  i.feat <- sort(union(coord[[1]], coord[[2]]))
+  if(prompt) promptCheck(length(i.feat))
 
   # Melt *lr counts by feature pairs
   nsubj <- nrow(rho@logratio)
@@ -118,11 +119,11 @@ dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
   }
 
   # Build coordinates from index
-  if(prompt) promptCheck(length(V))
   coord <- indexToCoord(V, nrow(rho@matrix))
+  i.feat <- sort(union(coord[[1]], coord[[2]]))
+  if(prompt) promptCheck(length(i.feat))
 
   # Make smaller propr object
-  i.feat <- sort(union(coord[[1]], coord[[2]]))
   rho <- suppressMessages(subset(rho, select = i.feat))
 
   if(rho@matrix[1, 1] == 0){
