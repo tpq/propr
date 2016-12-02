@@ -9,7 +9,7 @@ smear(rho, prompt = TRUE, plotly = FALSE)
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.
 However, \code{\link{smear}} and \code{\link{dendrogram}} will also
-accommodate a \code{propr} object created from \code{\link{phit}}.}
+accommodate results from \code{\link{phit}}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the courtesy prompt when working with big data.}

@@ -94,7 +94,7 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 #'
 #' @param rho A \code{propr} object created from \code{\link{perb}}.
 #'  However, \code{\link{smear}} and \code{\link{dendrogram}} will also
-#'  accommodate a \code{propr} object created from \code{\link{phit}}.
+#'  accommodate results from \code{\link{phit}}.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the column names in \code{@@counts} and
 #'  \code{@@logratio}. Required parameter for \code{\link{bucket}}
