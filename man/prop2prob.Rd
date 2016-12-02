@@ -20,7 +20,7 @@ more conservative Bonferroni correction.}
 the courtesy prompt when working with big data.}
 }
 \value{
-A \code{data.table} of p-values.
+Returns a \code{data.table} of p-values.
 }
 \description{
 This experimental helper function calculates probability from

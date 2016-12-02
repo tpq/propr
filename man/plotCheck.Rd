@@ -7,7 +7,8 @@
 plotCheck(rho, prompt, plotly, indexNaive)
 }
 \arguments{
-\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.
+Note that some exceptions apply.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the courtesy prompt when working with big data.}

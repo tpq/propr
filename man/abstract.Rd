@@ -19,7 +19,7 @@ used to select statistically significant pairs.}
 used to select statistically significant pairs.}
 }
 \value{
-An abstracted \code{propr} object.
+Returns an abstracted \code{propr} object.
 }
 \description{
 This function abstracts a new \code{propr} object from

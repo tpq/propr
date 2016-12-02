@@ -7,13 +7,15 @@
 adjacent(rho)
 }
 \arguments{
-\item{rho}{A \code{propr} object created from \code{\link{perb}}.}
+\item{rho}{A \code{propr} object created from \code{\link{perb}}.
+Note that some exceptions apply.}
 }
 \value{
-An adjacent \code{propr} object.
+Returns a \code{propr} object with the adjacency
+ matrix saved to the \code{@matrix} slot.
 }
 \description{
-This function uses information stored in the \code{@pairs}
- slot to build an adjacency matrix from a \code{propr} object.
+This function uses pairs indexed in the \code{@pairs}
+ slot to build a symmetric adjacency matrix.
 }
 
