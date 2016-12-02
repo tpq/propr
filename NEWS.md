@@ -1,5 +1,8 @@
 ## propr 2.0.8.9000
 ---------------------
+* Modified visualization tools
+  * Courtesy `prompt` argument extended to `smear` and `dendrogram`
+  * Improved error handling and documentation
 * Modified `abstract` function
   * New `dt` argument indexes significant results in `@pairs`
 * Modified `simplify` function

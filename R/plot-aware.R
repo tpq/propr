@@ -6,9 +6,9 @@
 #' @param y Missing. Ignore. Leftover from the generic method definition.
 #' @export
 setMethod("plot", signature(x = "propr", y = "missing"),
-          function(x, y, plotly = FALSE){
+          function(x, y, prompt = TRUE, plotly = FALSE){
 
-            smear(x, plotly = plotly)
+            smear(x, prompt = prompt, plotly = plotly)
           }
 )
 
@@ -24,7 +24,7 @@ setMethod("plot", signature(x = "propr", y = "missing"),
 #' @return Returns a \code{ggplot} object.
 #'
 #' @export
-smear <- function(rho, plotly = FALSE){
+smear <- function(rho, prompt = TRUE, plotly = FALSE){
 
   rho <- plotCheck(rho, prompt = FALSE, plotly = plotly, indexNaive = FALSE)
 
@@ -32,14 +32,16 @@ smear <- function(rho, plotly = FALSE){
 
     message("Alert: Generating plot using all feature pairs.")
     V <- indexPairs(rho@matrix, "all")
-    coord <- indexToCoord(V, nrow(rho@matrix))
 
   }else{
 
     message("Alert: Generating plot using indexed feature pairs.")
     V <- rho@pairs
-    coord <- indexToCoord(V, nrow(rho@matrix))
   }
+
+  # Build coordinates from index
+  if(prompt) promptCheck(length(V))
+  coord <- indexToCoord(V, nrow(rho@matrix))
 
   # Melt *lr counts by feature pairs
   nsubj <- nrow(rho@logratio)
@@ -99,7 +101,7 @@ smear <- function(rho, plotly = FALSE){
 #'
 #' @importFrom stats as.dist
 #' @export
-dendrogram <- function(rho, plotly = FALSE){
+dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
 
   dendroCheck()
   rho <- plotCheck(rho, prompt = FALSE, plotly = plotly, indexNaive = FALSE)
@@ -107,16 +109,20 @@ dendrogram <- function(rho, plotly = FALSE){
   if(length(rho@pairs) == 0){
 
     message("Alert: Generating plot using all feature pairs.")
-    i.feat <- 1:nrow(rho@matrix)
+    V <- indexPairs(rho@matrix, "all")
 
   }else{
 
     message("Alert: Generating plot using indexed feature pairs.")
     V <- rho@pairs
-    coord <- indexToCoord(V, nrow(rho@matrix))
-    i.feat <- sort(union(coord[[1]], coord[[2]]))
   }
 
+  # Build coordinates from index
+  if(prompt) promptCheck(length(V))
+  coord <- indexToCoord(V, nrow(rho@matrix))
+
+  # Make smaller propr object
+  i.feat <- sort(union(coord[[1]], coord[[2]]))
   rho <- suppressMessages(subset(rho, select = i.feat))
 
   if(rho@matrix[1, 1] == 0){

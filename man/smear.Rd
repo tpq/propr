@@ -4,12 +4,15 @@
 \alias{smear}
 \title{Make Smear Plot}
 \usage{
-smear(rho, plotly = FALSE)
+smear(rho, prompt = TRUE, plotly = FALSE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.
 However, \code{\link{smear}} and \code{\link{dendrogram}} will also
 accommodate a \code{propr} object created from \code{\link{phit}}.}
+
+\item{prompt}{A logical scalar. Set to \code{FALSE} to disable
+the courtesy prompt when working with big data.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}
