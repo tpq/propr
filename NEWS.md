@@ -1,4 +1,4 @@
-## propr 2.0.8.9000
+## propr 2.0.9
 ---------------------
 * Modified visualization tools
   * Courtesy `prompt` argument extended to `smear` and `dendrogram`
