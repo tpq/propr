@@ -30,13 +30,13 @@ smear <- function(rho, plotly = FALSE){
 
   if(length(rho@pairs) == 0){
 
-    cat("Alert: Generating plot using all feature pairs.\n")
+    message("Alert: Generating plot using all feature pairs.")
     V <- indexPairs(rho@matrix, "all")
     coord <- indexToCoord(V, nrow(rho@matrix))
 
   }else{
 
-    cat("Alert: Generating plot using indexed feature pairs.\n")
+    message("Alert: Generating plot using indexed feature pairs.")
     V <- rho@pairs
     coord <- indexToCoord(V, nrow(rho@matrix))
   }
@@ -106,12 +106,12 @@ dendrogram <- function(rho, plotly = FALSE){
 
   if(length(rho@pairs) == 0){
 
-    cat("Alert: Generating plot using all feature pairs.\n")
+    message("Alert: Generating plot using all feature pairs.")
     i.feat <- 1:nrow(rho@matrix)
 
   }else{
 
-    cat("Alert: Generating plot using indexed feature pairs.\n")
+    message("Alert: Generating plot using indexed feature pairs.")
     V <- rho@pairs
     coord <- indexToCoord(V, nrow(rho@matrix))
     i.feat <- sort(union(coord[[1]], coord[[2]]))

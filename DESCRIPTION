@@ -27,6 +27,8 @@ RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.2)
 Imports:
+    fastcluster,
+    ggplot2,
     methods,
     Rcpp,
     stats,
@@ -35,10 +37,8 @@ Suggests:
     cccrm,
     compositions,
     data.table,
-    fastcluster,
     grid,
     ggdendro,
-    ggplot2,
     knitr,
     plotly,
     reshape2,

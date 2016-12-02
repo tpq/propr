@@ -53,6 +53,7 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
             "Are you sure you want to calculate ",
             ncol(x@matrix) * (ncol(x@matrix)-1) * 1/2, " p-values?\n",
             "0: Nevermind\n1: Proceed\n2: Hmm...")
+
     response <- readline(prompt = "Which do you choose? ")
     if(!response == 1) stop("prop2prob method aborted.")
   }
@@ -92,7 +93,7 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
   ind <- is.na(dt$Probability)
   if(any(ind)){
 
-    message("Removing NAs due to NaN variance or alr-transformation.")
+    message("Alert: Removing NAs due to NaN variance or alr-transformation.")
     return(dt[!ind, ])
 
   }else{
@@ -156,7 +157,7 @@ abstract <- function(x, y, dt, colBy = "Adjusted", cutoff = .01){
       stop("Uh oh! Provided 'dt' object does not have the expected column names.")
     }
 
-    message("Indexing statistically significant pairs.")
+    message("Alert: Indexing statistically significant pairs.")
     small <- dt[dt[, colBy] < cutoff, ]
     if(nrow(small) == 0) stop("No pairs pass the selected cutoff criteria.")
 
@@ -177,7 +178,7 @@ abstract <- function(x, y, dt, colBy = "Adjusted", cutoff = .01){
   ind <- is.na(rho@matrix)
   if(any(ind)){
 
-    message("Replacing NAs due to NaN variance with 0.")
+    message("Alert: Replacing NAs due to NaN variance with 0.")
     rho@matrix[ind] <- 0
   }
 
