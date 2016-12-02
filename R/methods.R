@@ -1,3 +1,23 @@
+#' An S4 class to hold results from proportionality analysis.
+#'
+#' @slot counts A matrix. Stores the original "count matrix" input.
+#' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
+#' @slot matrix A matrix. Stores the proportionality matrix calculated by
+#'  \code{phiRcpp} or \code{rhoRcpp}.
+#' @slot pairs A vector. Indexes the proportionality metrics of interest.
+#'
+#' @seealso \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
+#'
+#' @export
+setClass("propr",
+         slots = c(
+           counts = "matrix",
+           logratio = "matrix",
+           matrix = "matrix",
+           pairs = "numeric"
+         )
+)
+
 #' @rdname propr
 #' @section Methods (by generic):
 #' \code{show:} Method to show \code{propr} object.
