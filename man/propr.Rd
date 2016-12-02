@@ -2,6 +2,7 @@
 % Please edit documentation in R/global.R, R/methods.R, R/plot-aware.R
 \docType{methods}
 \name{propr}
+\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{plot,propr,missing-method}
 \alias{propr}
@@ -13,7 +14,7 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr}(x, i = "all", j, tiny = FALSE)
+\S4method{[}{propr,ANY,ANY}(x, i = "all", j, tiny = FALSE)
 
 \S4method{plot}{propr,missing}(x, y, plotly = FALSE)
 }

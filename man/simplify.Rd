@@ -17,6 +17,6 @@ This convenience function takes an indexed \code{\link{propr}} object
  and subsets the object based on that index. Then, it populates the
  \code{@pairs} slot of the new object with an updated version
  of the original index. You can call \code{simplify} from within the
- \code{[} method using the argument \code{tiny = TRUE}.
+ \code{[} method using the argument \code{tiny}.
 }
 

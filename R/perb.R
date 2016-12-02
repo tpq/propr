@@ -1,3 +1,45 @@
+#' Calculate phi
+#'
+#' \code{phit} returns a \code{propr} object containing a measure of proportionality, phi.
+#'
+#' Let D represent any number of features measured across N biological replicates
+#' 	subjected to a binary or continuous event E. For example, E could represent case-control
+#' 	status, treatment status, treatment dose, or time. This function converts a
+#' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
+#' 	columns containing a value of phi for each feature pair. One can think of the resultant
+#' 	matrix as analogous to a distance matrix, except that it has no symmetry unless forced.
+#'
+#' @param counts A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
+#' @param symmetrize A logical. If \code{TRUE}, forces symmetry by reflecting the "lower left triangle".
+#' @return Returns a \code{propr} object.
+#'
+#' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{perb}}
+#'
+#' @examples
+#' library(propr)
+#' data(mail)
+#' phi <- phit(mail, symmetrize = TRUE)
+#' @importFrom methods new
+#' @export
+phit <- function(counts, symmetrize = TRUE){
+
+  cat("Calculating phi from \"count matrix\".\n")
+  prop <- new("propr")
+  prop@counts <- as.matrix(counts)
+
+  if(any(0 == prop@counts)){
+
+    message("Replacing zeroes in \"count matrix\" with next smallest value.")
+    prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
+  }
+
+  prop@logratio <- clrRcpp(prop@counts[]) # [] forces copy
+  prop@matrix <- phiRcpp(prop@counts[], symmetrize) # [] forces copy
+  prop@pairs <- vector("numeric")
+
+  return(prop)
+}
+
 #' Calculate rho
 #'
 #' \code{perb} returns a \code{propr} object containing a measure of proportionality, rho.
