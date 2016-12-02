@@ -44,4 +44,5 @@ Suggests:
     reshape2,
     rmarkdown,
     testthat
-LinkingTo: Rcpp
+LinkingTo:
+    Rcpp
