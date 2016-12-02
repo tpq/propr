@@ -4,14 +4,19 @@
 \alias{abstract}
 \title{Abstract Two propr Objects}
 \usage{
-abstract(x, y, select)
+abstract(x, y, dt, colBy = "Adjusted", cutoff = 0.01)
 }
 \arguments{
 \item{x, y}{A \code{propr} object.}
 
-\item{select}{Subsets via \code{object@counts[, select]}.
-Optional. Use this argument to subset the proportionality
-matrix without altering the final value of \code{rho}.}
+\item{dt}{A \code{data.table}. The result from
+\code{prop2prob(x, y)}.}
+
+\item{colBy}{A character string. The column in \code{dt}
+used to select statistically significant pairs.}
+
+\item{cutoff}{A numeric scalar. The value of \code{colBy}
+used to select statistically significant pairs.}
 }
 \value{
 An abstracted \code{propr} object.
@@ -29,13 +34,16 @@ The abstracted \code{propr} object has the following properties:
  The \code{@counts} and \code{@logratio} slots contain a
  join of the original slots via \code{rbind}. Meanwhile,
  the \code{@matrix} slot contains a difference matrix defined as
- \code{tanh(atanh(x@matrix) - atanh(y@matrix))}. Viewing this difference
- matrix with \code{\link{dendrogram}} may help summarize
- the results of \code{\link{prop2prob}}. Note that this
+ \code{tanh(atanh(x@matrix) - atanh(y@matrix))}. The \code{@pairs}
+ slot contains an index of all statistically significant pairs,
+ toggled via the argument \code{dt}.
+
+Visualizing the difference matrix with \code{\link{dendrogram}} may
+ help summarize the results of \code{\link{prop2prob}}. Note that the
  difference matrix now also informs co-cluster assignment for
- \code{\link{bucket}}, \code{\link{prism}}, and
- \code{\link{bokeh}}. Otherwise, plots should resemble those
- made using \code{perb(rbind(x@counts, y@counts))}.
+ the \code{\link{bucket}}, \code{\link{prism}}, and
+ \code{\link{bokeh}} plots. Otherwise, most abstracted plots should
+ match those made using \code{perb(rbind(x@counts, y@counts))}.
 }
 \examples{
 library(propr)

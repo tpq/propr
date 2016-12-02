@@ -1,3 +1,8 @@
+## propr 2.0.8.9000
+---------------------
+* Modified `abstract` function
+  * New `dt` argument indexes significant results in `@pairs`
+
 ## propr 2.0.8
 ---------------------
 * Modified visualization tools

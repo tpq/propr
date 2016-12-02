@@ -57,11 +57,6 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
     if(!response == 1) stop("prop2prob method aborted.")
   }
 
-  if(!requireNamespace("data.table", quietly = TRUE)){
-    stop("Uh oh! This display method depends on data.table! ",
-         "Try running: install.packages('data.table')")
-  }
-
   differentialCheck(x, y, forceBoth = FALSE)
 
   X <- linRcpp(x@matrix, x@logratio[])
@@ -119,16 +114,24 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
 #'  The \code{@@counts} and \code{@@logratio} slots contain a
 #'  join of the original slots via \code{rbind}. Meanwhile,
 #'  the \code{@@matrix} slot contains a difference matrix defined as
-#'  \code{tanh(atanh(x@matrix) - atanh(y@matrix))}. Viewing this difference
-#'  matrix with \code{\link{dendrogram}} may help summarize
-#'  the results of \code{\link{prop2prob}}. Note that this
+#'  \code{tanh(atanh(x@matrix) - atanh(y@matrix))}. The \code{@@pairs}
+#'  slot contains an index of all statistically significant pairs,
+#'  toggled via the argument \code{dt}.
+#'
+#' Visualizing the difference matrix with \code{\link{dendrogram}} may
+#'  help summarize the results of \code{\link{prop2prob}}. Note that the
 #'  difference matrix now also informs co-cluster assignment for
-#'  \code{\link{bucket}}, \code{\link{prism}}, and
-#'  \code{\link{bokeh}}. Otherwise, plots should resemble those
-#'  made using \code{perb(rbind(x@counts, y@counts))}.
+#'  the \code{\link{bucket}}, \code{\link{prism}}, and
+#'  \code{\link{bokeh}} plots. Otherwise, most abstracted plots should
+#'  match those made using \code{perb(rbind(x@counts, y@counts))}.
 #'
 #' @param x,y A \code{propr} object.
-#' @inheritParams perb
+#' @param dt A \code{data.table}. The result from
+#'  \code{prop2prob(x, y)}.
+#' @param colBy A character string. The column in \code{dt}
+#'  used to select statistically significant pairs.
+#' @param cutoff A numeric scalar. The value of \code{colBy}
+#'  used to select statistically significant pairs.
 #'
 #' @return An abstracted \code{propr} object.
 #'
@@ -143,20 +146,32 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
 #' rho2 <- perb(mail2)
 #' abstract(rho1, rho2)
 #' @export
-abstract <- function(x, y, select){
+abstract <- function(x, y, dt, colBy = "Adjusted", cutoff = .01){
 
   differentialCheck(x, y, forceBoth = TRUE)
 
-  if(!missing(select)){
+  if(!missing(dt)){
 
-    x <- subset(x, select = select)
-    y <- subset(y, select = select)
+    if(!identical(colnames(dt), c("Partner", "Pair", "Probability", "Adjusted"))){
+      stop("Uh oh! Provided 'dt' object does not have the expected column names.")
+    }
+
+    message("Indexing statistically significant pairs.")
+    small <- dt[dt[, colBy] < cutoff, ]
+    if(nrow(small) == 0) stop("No pairs pass the selected cutoff criteria.")
+
+    x@pairs <- coordToIndex(small$Partner, small$Pair, nrow(x@matrix))
+    x <- simplify(x)
+
+    y@pairs <- coordToIndex(small$Partner, small$Pair, nrow(y@matrix))
+    y <- simplify(y)
   }
 
   rho <- new("propr")
   rho@counts <- rbind(x@counts, y@counts)
-  rho@logratio <- rbind(x@logratio, y@logratio) # clr(x) transforms subject vectors
+  rho@logratio <- rbind(x@logratio, y@logratio)
   rho@matrix <- tanh(atanh(x@matrix) - atanh(y@matrix))
+  rho@pairs <- union(x@pairs, y@pairs)
   diag(rho@matrix) <- 1
 
   ind <- is.na(rho@matrix)

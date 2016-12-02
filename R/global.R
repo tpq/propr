@@ -181,6 +181,11 @@ dendroCheck <- function(){
 #'  second \code{propr} object.
 differentialCheck <- function(x, y, forceBoth){
 
+  if(!requireNamespace("data.table", quietly = TRUE)){
+    stop("Uh oh! This propr method depends on data.table! ",
+         "Try running: install.packages('data.table')")
+  }
+
   if(class(x) != "propr") stop("Uh oh! This function requires a 'propr' object for 'x'.")
   if(!x@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
   if(is.null(colnames(x@logratio))){
@@ -188,11 +193,13 @@ differentialCheck <- function(x, y, forceBoth){
   }
 
   if(!missing(y) | forceBoth){
+
     if(class(y) != "propr") stop("Uh oh! This function requires a 'propr' object for 'y'.")
     if(!y@matrix[1, 1]) stop("Uh oh! This function requires a 'propr' object created by 'perb'.")
     if(is.null(colnames(y@logratio))){
       colnames(y@logratio) <- as.character(1:ncol(y@logratio))
     }
+
     if(!identical(colnames(x@logratio), colnames(y@logratio))){
       stop("Uh oh! Make sure both 'propr' objects have the same features.")
     }
