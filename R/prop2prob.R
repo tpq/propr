@@ -33,7 +33,7 @@
 #'  more conservative Bonferroni correction.
 #' @inheritParams bucket
 #'
-#' @return A \code{data.table} of p-values.
+#' @return Returns a \code{data.table} of p-values.
 #'
 #' @seealso \code{\link{propr}}, \code{\link{abstract}}
 #'
@@ -133,7 +133,7 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
 #' @param cutoff A numeric scalar. The value of \code{colBy}
 #'  used to select statistically significant pairs.
 #'
-#' @return An abstracted \code{propr} object.
+#' @return Returns an abstracted \code{propr} object.
 #'
 #' @seealso \code{\link{propr}}, \code{\link{prop2prob}}
 #'

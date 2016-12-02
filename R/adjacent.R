@@ -5,8 +5,8 @@
 #'
 #' @inheritParams bucket
 #'
-#' @return A \code{propr} object with the adjacency matrix
-#'  saved to the \code{@@matrix} slot.
+#' @return Returns a \code{propr} object with the adjacency
+#'  matrix saved to the \code{@@matrix} slot.
 #'
 #' @export
 adjacent <- function(rho){
