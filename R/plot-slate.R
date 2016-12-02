@@ -93,7 +93,8 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 #' "It's pronounced, 'bouquet'." - Hyacinth Bucket
 #'
 #' @param rho A \code{propr} object created from \code{\link{perb}}.
-#'  Note that some exceptions apply.
+#'  However, \code{\link{smear}} and \code{\link{dendrogram}} will also
+#'  accommodate a \code{propr} object created from \code{\link{phit}}.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the column names in \code{@@counts} and
 #'  \code{@@logratio}. Required parameter for \code{\link{bucket}}

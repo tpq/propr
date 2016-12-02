@@ -8,7 +8,8 @@ dendrogram(rho, plotly = FALSE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.
-Note that some exceptions apply.}
+However, \code{\link{smear}} and \code{\link{dendrogram}} will also
+accommodate a \code{propr} object created from \code{\link{phit}}.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
 a dynamic plot using the \code{plotly} package.}

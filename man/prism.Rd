@@ -8,7 +8,8 @@ prism(rho, k, prompt = TRUE, plotly = FALSE)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{\link{perb}}.
-Note that some exceptions apply.}
+However, \code{\link{smear}} and \code{\link{dendrogram}} will also
+accommodate a \code{propr} object created from \code{\link{phit}}.}
 
 \item{k}{A numeric scalar. The number of groups into which to
 cluster the subjects. Clusters calculated  using \code{hclust}.
