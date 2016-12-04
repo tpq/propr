@@ -1,3 +1,8 @@
+## propr 2.0.9.9000
+---------------------
+* [cytescape]
+* [atomic]
+
 ## propr 2.0.9
 ---------------------
 * Modified visualization tools
