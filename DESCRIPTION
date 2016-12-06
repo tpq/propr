@@ -39,6 +39,7 @@ Suggests:
     data.table,
     grid,
     ggdendro,
+    igraph,
     knitr,
     plotly,
     reshape2,
