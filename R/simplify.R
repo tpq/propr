@@ -38,7 +38,6 @@ simplify <- function(object){
   return(new)
 }
 
-
 #' Make Adjacency Object
 #'
 #' This function uses pairs indexed in the \code{@@pairs}
@@ -52,7 +51,7 @@ simplify <- function(object){
 #' @export
 adjacent <- function(object){
 
-  if(length(object@pairs) == 0 | class(object) != "propr"){
+  if(!class(object) == "propr" | length(object@pairs) == 0){
 
     stop("Uh oh! This function requires an indexed 'propr' object.")
   }
@@ -67,4 +66,54 @@ adjacent <- function(object){
   adj@matrix <- mat
 
   return(adj)
+}
+
+#' Export Indexed Pairs
+#'
+#' This function exports a \code{data.frame} of indexed pairs
+#'  along with their corresponding values from \code{object@matrix}.
+#'  In doing so, this function provides a preview of the
+#'  interaction network, built using \code{igraph}.
+#'  We recommend using this result as input to a standalone
+#'  network visualization tool like Cytoscape.
+#'
+#' @inheritParams propr
+#' @param minPairs An integer scalar. Subsets the interaction
+#'  network to exclude any pair without a node that participates
+#'  in at least this many total pairs.
+#'
+#' @return Returns a \code{data.frame} of indexed pairs.
+#'
+#' @export
+cytescape <- function(object, minPairs = 2){
+
+  packageCheck("igraph")
+
+  if(!class(object) == "propr" | length(object@pairs) == 0){
+
+    stop("Uh oh! This function requires an indexed 'propr' object.")
+  }
+
+  # Prepare data
+  rho <- object@matrix[object@pairs]
+  coords <- indexToCoord(object@pairs, nrow(object@matrix))
+  df <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
+
+  # Remove extraneous pairs
+  keep <- which(table(c(df$Partner, df$Pair)) >= minPairs)
+  sub <- df[df$Partner %in% keep | df$Pair %in% keep, ]
+
+  # Build and color igraph
+  g <- igraph::graph_from_data_frame(sub, directed = FALSE)
+  igraph::E(g)$color <- ifelse(sub$rho > 0, "red", "blue")
+  plot(g, vertex.size = 2, vertex.label = NA)
+
+  # Retrieve node names
+  names <- colnames(object@logratio)
+  if(!is.null(names)){
+    sub$Partner <- names[sub$Partner]
+    sub$Pair <- names[sub$Pair]
+  }
+
+  return(sub)
 }
