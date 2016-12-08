@@ -104,7 +104,13 @@ cytescape <- function(object, minPairs = 2){
 
   # Build and color igraph
   g <- igraph::graph_from_data_frame(sub, directed = FALSE)
-  igraph::E(g)$color <- ifelse(sub$rho > 0, "red", "blue")
+  igraph::V(g)$color <- "white"
+  colors <- rep("yellow", nrow(sub))
+  colors[sub$rho > .25] <- "orange"
+  colors[sub$rho > .75] <- "red"
+  colors[sub$rho < -.25] <- "green"
+  colors[sub$rho < -.75] <- "blue"
+  igraph::E(g)$color <- colors
   plot(g, vertex.size = 2, vertex.label = NA)
 
   # Retrieve node names
