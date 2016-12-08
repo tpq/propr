@@ -103,6 +103,7 @@ cytescape <- function(object, minPairs = 2){
   sub <- df[df$Partner %in% keep | df$Pair %in% keep, ]
 
   # Build and color igraph
+  if(nrow(sub) == 0) stop("No pairs remain after filter.")
   g <- igraph::graph_from_data_frame(sub, directed = FALSE)
   igraph::V(g)$color <- "white"
   colors <- rep("yellow", nrow(sub))
