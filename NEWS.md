@@ -1,7 +1,9 @@
 ## propr 2.0.9.9000
 ---------------------
-* [cytescape]
-* [atomic]
+* Modified `[` method
+  * Now joins newly indexed pairs with any existing index
+* New `cytescape` function
+  * Uses `@pairs` slot to build an interaction network
 
 ## propr 2.0.9
 ---------------------
