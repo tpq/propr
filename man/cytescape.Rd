@@ -19,9 +19,11 @@ Returns a \code{data.frame} of indexed pairs.
 \description{
 This function exports a \code{data.frame} of indexed pairs
  along with their corresponding values from \code{object@matrix}.
- In doing so, this function provides a preview of the
+ In doing so, this function displays a preview of the
  interaction network, built using \code{igraph}.
- We recommend using this result as input to a standalone
- network visualization tool like Cytoscape.
+}
+\details{
+We recommend using the result of this function as input to a
+ standalone network visualization tool like Cytoscape.
 }
 

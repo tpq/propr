@@ -18,12 +18,10 @@ simplify <- function(object){
     stop("Uh oh! You can only simplify an indexed 'propr' object.")
   }
 
-  # Call indexToCoord on indexed propr object
+  # Subset propr object based on index
   coords <- indexToCoord(object@pairs, nrow(object@matrix))
   selection <- sort(union(coords[[1]], coords[[2]]))
   object@pairs <- vector("numeric")
-
-  # Subset propr object based on index
   new <- subset(object, select = selection)
 
   # Repopulate the pairs slot
@@ -72,10 +70,11 @@ adjacent <- function(object){
 #'
 #' This function exports a \code{data.frame} of indexed pairs
 #'  along with their corresponding values from \code{object@matrix}.
-#'  In doing so, this function provides a preview of the
+#'  In doing so, this function displays a preview of the
 #'  interaction network, built using \code{igraph}.
-#'  We recommend using this result as input to a standalone
-#'  network visualization tool like Cytoscape.
+#'
+#' We recommend using the result of this function as input to a
+#'  standalone network visualization tool like Cytoscape.
 #'
 #' @inheritParams propr
 #' @param minPairs An integer scalar. Subsets the interaction
