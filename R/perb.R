@@ -28,7 +28,7 @@ phit <- function(counts, symmetrize = TRUE){
 
   if(any(0 == prop@counts)){
 
-    message("Alert: Replacing 0s in \"count matrix\" with next smallest value.")
+    message("Alert: Replacing zeroes in \"count matrix\" with next smallest value.")
     prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
   }
 
@@ -80,7 +80,7 @@ perb <- function(counts, ivar = 0, select){
 
   if(any(0 == prop@counts)){
 
-    message("Alert: Replacing 0s in \"count matrix\" with next smallest value.")
+    message("Alert: Replacing zeroes in \"count matrix\" with next smallest value.")
     prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
   }
 
