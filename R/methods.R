@@ -118,7 +118,7 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
             }
 
             newPairs <- indexPairs(x@matrix, i, j)
-            if(newPairs == 0) stop("Method failed to index any pairs.")
+            if(length(newPairs) == 0) stop("Method failed to index any pairs.")
             x@pairs <- sort(union(x@pairs, newPairs))
 
             if(tiny){
