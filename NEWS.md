@@ -1,4 +1,4 @@
-## propr 2.0.9.9000
+## propr 2.1.0
 ---------------------
 * Modified `[` method
   * Now joins newly indexed pairs with any existing index
