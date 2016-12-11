@@ -82,7 +82,7 @@ proprVLR <- function(X, check = FALSE){
 
   if(check){
 
-    if(any(X < 0))    stop("negative values found")
+    if(any(X <= 0)) stop("non-positive values found")
     if(any(is.na(X))) stop("NA values found")
   }
 
@@ -108,7 +108,7 @@ proprCLR <- function(X, check = FALSE){
 
   if(check){
 
-    if(any(X < 0))    stop("negative values found")
+    if(any(X <= 0)) stop("non-positive values found")
     if(any(is.na(X))) stop("NA values found")
   }
 
@@ -127,7 +127,7 @@ proprALR <- function(X, ivar, check = FALSE){
 
   if(check){
 
-    if(any(X < 0))    stop("negative values found")
+    if(any(X <= 0)) stop("non-positive values found")
     if(any(is.na(X))) stop("NA values found")
   }
 
