@@ -7,7 +7,8 @@
 proprPerb(counts, ivar = 0)
 }
 \arguments{
-\item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
+\item{counts}{A data.frame or matrix. A "count matrix" with
+subjects as rows and features as columns.}
 
 \item{ivar}{A numeric scalar. Specificies a reference feature
 for additive log-ratio transformation. The argument will also

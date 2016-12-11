@@ -1,35 +1,58 @@
-#' Calculate phi
+#' Calculate Proportionality
 #'
-#' \code{phit} returns a \code{propr} object containing a measure of proportionality, phi.
-#'
+#' @description
 #' Let D represent any number of features measured across N biological replicates
-#' 	subjected to a binary or continuous event E. For example, E could represent case-control
-#' 	status, treatment status, treatment dose, or time. This function converts a
-#' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
-#' 	columns containing a value of phi for each feature pair. One can think of the resultant
-#' 	matrix as analogous to a distance matrix, except that it has no symmetry unless forced.
+#' 	exposed to a binary or continuous event E. For example, E could represent case-control
+#' 	status, treatment status, treatment dose, or time. This function converts a "count matrix"
+#' 	with N rows and D columns into a proportionality matrix of D rows and D columns.
 #'
-#' @param counts A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
-#' @param symmetrize A logical. If \code{TRUE}, forces symmetry by reflecting the "lower left triangle".
+#' For phi, the result of \code{phit}, one can think of the resultant matrix as
+#' 	analogous to a distance matrix, except that it has no symmetry unless forced.
+#' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
+#' 	either a naturally symmetric variant of phi or as \code{1 - rho}.
+#' 	For rho, the result of \code{perb}, one can think of the resultant matrix as
+#' 	analogous to a correlation matrix.
+#'
+#' \code{perb} and \code{phis} use a centered log-ratio transformation by default,
+#'  but will use an additive log-ratio transformation instead if a non-zero
+#'  \code{ivar} is provided. When using an additive log-ratio transformation,
+#'  this function will return \code{rho = 0} for the column and row in the
+#'  \code{@@matrix} slot that would contain the reference feature.
+#'
+#' @param counts A data.frame or matrix. A "count matrix" with
+#'  subjects as rows and features as columns.
+#' @param symmetrize A logical. If \code{TRUE}, forces symmetry
+#'  by reflecting the "lower left triangle".
+#' @param ivar A numeric scalar. Specificies a reference feature
+#'  for additive log-ratio transformation. The argument will also
+#'  accept a feature name instead of the index position.
+#' @param select Subsets via \code{object@counts[, select]}.
+#'  Optional. Use this argument to subset the proportionality
+#'  matrix without altering the final result.
+#'
 #' @return Returns a \code{propr} object.
-#'
-#' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{perb}}
 #'
 #' @examples
 #' library(propr)
 #' data(mail)
-#' phi <- phit(mail, symmetrize = TRUE)
-#' @importFrom methods new
+#' phi <- phit(mail)
+#' phs <- phis(mail)
+#' rho <- perb(mail)
+#' @name proportionality
+NULL
+
+#' @rdname proportionality
 #' @export
 phit <- function(counts, symmetrize = TRUE){
 
+  if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
 
   if(any(0 == prop@counts)){
 
-    message("Alert: Replacing zeroes in \"count matrix\" with next smallest value.")
-    prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
+    message("Alert: Replacing 0s in \"count matrix\" with 1.")
+    prop@counts[prop@counts == 0] <- 1
   }
 
   prop@logratio <- clrRcpp(prop@counts[]) # [] forces copy
@@ -39,60 +62,36 @@ phit <- function(counts, symmetrize = TRUE){
   return(prop)
 }
 
-#' Calculate rho
-#'
-#' \code{perb} returns a \code{propr} object containing a measure of proportionality, rho.
-#'
-#' Let D represent any number of features measured across N biological replicates
-#' 	subjected to a binary or continuous event E. For example, E could represent case-control
-#' 	status, treatment status, treatment dose, or time. This function converts a
-#' 	"count matrix" with N rows and D columns into a proportionality matrix of D rows and D
-#' 	columns containing a value of rho for each feature pair. One can think of the resultant
-#' 	matrix as analogous to a correlation matrix.
-#'
-#' This function uses a centered log-ratio transformation of the data by default,
-#'  but will use an additive log-ratio transformation instead if a non-zero
-#'  \code{ivar} is provided. When using an additive log-ratio transformation,
-#'  this function will return \code{rho = 0} for the column and row in the
-#'  \code{@@matrix} slot that would contain the reference feature.
-#'
-#' @param ivar A numeric scalar. Specificies a reference feature
-#'  for additive log-ratio transformation. The argument will also
-#'  accept a feature name instead of the index position.
-#' @param select Subsets via \code{object@counts[, select]}.
-#'  Optional. Use this argument to subset the proportionality
-#'  matrix without altering the final value of \code{rho}.
-#' @inheritParams phit
-#' @return Returns a \code{propr} object.
-#'
-#' @seealso \code{\link{propr}}, \code{\link{propr-class}}, \code{\link{phit}}
-#'
-#' @examples
-#' library(propr)
-#' data(mail)
-#' rho <- perb(mail, ivar = 0)
-#' @importFrom methods new
+#' @rdname proportionality
 #' @export
 perb <- function(counts, ivar = 0, select){
 
+  if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
 
   if(any(0 == prop@counts)){
 
-    message("Alert: Replacing zeroes in \"count matrix\" with next smallest value.")
-    prop@counts[prop@counts == 0] <- unique(sort(prop@counts))[2]
+    message("Alert: Replacing 0s in \"count matrix\" with 1.")
+    prop@counts[prop@counts == 0] <- 1
   }
 
-  if(class(ivar) == "character"){
+  if(ivar != 0){
 
-    index <- ivar == colnames(prop@counts)
-    if(any(index)){ ivar <- which(index)
-    }else{ stop("Uh oh! Provided ivar reference not found in data.")}
+    if(is.character(ivar)){
+
+      # Find i-th index of ivar name
+      index <- ivar == colnames(prop@counts)
+      if(!any(index)) stop("Uh oh! Provided ivar reference not found in data.")
+      ivar <- which(index)
+    }
+
+    prop@logratio <- alrRcpp(prop@counts[], ivar)
+
+  }else{
+
+    prop@logratio <- clrRcpp(prop@counts[])
   }
-
-  if(ivar != 0){ prop@logratio <- alrRcpp(prop@counts[], ivar) # [] forces copy
-  }else{ prop@logratio <- clrRcpp(prop@counts[])} # [] forces copy
 
   if(!missing(select)){
 
@@ -113,5 +112,14 @@ perb <- function(counts, ivar = 0, select){
   prop@matrix <- rhoRcpp(prop@counts[], prop@logratio[], ivar)
   prop@pairs <- vector("numeric")
 
+  return(prop)
+}
+
+#' @rdname proportionality
+#' @export
+phis <- function(counts, ivar = 0, select){
+
+  prop <- perb(counts, ivar, select)
+  prop@matrix <- 1 - prop@matrix
   return(prop)
 }

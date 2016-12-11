@@ -1,17 +1,3 @@
-#' @rdname propr
-#' @section Methods (by generic):
-#' \code{plot:} Method to plot \code{propr} object.
-#'
-#' @inheritParams bucket
-#' @param y Missing. Ignore. Leftover from the generic method definition.
-#' @export
-setMethod("plot", signature(x = "propr", y = "missing"),
-          function(x, y, prompt = TRUE, plotly = FALSE){
-
-            smear(x, prompt = prompt, plotly = plotly)
-          }
-)
-
 #' Make Smear Plot
 #'
 #' Plots *lr-transformed abundances for all indexed pairs.

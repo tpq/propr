@@ -7,9 +7,11 @@
 proprPhit(counts, symmetrize = TRUE)
 }
 \arguments{
-\item{counts}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
+\item{counts}{A data.frame or matrix. A "count matrix" with
+subjects as rows and features as columns.}
 
-\item{symmetrize}{A logical. If \code{TRUE}, forces symmetry by reflecting the "lower left triangle".}
+\item{symmetrize}{A logical. If \code{TRUE}, forces symmetry
+by reflecting the "lower left triangle".}
 }
 \value{
 Returns proportionality matrix.
