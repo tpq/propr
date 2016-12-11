@@ -119,12 +119,12 @@ prop2prob <- function(x, y, method = "bonferroni", prompt = TRUE){
 #'  slot contains an index of all statistically significant pairs,
 #'  toggled via the argument \code{dt}.
 #'
-#' Visualizing the difference matrix with \code{\link{dendrogram}} may
-#'  help summarize the results of \code{\link{prop2prob}}. Note that the
+#' Visualizing the difference matrix with \code{dendrogram} may
+#'  help summarize the results of \code{prop2prob}. Note that the
 #'  difference matrix now also informs co-cluster assignment for
-#'  the \code{\link{bucket}}, \code{\link{prism}}, and
-#'  \code{\link{bokeh}} plots. Otherwise, most abstracted plots should
-#'  match those made using \code{perb(rbind(x@counts, y@counts))}.
+#'  the \code{bucket}, \code{prism}, and \code{bokeh} plots.
+#'  Otherwise, most abstracted plots should match those made using
+#'  \code{perb(rbind(x@counts, y@counts))}.
 #'
 #' @param x,y A \code{propr} object.
 #' @param dt A \code{data.table}. The result from
