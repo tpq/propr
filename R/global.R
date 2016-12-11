@@ -55,7 +55,7 @@ ggdend <- function(dendrogram){
 #' Performs data checks before plotting, triggering messages
 #'  or errors when appropriate. For back-end use only.
 #'
-#' @inheritParams bucket
+#' @inheritParams slate
 #' @param indexNaive Toggles whether to perform checks for an
 #'  "index-naive" plot function.
 #' @return Returns a \code{propr} object with guaranteed

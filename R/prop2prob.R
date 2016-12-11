@@ -31,7 +31,7 @@
 #'  adjust p-values for multiple comparisons. Argument
 #'  passed to \code{\link{p.adjust}}. Defaults to the
 #'  more conservative Bonferroni correction.
-#' @inheritParams bucket
+#' @inheritParams slate
 #'
 #' @return Returns a \code{data.table} of p-values.
 #'

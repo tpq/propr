@@ -1,3 +1,16 @@
+## propr 2.1.0.9000
+---------------------
+* Modified `propr` Class
+  * Merged `propr-class` and `propr` documentation
+* Modified `phit`, `perb` functions
+  * Merged `phit` and `perb` documentation
+  * New `phis` function returns `1 - rho`
+  * NAs in count matrix now throw error
+  * 0s now replaced with 1s
+* Modified visualization tools
+  * Merged visualization documentation
+  * Changed VLS acronym to VLP
+
 ## propr 2.1.0
 ---------------------
 * Modified `[` method

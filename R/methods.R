@@ -4,11 +4,10 @@
 #' Welcome to the \code{propr} package!
 #'
 #' To learn more about how to calculate proportionality, see
-#'  see \code{\link{proportionality}}.
+#'  \code{\link{proportionality}}.
 #'
-#' To learn more about \code{propr} plots, see \code{\link{smear}},
-#'  \code{\link{dendrogram}}, \code{\link{bucket}}, \code{\link{prism}},
-#'  \code{\link{bokeh}}, \code{\link{mds}}, and \code{\link{snapshot}}.
+#' To learn more about \code{propr} plots, see
+#'  \code{\link{visualize}}.
 #'
 #' To learn more about differential proportionality, see
 #'  \code{\link{prop2prob}} and \code{\link{abstract}}.
@@ -36,7 +35,7 @@
 #'  result through \code{\link{simplify}}.
 #' @param y Missing. Ignore. Leftover from the generic method
 #'  definition.
-#' @inheritParams bucket
+#' @inheritParams slate
 #'
 #' @name propr
 #' @useDynLib propr
