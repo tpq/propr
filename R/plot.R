@@ -55,6 +55,14 @@
 #'  a heatmap, along with the respective dendrograms.
 #'  Heatmap intensity is not scaled.
 #'
+#' \code{cytescape:}
+#'  This function exports a \code{data.frame} of indexed pairs
+#'  along with their corresponding values from \code{@@matrix}.
+#'  In doing so, this function displays a preview of the
+#'  interaction network, built using \code{igraph}.
+#'  We recommend using the result of this function as input to a
+#'  standalone network visualization tool like Cytoscape.
+#'
 #' @return
 #' \code{smear, mds:}
 #'  Returns a \code{ggplot} object.
@@ -63,7 +71,7 @@
 #'  Returns a \code{dendrogram} object.
 #'
 #' \code{slate:}
-#'  Returns a \code{data.frame} of pairwise relationships.
+#'  Returns a \code{data.frame} of all pairwise relationships.
 #'  If the argument \code{k} is provided, returns a list of
 #'  the \code{data.frame} of pairwise relationships and the
 #'  cluster membership.
@@ -72,7 +80,10 @@
 #'  Returns cluster membership if \code{k} is provided.
 #'  Otherwise, returns a \code{ggplot} object.
 #'
-#' @param rho A \code{propr} object created from \code{perb}.
+#' \code{cytescape:}
+#'  Returns a \code{data.frame} of indexed pairs.
+#'
+#' @param rho,object A \code{propr} object created from \code{perb}.
 #'  However, \code{smear} and \code{dendrogram} will also
 #'  accommodate results from \code{phit} and \code{phis}.
 #' @param group A character vector. Group or sub-group memberships,
@@ -89,6 +100,9 @@
 #'  the courtesy prompt when working with big data.
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
 #'  a dynamic plot using the \code{plotly} package.
+#' @param minPairs An integer scalar. Subsets the interaction
+#'  network to exclude any pair without a node that participates
+#'  in at least this many total pairs.
 #'
 #' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist
 #' @name visualize
@@ -563,4 +577,46 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
     multiplot(px, p, p_empty, py, cols = 2)
     return(dd.col)
   }
+}
+
+#' @rdname visualize
+#' @export
+cytescape <- function(object, minPairs = 2){
+
+  packageCheck("igraph")
+
+  if(!class(object) == "propr" | length(object@pairs) == 0){
+
+    stop("Uh oh! This function requires an indexed 'propr' object.")
+  }
+
+  # Prepare data
+  rho <- object@matrix[object@pairs]
+  coords <- indexToCoord(object@pairs, nrow(object@matrix))
+  df <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
+
+  # Remove extraneous pairs
+  keep <- which(table(c(df$Partner, df$Pair)) >= minPairs)
+  sub <- df[df$Partner %in% keep | df$Pair %in% keep, ]
+
+  # Build and color igraph
+  if(nrow(sub) == 0) stop("No pairs remain after filter.")
+  g <- igraph::graph_from_data_frame(sub, directed = FALSE)
+  igraph::V(g)$color <- "white"
+  colors <- rep("yellow", nrow(sub))
+  colors[sub$rho > .25] <- "orange"
+  colors[sub$rho > .75] <- "red"
+  colors[sub$rho < -.25] <- "green"
+  colors[sub$rho < -.75] <- "blue"
+  igraph::E(g)$color <- colors
+  plot(g, vertex.size = 2, vertex.label = NA)
+
+  # Retrieve node names
+  names <- colnames(object@logratio)
+  if(!is.null(names)){
+    sub$Partner <- names[sub$Partner]
+    sub$Pair <- names[sub$Pair]
+  }
+
+  return(sub)
 }

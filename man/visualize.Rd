@@ -3,6 +3,7 @@
 \name{visualize}
 \alias{bokeh}
 \alias{bucket}
+\alias{cytescape}
 \alias{dendrogram}
 \alias{mds}
 \alias{prism}
@@ -27,9 +28,11 @@ bokeh(rho, k, prompt = TRUE, plotly = FALSE)
 mds(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
+
+cytescape(object, minPairs = 2)
 }
 \arguments{
-\item{rho}{A \code{propr} object created from \code{perb}.
+\item{rho, object}{A \code{propr} object created from \code{perb}.
 However, \code{smear} and \code{dendrogram} will also
 accommodate results from \code{phit} and \code{phis}.}
 
@@ -50,6 +53,10 @@ to same the cluster (calculated using \code{hclust}).}
 ordered according to the column names in \code{@counts} and
 \code{@logratio}. Required parameter for \code{bucket}
 and optional parameter for \code{mds}.}
+
+\item{minPairs}{An integer scalar. Subsets the interaction
+network to exclude any pair without a node that participates
+in at least this many total pairs.}
 }
 \value{
 \code{smear, mds:}
@@ -59,7 +66,7 @@ and optional parameter for \code{mds}.}
  Returns a \code{dendrogram} object.
 
 \code{slate:}
- Returns a \code{data.frame} of pairwise relationships.
+ Returns a \code{data.frame} of all pairwise relationships.
  If the argument \code{k} is provided, returns a list of
  the \code{data.frame} of pairwise relationships and the
  cluster membership.
@@ -67,6 +74,9 @@ and optional parameter for \code{mds}.}
 \code{prism, bokeh, bucket:}
  Returns cluster membership if \code{k} is provided.
  Otherwise, returns a \code{ggplot} object.
+
+\code{cytescape:}
+ Returns a \code{data.frame} of indexed pairs.
 }
 \description{
 Visualize Proportionality
@@ -125,5 +135,13 @@ Visualize Proportionality
  Plots the log-ratio transformed feature abundance as
  a heatmap, along with the respective dendrograms.
  Heatmap intensity is not scaled.
+
+\code{cytescape:}
+ This function exports a \code{data.frame} of indexed pairs
+ along with their corresponding values from \code{@matrix}.
+ In doing so, this function displays a preview of the
+ interaction network, built using \code{igraph}.
+ We recommend using the result of this function as input to a
+ standalone network visualization tool like Cytoscape.
 }
 
