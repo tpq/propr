@@ -1,6 +1,6 @@
 #' Visualize Proportionality
 #'
-#' @details
+#' @description
 #' \code{smear:}
 #'  Plots log-ratio transformed abundances pairwise.
 #'  Index-aware, meaning that it only plots pairs indexed
