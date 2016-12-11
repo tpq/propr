@@ -4,10 +4,12 @@
 \name{propr}
 \alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
+\alias{adjacent}
 \alias{plot,propr,missing-method}
 \alias{propr}
 \alias{propr-class}
 \alias{show,propr-method}
+\alias{simplify}
 \alias{subset,propr-method}
 \title{The propr Package}
 \usage{
@@ -18,6 +20,10 @@
 \S4method{[}{propr,ANY,ANY}(x, i = "all", j, tiny = FALSE)
 
 \S4method{plot}{propr,missing}(x, y, prompt = TRUE, plotly = FALSE)
+
+simplify(object)
+
+adjacent(object)
 }
 \arguments{
 \item{object, x}{An object of class \code{propr}.}
@@ -53,11 +59,11 @@ Welcome to the \code{propr} package!
 To learn more about how to calculate proportionality, see
  \code{\link{proportionality}}.
 
-To learn more about \code{propr} plots, see
+To learn more about proportionality plots, see
  \code{\link{visualize}}.
 
 To learn more about differential proportionality, see
- \code{\link{prop2prob}} and \code{\link{abstract}}.
+ \code{\link{prop2prob}}.
 
 To learn more about compositional data analysis, and its relevance
  to biological count data, see the bundled vignette.
@@ -86,5 +92,20 @@ To learn more about compositional data analysis, and its relevance
 
 
 \code{plot:} Method to plot \code{propr} object.
+}
+
+\section{Functions}{
+
+\code{simplify:}
+ This convenience function takes an indexed \code{propr} object
+ and subsets the object based on that index. Then, it populates the
+ \code{@pairs} slot of the new object with an updated version
+ of the original index. You can call \code{simplify} from within the
+ \code{[} method using the argument \code{tiny}.
+
+
+\code{adjacent:}
+ This function uses pairs indexed in the \code{@pairs}
+ slot to build a symmetric adjacency matrix.
 }
 

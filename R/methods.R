@@ -6,11 +6,11 @@
 #' To learn more about how to calculate proportionality, see
 #'  \code{\link{proportionality}}.
 #'
-#' To learn more about \code{propr} plots, see
+#' To learn more about proportionality plots, see
 #'  \code{\link{visualize}}.
 #'
 #' To learn more about differential proportionality, see
-#'  \code{\link{prop2prob}} and \code{\link{abstract}}.
+#'  \code{\link{prop2prob}}.
 #'
 #' To learn more about compositional data analysis, and its relevance
 #'  to biological count data, see the bundled vignette.
@@ -35,7 +35,7 @@
 #'  result through \code{\link{simplify}}.
 #' @param y Missing. Ignore. Leftover from the generic method
 #'  definition.
-#' @inheritParams slate
+#' @inheritParams visualize
 #'
 #' @name propr
 #' @useDynLib propr
@@ -161,3 +161,62 @@ setMethod("plot", signature(x = "propr", y = "missing"),
             smear(x, prompt = prompt, plotly = plotly)
           }
 )
+
+#' @rdname propr
+#' @section Functions:
+#' \code{simplify:}
+#'  This convenience function takes an indexed \code{propr} object
+#'  and subsets the object based on that index. Then, it populates the
+#'  \code{@@pairs} slot of the new object with an updated version
+#'  of the original index. You can call \code{simplify} from within the
+#'  \code{[} method using the argument \code{tiny}.
+#' @export
+simplify <- function(object){
+
+  if(!class(object) == "propr" | length(object@pairs) == 0){
+
+    stop("Uh oh! This function requires an indexed 'propr' object.")
+  }
+
+  # Subset propr object based on index
+  coords <- indexToCoord(object@pairs, nrow(object@matrix))
+  selection <- sort(union(coords[[1]], coords[[2]]))
+  object@pairs <- vector("numeric")
+  new <- subset(object, select = selection)
+
+  # Repopulate the pairs slot
+  for(i in 1:length(coords[[1]])){
+
+    coords[[1]][i] <- which(selection == coords[[1]][i])
+    coords[[2]][i] <- which(selection == coords[[2]][i])
+  }
+
+  new@pairs <- (coords[[2]] - 1) * nrow(new@matrix) + (coords[[1]] - 1) + 1
+
+  return(new)
+}
+
+#' @rdname propr
+#' @section Functions:
+#' \code{adjacent:}
+#'  This function uses pairs indexed in the \code{@@pairs}
+#'  slot to build a symmetric adjacency matrix.
+#' @export
+adjacent <- function(object){
+
+  if(!class(object) == "propr" | length(object@pairs) == 0){
+
+    stop("Uh oh! This function requires an indexed 'propr' object.")
+  }
+
+  N <- nrow(object@matrix)
+  mat <- matrix(0, N, N)
+  mat[object@pairs] <- 1
+  diag(mat) <- 1
+  symRcpp(mat)
+
+  adj <- object
+  adj@matrix <- mat
+
+  return(adj)
+}
