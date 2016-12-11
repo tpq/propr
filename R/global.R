@@ -1,29 +1,3 @@
-#' The propr Package
-#'
-#' @description
-#' Welcome to the \code{propr} package!
-#'
-#' To learn more about how to calculate proportionality, see
-#'  see \code{\link{phit}} and \code{\link{perb}}.
-#'
-#' To learn more about the resultant \code{propr} class object, see
-#'  see the class definition \code{\link{propr-class}}.
-#'
-#' To learn more about \code{propr} plots, see \code{\link{smear}},
-#'  \code{\link{dendrogram}}, \code{\link{bucket}}, \code{\link{prism}},
-#'  \code{\link{bokeh}}, \code{\link{mds}}, and \code{\link{snapshot}}.
-#'
-#' To learn more about differential proportionality, see
-#'  \code{\link{prop2prob}} and \code{\link{abstract}}.
-#'
-#' To learn more about compositional data analysis, and its relevance
-#'  to biological count data, see the bundled vignette.
-#'
-#' @name propr
-#' @useDynLib propr
-#' @importFrom Rcpp sourceCpp
-NULL
-
 #' Plot Multiple Graphs
 #'
 #' Easily plot multiple graphs within the same window. Code adapted from

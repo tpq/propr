@@ -1,4 +1,20 @@
-#' An S4 class to hold results from proportionality analysis.
+#' The propr Package
+#'
+#' @description
+#' Welcome to the \code{propr} package!
+#'
+#' To learn more about how to calculate proportionality, see
+#'  see \code{\link{proportionality}}.
+#'
+#' To learn more about \code{propr} plots, see \code{\link{smear}},
+#'  \code{\link{dendrogram}}, \code{\link{bucket}}, \code{\link{prism}},
+#'  \code{\link{bokeh}}, \code{\link{mds}}, and \code{\link{snapshot}}.
+#'
+#' To learn more about differential proportionality, see
+#'  \code{\link{prop2prob}} and \code{\link{abstract}}.
+#'
+#' To learn more about compositional data analysis, and its relevance
+#'  to biological count data, see the bundled vignette.
 #'
 #' @slot counts A matrix. Stores the original "count matrix" input.
 #' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
@@ -6,8 +22,29 @@
 #'  \code{phiRcpp} or \code{rhoRcpp}.
 #' @slot pairs A vector. Indexes the proportionality metrics of interest.
 #'
-#' @seealso \code{\link{propr}}, \code{\link{phit}}, \code{\link{perb}}
+#' @param object,x An object of class \code{propr}.
+#' @param subset Subsets via \code{object@counts[subset, ]}.
+#'  Use this argument to rearrange subject order.
+#' @param select Subsets via \code{object@counts[, select]}.
+#'  Use this argument to rearrange feature order.
+#' @param i Operation used for the subset indexing. Select from
+#'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
+#' @param j Reference used for the subset indexing. Provide a numeric
+#'  value to which to compare the proportionality measures in the
+#'  \code{@@matrix} slot.
+#' @param tiny A logical scalar. Toggles whether to pass the indexed
+#'  result through \code{\link{simplify}}.
+#' @param y Missing. Ignore. Leftover from the generic method
+#'  definition.
+#' @inheritParams bucket
 #'
+#' @name propr
+#' @useDynLib propr
+#' @importFrom methods show new
+#' @importFrom Rcpp sourceCpp
+NULL
+
+#' @rdname propr
 #' @export
 setClass("propr",
          slots = c(
@@ -21,9 +58,6 @@ setClass("propr",
 #' @rdname propr
 #' @section Methods (by generic):
 #' \code{show:} Method to show \code{propr} object.
-#'
-#' @param object,x An object of class \code{propr}.
-#' @importFrom methods show
 #' @export
 setMethod("show", "propr",
           function(object){
@@ -51,12 +85,6 @@ setMethod("show", "propr",
 #' @rdname propr
 #' @section Methods (by generic):
 #' \code{subset:} Method to subset \code{propr} object.
-#'
-# #' @param x An object of class \code{propr}.
-#' @param subset Subsets via \code{object@counts[subset, ]}.
-#'  Use this argument to rearrange subject order.
-#' @param select Subsets via \code{object@counts[, select]}.
-#'  Use this argument to rearrange feature order.
 #' @export
 setMethod("subset", signature(x = "propr"),
           function(x, subset, select){
@@ -86,15 +114,6 @@ setMethod("subset", signature(x = "propr"),
 #' @rdname propr
 #' @section Methods (by generic):
 #' \code{[:} Method to subset \code{propr} object.
-#'
-# #' @param x An object of class \code{propr}.
-#' @param i Operation used for the subset indexing. Select from
-#'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
-#' @param j Reference used for the subset indexing. Provide a numeric
-#'  value to which to compare the proportionality measures in the
-#'  \code{@@matrix} slot.
-#' @param tiny A logical scalar. Toggles whether to pass the indexed
-#'  result through \code{\link{simplify}}.
 #' @aliases [,propr-method
 #' @docType methods
 #' @export
@@ -130,5 +149,16 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
 
               return(x)
             }
+          }
+)
+
+#' @rdname propr
+#' @section Methods (by generic):
+#' \code{plot:} Method to plot \code{propr} object.
+#' @export
+setMethod("plot", signature(x = "propr", y = "missing"),
+          function(x, y, prompt = TRUE, plotly = FALSE){
+
+            smear(x, prompt = prompt, plotly = plotly)
           }
 )
