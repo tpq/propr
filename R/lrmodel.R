@@ -48,7 +48,7 @@ modelCLR <- function(x, MARGIN = 1){
 
   if(class(x) != "matrix") stop("You must provide a matrix.")
   if(any(0 == x)){
-    message("Replacing 0s in \"count matrix\" with next smallest value.")
+    message("Alert: Replacing 0s in \"count matrix\" with next smallest value.")
     x[x == 0] <- unique(sort(x))[2]
   }
 
@@ -76,7 +76,7 @@ setMethod("predict", "lrmodel",
 
             if(class(newdata) != "matrix") stop("You must provide the new data as a matrix.")
             if(any(0 == newdata)){
-              message("Replacing 0s in new data with integer replacement.")
+              message("Alert: Replacing 0s in new data with integer replacement.")
               newdata[newdata == 0] <- object@replace
             }
 
