@@ -4,15 +4,16 @@
 #' \code{smear:}
 #'  Plots log-ratio transformed abundances pairwise.
 #'  Index-aware, meaning that it only plots pairs indexed
-#'  in \code{@@pairs}.
+#'  in \code{@@pairs}, unless no pairs are indexed.
 #'
 #' \code{dendrogram:}
-#'  Plots clustering of proportionality matrix.
+#'  Plots a clustering of proportionality matrix.
 #'  Index-aware, meaning that it only plots pairs indexed
-#'  in \code{@@pairs}.
+#'  in \code{@@pairs}, unless no pairs are indexed.
+#'  Heatmap intensity is not scaled.
 #'
 #' \code{slate:}
-#'  This function builds a table of VLR, VLP, and prop
+#'  Builds a table of VLR, VLP, and proportionality
 #'  for each feature pair in a \code{propr} object. If the
 #'  argument \code{k} is provided, the table will also
 #'  include co-cluster membership.
@@ -48,7 +49,7 @@
 #'  provides a statistically valid alternative to
 #'  conventional principal components analysis (PCA) used
 #'  in multi-dimensional scaling (MDS) plotting.
-#'  For more information, see DOI:10.1139/cjm-2015-0821.
+#'  For more information, see <DOI:10.1139/cjm-2015-0821>.
 #'
 #' \code{snapshot:}
 #'  Plots the log-ratio transformed feature abundance as
@@ -56,12 +57,11 @@
 #'  Heatmap intensity is not scaled.
 #'
 #' \code{cytescape:}
-#'  This function exports a \code{data.frame} of indexed pairs
-#'  along with their corresponding values from \code{@@matrix}.
+#'  Builds a table of indexed pairs and proportionality.
 #'  In doing so, this function displays a preview of the
 #'  interaction network, built using \code{igraph}.
-#'  We recommend using the result of this function as input to a
-#'  standalone network visualization tool like Cytoscape.
+#'  We recommend using the result as input to a
+#'  network visualization tool like Cytoscape.
 #'
 #' @return
 #' \code{smear, mds:}
@@ -83,9 +83,9 @@
 #' \code{cytescape:}
 #'  Returns a \code{data.frame} of indexed pairs.
 #'
-#' @param rho,object A \code{propr} object created from \code{perb}.
-#'  However, \code{smear} and \code{dendrogram} will also
-#'  accommodate results from \code{phit} and \code{phis}.
+#' @param object,rho A \code{propr} object created from \code{perb}.
+#'  However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
+#'  also accommodate results from \code{phit} and \code{phis}.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the column names in \code{@@counts} and
 #'  \code{@@logratio}. Required parameter for \code{bucket}
@@ -102,7 +102,8 @@
 #'  a dynamic plot using the \code{plotly} package.
 #' @param minPairs An integer scalar. Subsets the interaction
 #'  network to exclude any pair without a node that participates
-#'  in at least this many total pairs.
+#'  in at least this many total pairs. Required parameter
+#'  for \code{cytescape}.
 #'
 #' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist
 #' @name visualize

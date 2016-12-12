@@ -32,10 +32,6 @@ snapshot(rho, prompt = TRUE, plotly = FALSE)
 cytescape(object, minPairs = 2)
 }
 \arguments{
-\item{rho, object}{A \code{propr} object created from \code{perb}.
-However, \code{smear} and \code{dendrogram} will also
-accommodate results from \code{phit} and \code{phis}.}
-
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the courtesy prompt when working with big data.}
 
@@ -54,9 +50,14 @@ ordered according to the column names in \code{@counts} and
 \code{@logratio}. Required parameter for \code{bucket}
 and optional parameter for \code{mds}.}
 
+\item{object, rho}{A \code{propr} object created from \code{perb}.
+However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
+also accommodate results from \code{phit} and \code{phis}.}
+
 \item{minPairs}{An integer scalar. Subsets the interaction
 network to exclude any pair without a node that participates
-in at least this many total pairs.}
+in at least this many total pairs. Required parameter
+for \code{cytescape}.}
 }
 \value{
 \code{smear, mds:}
@@ -82,15 +83,16 @@ in at least this many total pairs.}
 \code{smear:}
  Plots log-ratio transformed abundances pairwise.
  Index-aware, meaning that it only plots pairs indexed
- in \code{@pairs}.
+ in \code{@pairs}, unless no pairs are indexed.
 
 \code{dendrogram:}
- Plots clustering of proportionality matrix.
+ Plots a clustering of proportionality matrix.
  Index-aware, meaning that it only plots pairs indexed
- in \code{@pairs}.
+ in \code{@pairs}, unless no pairs are indexed.
+ Heatmap intensity is not scaled.
 
 \code{slate:}
- This function builds a table of VLR, VLP, and prop
+ Builds a table of VLR, VLP, and proportionality
  for each feature pair in a \code{propr} object. If the
  argument \code{k} is provided, the table will also
  include co-cluster membership.
@@ -126,7 +128,7 @@ in at least this many total pairs.}
  provides a statistically valid alternative to
  conventional principal components analysis (PCA) used
  in multi-dimensional scaling (MDS) plotting.
- For more information, see DOI:10.1139/cjm-2015-0821.
+ For more information, see <DOI:10.1139/cjm-2015-0821>.
 
 \code{snapshot:}
  Plots the log-ratio transformed feature abundance as
@@ -134,11 +136,10 @@ in at least this many total pairs.}
  Heatmap intensity is not scaled.
 
 \code{cytescape:}
- This function exports a \code{data.frame} of indexed pairs
- along with their corresponding values from \code{@matrix}.
+ Builds a table of indexed pairs and proportionality.
  In doing so, this function displays a preview of the
  interaction network, built using \code{igraph}.
- We recommend using the result of this function as input to a
- standalone network visualization tool like Cytoscape.
+ We recommend using the result as input to a
+ network visualization tool like Cytoscape.
 }
 

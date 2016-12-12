@@ -7,12 +7,15 @@
 proprVLR(X, check = FALSE)
 }
 \arguments{
-\item{X}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
+\item{X}{A data.frame or matrix. A "count matrix" with
+subjects as rows and features as columns.}
 
-\item{check}{A logical. If TRUE, function first checks for negative and NA values.}
+\item{check}{A logical. If TRUE, function first checks
+for negative and NA values.}
 }
 \value{
-Returns a matrix containing the variance of the log of the ratios.
+Returns a matrix containing the variance of the
+ log of the ratios.
 }
 \description{
 Provided for backend use.

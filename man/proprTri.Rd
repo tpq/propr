@@ -10,7 +10,8 @@ proprTri(prop)
 \item{prop}{A data.frame or matrix. A proportionality matrix.}
 }
 \value{
-A vector. Returns the lower left triangle of a proportionality matrix.
+A vector. Returns the lower left triangle of a
+ proportionality matrix.
 }
 \description{
 Provided for backend use.

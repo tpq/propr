@@ -7,12 +7,15 @@
 proprCLR(X, check = FALSE)
 }
 \arguments{
-\item{X}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
+\item{X}{A data.frame or matrix. A "count matrix" with
+subjects as rows and features as columns.}
 
-\item{check}{A logical. If TRUE, function first checks for negative and NA values.}
+\item{check}{A logical. If TRUE, function first checks
+for negative and NA values.}
 }
 \value{
-A matrix. Returns the centered log-ratio transformation of \code{X}.
+A matrix. Returns the centered log-ratio
+ transformation of \code{X}.
 }
 \description{
 Provided for backend use.

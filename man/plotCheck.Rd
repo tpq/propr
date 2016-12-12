@@ -8,8 +8,8 @@ plotCheck(rho, prompt, plotly, indexNaive)
 }
 \arguments{
 \item{rho}{A \code{propr} object created from \code{perb}.
-However, \code{smear} and \code{dendrogram} will also
-accommodate results from \code{phit} and \code{phis}.}
+However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
+also accommodate results from \code{phit} and \code{phis}.}
 
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
 the courtesy prompt when working with big data.}

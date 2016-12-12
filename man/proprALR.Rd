@@ -7,14 +7,18 @@
 proprALR(X, ivar, check = FALSE)
 }
 \arguments{
-\item{X}{A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.}
+\item{X}{A data.frame or matrix. A "count matrix" with
+subjects as rows and features as columns.}
 
-\item{ivar}{A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.}
+\item{ivar}{A numeric scalar. Specificies feature to use
+as reference for additive log-ratio transformation.}
 
-\item{check}{A logical. If TRUE, function first checks for negative and NA values.}
+\item{check}{A logical. If TRUE, function first checks
+for negative and NA values.}
 }
 \value{
-A matrix. Returns the additive log-ratio transformation of \code{X}.
+A matrix. Returns the additive log-ratio
+ transformation of \code{X}.
 }
 \description{
 Provided for backend use.
