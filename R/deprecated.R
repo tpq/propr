@@ -75,9 +75,12 @@ proprPerb <- function(counts, ivar = 0){
 #'
 #' Provided for backend use.
 #'
-#' @param X A data.frame or matrix. A "count matrix" with subjects as rows and features as columns.
-#' @param check A logical. If TRUE, function first checks for negative and NA values.
-#' @return Returns a matrix containing the variance of the log of the ratios.
+#' @param X A data.frame or matrix. A "count matrix" with
+#'  subjects as rows and features as columns.
+#' @param check A logical. If TRUE, function first checks
+#'  for negative and NA values.
+#' @return Returns a matrix containing the variance of the
+#'  log of the ratios.
 proprVLR <- function(X, check = FALSE){
 
   if(check){
@@ -103,7 +106,8 @@ proprVLR <- function(X, check = FALSE){
 #' Provided for backend use.
 #'
 #' @inheritParams proprVLR
-#' @return A matrix. Returns the centered log-ratio transformation of \code{X}.
+#' @return A matrix. Returns the centered log-ratio
+#'  transformation of \code{X}.
 proprCLR <- function(X, check = FALSE){
 
   if(check){
@@ -120,9 +124,11 @@ proprCLR <- function(X, check = FALSE){
 #'
 #' Provided for backend use.
 #'
-#' @param ivar A numeric scalar. Specificies feature to use as reference for additive log-ratio transformation.
+#' @param ivar A numeric scalar. Specificies feature to use
+#'  as reference for additive log-ratio transformation.
 #' @inheritParams proprVLR
-#' @return A matrix. Returns the additive log-ratio transformation of \code{X}.
+#' @return A matrix. Returns the additive log-ratio
+#'  transformation of \code{X}.
 proprALR <- function(X, ivar, check = FALSE){
 
   if(check){
@@ -180,7 +186,8 @@ proprPairs <- function(prop){
 #' Provided for backend use.
 #'
 #' @inheritParams proprPairs
-#' @return A vector. Returns the lower left triangle of a proportionality matrix.
+#' @return A vector. Returns the lower left triangle of a
+#'  proportionality matrix.
 proprTri <- function(prop){
 
   result <- vector("numeric", length = (nrow(prop) - 1)*nrow(prop)/2)
