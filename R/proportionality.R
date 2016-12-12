@@ -120,6 +120,6 @@ perb <- function(counts, ivar = 0, select){
 phis <- function(counts, ivar = 0, select){
 
   prop <- perb(counts, ivar, select)
-  prop@matrix <- 1 - prop@matrix
+  rhoToPhs(prop@matrix)
   return(prop)
 }

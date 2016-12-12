@@ -391,6 +391,21 @@ List labRcpp(int nfeats){
   );
 }
 
+// Function to make phs from rho
+// [[Rcpp::export]]
+NumericMatrix rhoToPhs(NumericMatrix & X){
+
+  // Calculate phs = 1 - rho
+  int nfeats = X.ncol();
+  for(int i = 0; i < nfeats; i++){
+    for(int j = 0; j < nfeats; j++){
+      X(i, j) = 1 - X(i, j);
+    }
+  }
+
+  return X;
+}
+
 /*** R
 X <- t(data.frame("a" = sample(1:10), "b" = sample(1:10), "c" = sample(1:10),
                   "d" = sample(1:10), "e" = sample(1:10), "f" = sample(1:10)))
