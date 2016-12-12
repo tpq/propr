@@ -42,7 +42,7 @@ X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
                 c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
 ```
 
-Let $D$ represent any number of features measured across $N$ observations undergoing a binary or continuous event $E$. For example, $N$ could represent subjects differing in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $N$ rows and $D$ columns into a proportionality matrix of $D$ rows and $D$ columns containing a $\phi$ or $\rho$ value for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
+Let $D$ represent any number of features measured across $N$ observations exposed to a binary or continuous event $E$. For example, $E$ could represent differences in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $N$ rows and $D$ columns into a proportionality matrix of $D$ rows and $D$ columns containing a $\phi$ or $\rho$ value for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four slots:
 
 * `@counts` A matrix. Stores the original "count matrix" input.
 * `@logratio` A matrix. Stores the log-ratio transformed "count matrix".
@@ -59,7 +59,7 @@ rho <- perb(X, ivar = 0)
 
 We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value.
 
-In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting.
+In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the previous index.
 
 ```{r}
 rho99 <- rho[">", .99]

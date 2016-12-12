@@ -84,7 +84,7 @@
 ## propr 2.0.4
 ---------------------
 * New visualization tools
-  * `slate` returns a table of VLR, VLS, and rho
+  * `slate` returns a table of VLR, VLP, and rho
   * `bokeh` plots pairs by the individual variances
 * Modified index-naive plot functions
   * Now uses `fastcluster::hclust` implementation
