@@ -92,7 +92,7 @@ for \code{cytescape}.}
  Heatmap intensity is not scaled.
 
 \code{slate:}
- Builds a table of VLR, VLP, and proportionality
+ Builds a table of VLR, VLS, and proportionality
  for each feature pair in a \code{propr} object. If the
  argument \code{k} is provided, the table will also
  include co-cluster membership.
@@ -100,8 +100,8 @@ for \code{cytescape}.}
 \code{prism:}
  Plots the variance of the ratio of the log-ratio transformed
  feature pair (VLR) versus the sum of the individual variances
- of each log-ratio transformed feature (VLP). The ratio of
- the VLR to the VLP equals \code{1 - rho}. As such, we use
+ of each log-ratio transformed feature (VLS). The ratio of
+ the VLR to the VLS equals \code{1 - rho}. As such, we use
  here seven rainbow colored lines to indicate where \code{rho}
  equals \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going
  from red to violet.

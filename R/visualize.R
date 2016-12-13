@@ -13,7 +13,7 @@
 #'  Heatmap intensity is not scaled.
 #'
 #' \code{slate:}
-#'  Builds a table of VLR, VLP, and proportionality
+#'  Builds a table of VLR, VLS, and proportionality
 #'  for each feature pair in a \code{propr} object. If the
 #'  argument \code{k} is provided, the table will also
 #'  include co-cluster membership.
@@ -21,8 +21,8 @@
 #' \code{prism:}
 #'  Plots the variance of the ratio of the log-ratio transformed
 #'  feature pair (VLR) versus the sum of the individual variances
-#'  of each log-ratio transformed feature (VLP). The ratio of
-#'  the VLR to the VLP equals \code{1 - rho}. As such, we use
+#'  of each log-ratio transformed feature (VLS). The ratio of
+#'  the VLR to the VLS equals \code{1 - rho}. As such, we use
 #'  here seven rainbow colored lines to indicate where \code{rho}
 #'  equals \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going
 #'  from red to violet.
@@ -286,9 +286,9 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
   feat2 <- vector("numeric", llt) # feature name 2
   vl1 <- vector("numeric", llt) # var log feature 1
   vl2 <- vector("numeric", llt) # var log feature 2
-  vlp <- vector("numeric", llt) # var log sum
+  vls <- vector("numeric", llt) # var log sum
   vlr <- vector("numeric", llt) # var log ratio
-  rho <- vector("numeric", llt) # 1 - vlr/vlp
+  rho <- vector("numeric", llt) # 1 - vlr/vls
   col <- vector("numeric", llt) # co-cluster
   count <- 1
   for(j in 2:nrow(var.ratio)){
@@ -298,9 +298,9 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
       feat2[count] <- feat.each[i]
       vl1[count] <- var.each[j]
       vl2[count] <- var.each[i]
-      vlp[count] <- var.each[j] + var.each[i]
+      vls[count] <- var.each[j] + var.each[i]
       vlr[count] <- var.ratio[j, i]
-      rho[count] <- 1 - vlr[count] / vlp[count]
+      rho[count] <- 1 - vlr[count] / vls[count]
 
       # Since each col initializes as zero
       if(!missing(k)) if(clust[i] == clust[j]) col[count] <- clust[i]
@@ -311,7 +311,7 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   final <- data.frame("Partner" = feat1, "Pair" = feat2,
                       "VL1" = vl1, "VL2" = vl2,
-                      "VLR" = vlr, "VLP" = vlp,
+                      "VLR" = vlr, "VLS" = vls,
                       "rho" = rho)
 
   if(!missing(k)){
@@ -412,15 +412,15 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
   }
 
   g <-
-    ggplot2::ggplot(df, ggplot2::aes_string(x = "VLP", y = "VLR", rho = "rho",
+    ggplot2::ggplot(df, ggplot2::aes_string(x = "VLS", y = "VLR", rho = "rho",
                                             Partner = "Partner", Pair = "Pair")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster")) +
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
-    ggplot2::xlab("Variance of the Log Sum (VLP)") +
+    ggplot2::xlab("Variance of the Log Sum (VLS)") +
     ggplot2::ylab("Variance of the Log Ratio (VLR)") +
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
-    ggplot2::xlim(0, max(df$VLP)) +
+    ggplot2::xlim(0, max(df$VLS)) +
     ggplot2::ylim(0, max(df$VLR)) +
     ggplot2::geom_abline(slope = 1.99, intercept = 0, color = "violet") +
     ggplot2::geom_abline(slope = 1.95, intercept = 0, color = "purple") +
@@ -468,7 +468,7 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   g <-
     ggplot2::ggplot(
-      df, ggplot2::aes_string(x = "logVL1", y = "logVL2", VLP = "VLP", VLR = "VLR",
+      df, ggplot2::aes_string(x = "logVL1", y = "logVL2", VLS = "VLS", VLR = "VLR",
                               Partner = "Partner", Pair = "Pair")) +
     ggplot2::geom_point(ggplot2::aes_string(colour = "CoCluster", alpha = "rho")) +
     ggplot2::theme_bw() +

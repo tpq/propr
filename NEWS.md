@@ -8,8 +8,7 @@
   * NAs in count matrix now throw error
   * 0s now replaced with 1s
 * Modified visualization tools
-  * Merged visualization documentation
-  * Changed VLS acronym to VLP
+  * Merged documentation
 
 ## propr 2.1.0
 ---------------------
@@ -84,7 +83,7 @@
 ## propr 2.0.4
 ---------------------
 * New visualization tools
-  * `slate` returns a table of VLR, VLP, and rho
+  * `slate` returns a table of VLR, VLS, and rho
   * `bokeh` plots pairs by the individual variances
 * Modified index-naive plot functions
   * Now uses `fastcluster::hclust` implementation
