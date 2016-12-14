@@ -49,6 +49,12 @@ For phi, the result of \code{phit}, one can think of the resultant matrix as
  \code{ivar} is provided. When using an additive log-ratio transformation,
  this function will return \code{rho = 0} for the column and row in the
  \code{@matrix} slot that would contain the reference feature.
+
+Log-ratio transformation, by its nature, fails if the input data contain
+ any zero values. To avoid an error in this case, these functions automatically
+ replace all zero values with 1. Note, however, that the topic of
+ zero replacement is controversial. Proceed carefully when analyzing data
+ that contain zero values.
 }
 \examples{
 library(propr)

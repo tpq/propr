@@ -19,6 +19,12 @@
 #'  this function will return \code{rho = 0} for the column and row in the
 #'  \code{@@matrix} slot that would contain the reference feature.
 #'
+#' Log-ratio transformation, by its nature, fails if the input data contain
+#'  any zero values. To avoid an error in this case, these functions automatically
+#'  replace all zero values with 1. Note, however, that the topic of
+#'  zero replacement is controversial. Proceed carefully when analyzing data
+#'  that contain zero values.
+#'
 #' @param counts A data.frame or matrix. A "count matrix" with
 #'  subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry
