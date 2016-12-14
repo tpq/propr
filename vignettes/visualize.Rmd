@@ -51,7 +51,7 @@ best <- rho[">", .995]
 
 ## Index-aware Plots
 
-After indexing, it is a good idea to check the pair-wise distribution of the log-ratio transformed data using the `plot` function. As an "index-aware" function, `plot` only plots feature pairs indexed with `[`. When interpreting this figure, a smear of straight diagonal lines confirms that the pairs are proportional. Intuitively, this means that as one transcript increases in log-ratio transformed expression, so does the other. If you see lines deviating considerably from the $y=x$ diagonal, you likely set your index threshold too low.
+After indexing, it is a good idea to check the pair-wise distribution of the log-ratio transformed data using the `plot` (or, equivalently, `smear`) function. As an "index-aware" function, `plot` only plots feature pairs indexed with `[`. When interpreting this figure, a smear of straight diagonal lines confirms that the pairs are proportional. Intuitively, this means that as one transcript increases in log-ratio transformed expression, so does the other. If you see lines deviating considerably from the $y=x$ diagonal, you likely set your index threshold too low.
 
 ```{r, eval = FALSE}
 plot(best)
@@ -61,7 +61,7 @@ plot(best)
 plot(top)
 ```
 
-You can also inspect how the indexed pairs cluster using the `dendrogram` function. Specifically, this function clusters features based on a hierarchical clustering of the dissimiliarity measure of the proportionality matrix. In this package, we define the dissimiliarity measure of a proportionality matrix as `as.dist(1-abs(rho@matrix))`. Like `plot`, this function is "index-aware" and only plots feature pairs indexed with `[`. Take note that this dendrogram matches the dendrogram used to label co-clusters in the `prism`, `bokeh`, and `bucket` plots, described below. However, it differs from the dendrogram produced by the `snapshot` plot.
+You can also inspect how the indexed pairs cluster using the `dendrogram` function. Specifically, this function clusters features based on a hierarchical clustering of the dissimiliarity measure of the proportionality matrix. In this package, we define the dissimiliarity measure of a proportionality matrix as `as.dist(1-abs(rho@matrix))`. Like `plot`, this function is "index-aware" and only plots feature pairs indexed with `[`. Take note that this dendrogram matches the dendrogram used to label co-clusters in the `prism`, `bokeh`, and `bucket` plots, described below. However, it differs from the dendrogram produced by the `snapshot` plot. Heatmap intensity is not scaled.
 
 ```{r, eval = FALSE}
 dendrogram(best)
