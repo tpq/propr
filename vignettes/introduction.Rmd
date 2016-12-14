@@ -55,11 +55,13 @@ phi <- phit(X, symmetrize = TRUE)
 rho <- perb(X, ivar = 0)
 ```
 
+Note that log-ratio transformation, by its nature, fails if the input data contain any zero values. To avoid an error in this case, these functions automatically replace all zero values with 1. However, the topic of zero replacement is controversial. Proceed carefully when analyzing data that contain zero values.
+
 ## Subsetting propr objects
 
 We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value.
 
-In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the previous index.
+In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the new index to the previous index.
 
 ```{r}
 rho99 <- rho[">", .99]
@@ -83,7 +85,7 @@ simplify(rho99)
 
 ## Visualizing pairs
 
-Each feature belonging to a highly proportional data pair should show approximately fixed \*lr-transformed expression with one another across all subjects. The method `plot` provides a means by which to visually inspect whether this holds true. Since this function will plot **all** pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
+Each feature belonging to a highly proportional data pair should show approximately fixed \*lr-transformed expression with one another across all subjects. The method `plot` (or, equivalently, `smear`) provides a means by which to visually inspect whether this holds true. Since this function will plot **all** pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
 
 ```{r, results = "hide", fig.show = "hold", fig.keep = "last"}
 plot(rho99)
@@ -152,7 +154,7 @@ propr:::proprVLR(Y[, 1:4])
 propr:::proprVLR(X)
 ```
 
-Similarly, transformation of a count matrix by clr also makes the data *sub-compositionally coherent*. In the calculation of proportionality, we use the variance about the clr-transformed data to adjust the variance of the log-ratios (VLR). In other words, we divide the arbitrarily defined VLR by the variance of its individual constituents. In this way, the use of clr-transformed data shifts the VLR-matrix onto a "standardized" scale that compares across pairs.
+In the calculation of proportionality, we use the variance about the clr-transformed data to adjust the variance of the log-ratios (VLR). In other words, we divide the arbitrary VLR by the variance of its individual constituents. In this way, the use of clr-transformed data shifts the VLR-matrix onto a "standardized" scale that compares across pairs.
 
 In the next figures, we compare pairwise scatterplots for the clr-transformed absolute count data and the corresponding clr-transformed relative count data. While equivalent, we see a relationship between "c" and "d" that should not exist based on what we know from the non-transformed absolute count data. This relationship is ultimately reflected (at least partially) in the results of `phit` and `perb` alike.
 
