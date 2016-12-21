@@ -46,7 +46,7 @@ will receive a color if and only if both features belong
 to same the cluster (calculated using \code{hclust}).}
 
 \item{group}{A character vector. Group or sub-group memberships,
-ordered according to the column names in \code{@counts} and
+ordered according to the row names in \code{@counts} and
 \code{@logratio}. Required parameter for \code{bucket}
 and optional parameter for \code{mds}.}
 

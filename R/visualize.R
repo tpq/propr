@@ -87,7 +87,7 @@
 #'  However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
 #'  also accommodate results from \code{phit} and \code{phis}.
 #' @param group A character vector. Group or sub-group memberships,
-#'  ordered according to the column names in \code{@@counts} and
+#'  ordered according to the row names in \code{@@counts} and
 #'  \code{@@logratio}. Required parameter for \code{bucket}
 #'  and optional parameter for \code{mds}.
 #' @param k A numeric scalar. The number of clusters. Optional
