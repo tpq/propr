@@ -1,4 +1,4 @@
-## propr 2.1.0.9000
+## propr 2.1.1
 ---------------------
 * Modified `propr` Class
   * Merged `propr-class` and `propr` documentation
