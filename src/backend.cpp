@@ -399,7 +399,7 @@ NumericMatrix rhoToPhs(NumericMatrix & X){
   int nfeats = X.ncol();
   for(int i = 0; i < nfeats; i++){
     for(int j = 0; j < nfeats; j++){
-      X(i, j) = 1 - X(i, j);
+      X(i, j) = (1 - X(i, j)) / (1 + X(i, j));
     }
   }
 

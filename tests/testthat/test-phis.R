@@ -2,11 +2,12 @@ library(propr)
 context("phis")
 
 data(mail)
+lr <- propr:::clrRcpp(mail[])
 
 test_that("calculating phs from rho matches phis", {
 
   expect_equal(
-    1 - perb(mail)@matrix,
-    phis(mail)@matrix
+    var(lr[, 1] - lr[, 2]) / var(lr[, 1] + lr[, 2]),
+    phis(mail)@matrix[1, 2]
   )
 })

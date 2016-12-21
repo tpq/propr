@@ -4,7 +4,7 @@
   * Merged `propr-class` and `propr` documentation
 * Modified `phit`, `perb` functions
   * Merged `phit` and `perb` documentation
-  * New `phis` function returns `1 - rho`
+  * New `phis` function returns `(1 - rho) / (1 + rho)`
   * NAs in count matrix now throw error
   * 0s now replaced with 1s
 * Modified visualization tools

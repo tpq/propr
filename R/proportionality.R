@@ -9,7 +9,7 @@
 #' For phi, the result of \code{phit}, one can think of the resultant matrix as
 #' 	analogous to a distance matrix, except that it has no symmetry unless forced.
 #' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
-#' 	either a naturally symmetric variant of phi or as \code{1 - rho}.
+#' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
 #' 	For rho, the result of \code{perb}, one can think of the resultant matrix as
 #' 	analogous to a correlation matrix.
 #'
