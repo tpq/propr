@@ -1,4 +1,4 @@
-## propr 2.1.1.9000
+## propr 2.1.2
 ---------------------
 * Modified visualization tools
     * New `pca` function masks `mds` function
@@ -184,8 +184,8 @@
     * `subset` method
         * Subsets `propr` based on `@matrix` slot
     * `plot` method
-        * Plots pairwise *lr proportionality
+        * Plots pairwise lr proportionality
     * `dendrogram` method
-        * Plots clusters of *lr-transformed data
+        * Plots clusters of lr-transformed data
     * `image` method
-        * Plots heatmap of *lr-transformed data
+        * Plots heatmap of lr-transformed data
