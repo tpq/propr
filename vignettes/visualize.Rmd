@@ -81,10 +81,10 @@ top <- simplify(best)
 
 Compositional data are not distributed in Euclidean space, but rather exist in a space known as the Aitchison simplex (Fernandes 2014). The log-ratio transformation (stored in the `@logratio` slot), used when calculating proportionality, transforms the relative count data from the Aitchison simplex to Euclidean space, allowing us to summarize our data through conventional statistics.
 
-First, we look at `mds`, a function for visualizing multi-dimensional scaling (MDS). In this plot, we project the samples across the first two dimensions as reduced by principal components analysis (PCA). This is a valid implementation of MDS plotting for relative count data, built using log-ratio transformed data (Gloor 2016). The `group` argument allows us to color the sample IDs by group membership.
+First, we look at `pca`, a function for visualizing the samples across the first two dimensions as reduced by principal components analysis (PCA). This is a valid implementation of PCA plotting for relative count data, built using log-ratio transformed data (Gloor 2016). The `group` argument allows us to color the sample IDs by group membership.
 
 ```{r, results = "hide", message = FALSE, fig.keep = "last"}
-mds(top, group = caneToad.groups)
+pca(top, group = caneToad.groups)
 ```
 
 Second, we look at `snapshot`, a function for visualizing the intensity of the log-ratio transformed count data across samples. Heatmap intensity is not scaled.
@@ -123,10 +123,10 @@ We can extract co-cluster 4 from the `propr` object using the `subset` method.
 sub <- subset(top, select = (clusts == 4))
 ```
 
-Now, we can use the `mds` functions to see how well this cluster differentiates the two experimental groups based on unsupervised methods. We see below in the `mds` plot that projecting our samples across this highly proportional module leads good separation between the experimental groups. This matches the separation achieved in the source publication which used `edgeR` for feature selection (Rollins 2015).
+Now, we can use the `pca` functions to see how well this cluster differentiates the two experimental groups based on unsupervised methods. We see below in the `pca` plot that projecting our samples across this highly proportional module leads good separation between the experimental groups. This matches the separation achieved in the source publication which used `edgeR` for feature selection (Rollins 2015).
 
 ```{r, results = "hide", fig.keep = "last"}
-mds(sub, group = caneToad.groups)
+pca(sub, group = caneToad.groups)
 ```
 
 Having identified a cluster that separates the experimental groups, the next step in this pipeline might involve a gene set enrichment analysis (GSEA) of the transcripts participating in this highly proportional module. The application of GSEA is beyond the scope of this vignette. However, we show below how to extract the names of the transcripts that belong to this cluster.

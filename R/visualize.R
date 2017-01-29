@@ -43,12 +43,11 @@
 #'  measure of the proportionality between that feature pair.
 #'  "It's pronounced, 'bouquet'." - Hyacinth Bucket
 #'
-#' \code{mds:}
+#' \code{pca:}
 #'  Plots the first two principal components as calculated
 #'  using the log-ratio transformed feature vectors. This
 #'  provides a statistically valid alternative to
-#'  conventional principal components analysis (PCA) used
-#'  in multi-dimensional scaling (MDS) plotting.
+#'  conventional principal components analysis (PCA).
 #'  For more information, see <DOI:10.1139/cjm-2015-0821>.
 #'
 #' \code{snapshot:}
@@ -64,7 +63,7 @@
 #'  network visualization tool like Cytoscape.
 #'
 #' @return
-#' \code{smear, mds:}
+#' \code{smear, pca:}
 #'  Returns a \code{ggplot} object.
 #'
 #' \code{dendrogram, snapshot:}
@@ -89,7 +88,7 @@
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the row names in \code{@@counts} and
 #'  \code{@@logratio}. Required parameter for \code{bucket}
-#'  and optional parameter for \code{mds}.
+#'  and optional parameter for \code{pca}.
 #' @param k A numeric scalar. The number of clusters. Optional
 #'  parameter for \code{bucket}, \code{prism}, and \code{bokeh}.
 #'  Providing the argument \code{k} will color feature pairs
@@ -498,8 +497,6 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
   return(g)
 }
 
-#' @rdname visualize
-#' @export
 mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
   rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
@@ -518,7 +515,7 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
     ggplot2::theme_bw() +
     ggplot2::xlab("First Component") + ggplot2::ylab("Second Component") +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
-    ggplot2::ggtitle("*lr-transformed MDS Plot")
+    ggplot2::ggtitle("*lr-transformed PCA Plot")
 
   if(plotly){
 
@@ -533,6 +530,13 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
   }
 
   return(g)
+}
+
+#' @rdname visualize
+#' @export
+pca <- function(rho, group, prompt = TRUE, plotly = FALSE){
+
+  mds(rho, group = group, prompt = prompt, plotly = plotly)
 }
 
 #' @rdname visualize

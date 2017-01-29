@@ -5,7 +5,7 @@
 \alias{bucket}
 \alias{cytescape}
 \alias{dendrogram}
-\alias{mds}
+\alias{pca}
 \alias{prism}
 \alias{slate}
 \alias{smear}
@@ -25,7 +25,7 @@ prism(rho, k, prompt = TRUE, plotly = FALSE)
 
 bokeh(rho, k, prompt = TRUE, plotly = FALSE)
 
-mds(rho, group, prompt = TRUE, plotly = FALSE)
+pca(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
 
@@ -48,7 +48,7 @@ to same the cluster (calculated using \code{hclust}).}
 \item{group}{A character vector. Group or sub-group memberships,
 ordered according to the row names in \code{@counts} and
 \code{@logratio}. Required parameter for \code{bucket}
-and optional parameter for \code{mds}.}
+and optional parameter for \code{pca}.}
 
 \item{object, rho}{A \code{propr} object created from \code{perb}.
 However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
@@ -60,7 +60,7 @@ in at least this many total pairs. Required parameter
 for \code{cytescape}.}
 }
 \value{
-\code{smear, mds:}
+\code{smear, pca:}
  Returns a \code{ggplot} object.
 
 \code{dendrogram, snapshot:}
@@ -122,12 +122,11 @@ for \code{cytescape}.}
  measure of the proportionality between that feature pair.
  "It's pronounced, 'bouquet'." - Hyacinth Bucket
 
-\code{mds:}
+\code{pca:}
  Plots the first two principal components as calculated
  using the log-ratio transformed feature vectors. This
  provides a statistically valid alternative to
- conventional principal components analysis (PCA) used
- in multi-dimensional scaling (MDS) plotting.
+ conventional principal components analysis (PCA).
  For more information, see <DOI:10.1139/cjm-2015-0821>.
 
 \code{snapshot:}
