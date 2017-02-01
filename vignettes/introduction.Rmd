@@ -137,13 +137,16 @@ The following figures compare pairwise scatterplots for the absolute count data 
 
 ```{r, fig.show = "hold"}
 pairs(X)
+```
+
+```{r, fig.show = "hold"}
 pairs(Y)
 ```
 
 Next, we will see that when we do calculate correlation, the coefficients differ for the absolute and relative datasets. This further demonstrates the *spurious correlation*.
 
 ```{r, warning = FALSE}
-cor(X)
+suppressWarnings(cor(X))
 cor(Y)
 ```
 
@@ -160,6 +163,9 @@ In the next figures, we compare pairwise scatterplots for the clr-transformed ab
 
 ```{r, fig.show = "hold"}
 pairs(propr:::proprCLR(Y[, 1:4]))
+```
+
+```{r, fig.show = "hold"}
 pairs(propr:::proprCLR(X))
 ```
 
@@ -190,6 +196,9 @@ The following figures compare pairwise scatterplots for alr-transformed relative
 
 ```{r, fig.show = "hold"}
 pairs(propr:::proprALR(Y, ivar = 5))
+```
+
+```{r, fig.show = "hold"}
 pairs(X[, 1:4])
 ```
 
@@ -230,6 +239,6 @@ Although we developed this package with biological count data in mind, many of t
 
 ## References
 
-1. Erb, Ionas, and Cedric Notredame. “How Should We Measure Proportionality on Relative Gene Expression Data?” Theory in Biosciences = Theorie in Den Biowissenschaften 135, no. 1–2 (June 2016): 21–36. \doi{10.1007/s12064-015-0220-8}.
+1. Erb, Ionas, and Cedric Notredame. “How Should We Measure Proportionality on Relative Gene Expression Data?” Theory in Biosciences = Theorie in Den Biowissenschaften 135, no. 1-2 (June 2016): 21-36. \doi{10.1007/s12064-015-0220-8}.
 
 2. Lovell, David, Vera Pawlowsky-Glahn, Juan José Egozcue, Samuel Marguerat, and Jürg Bähler. “Proportionality: A Valid Alternative to Correlation for Relative Data.” PLoS Computational Biology 11, no. 3 (March 2015): e1004075. \doi{10.1371/journal.pcbi.1004075}.

@@ -9,7 +9,6 @@ citEntry(entry = "Article",
                                    as.person("Tamsyn Crowley")),
          journal      = "bioRxiv",
          year         = "2017",
-         url          = "http://dx.doi.org/10.1101/104935",
 
          textVersion  =
            paste("Quinn T, Richardson MF, Lovell D, Crowley T (2017)",
@@ -29,7 +28,6 @@ citEntry(entry = "Article",
          year         = "2015",
          volume       = "11",
          number       = "3",
-         url          = "http://dx.doi.org/10.1371/journal.pcbi.1004075",
 
          textVersion  =
            paste("Lovell D, Pawlowsky-Glahn V, Egozcue JJ,",
@@ -46,7 +44,6 @@ citEntry(entry = "Article",
          year         = "2016",
          volume       = "135",
          number       = "1",
-         url          = "http://dx.doi.org/10.1007/s12064-015-0220-8",
 
          textVersion  =
            paste("Erb I, Notredame C (2016) How should we measure proportionality",
