@@ -1,0 +1,55 @@
+citHeader("To cite propr in publications use:")
+
+citEntry(entry = "Article",
+         title        = paste("propr: An R-package for Identifying Proportionally Abundant",
+                              "Features Using Compositional Data Analysis"),
+         author       = personList(as.person("Thomas Quinn"),
+                                   as.person("Mark F. Richardson"),
+                                   as.person("David Lovell"),
+                                   as.person("Tamsyn Crowley")),
+         journal      = "bioRxiv",
+         year         = "2017",
+         url          = "http://dx.doi.org/10.1101/104935",
+
+         textVersion  =
+           paste("Quinn T, Richardson MF, Lovell D, Crowley T (2017)",
+                 "propr: An R-package for Identifying Proportionally",
+                 "Abundant Features Using Compositional Data Analysis.",
+                 "bioRxiv: doi:10.1101/104935")
+)
+
+citEntry(entry = "Article",
+         title        = "Proportionality: A Valid Alternative to Correlation for Relative Data",
+         author       = personList(as.person("David Lovell"),
+                                   as.person("Vera Pawlowsky-Glahn"),
+                                   as.person("Juan Jose Egozcue"),
+                                   as.person("Samuel Marguerat"),
+                                   as.person("Jurg Bahler")),
+         journal      = "PLoS Computational Biology",
+         year         = "2015",
+         volume       = "11",
+         number       = "3",
+         url          = "http://dx.doi.org/10.1371/journal.pcbi.1004075",
+
+         textVersion  =
+           paste("Lovell D, Pawlowsky-Glahn V, Egozcue JJ,",
+                 "Marguerat S, Bahler J (2015) Proportionality: A Valid",
+                 "Alternative to Correlation for Relative Data. PLoS",
+                 "Comput Biol 11(3): doi:10.1371/journal.pcbi.1004075")
+)
+
+citEntry(entry = "Article",
+         title        = "How should we measure proportionality on relative gene expression data?",
+         author       = personList(as.person("Ionas Erb"),
+                                   as.person("Cedric Notredame")),
+         journal      = "Theory in Biosciences",
+         year         = "2016",
+         volume       = "135",
+         number       = "1",
+         url          = "http://dx.doi.org/10.1007/s12064-015-0220-8",
+
+         textVersion  =
+           paste("Erb I, Notredame C (2016) How should we measure proportionality",
+                 "on relative gene expression data? Theory Biosci 135(1):",
+                 "doi:10.1007/s12064-015-0220-8")
+)

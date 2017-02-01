@@ -2,6 +2,7 @@
 ---------------------
 * Modified visualization tools
     * New `pca` function masks `mds` function
+* Include inst/CITATION file
 
 ## propr 2.1.1
 ---------------------
