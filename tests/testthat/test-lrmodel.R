@@ -1,7 +1,6 @@
 library(propr)
 context("lrmodel")
 
-library(propr)
 data(mail)
 rho <- perb(mail)
 
