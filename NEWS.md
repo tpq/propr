@@ -1,6 +1,9 @@
 ## propr 2.1.2.9000
 ---------------------
-* []
+* Modified backend code
+    * New `backend.h` allows import of `backend.cpp`
+    * New `lr2` functions calculate proportionality
+        * Uses log-ratio transformed counts as input
 
 ## propr 2.1.2
 ---------------------

@@ -65,3 +65,19 @@ rhoToPhs <- function(X) {
     .Call('propr_rhoToPhs', PACKAGE = 'propr', X)
 }
 
+lr2vlr <- function(lr) {
+    .Call('propr_lr2vlr', PACKAGE = 'propr', lr)
+}
+
+lr2phi <- function(lr) {
+    .Call('propr_lr2phi', PACKAGE = 'propr', lr)
+}
+
+lr2rho <- function(lr) {
+    .Call('propr_lr2rho', PACKAGE = 'propr', lr)
+}
+
+lr2phs <- function(lr) {
+    .Call('propr_lr2phs', PACKAGE = 'propr', lr)
+}
+
