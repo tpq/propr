@@ -7,7 +7,8 @@ Authors@R: c(
     person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
     person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut"),
     person("Anders", "Bilgrau", email = "anders.ellern.bilgrau@gmail.com", role = "ctb"),
-    person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "ctb")
+    person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "ctb"),
+    person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb")
     )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, this approach lacks statistical validity
@@ -34,6 +35,7 @@ Imports:
     stats,
     utils
 Suggests:
+    ALDEx2,
     cccrm,
     compositions,
     data.table,

@@ -1,0 +1,46 @@
+library(propr)
+context("aldex2propr")
+
+library(ALDEx2)
+data(mail)
+x <- aldex.clr(as.data.frame(t(mail)))
+
+codaSeq.phi <- function(aldex.clr){
+
+  propr.phisym <- function (X){
+
+    Cov    <- stats::var(X)
+    tmp    <- 2 * Cov / outer(diag(Cov), diag(Cov), "+")
+
+    return((1-tmp)/(1+tmp))
+  }
+
+  sym.phi <- propr.phisym(t(sapply(getMonteCarloInstances(aldex.clr),
+                                   function(y){y[,1]})))
+
+  for(i in 2:numMCInstances(aldex.clr)){
+    sym.phi <- sym.phi + propr.phisym(t(sapply(getMonteCarloInstances(aldex.clr),
+                                               function(y){y[,i]})))
+  }
+
+  lt <- which(col(sym.phi)<row(sym.phi), arr.ind=FALSE)
+  lt.ind <- which(col(sym.phi)<row(sym.phi), arr.ind=TRUE)
+  sma.df <- data.frame(row=factor(rownames(sym.phi)[lt.ind[,"row"]]),
+                       col=factor(colnames(sym.phi)[lt.ind[,"col"]]), stringsAsFactors=FALSE)
+  sma.df$phi <- sym.phi[lt] /  numMCInstances(aldex.clr)
+
+  return(sma.df)
+}
+
+test_that("aldex2propr matches codaSeq implementation", {
+
+  expect_equal(
+    as.vector(propr.phisym(propr:::clrRcpp(mail[]))),
+    as.vector(phis(mail)@matrix)
+  )
+
+  expect_equal(
+    sort(as.vector(codaSeq.phi(x)$phi)),
+    sort(propr:::lltRcpp(aldex2propr(x, how = "phis")@matrix))
+  )
+})
