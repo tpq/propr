@@ -27,7 +27,7 @@ The \code{ALDEx2} package has two exceptional features useful
  a number of additional log-ratio transformations, toggled
  by the \code{denom} argument in \code{aldex.clr}. Second,
  \code{ALDEx2} estimates per-feature technical variation
- within each feature using Monte-Carlo instances drawn
+ within each sample using Monte-Carlo instances drawn
  from the Dirichlet distribution.
 
 The \code{aldex2propr} function takes advantage of both
