@@ -2,6 +2,7 @@
 
 export(abstract)
 export(adjacent)
+export(aldex2propr)
 export(bokeh)
 export(bucket)
 export(cytescape)

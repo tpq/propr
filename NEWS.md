@@ -1,5 +1,7 @@
 ## propr 2.1.2.9000
 ---------------------
+* New `aldex2propr` function converts`aldex.clr` object
+    * Uses Monte Carlo instances from `ALDEx2` package
 * Modified backend code
     * New `backend.h` allows import of `backend.cpp`
     * New `lr2` functions calculate proportionality
