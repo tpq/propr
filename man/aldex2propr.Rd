@@ -23,10 +23,10 @@ This method constructs a \code{propr} object from an
 }
 \details{
 The \code{ALDEx2} package has two exceptional features useful
- for proportionality analysis too. First, \code{ALDEx2} offers
- a number of log-ratio transformations, toggled by the
- \code{denom} argument in \code{aldex.clr}. Second,
- this package estimates per-feature technical variation
+ in proportionality analysis too. First, \code{ALDEx2} offers
+ a number of additional log-ratio transformations, toggled
+ by the \code{denom} argument in \code{aldex.clr}. Second,
+ \code{ALDEx2} estimates per-feature technical variation
  within each feature using Monte-Carlo instances drawn
  from the Dirichlet distribution.
 

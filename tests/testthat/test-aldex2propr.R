@@ -5,15 +5,15 @@ library(ALDEx2)
 data(mail)
 x <- aldex.clr(as.data.frame(t(mail)))
 
+propr.phisym <- function (X){
+
+  Cov    <- stats::var(X)
+  tmp    <- 2 * Cov / outer(diag(Cov), diag(Cov), "+")
+
+  return((1-tmp)/(1+tmp))
+}
+
 codaSeq.phi <- function(aldex.clr){
-
-  propr.phisym <- function (X){
-
-    Cov    <- stats::var(X)
-    tmp    <- 2 * Cov / outer(diag(Cov), diag(Cov), "+")
-
-    return((1-tmp)/(1+tmp))
-  }
 
   sym.phi <- propr.phisym(t(sapply(getMonteCarloInstances(aldex.clr),
                                    function(y){y[,1]})))
