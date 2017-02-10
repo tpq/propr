@@ -57,18 +57,20 @@ aldex2propr <- function(aldex.clr, how = "perb"){
     stop("Provided 'how' not recognized.")
   }
 
-  # Keep running sum of propr instances
+  # Keep a running sum of propr instances
   mc <- ALDEx2::getMonteCarloInstances(aldex.clr)
   k <- ALDEx2::numMCInstances(aldex.clr)
   logratio <- 0
   prop <- 0
   for(i in 1:k){
 
+    cat(paste0(i, "..."))
     mci_lr <- t(sapply(mc, function(x) x[, i]))
     logratio <- logratio + mci_lr
     prop.i <- do.call(how, list("lr" = mci_lr))
     prop <- prop + prop.i
   }
+  cat("\n")
 
   # Clean up NAs in the case of denom = 1
   prop[is.na(prop)] <- ifelse(how == "lr2rho", 1, 0)
