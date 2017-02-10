@@ -2,10 +2,12 @@
 ---------------------
 * New `aldex2propr` function converts`aldex.clr` object
     * Uses Monte Carlo instances from `ALDEx2` package
+* New `lr2cor` and `aldex.cor` functions
+    * Measures feature associations with continuous variables
 * Modified backend code
     * New `backend.h` allows import of `backend.cpp`
     * New `lr2` functions calculate proportionality
-        * Uses log-ratio transformed counts as input
+        * Input log-ratio transformed counts
 
 ## propr 2.1.2
 ---------------------

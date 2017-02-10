@@ -2,11 +2,13 @@
 
 export(abstract)
 export(adjacent)
+export(aldex.cor)
 export(aldex2propr)
 export(bokeh)
 export(bucket)
 export(cytescape)
 export(dendrogram)
+export(lr2cor)
 export(modelCLR)
 export(pca)
 export(perb)
