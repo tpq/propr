@@ -1,0 +1,131 @@
+---
+title: "Hypothesis Testing with Proportionality"
+author: "Thom Quinn"
+date: "June 22, 2016"
+output: pdf
+---
+
+## Overview
+
+With the `propr` package, we have a tool set to easily calculate proportionality metrics (&phi and &rho) which offer a kind of measurement for how well two log-ratio transformed variables relate to one another. Unlike correlation-based metrics, proportionality analysis yields the same results when applied to absolute data and relative data alike.
+
+In this notebook, I highlight the problem with our current implementation of proportionality analysis, as well as speculate how we could extend our method. Namely, I will cite established correlation-based hypothesis testing in order to raise the to raise the question as to whether these approaches might also apply to proportionality metrics.
+
+### Current limitations
+
+Up to now, when calculating the proportionality between two features (i.e., genes), we have used the entire subject vector. This results in a single metric that indicates the degree to which two features behave proportionally across all subjects. This approach makes sense for some data architectures, for example when analyzing a gene expression time series of cloned cells undergoing identical treatment. However, with an increasing number of confounding variables, genes may show highly proportional behavior for a reason irrelevant to the experimental question.
+
+In extending the `propr` software package, we then ask how we can identify which genes show proportionality across an independent variable of interest? In simplifying this problem to one independent variable measured as a binary (A or B), we would like to know whether two genes ($X_i$ and $X_j$) show differential proportionality between groups A and B. Symbolically, does $\rho(X_Ai, X_Aj) = \rho(X_Bi, X_Bj)$?
+
+### Calculating &rho
+
+For this discussion, I will make use of the publicly available Golub dataset. This dataset contains gene expression data as measured by microarray using the blood of patients diagnosed with either acute lymphocytic leukemia (ALL) or acute myelogenous leukemia (AML). We can import the data as an `eSet` object using the `golubEsets` package from Bioconductor.
+
+```{r, eval = FALSE}
+library(devtools)
+devtools::install_github("tpq/propr")
+library(propr)
+```
+
+```{r, eval = FALSE}
+# How to install golubEsets
+library(golubEsets)
+```
+
+```{r, echo = FALSE}
+library(propr)
+library(golubEsets)
+```
+
+In the analysis of the Golub dataset, investigators typically apply a series of filters to clean the data. However, for the purpose of this discussion, we will simply filter out all gene expression values with any negative recordings.
+
+```{r}
+# Extract data from Golub_Merge
+data(Golub_Merge)
+data.pheno <- Golub_Merge@phenoData@data
+data.exprs <- Biobase::exprs(Golub_Merge)
+
+# Include only features with positive expression
+postv <- apply(data.exprs, 1, function(row) all(row > 0))
+data.subset <- data.exprs[postv, ]
+```
+
+The `propr` package allows us to calculate proportionality between all feature vectors comprising a supplied gene expression matrix. The expected format for the supplied matrix should have features (i.e., genes) as rows and subjects (or replications) as columns.
+
+```{r}
+rho <- propr::perb(data.subset)
+```
+
+### Bivariate distributions
+
+Let us visualize how the expression two randomly selected genes vary to one another.
+
+```{r}
+set.seed(1235)
+ind <- sample(1:nrow(data.subset), 2)
+kde <- MASS::kde2d(data.subset[ind[1], ], data.subset[ind[2], ])
+image(kde)
+points(data.subset[i, ], data.subset[j, ], pch = 18)
+contour(kde, add = TRUE)
+```
+
+Since we use the log-ratio transformed (*lr-) feature vectors when calculating proportionality, we should likewise inspect how the *lr-features vary with one another.
+
+```{r}
+a <- rownames(data.subset)[ind[1]]
+b <- rownames(data.subset)[ind[2]]
+kde <- MASS::kde2d(as.numeric(rho@logratio[a, ]),
+                   as.numeric(rho@logratio[b, ]))
+image(kde)
+points(rho@logratio[a, ], rho@logratio[b, ])
+contour(kde, add = TRUE)
+```
+
+We can then perform Mardia's multivariate normality test to test the assumption of joint normality.
+
+```{r}
+data <- t(rho@logratio[c(a, b), ])
+MVN::mardiaTest(data, qqplot = TRUE)
+```
+
+```{r}
+data <- t(rho@logratio[c(a, b), ])
+MVN::roystonTest(data, qqplot = TRUE)
+```
+
+Maybe not. Consider the following section in light of the fact that we need to replace Fisher's Z-transformation with a non-normal alternative. See (a) Spearman rank-order and (b) RIN transformation as alternatives ([Bishara 2016](http://www.ncbi.nlm.nih.gov/pubmed/26822671)).
+
+### Fisher's Z-transformation
+
+Fisher established a method for hypothesis testing with correlation metrics. Where $r$ equals the correlation between the two variables, $X_i$ and $X_j$, Fisher defines the Z-transformation of r as $z' = atanh(r)$. He then defines the standard deviation about $z$ as $\sigma_z' = \frac{1}{\sqrt{N - 3}}$.
+
+The question I raise is whether we can apply Z-transformation to the proportionality metric, &rho, using the same standard deviation about $z'$ defined above.
+
+```{r}
+# Extract unique rho from propr object
+mat <- propr:::proprTri(rho@matrix)
+
+# Let r equal the correlation between X_i and X_j,
+#  Fisher defined a z-transformation z' = atanh(r)
+z.prime <- atanh(mat)
+plot(density(z.prime))
+
+# Let r equal the correlation between X_i and X_j,
+#  According to Fisher, sd_z' = 1 / sqrt(N - 3)
+1 / sqrt(ncol(data.subset) - 3)
+```
+
+If so, by determining the Z-transformed proportionality values, $z'_A$ and $z'_B$, between two variables, $X_i$ and $X_j$, for two independent groups, A and B, we can calculate the probability that $z'_A$ and $z'_B$ derive from separate probability distributions. For example, where A is the set of case subjects and B is the set of control subjects, we can calculate the probability that variables $X_i$ and $X_j$ show differential proportionality across the treatment groups. Ultimately, we would likely use this information to cluster "significant" feature pairs in order to find clusters of features coordinately altered by the "case" variable.
+
+```{r, eval = FALSE}
+data.subALL <- data.subset[, data.pheno$ALL.AML == "ALL"]
+data.subAML <- data.subset[, data.pheno$ALL.AML == "AML"]
+
+rho.all <- propr::perb(data.subALL)
+rho.aml <- propr::perb(data.subAML)
+
+rho.all_ij <- rho.all@matrix[a, b]
+rho.aml_ij <- rho.aml@matrix[a, b]
+```
+
+Otherwise, could we take a similar approach with slight adjustments to the Fisher's Z-transformation and standard deviation formulae? If so, we could even extend this principle further to accomodate even more elaborate experimental designs (i.e., other than the binary case-control construct).
