@@ -59,7 +59,7 @@ aldex.cor <- function(clr, conditions){
   r <- 0
   for(i in 1:k){
 
-    cat(paste0(i, "... "))
+    cat(paste0(i, "..."))
     mci_lr <- t(sapply(mc, function(x) x[, i]))
     r <- r + lr2cor(mci_lr, conditions)$r
   }
