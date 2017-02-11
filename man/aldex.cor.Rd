@@ -14,9 +14,10 @@ aldex.cor(clr, conditions)
 \value{
 Returns a data.frame of the average
  Pearson's correlation coefficient (\code{r}),
- Fisher's z-transformation (\code{z}), and p-value
- (\code{p}) for each feature across all
- Monte Carlo instances.
+ a Fisher's z-transformation (\code{z}) of this
+ average, and the associated p-value (\code{p})
+ for each feature across all Monte Carlo
+ instances.
 }
 \description{
 This function uses the Monte Carlo instances from an
