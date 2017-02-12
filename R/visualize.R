@@ -601,7 +601,7 @@ cytescape <- function(object, minPairs = 2){
   df <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
 
   # Remove extraneous pairs
-  keep <- which(table(c(df$Partner, df$Pair)) >= minPairs)
+  keep <- names(which(table(c(df$Partner, df$Pair)) >= minPairs))
   sub <- df[df$Partner %in% keep | df$Pair %in% keep, ]
 
   # Build and color igraph
