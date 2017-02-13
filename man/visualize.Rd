@@ -29,7 +29,7 @@ pca(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
 
-cytescape(object, minPairs = 2)
+cytescape(object)
 }
 \arguments{
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
@@ -53,11 +53,6 @@ and optional parameter for \code{pca}.}
 \item{object, rho}{A \code{propr} object created from \code{perb}.
 However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
 also accommodate results from \code{phit} and \code{phis}.}
-
-\item{minPairs}{An integer scalar. Subsets the interaction
-network to exclude any pair without a node that participates
-in at least this many total pairs. Required parameter
-for \code{cytescape}.}
 }
 \value{
 \code{smear, pca:}

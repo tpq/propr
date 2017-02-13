@@ -1,4 +1,4 @@
-## propr 2.1.2.9000
+## propr 2.1.3
 ---------------------
 * New `aldex2propr` function converts`aldex.clr` object
     * Uses Monte Carlo instances from `ALDEx2` package
@@ -8,6 +8,8 @@
     * New `backend.h` allows import of `backend.cpp`
     * New `lr2` functions calculate proportionality
         * Input log-ratio transformed counts
+* Modified visualization tools
+    * Removed `minPairs` argument from `cytescape`
 
 ## propr 2.1.2
 ---------------------

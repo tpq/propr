@@ -99,10 +99,6 @@
 #'  the courtesy prompt when working with big data.
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
 #'  a dynamic plot using the \code{plotly} package.
-#' @param minPairs An integer scalar. Subsets the interaction
-#'  network to exclude any pair without a node that participates
-#'  in at least this many total pairs. Required parameter
-#'  for \code{cytescape}.
 #'
 #' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist
 #' @name visualize
@@ -586,7 +582,7 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
 #' @rdname visualize
 #' @export
-cytescape <- function(object, minPairs = 2){
+cytescape <- function(object){
 
   packageCheck("igraph")
 
@@ -595,17 +591,11 @@ cytescape <- function(object, minPairs = 2){
     stop("Uh oh! This function requires an indexed 'propr' object.")
   }
 
-  # Prepare data
   rho <- object@matrix[object@pairs]
   coords <- indexToCoord(object@pairs, nrow(object@matrix))
-  df <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
-
-  # Remove extraneous pairs
-  keep <- names(which(table(c(df$Partner, df$Pair)) >= minPairs))
-  sub <- df[df$Partner %in% keep | df$Pair %in% keep, ]
+  sub <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
 
   # Build and color igraph
-  if(nrow(sub) == 0) stop("No pairs remain after filter.")
   g <- igraph::graph_from_data_frame(sub, directed = FALSE)
   igraph::V(g)$color <- "white"
   colors <- rep("yellow", nrow(sub))
