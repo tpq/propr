@@ -1,3 +1,7 @@
+## propr 2.1.3.9000
+---------------------
+* Add `progress` bar to `aldex2propr` and `aldex2cor`
+
 ## propr 2.1.3
 ---------------------
 * New `aldex2propr` function converts`aldex.clr` object
