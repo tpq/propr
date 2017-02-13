@@ -59,11 +59,10 @@ aldex.cor <- function(clr, conditions){
   r <- 0
   for(i in 1:k){
 
-    cat(paste0(i, "..."))
+    numTicks <- progress(i, k, numTicks)
     mci_lr <- t(sapply(mc, function(x) x[, i]))
     r <- r + lr2cor(mci_lr, conditions)$r
   }
-  cat("\n")
 
   r <- r / k
   z <- atanh(r)
