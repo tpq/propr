@@ -29,7 +29,7 @@ pca(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
 
-cytescape(object)
+cytescape(object, col1, col2)
 }
 \arguments{
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
@@ -53,6 +53,10 @@ and optional parameter for \code{pca}.}
 \item{object, rho}{A \code{propr} object created from \code{perb}.
 However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
 also accommodate results from \code{phit} and \code{phis}.}
+
+\item{param}{col1,col2 A character vector. Specifies which nodes
+to color \code{purple} or \code{orange}, respectively.
+Optional parameter for \code{cytescape}.}
 }
 \value{
 \code{smear, pca:}

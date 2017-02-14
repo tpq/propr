@@ -99,6 +99,9 @@
 #'  the courtesy prompt when working with big data.
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
 #'  a dynamic plot using the \code{plotly} package.
+#' @param param col1,col2 A character vector. Specifies which nodes
+#'  to color \code{purple} or \code{orange}, respectively.
+#'  Optional parameter for \code{cytescape}.
 #'
 #' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist
 #' @name visualize
@@ -582,7 +585,7 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
 #' @rdname visualize
 #' @export
-cytescape <- function(object){
+cytescape <- function(object, col1, col2){
 
   packageCheck("igraph")
 
@@ -591,20 +594,22 @@ cytescape <- function(object){
     stop("Uh oh! This function requires an indexed 'propr' object.")
   }
 
+  promptCheck(length(object@pairs))
+
   rho <- object@matrix[object@pairs]
   coords <- indexToCoord(object@pairs, nrow(object@matrix))
   sub <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
 
-  # Build and color igraph
-  g <- igraph::graph_from_data_frame(sub, directed = FALSE)
-  igraph::V(g)$color <- "white"
-  colors <- rep("yellow", nrow(sub))
-  colors[sub$rho > .25] <- "orange"
-  colors[sub$rho > .75] <- "red"
-  colors[sub$rho < -.25] <- "green"
-  colors[sub$rho < -.75] <- "blue"
-  igraph::E(g)$color <- colors
-  plot(g, vertex.size = 2, vertex.label = NA)
+  g <- igraph::make_empty_graph(directed = FALSE)
+  g <- migraph.add(g, partners, pairs)
+  g <- migraph.color(g, sub$Partner[sub$rho > .95, ], sub$Pair[sub$rho > .95, ], "pink")
+  g <- migraph.color(g, sub$Partner[sub$rho > .98, ], sub$Pair[sub$rho > .98, ], "red")
+  g <- migraph.color(g, sub$Partner[sub$rho < -.95, ], sub$Pair[sub$rho < -.95, ], "lightblue")
+  g <- migraph.color(g, sub$Partner[sub$rho < -.98, ], sub$Pair[sub$rho < -.98, ], "blue")
+  if(!missing(col1)) g <- migraph.color(g, col1, col = "purple")
+  if(!missing(col2)) g <- migraph.color(g, col2, col = "orange")
+  g <- migraph.clean(g)
+  plot(g)
 
   # Retrieve node names
   names <- colnames(object@logratio)
