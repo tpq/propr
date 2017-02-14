@@ -99,7 +99,7 @@
 #'  the courtesy prompt when working with big data.
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
 #'  a dynamic plot using the \code{plotly} package.
-#' @param param col1,col2 A character vector. Specifies which nodes
+#' @param col1,col2 A character vector. Specifies which nodes
 #'  to color \code{purple} or \code{orange}, respectively.
 #'  Optional parameter for \code{cytescape}.
 #'

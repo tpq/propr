@@ -54,7 +54,7 @@ and optional parameter for \code{pca}.}
 However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
 also accommodate results from \code{phit} and \code{phis}.}
 
-\item{param}{col1,col2 A character vector. Specifies which nodes
+\item{col1, col2}{A character vector. Specifies which nodes
 to color \code{purple} or \code{orange}, respectively.
 Optional parameter for \code{cytescape}.}
 }
