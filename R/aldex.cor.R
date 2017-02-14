@@ -26,7 +26,7 @@ lr2cor <- function(lr, conditions){
   r <- apply(lr, 2, cor, conditions)
   z <- atanh(r)
   sd <- 1/sqrt(length(conditions) - 3)
-  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE)
+  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE) * 2
 
   data.frame(r, z, p)
 }
@@ -67,7 +67,7 @@ aldex.cor <- function(clr, conditions){
   r <- r / k
   z <- atanh(r)
   sd <- 1/sqrt(length(conditions) - 3)
-  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE)
+  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE) * 2
 
   data.frame(r, z, p,
              row.names = colnames(mci_lr))
