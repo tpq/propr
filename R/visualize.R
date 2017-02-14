@@ -585,7 +585,7 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
 #' @rdname visualize
 #' @export
-cytescape <- function(object, col1, col2){
+cytescape <- function(object, col1, col2, prompt = TRUE){
 
   packageCheck("igraph")
 
@@ -594,29 +594,25 @@ cytescape <- function(object, col1, col2){
     stop("Uh oh! This function requires an indexed 'propr' object.")
   }
 
-  promptCheck(length(object@pairs))
+  if(prompt) promptCheck(length(object@pairs))
 
   rho <- object@matrix[object@pairs]
   coords <- indexToCoord(object@pairs, nrow(object@matrix))
-  sub <- data.frame("Partner" = coords[[1]], "Pair" = coords[[2]], rho)
+  names <- colnames(object@logratio)
+  sub <- data.frame("Partner" = names[coords[[1]]],
+                    "Pair" = names[coords[[2]]], rho,
+                    stringsAsFactors = FALSE)
 
   g <- igraph::make_empty_graph(directed = FALSE)
-  g <- migraph.add(g, partners, pairs)
-  g <- migraph.color(g, sub$Partner[sub$rho > .95, ], sub$Pair[sub$rho > .95, ], "pink")
-  g <- migraph.color(g, sub$Partner[sub$rho > .98, ], sub$Pair[sub$rho > .98, ], "red")
-  g <- migraph.color(g, sub$Partner[sub$rho < -.95, ], sub$Pair[sub$rho < -.95, ], "lightblue")
-  g <- migraph.color(g, sub$Partner[sub$rho < -.98, ], sub$Pair[sub$rho < -.98, ], "blue")
+  g <- migraph.add(g, sub$Partner, sub$Pair)
+  g <- migraph.color(g, sub$Partner[sub$rho > .95], sub$Pair[sub$rho > .95], "pink")
+  g <- migraph.color(g, sub$Partner[sub$rho > .98], sub$Pair[sub$rho > .98], "red")
+  g <- migraph.color(g, sub$Partner[sub$rho < -.95], sub$Pair[sub$rho < -.95], "lightblue")
+  g <- migraph.color(g, sub$Partner[sub$rho < -.98], sub$Pair[sub$rho < -.98], "blue")
   if(!missing(col1)) g <- migraph.color(g, col1, col = "purple")
   if(!missing(col2)) g <- migraph.color(g, col2, col = "orange")
   g <- migraph.clean(g)
   plot(g)
-
-  # Retrieve node names
-  names <- colnames(object@logratio)
-  if(!is.null(names)){
-    sub$Partner <- names[sub$Partner]
-    sub$Pair <- names[sub$Pair]
-  }
 
   return(sub)
 }

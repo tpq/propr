@@ -29,7 +29,7 @@ pca(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
 
-cytescape(object, col1, col2)
+cytescape(object, col1, col2, prompt = TRUE)
 }
 \arguments{
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable

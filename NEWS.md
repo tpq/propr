@@ -4,7 +4,7 @@
 * Penalize `lr2cor` and `aldex.cor` p-values for two-tailed test
 * Add the `migraph` module to help make `igraph` networks
 * Modified visualization tools
-    * Rebuild `cytescape` using `migraph` module
+    * Rebuilt `cytescape` using `migraph` module
 
 ## propr 2.1.3
 ---------------------
