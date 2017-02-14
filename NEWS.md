@@ -1,4 +1,4 @@
-## propr 2.1.3.9000
+## propr 2.1.4
 ---------------------
 * Add `progress` bar to `aldex2propr` and `aldex.cor`
 * Penalize `lr2cor` and `aldex.cor` p-values for two-tailed test
