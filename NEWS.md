@@ -1,6 +1,7 @@
-## propr 2.1.4.9000
+## propr 2.1.5
 ---------------------
 * Stop exporting `progress` and `migraph` functions
+* Color `cytescape` edges correctly when plotting phi or phs
 
 ## propr 2.1.4
 ---------------------

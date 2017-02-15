@@ -605,10 +605,24 @@ cytescape <- function(object, col1, col2, prompt = TRUE){
 
   g <- igraph::make_empty_graph(directed = FALSE)
   g <- migraph.add(g, sub$Partner, sub$Pair)
-  g <- migraph.color(g, sub$Partner[sub$rho > .95], sub$Pair[sub$rho > .95], "pink")
-  g <- migraph.color(g, sub$Partner[sub$rho > .98], sub$Pair[sub$rho > .98], "red")
-  g <- migraph.color(g, sub$Partner[sub$rho < -.95], sub$Pair[sub$rho < -.95], "lightblue")
-  g <- migraph.color(g, sub$Partner[sub$rho < -.98], sub$Pair[sub$rho < -.98], "blue")
+
+  if(object@matrix[1, 1] == 0){
+
+    g <- migraph.color(g, sub$Partner[sub$rho < .1], sub$Pair[sub$rho < .1], "pink")
+    g <- migraph.color(g, sub$Partner[sub$rho < .05], sub$Pair[sub$rho < .05], "red")
+
+  }else if(object@matrix[1, 1] == 1){
+
+    g <- migraph.color(g, sub$Partner[sub$rho > .95], sub$Pair[sub$rho > .95], "pink")
+    g <- migraph.color(g, sub$Partner[sub$rho > .98], sub$Pair[sub$rho > .98], "red")
+    g <- migraph.color(g, sub$Partner[sub$rho < -.95], sub$Pair[sub$rho < -.95], "lightblue")
+    g <- migraph.color(g, sub$Partner[sub$rho < -.98], sub$Pair[sub$rho < -.98], "blue")
+
+  }else{
+
+    stop("Matrix not recognized.")
+  }
+
   if(!missing(col1)) g <- migraph.color(g, col1, col = "purple")
   if(!missing(col2)) g <- migraph.color(g, col2, col = "orange")
   g <- migraph.clean(g)
