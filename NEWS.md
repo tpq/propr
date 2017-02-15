@@ -1,3 +1,7 @@
+## propr 2.1.4.9000
+---------------------
+* Stop exporting `progress` and `migraph` functions
+
 ## propr 2.1.4
 ---------------------
 * Add `progress` bar to `aldex2propr` and `aldex.cor`

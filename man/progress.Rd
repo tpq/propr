@@ -14,7 +14,7 @@ progress(i, k, numTicks)
 \item{numTicks}{The result of \code{progress}.}
 }
 \value{
-The recursive \code{numTicks} argument.
+The next \code{numTicks} argument.
 }
 \description{
 Make Progress Bar

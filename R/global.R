@@ -3,10 +3,7 @@
 #' @param i The current iteration.
 #' @param k Total iterations.
 #' @param numTicks The result of \code{progress}.
-#'
-#' @return The recursive \code{numTicks} argument.
-#'
-#' @export
+#' @return The next \code{numTicks} argument.
 progress <- function(i, k, numTicks){
 
   if(i == 1) numTicks <- 0
