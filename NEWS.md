@@ -2,10 +2,11 @@
 ---------------------
 * Stop exporting `progress` and `migraph` functions
 * Color `cytescape` edges correctly when plotting phi or phs
+* Add `progress` bar to `smear` function
 
 ## propr 2.1.4
 ---------------------
-* Add `progress` bar to `aldex2propr` and `aldex.cor`
+* Add `progress` bar to `aldex2propr` and `aldex.cor` functions
 * Penalize `lr2cor` and `aldex.cor` p-values for two-tailed test
 * Add the `migraph` module to help make `igraph` networks
 * Modified visualization tools

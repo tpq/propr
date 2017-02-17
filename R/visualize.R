@@ -131,15 +131,16 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
 
   # Melt *lr counts by feature pairs
   nsubj <- nrow(rho@logratio)
-  L <- length(V) * nsubj
+  Vlen <- length(V)
+  L <- Vlen * nsubj
   partner <- vector("character", L)
   pair <- vector("character", L)
   feat1 <- vector("numeric", L)
   feat2 <- vector("numeric", L)
-  group <- vector("numeric", length(V) * nsubj)
-  for(i in 1:length(V)){
+  group <- vector("numeric", Vlen * nsubj)
+  for(i in 1:Vlen){
 
-    cat("Shaping pair ", i, "...", sep = "")
+    numTicks <- progress(i, Vlen, numTicks)
     i.order <- order(rho@logratio[, coord$feat1[i]])
     partner[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- colnames(rho@logratio)[coord$feat1[i]]
     pair[((i-1)*nsubj + 1):((i-1)*nsubj + nsubj)] <- colnames(rho@logratio)[coord$feat2[i]]
@@ -149,7 +150,6 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
   }
 
   # Plot *lr-Y by *lr-X
-  cat("\n")
   df <- data.frame("X" = feat1, "Y" = feat2, "Group" = group, "Partner" = partner, "Pair" = pair)
   df$Group <- factor(df$Group)
   g <-

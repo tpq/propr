@@ -10,6 +10,7 @@
 #'  coefficient (\code{r}), Fisher's z-transformation (\code{z}),
 #'  and p-value (\code{p}) for each feature.
 #'
+#' @importFrom stats cor
 #' @export
 lr2cor <- function(lr, conditions){
 
