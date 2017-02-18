@@ -1,7 +1,13 @@
-## propr 2.1.5.9000
+## propr 2.1.6
 ---------------------
-* The `aldex.cor` function now returns average p-value from `lr2cor`
-    * Use `cor.test` as foundation of `lr2cor` function
+* The `aldex.cor` function now returns average p-value
+    * Now uses `cor.test` as `lr2cor` foundation instead of `cor`
+* Modified `aldex2propr` function
+    * Added `select` argument like in `perb` function
+    * Documented `select` argument in Details
+* Modified `perb` function
+    * Alerts user when 'ivar' is missing from 'select'
+    * Documented `select` argument in Details
 
 ## propr 2.1.5
 ---------------------
