@@ -4,17 +4,19 @@
 \alias{lr2cor}
 \title{Correlate CLR with a Continuous Measurement}
 \usage{
-lr2cor(lr, conditions)
+lr2cor(lr, conditions, ...)
 }
 \arguments{
 \item{lr}{A data.frame. A log-ratio transformed counts matrix.}
 
 \item{conditions}{A numeric vector of a continuous variable.}
+
+\item{...}{Arguments passed to \code{cor.test}.}
 }
 \value{
-Returns a data.frame of the Pearson's correlation
- coefficient (\code{r}), Fisher's z-transformation (\code{z}),
- and p-value (\code{p}) for each feature.
+Returns a data.frame of the correlation
+ statistic (e.g., \code{r}) and p-value (\code{p})
+ for each log-ratio transformed feature.
 }
 \description{
 This function correlates each log-ratio transformed

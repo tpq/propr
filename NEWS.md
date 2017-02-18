@@ -1,3 +1,8 @@
+## propr 2.1.5.9000
+---------------------
+* The `aldex.cor` function now returns average p-value from `lr2cor`
+    * Use `cor.test` as foundation of `lr2cor` function
+
 ## propr 2.1.5
 ---------------------
 * Stop exporting `progress` and `migraph` functions

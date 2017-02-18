@@ -5,14 +5,15 @@
 #'
 #' @param lr A data.frame. A log-ratio transformed counts matrix.
 #' @param conditions A numeric vector of a continuous variable.
+#' @param ... Arguments passed to \code{cor.test}.
 #'
-#' @return Returns a data.frame of the Pearson's correlation
-#'  coefficient (\code{r}), Fisher's z-transformation (\code{z}),
-#'  and p-value (\code{p}) for each feature.
+#' @return Returns a data.frame of the correlation
+#'  statistic (e.g., \code{r}) and p-value (\code{p})
+#'  for each log-ratio transformed feature.
 #'
-#' @importFrom stats cor
+#' @importFrom stats cor.test
 #' @export
-lr2cor <- function(lr, conditions){
+lr2cor <- function(lr, conditions, ...){
 
   if(!is.numeric(conditions)){
 
@@ -24,12 +25,15 @@ lr2cor <- function(lr, conditions){
     stop("Incorrect length for 'conditions' argument.")
   }
 
-  r <- apply(lr, 2, cor, conditions)
-  z <- atanh(r)
-  sd <- 1/sqrt(length(conditions) - 3)
-  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE) * 2
+  cors <- apply(lr, 2, function(x){
+    cor.test(x, conditions, ...)
+  })
 
-  data.frame(r, z, p)
+  r <- sapply(cors, getElement, "statistic")
+  p <- sapply(cors, getElement, "p.value")
+
+  data.frame(r, p,
+             row.names = colnames(lr))
 }
 
 #' Correlate CLR with a Continuous Measurement
@@ -37,20 +41,19 @@ lr2cor <- function(lr, conditions){
 #' This function uses the Monte Carlo instances from an
 #'  \code{aldex.clr} object to correlate each log-ratio
 #'  transformed feature vector with a continuous
-#'  numeric variable.
+#'  numeric variable. See \code{\link{lr2cor}}.
 #'
 #' @param clr An \code{aldex.clr} object.
 #' @param conditions A numeric vector of a continuous variable.
+#' @param ... Arguments passed to \code{cor.test}.
 #'
 #' @return Returns a data.frame of the average
-#'  Pearson's correlation coefficient (\code{r}),
-#'  a Fisher's z-transformation (\code{z}) of this
-#'  average, and the associated p-value (\code{p})
-#'  for each feature across all Monte Carlo
-#'  instances.
+#'  correlation statistic (e.g., \code{r}) and
+#'  average p-value (\code{p}) for each feature
+#'  across all Monte Carlo instances.
 #'
 #' @export
-aldex.cor <- function(clr, conditions){
+aldex.cor <- function(clr, conditions, ...){
 
   packageCheck("ALDEx2")
 
@@ -62,14 +65,10 @@ aldex.cor <- function(clr, conditions){
 
     numTicks <- progress(i, k, numTicks)
     mci_lr <- t(sapply(mc, function(x) x[, i]))
-    r <- r + lr2cor(mci_lr, conditions)$r
+    r <- r + lr2cor(mci_lr, conditions, ...)
   }
 
   r <- r / k
-  z <- atanh(r)
-  sd <- 1/sqrt(length(conditions) - 3)
-  p <- pnorm(abs(z), sd = sd, lower.tail = FALSE) * 2
-
-  data.frame(r, z, p,
+  data.frame("r" = r$r, "p" = r$p,
              row.names = colnames(mci_lr))
 }

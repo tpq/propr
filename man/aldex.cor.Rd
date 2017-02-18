@@ -4,25 +4,25 @@
 \alias{aldex.cor}
 \title{Correlate CLR with a Continuous Measurement}
 \usage{
-aldex.cor(clr, conditions)
+aldex.cor(clr, conditions, ...)
 }
 \arguments{
 \item{clr}{An \code{aldex.clr} object.}
 
 \item{conditions}{A numeric vector of a continuous variable.}
+
+\item{...}{Arguments passed to \code{cor.test}.}
 }
 \value{
 Returns a data.frame of the average
- Pearson's correlation coefficient (\code{r}),
- a Fisher's z-transformation (\code{z}) of this
- average, and the associated p-value (\code{p})
- for each feature across all Monte Carlo
- instances.
+ correlation statistic (e.g., \code{r}) and
+ average p-value (\code{p}) for each feature
+ across all Monte Carlo instances.
 }
 \description{
 This function uses the Monte Carlo instances from an
  \code{aldex.clr} object to correlate each log-ratio
  transformed feature vector with a continuous
- numeric variable.
+ numeric variable. See \code{\link{lr2cor}}.
 }
 
