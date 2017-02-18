@@ -119,7 +119,7 @@ perb <- function(counts, ivar = 0, select){
     if(any(ivar == mapping)){ ivar <- which(ivar == mapping)
     }else{
 
-      if(ivar != 0) message("Provided 'ivar' not in 'select'. Setting 'ivar' to 0.")
+      if(ivar != 0) message("Alert: Provided 'ivar' not in 'select'. Setting 'ivar' to 0.")
       ivar <- 0
     }
 
