@@ -44,3 +44,26 @@ test_that("aldex2propr matches codaSeq implementation", {
     sort(propr:::lltRcpp(aldex2propr(x, how = "phis")@matrix))
   )
 })
+
+test_that("aldex2propr works with select", {
+
+  include <- c("3220", "3230", "3232")
+  mat1 <- aldex2propr(x)
+  mat1 <- subset(mat1, select = include)
+  mat2 <- aldex2propr(x, select = include)
+
+  expect_equal(
+    mat1@counts,
+    mat2@counts
+  )
+
+  expect_equal(
+    mat1@logratio,
+    mat2@logratio
+  )
+
+  expect_equal(
+    mat1@matrix,
+    mat2@matrix
+  )
+})

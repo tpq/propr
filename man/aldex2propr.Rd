@@ -4,7 +4,7 @@
 \alias{aldex2propr}
 \title{Import \code{ALDEx2} Object}
 \usage{
-aldex2propr(aldex.clr, how = "perb")
+aldex2propr(aldex.clr, how = "perb", select)
 }
 \arguments{
 \item{aldex.clr}{An \code{aldex.clr} object.}
@@ -13,6 +13,8 @@ aldex2propr(aldex.clr, how = "perb")
 used to build the \code{propr} object. For example,
 "perb" returns an estimation of rho while "phit" returns
 an estimation of phi.}
+
+\item{select}{See \code{\link{proportionality}}.}
 }
 \value{
 Returns a \code{propr} object.
@@ -41,5 +43,14 @@ The \code{aldex2propr} function takes advantage of both
  instances. Likewise, the \code{@matrix} slot gets
  filled with the proportionality matrix as averaged
  across all Monte Carlo instances.
+
+The \code{select} argument subsets the proportionality
+ matrix without altering the final result. This allows
+ the user to filter lowly abundant features after
+ log-ratio transformation without increasing run-time
+ or RAM overhead. Otherwise, the removal of lowly abundant
+ features could change the centered log-ratio
+ transformation, and therefore change the
+ proportionality measure.
 }
 

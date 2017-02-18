@@ -23,15 +23,25 @@
 #'  filled with the proportionality matrix as averaged
 #'  across all Monte Carlo instances.
 #'
+#' The \code{select} argument subsets the proportionality
+#'  matrix without altering the final result. This allows
+#'  the user to filter lowly abundant features after
+#'  log-ratio transformation without increasing run-time
+#'  or RAM overhead. Otherwise, the removal of lowly abundant
+#'  features could change the centered log-ratio
+#'  transformation, and therefore change the
+#'  proportionality measure.
+#'
 #' @param aldex.clr An \code{aldex.clr} object.
 #' @param how A character string. The proportionality method
 #'  used to build the \code{propr} object. For example,
 #'  "perb" returns an estimation of rho while "phit" returns
 #'  an estimation of phi.
+#' @param select See \code{\link{proportionality}}.
 #' @return Returns a \code{propr} object.
 #'
 #' @export
-aldex2propr <- function(aldex.clr, how = "perb"){
+aldex2propr <- function(aldex.clr, how = "perb", select){
 
   packageCheck("ALDEx2")
 
@@ -58,6 +68,7 @@ aldex2propr <- function(aldex.clr, how = "perb"){
   }
 
   # Keep a running sum of propr instances
+  counts <- t(as.matrix(aldex.clr@reads))
   mc <- ALDEx2::getMonteCarloInstances(aldex.clr)
   k <- ALDEx2::numMCInstances(aldex.clr)
   logratio <- 0
@@ -65,8 +76,28 @@ aldex2propr <- function(aldex.clr, how = "perb"){
   for(i in 1:k){
 
     numTicks <- progress(i, k, numTicks)
+
+    # Extract i-th Monte Carlo instance
     mci_lr <- t(sapply(mc, function(x) x[, i]))
+
+    # Subset log-ratio transformed data
+    if(!missing(select)){
+
+      if(i == 1){
+
+        # Make select boolean (it's OK if it's integer)
+        if(is.character(select)) select <- match(select, colnames(mci_lr))
+        if(any(is.na(select))) stop("Uh oh! Provided select reference not found in data.")
+        counts <- counts[, select]
+      }
+
+      mci_lr <- mci_lr[, select]
+    }
+
+    # Add i-th log-ratio transformation to cumulative sum
     logratio <- logratio + mci_lr
+
+    # Add i-th proportionality matrix to cumulative sum
     prop.i <- do.call(how, list("lr" = mci_lr))
     prop <- prop + prop.i
   }
@@ -75,7 +106,7 @@ aldex2propr <- function(aldex.clr, how = "perb"){
   prop[is.na(prop)] <- ifelse(how == "lr2rho", 1, 0)
 
   propr <- new("propr")
-  propr@counts <- t(as.matrix(aldex.clr@reads))
+  propr@counts <- counts
   propr@logratio <- logratio / k
   propr@matrix <- prop / k
 
