@@ -17,6 +17,7 @@ lr2cor(lr, conditions, ...)
 Returns a data.frame of the correlation
  statistic (e.g., \code{r}) and p-value (\code{p})
  for each log-ratio transformed feature.
+ FDR provided by \code{bh} column.
 }
 \description{
 This function correlates each log-ratio transformed

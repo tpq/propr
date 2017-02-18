@@ -10,8 +10,9 @@
 #' @return Returns a data.frame of the correlation
 #'  statistic (e.g., \code{r}) and p-value (\code{p})
 #'  for each log-ratio transformed feature.
+#'  FDR provided by \code{bh} column.
 #'
-#' @importFrom stats cor.test
+#' @importFrom stats cor.test p.adjust
 #' @export
 lr2cor <- function(lr, conditions, ...){
 
@@ -31,8 +32,9 @@ lr2cor <- function(lr, conditions, ...){
 
   r <- sapply(cors, getElement, "statistic")
   p <- sapply(cors, getElement, "p.value")
+  bh <- p.adjust(p, method = "BH")
 
-  data.frame(r, p,
+  data.frame(r, p, bh,
              row.names = colnames(lr))
 }
 
@@ -50,7 +52,8 @@ lr2cor <- function(lr, conditions, ...){
 #' @return Returns a data.frame of the average
 #'  correlation statistic (e.g., \code{r}) and
 #'  average p-value (\code{p}) for each feature
-#'  across all Monte Carlo instances.
+#'  across all Monte Carlo instances. Average
+#'  FDR provided by \code{bh} column.
 #'
 #' @export
 aldex.cor <- function(clr, conditions, ...){
@@ -69,6 +72,6 @@ aldex.cor <- function(clr, conditions, ...){
   }
 
   r <- r / k
-  data.frame("r" = r$r, "p" = r$p,
+  data.frame("r" = r$r, "p" = r$p, "bh" = r$bh,
              row.names = colnames(mci_lr))
 }
