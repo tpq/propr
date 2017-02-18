@@ -18,7 +18,7 @@ Returns a data.frame of the average
  correlation statistic (e.g., \code{r}) and
  average p-value (\code{p}) for each feature
  across all Monte Carlo instances. Average
- FDR provided by \code{bh} column.
+ FDR provided by \code{BH} column.
 }
 \description{
 This function uses the Monte Carlo instances from an
