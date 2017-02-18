@@ -25,6 +25,15 @@
 #'  zero replacement is controversial. Proceed carefully when analyzing data
 #'  that contain zero values.
 #'
+#' The \code{select} argument subsets the proportionality
+#'  matrix without altering the final result. This allows
+#'  the user to filter lowly abundant features after
+#'  log-ratio transformation without increasing run-time
+#'  or RAM overhead. Otherwise, the removal of lowly abundant
+#'  features could change the centered log-ratio
+#'  transformation, and therefore change the
+#'  proportionality measure.
+#'
 #' @param counts A data.frame or matrix. A "count matrix" with
 #'  subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry
@@ -108,7 +117,11 @@ perb <- function(counts, ivar = 0, select){
     # Map ivar to new subset (else assign it 0)
     mapping <- (1:ncol(prop@counts))[select]
     if(any(ivar == mapping)){ ivar <- which(ivar == mapping)
-    }else{ ivar <- 0}
+    }else{
+
+      if(ivar != 0) message("Provided 'ivar' not in 'select'. Setting 'ivar' to 0.")
+      ivar <- 0
+    }
 
     # Now OK to drop the unchanged reference
     prop@counts <- prop@counts[, select]

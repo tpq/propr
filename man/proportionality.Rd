@@ -55,6 +55,15 @@ Log-ratio transformation, by its nature, fails if the input data contain
  replace all zero values with 1. Note, however, that the topic of
  zero replacement is controversial. Proceed carefully when analyzing data
  that contain zero values.
+
+The \code{select} argument subsets the proportionality
+ matrix without altering the final result. This allows
+ the user to filter lowly abundant features after
+ log-ratio transformation without increasing run-time
+ or RAM overhead. Otherwise, the removal of lowly abundant
+ features could change the centered log-ratio
+ transformation, and therefore change the
+ proportionality measure.
 }
 \examples{
 library(propr)
