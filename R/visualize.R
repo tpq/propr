@@ -594,6 +594,7 @@ cytescape <- function(object, col1, col2, prompt = TRUE){
     stop("Uh oh! This function requires an indexed 'propr' object.")
   }
 
+  object <- plotCheck(object, prompt = FALSE, plotly = FALSE, indexNaive = FALSE)
   if(prompt) promptCheck(length(object@pairs))
 
   rho <- object@matrix[object@pairs]

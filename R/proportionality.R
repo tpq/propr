@@ -61,6 +61,15 @@ NULL
 phit <- function(counts, symmetrize = TRUE){
 
   if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
+
+  if(is.null(colnames(counts))){
+    colnames(counts) <- as.character(1:ncol(counts))
+  }
+
+  if(is.null(rownames(counts))){
+    rownames(counts) <- as.character(1:nrow(counts))
+  }
+
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
 
@@ -82,6 +91,15 @@ phit <- function(counts, symmetrize = TRUE){
 perb <- function(counts, ivar = 0, select){
 
   if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
+
+  if(is.null(colnames(counts))){
+    colnames(counts) <- as.character(1:ncol(counts))
+  }
+
+  if(is.null(rownames(counts))){
+    rownames(counts) <- as.character(1:nrow(counts))
+  }
+
   prop <- new("propr")
   prop@counts <- as.matrix(counts)
 

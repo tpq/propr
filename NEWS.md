@@ -1,3 +1,8 @@
+## propr 2.1.7
+---------------------
+* Force column and row names when calculating proportionality
+    * Added `plotCheck` to `cytescape` function
+
 ## propr 2.1.6
 ---------------------
 * The `aldex.cor` function now returns average p-value
