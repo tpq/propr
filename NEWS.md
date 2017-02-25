@@ -1,4 +1,4 @@
-## propr 2.1.7.9000
+## propr 2.1.8
 ---------------------
 * Modified visualization tools
     * The `bucket` function now uses non-parametric ANOVA
