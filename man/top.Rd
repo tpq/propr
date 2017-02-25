@@ -12,8 +12,9 @@
 data(top)
 }
 \description{
-Includes cane toad transcripts with at least 10 counts
- across at least 10 samples. Used for vignette.
+Includes results from \code{\link{perb}} as applied to
+ cane toad transcripts with at least 10 counts in at least
+ 10 samples. Used for vignette.
 }
 \keyword{datasets}
 

@@ -41,6 +41,9 @@
 #'  Plots an estimation of the degree to which a feature pair
 #'  differentiates the experimental groups versus the
 #'  measure of the proportionality between that feature pair.
+#'  The discrimination score is defined as the negative
+#'  log of the p-values for each feature in the pair,
+#'  computed independently using \code{kruskal.test}.
 #'  "It's pronounced, 'bouquet'." - Hyacinth Bucket
 #'
 #' \code{pca:}
@@ -101,9 +104,8 @@
 #'  a dynamic plot using the \code{plotly} package.
 #' @param col1,col2 A character vector. Specifies which nodes
 #'  to color \code{purple} or \code{orange}, respectively.
-#'  Optional parameter for \code{cytescape}.
 #'
-#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist
+#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test
 #' @name visualize
 NULL
 
@@ -346,9 +348,7 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
   for(i in 1:numfeats){
 
     formula <- as.formula(paste0(colnames(data)[i], "~group"))
-    fit <- lm(formula, data)
-    res <- summary(aov(fit))
-    p.val[i] <- res[[1]]$'Pr(>F)'[1]
+    p.val[i] <- kruskal.test(formula, data)$p.value
   }
 
   # Add discriminating power to slate result
@@ -369,7 +369,7 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
     ggplot2::theme_bw() +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Co-Cluster") +
     ggplot2::xlab("Proportionality Between Features (rho)") +
-    ggplot2::ylab("Discrimination Between Groups") +
+    ggplot2::ylab("Discrimination Score") +
     ggplot2::ggtitle("Group Discrimination by Feature Pair") +
     ggplot2::xlim(-1, 1) +
     ggplot2::ylim(0, max(df$Score)) +
@@ -618,6 +618,7 @@ cytescape <- function(object, col1, col2, prompt = TRUE){
     g <- migraph.color(g, sub$Partner[sub$rho > .98], sub$Pair[sub$rho > .98], "red")
     g <- migraph.color(g, sub$Partner[sub$rho < -.95], sub$Pair[sub$rho < -.95], "lightblue")
     g <- migraph.color(g, sub$Partner[sub$rho < -.98], sub$Pair[sub$rho < -.98], "blue")
+    colnames(sub)[3] <- "phi"
 
   }else{
 
