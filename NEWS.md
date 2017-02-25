@@ -1,3 +1,9 @@
+## propr 2.1.7.9000
+---------------------
+* Modified visualization tools
+    * The `bucket` function now uses non-parametric ANOVA
+    * The `cytescape` function now has correct columns
+
 ## propr 2.1.7
 ---------------------
 * Force column and row names when calculating proportionality

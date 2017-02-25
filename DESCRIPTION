@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 2.1.7
+Version: 2.1.7.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -30,6 +30,7 @@ Depends:
 Imports:
     fastcluster,
     ggplot2,
+    igraph,
     methods,
     Rcpp,
     stats,
@@ -41,7 +42,6 @@ Suggests:
     data.table,
     grid,
     ggdendro,
-    igraph,
     knitr,
     plotly,
     reshape2,
