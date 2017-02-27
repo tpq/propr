@@ -2,6 +2,7 @@
 ---------------------
 * Modified visualization tools
     * The `bucket` function now uses non-parametric ANOVA
+    * The `cytescape` function now supports 3D visualization
     * The `cytescape` function now has correct columns
 
 ## propr 2.1.7

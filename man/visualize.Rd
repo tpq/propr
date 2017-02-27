@@ -29,7 +29,7 @@ pca(rho, group, prompt = TRUE, plotly = FALSE)
 
 snapshot(rho, prompt = TRUE, plotly = FALSE)
 
-cytescape(object, col1, col2, prompt = TRUE)
+cytescape(object, col1, col2, prompt = TRUE, d3 = FALSE)
 }
 \arguments{
 \item{prompt}{A logical scalar. Set to \code{FALSE} to disable
@@ -56,6 +56,8 @@ also accommodate results from \code{phit} and \code{phis}.}
 
 \item{col1, col2}{A character vector. Specifies which nodes
 to color \code{purple} or \code{orange}, respectively.}
+
+\item{d3}{A boolean. Use \code{rgl} to plot 3D network.}
 }
 \value{
 \code{smear, pca:}
