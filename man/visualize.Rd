@@ -55,7 +55,7 @@ However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
 also accommodate results from \code{phit} and \code{phis}.}
 
 \item{col1, col2}{A character vector. Specifies which nodes
-to color \code{purple} or \code{orange}, respectively.}
+to color \code{red} or \code{blue}, respectively.}
 
 \item{d3}{A boolean. Use \code{rgl} to plot 3D network.}
 }

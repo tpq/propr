@@ -103,7 +103,7 @@
 #' @param plotly A logical scalar. Set to \code{TRUE} to produce
 #'  a dynamic plot using the \code{plotly} package.
 #' @param col1,col2 A character vector. Specifies which nodes
-#'  to color \code{purple} or \code{orange}, respectively.
+#'  to color \code{red} or \code{blue}, respectively.
 #' @param d3 A boolean. Use \code{rgl} to plot 3D network.
 #'
 #' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test
@@ -608,26 +608,29 @@ cytescape <- function(object, col1, col2, prompt = TRUE, d3 = FALSE){
   g <- igraph::make_empty_graph(directed = FALSE)
   g <- migraph.add(g, sub$Partner, sub$Pair)
 
-  if(object@matrix[1, 1] == 0){
+  g <- migraph.color(g, sub$Partner, sub$Pair, "forestgreen")
+  message("Green: Pair positively proportional across all samples.")
 
-    g <- migraph.color(g, sub$Partner[sub$rho > 0], sub$Pair[sub$rho > 0], "greenyellow")
-    g <- migraph.color(g, sub$Partner[sub$rho < .05], sub$Pair[sub$rho < .05], "green")
+  if(object@matrix[1, 1] == 0){ # if phi
 
-  }else if(object@matrix[1, 1] == 1){
-
-    g <- migraph.color(g, sub$Partner[sub$rho >= 0], sub$Pair[sub$rho >= 0], "greenyellow")
-    g <- migraph.color(g, sub$Partner[sub$rho > .98], sub$Pair[sub$rho > .98], "green")
-    g <- migraph.color(g, sub$Partner[sub$rho < 0], sub$Pair[sub$rho < 0], "tan3")
-    g <- migraph.color(g, sub$Partner[sub$rho < -.98], sub$Pair[sub$rho < -.98], "tan4")
     colnames(sub)[3] <- "phi"
+
+  }else if(object@matrix[1, 1] == 1){ # if rho
+
+    invProp <- sub[, 3] < 0
+    if(any(invProp)){
+
+      g <- migraph.color(g, sub$Partner[invProp], sub$Pair[invProp], "burlywood4")
+      message("Brown: Pair inversely proportional across all samples.")
+    }
 
   }else{
 
     stop("Matrix not recognized.")
   }
 
-  if(!missing(col1)) g <- migraph.color(g, col1, col = "purple")
-  if(!missing(col2)) g <- migraph.color(g, col2, col = "orange")
+  if(!missing(col1)) g <- migraph.color(g, col1, col = "darkred")
+  if(!missing(col2)) g <- migraph.color(g, col2, col = "darkslateblue")
   g <- migraph.clean(g)
 
   if(d3){
