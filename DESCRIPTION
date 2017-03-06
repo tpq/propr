@@ -6,7 +6,7 @@ BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
     person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
     person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut"),
-    person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "aut"),
+    person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "ctb"),
     person("Anders", "Bilgrau", email = "anders.ellern.bilgrau@gmail.com", role = "ctb"),
     person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb")
     )

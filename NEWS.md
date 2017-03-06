@@ -4,6 +4,7 @@
     * The `bucket` function now uses non-parametric ANOVA
     * The `cytescape` function now supports 3D visualization
     * The `cytescape` function now names columns correctly
+* Add "Frequently Asked Questions" vignette
 
 ## propr 2.1.7
 ---------------------
