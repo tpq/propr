@@ -5,6 +5,7 @@
     * The `cytescape` function now supports 3D visualization
     * The `cytescape` function now names columns correctly
 * Add "Frequently Asked Questions" vignette
+* Remove `lrmodel` module
 
 ## propr 2.1.7
 ---------------------
