@@ -38,7 +38,7 @@
 #' @inheritParams visualize
 #'
 #' @name propr
-#' @useDynLib propr
+#' @useDynLib propr, .registration = TRUE
 #' @importFrom methods show new
 #' @importFrom Rcpp sourceCpp
 NULL
