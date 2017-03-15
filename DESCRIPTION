@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 2.1.8
+Version: 2.1.8.9000
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -24,7 +24,7 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Depends:
     R (>= 3.2.2)
 Imports:
