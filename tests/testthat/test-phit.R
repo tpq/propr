@@ -12,14 +12,20 @@ X <- data.frame(a, b, c, d, e)
 # Calculate phi
 phi <- propr:::proprPhit(X, symmetrize = FALSE)
 
-# Calculate beta
+test_that("calculating phi from phit matches propr:::proprPhit", {
+
+  expect_equal(
+    as.vector(phit(X, symmetrize = FALSE)@matrix),
+    as.vector(phi)
+  )
+})
+
+# Calculate r
 counts.clr <- propr:::proprCLR(X)
 counts.clr.var <- apply(counts.clr, 2, var)
 A_j <- matrix(rep(counts.clr.var, length(counts.clr.var)), nrow = length(counts.clr.var))
 A_i <- counts.clr.var
 beta <- sqrt(sweep(A_j, 2, A_i, "/"))
-
-# Calculate r
 r <- (1 + beta^2 - phi) / (2 * beta)
 
 test_that("calculating r from phi matches stats::cor", {
