@@ -15,4 +15,3 @@ multiplot(..., cols = 1)
 Easily plot multiple graphs within the same window. Code adapted from
  http://www.cookbook-r.com/. For back-end use only.
 }
-

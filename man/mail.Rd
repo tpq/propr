@@ -12,4 +12,3 @@ data(mail)
 Includes mock count data for 5 days and 4 zip codes.
 }
 \keyword{datasets}
-

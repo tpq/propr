@@ -23,4 +23,3 @@ A matrix. Returns the additive log-ratio
 \description{
 Provided for backend use.
 }
-

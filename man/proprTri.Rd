@@ -16,4 +16,3 @@ A vector. Returns the lower left triangle of a
 \description{
 Provided for backend use.
 }
-

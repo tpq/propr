@@ -20,4 +20,3 @@ A matrix. Returns the centered log-ratio
 \description{
 Provided for backend use.
 }
-

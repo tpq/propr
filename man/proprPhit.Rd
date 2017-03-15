@@ -19,4 +19,3 @@ Returns proportionality matrix.
 \description{
 Provided for backend use.
 }
-

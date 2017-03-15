@@ -10,4 +10,3 @@ dendroCheck()
 Performs data checks before plotting, triggering messages
  or errors when appropriate. For back-end use only.
 }
-

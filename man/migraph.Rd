@@ -3,8 +3,8 @@
 \name{migraph}
 \alias{migraph}
 \alias{migraph.add}
-\alias{migraph.clean}
 \alias{migraph.color}
+\alias{migraph.clean}
 \title{\code{igraph} Helper Functions}
 \usage{
 migraph.add(g, names1, names2, force = TRUE)
@@ -37,4 +37,3 @@ An \code{igraph} object.
 \description{
 \code{igraph} Helper Functions
 }
-

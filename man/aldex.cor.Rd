@@ -26,4 +26,3 @@ This function uses the Monte Carlo instances from an
  transformed feature vector with a continuous
  numeric variable. See \code{\link{lr2cor}}.
 }
-

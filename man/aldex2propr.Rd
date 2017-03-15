@@ -53,4 +53,3 @@ The \code{select} argument subsets the proportionality
  transformation, and therefore change the
  proportionality measure.
 }
-

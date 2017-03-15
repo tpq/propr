@@ -28,4 +28,3 @@ Returns a \code{propr} object with guaranteed
 Performs data checks before plotting, triggering messages
  or errors when appropriate. For back-end use only.
 }
-

@@ -15,4 +15,3 @@ data(caneToad.counts)
 Example Cane Toad Count Data
 }
 \keyword{datasets}
-

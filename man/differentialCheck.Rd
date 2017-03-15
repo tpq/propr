@@ -19,4 +19,3 @@ Performs data checks when comparing two \code{propr} objects,
  triggering messages or errors when appropriate. For back-end
  use only.
 }
-

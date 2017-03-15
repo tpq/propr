@@ -15,4 +15,3 @@ data(caneToad.groups)
 Example Cane Toad Group Data
 }
 \keyword{datasets}
-

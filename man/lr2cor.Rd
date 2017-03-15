@@ -23,4 +23,3 @@ Returns a data.frame of the correlation
 This function correlates each log-ratio transformed
  feature vector with a continuous numeric variable.
 }
-

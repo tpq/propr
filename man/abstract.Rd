@@ -57,4 +57,3 @@ abstract(rho1, rho2)
 \seealso{
 \code{\link{propr}}, \code{\link{prop2prob}}
 }
-

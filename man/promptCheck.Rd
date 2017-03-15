@@ -13,4 +13,3 @@ promptCheck(N)
 Prompts user when performing an operation on an unusually
  large set of features. For back-end use only.
 }
-

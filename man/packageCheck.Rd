@@ -13,4 +13,3 @@ packageCheck(package)
 Checks whether the user has the required package installed.
  For back-end use only.
 }
-

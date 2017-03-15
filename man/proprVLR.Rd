@@ -20,4 +20,3 @@ Returns a matrix containing the variance of the
 \description{
 Provided for backend use.
 }
-

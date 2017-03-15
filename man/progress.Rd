@@ -19,4 +19,3 @@ The next \code{numTicks} argument.
 \description{
 Make Progress Bar
 }
-

@@ -15,4 +15,3 @@ A data.frame. Returns a table of feature pairs.
 \description{
 Provided for backend use.
 }
-

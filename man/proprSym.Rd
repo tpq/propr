@@ -15,4 +15,3 @@ A matrix. Returns a symmetrized proportionality matrix.
 \description{
 Provided for backend use.
 }
-

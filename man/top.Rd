@@ -17,4 +17,3 @@ Includes results from \code{\link{perb}} as applied to
  10 samples. Used for vignette.
 }
 \keyword{datasets}
-

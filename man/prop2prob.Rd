@@ -58,4 +58,3 @@ prop2prob(rho)
 \seealso{
 \code{\link{propr}}, \code{\link{abstract}}
 }
-
