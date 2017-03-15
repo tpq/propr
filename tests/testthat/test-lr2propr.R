@@ -32,3 +32,21 @@ test_that("lr2 functions match traditional functions", {
     )
   }
 })
+
+test_that("lr2 functions handle ivar correctly", {
+
+  expect_equal(
+    phit(mail, ivar = 2, symmetrize = FALSE)@matrix[, 2],
+    c(Inf, 0, Inf, Inf)
+  )
+
+  expect_equal(
+    perb(mail, ivar = 2)@matrix[, 2],
+    c(0, 1, 0, 0)
+  )
+
+  expect_equal(
+    phis(mail, ivar = 2)@matrix[, 2],
+    c(Inf, 0, Inf, Inf)
+  )
+})
