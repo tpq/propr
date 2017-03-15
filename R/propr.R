@@ -13,7 +13,7 @@
 #' 	For rho, the result of \code{perb}, one can think of the resultant matrix as
 #' 	analogous to a correlation matrix.
 #'
-#' \code{perb} and \code{phis} use a centered log-ratio transformation by default,
+#' These methods will use the centered log-ratio transformation by default,
 #'  but will use an additive log-ratio transformation instead if a non-zero
 #'  \code{ivar} is provided. When using an additive log-ratio transformation,
 #'  this function will return \code{rho = 0} for the column and row in the
@@ -25,14 +25,12 @@
 #'  zero replacement is controversial. Proceed carefully when analyzing data
 #'  that contain zero values.
 #'
-#' The \code{select} argument subsets the proportionality
-#'  matrix without altering the final result. This allows
-#'  the user to filter lowly abundant features after
-#'  log-ratio transformation without increasing run-time
-#'  or RAM overhead. Otherwise, the removal of lowly abundant
-#'  features could change the centered log-ratio
-#'  transformation, and therefore change the
-#'  proportionality measure.
+#' The \code{select} argument subsets the feature matrix
+#'  after log-ratio transformation but before calculating
+#'  proportionality. This reduces the run-time and RAM
+#'  overhead without impacting the final result. Removing
+#'  lowly abundant features prior to log-ratio transformation
+#'  could otherwise change the proportionality measure.
 #'
 #' @param counts A data.frame or matrix. A "count matrix" with
 #'  subjects as rows and features as columns.
@@ -40,10 +38,12 @@
 #'  by reflecting the "lower left triangle".
 #' @param ivar A numeric scalar. Specificies a reference feature
 #'  for additive log-ratio transformation. The argument will also
-#'  accept a feature name instead of the index position.
+#'  accept a feature name(s) instead of the index position.
 #' @param select Subsets via \code{object@counts[, select]}.
 #'  Optional. Use this argument to subset the proportionality
 #'  matrix without altering the final result.
+#' @param .Object Missing. Ignore. Leftover from the generic method
+#'  definition.
 #'
 #' @return Returns a \code{propr} object.
 #'
@@ -57,32 +57,82 @@
 NULL
 
 #' @rdname proportionality
+setMethod("initialize", "propr",
+          function(.Object, counts, ivar, select){
+
+            # Retain backwards-compatibility
+            if(missing(counts)){
+              return(.Object)
+            }
+
+            # Quality control check input
+            if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
+            if(class(counts) == "data.frame") counts <- as.matrix(counts)
+            if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
+            if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
+
+            # Replace zeros if needed
+            if(any(0 == counts)){
+              message("Alert: Replacing 0s in \"count matrix\" with 1.")
+              counts[counts == 0] <- 1
+            }
+
+            # Get feature set to use in g(x) calculation
+            if(missing(ivar)) ivar <- 0
+            if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
+            `%is%` <- function(a, b) identical(a, b)
+            if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
+
+              use <- 1:ncol(counts) # use all features for geometric mean
+
+            }else if(ivar %is% "iqlr"){
+
+              counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
+              counts.var <- apply(counts.clr, 1, var)
+              quart <- stats::quantile(counts.var) # use features with unextreme variance
+              use <- which(counts.var < quart[4] & counts.var > quart[2])
+
+            }else{
+
+              if(is.character(ivar)){
+                if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
+                use <- which(colnames(counts) %in% ivar) # use features given by name
+              }else{
+                use <- sort(ivar) # use features given by number
+              }
+            }
+
+            # Use g(x) to log-ratio transform data
+            logX <- log(counts)
+            logSet <- logX[, use, drop = FALSE]
+            lr <- sweep(logX, 1, rowMeans(logSet), "-")
+
+            # Subset data after transformation
+            if(!missing(select)){
+
+              # Make select boolean (it's OK if it's integer)
+              if(!is.vector(select)) stop("Provide 'select' as vector.")
+              if(is.character(select)) select <- match(select, colnames(counts))
+              if(any(is.na(select))) stop("Some 'select' not in data.")
+              counts <- counts[, select]
+              lr <- lr[, select]
+            }
+
+            .Object@counts <- as.matrix(counts)
+            .Object@logratio <- lr
+            .Object@pairs <- vector("numeric")
+
+            return(.Object)
+          }
+)
+
+#' @rdname proportionality
 #' @export
-phit <- function(counts, symmetrize = TRUE){
+phit <- function(counts, ivar = 0, select, symmetrize = TRUE){
 
-  if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
-
-  if(is.null(colnames(counts))){
-    colnames(counts) <- as.character(1:ncol(counts))
-  }
-
-  if(is.null(rownames(counts))){
-    rownames(counts) <- as.character(1:nrow(counts))
-  }
-
-  prop <- new("propr")
-  prop@counts <- as.matrix(counts)
-
-  if(any(0 == prop@counts)){
-
-    message("Alert: Replacing 0s in \"count matrix\" with 1.")
-    prop@counts[prop@counts == 0] <- 1
-  }
-
-  prop@logratio <- clrRcpp(prop@counts[]) # [] forces copy
-  prop@matrix <- phiRcpp(prop@counts[], symmetrize) # [] forces copy
-  prop@pairs <- vector("numeric")
-
+  prop <- new("propr", counts = counts, ivar = ivar, select = select)
+  prop@matrix <- lr2phi(prop@logratio)
+  if(symmetrize) symRcpp(prop@matrix)
   return(prop)
 }
 
@@ -90,65 +140,8 @@ phit <- function(counts, symmetrize = TRUE){
 #' @export
 perb <- function(counts, ivar = 0, select){
 
-  if(any(is.na(counts))) stop("Uh oh! Remove NAs before proceeding.")
-
-  if(is.null(colnames(counts))){
-    colnames(counts) <- as.character(1:ncol(counts))
-  }
-
-  if(is.null(rownames(counts))){
-    rownames(counts) <- as.character(1:nrow(counts))
-  }
-
-  prop <- new("propr")
-  prop@counts <- as.matrix(counts)
-
-  if(any(0 == prop@counts)){
-
-    message("Alert: Replacing 0s in \"count matrix\" with 1.")
-    prop@counts[prop@counts == 0] <- 1
-  }
-
-  if(ivar != 0){
-
-    if(is.character(ivar)){
-
-      # Find i-th index of ivar name
-      index <- ivar == colnames(prop@counts)
-      if(!any(index)) stop("Uh oh! Provided ivar reference not found in data.")
-      ivar <- which(index)
-    }
-
-    prop@logratio <- alrRcpp(prop@counts[], ivar)
-
-  }else{
-
-    prop@logratio <- clrRcpp(prop@counts[])
-  }
-
-  if(!missing(select)){
-
-    # Make select boolean (it's OK if it's integer)
-    if(is.character(select)) select <- match(select, colnames(prop@counts))
-    if(any(is.na(select))) stop("Uh oh! Provided select reference not found in data.")
-
-    # Map ivar to new subset (else assign it 0)
-    mapping <- (1:ncol(prop@counts))[select]
-    if(any(ivar == mapping)){ ivar <- which(ivar == mapping)
-    }else{
-
-      if(ivar != 0) message("Alert: Provided 'ivar' not in 'select'. Setting 'ivar' to 0.")
-      ivar <- 0
-    }
-
-    # Now OK to drop the unchanged reference
-    prop@counts <- prop@counts[, select]
-    prop@logratio <- prop@logratio[, select]
-  }
-
-  prop@matrix <- rhoRcpp(prop@counts[], prop@logratio[], ivar)
-  prop@pairs <- vector("numeric")
-
+  prop <- new("propr", counts = counts, ivar = ivar, select = select)
+  prop@matrix <- lr2rho(prop@logratio)
   return(prop)
 }
 
@@ -156,7 +149,7 @@ perb <- function(counts, ivar = 0, select){
 #' @export
 phis <- function(counts, ivar = 0, select){
 
-  prop <- perb(counts, ivar, select)
-  rhoToPhs(prop@matrix)
+  prop <- new("propr", counts = counts, ivar = ivar, select = select)
+  prop@matrix <- lr2phs(prop@logratio)
   return(prop)
 }

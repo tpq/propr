@@ -12,7 +12,7 @@ subjects as rows and features as columns.}
 
 \item{ivar}{A numeric scalar. Specificies a reference feature
 for additive log-ratio transformation. The argument will also
-accept a feature name instead of the index position.}
+accept a feature name(s) instead of the index position.}
 }
 \value{
 Returns proportionality matrix.
@@ -20,4 +20,3 @@ Returns proportionality matrix.
 \description{
 Provided for backend use.
 }
-
