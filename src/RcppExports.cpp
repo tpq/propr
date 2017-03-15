@@ -181,17 +181,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rhoToPhs
-NumericMatrix rhoToPhs(NumericMatrix& X);
-RcppExport SEXP propr_rhoToPhs(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(rhoToPhs(X));
-    return rcpp_result_gen;
-END_RCPP
-}
 // lr2vlr
 NumericMatrix lr2vlr(NumericMatrix lr);
 RcppExport SEXP propr_lr2vlr(SEXP lrSEXP) {

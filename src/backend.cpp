@@ -391,18 +391,3 @@ List labRcpp(int nfeats){
     _["Pair"] = pair
   );
 }
-
-// Function to make phs from rho
-// [[Rcpp::export]]
-NumericMatrix rhoToPhs(NumericMatrix & X){
-
-  // Calculate phs = 1 - rho
-  int nfeats = X.ncol();
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nfeats; j++){
-      X(i, j) = (1 - X(i, j)) / (1 + X(i, j));
-    }
-  }
-
-  return X;
-}

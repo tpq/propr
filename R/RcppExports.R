@@ -61,10 +61,6 @@ labRcpp <- function(nfeats) {
     .Call('propr_labRcpp', PACKAGE = 'propr', nfeats)
 }
 
-rhoToPhs <- function(X) {
-    .Call('propr_rhoToPhs', PACKAGE = 'propr', X)
-}
-
 lr2vlr <- function(lr) {
     .Call('propr_lr2vlr', PACKAGE = 'propr', lr)
 }

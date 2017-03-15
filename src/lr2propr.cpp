@@ -43,6 +43,7 @@ NumericMatrix lr2phi(NumericMatrix lr){
 
     double vari = sum(pow(lr(_, i) - mean(lr(_, i)), 2.0)) / (nsubjs - 1);
     mat(_, i) = mat(_, i) / vari;
+    mat(i, i) = 0; // Force diagonal = 0
   }
 
   return mat;
@@ -69,7 +70,11 @@ NumericMatrix lr2rho(NumericMatrix lr){
   for(int i = 0; i < nfeats; i++){
     for(int j = 0; j < nfeats; j++){
 
-      mat(i, j) = 1 - mat(i, j) / (vars[i] + vars[j]);
+      if(i == j){
+        mat(i, j) = 1; // Force diagonal = 1
+      }else{
+        mat(i, j) = 1 - mat(i, j) / (vars[i] + vars[j]);
+      }
     }
   }
 
@@ -80,7 +85,23 @@ NumericMatrix lr2rho(NumericMatrix lr){
 // [[Rcpp::export]]
 NumericMatrix lr2phs(NumericMatrix lr){
 
+  // Calculate phs = (1 - rho) / (1 + rho)
   NumericMatrix mat = lr2rho(lr);
-  rhoToPhs(mat);
+  int nfeats = mat.ncol();
+  for(int i = 0; i < nfeats; i++){
+    for(int j = 0; j < nfeats; j++){
+
+      if(i == j){
+        mat(i, j) = 0; // Force diagonal = 0
+      }else{
+        if(mat(i, j) == 0){
+          mat(i, j) = R_PosInf;
+        }else{
+          mat(i, j) = (1 - mat(i, j)) / (1 + mat(i, j));
+        }
+      }
+    }
+  }
+
   return(mat);
 }

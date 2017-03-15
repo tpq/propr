@@ -7,6 +7,5 @@
 using namespace Rcpp;
 
 NumericMatrix covRcpp(NumericMatrix & X, const int norm_type);
-NumericMatrix rhoToPhs(NumericMatrix & X);
 
 #endif
