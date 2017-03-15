@@ -35,7 +35,13 @@ x <- ALDEx2::aldex.clr(counts, caneToad.groups, denom = "iqlr")
 rho <- propr::aldex2propr(x, how = "rho")
 ```
 
-Note that this will average $\rho$ (or $\phi$ or $\phi_s$) across many MC instances which may or may not be desired. In theory, using MC instances should lessen the impact of zero or low counts on your final result. In practice, proportionality analysis will take a lot longer to run. We have not yet benchmarked whether `aldex2propr` is better or worse than `perb` alone, but find the iqlr transformation a very attractive option. When using `aldex2propr`, please make sure to cite the appropriate `ALDEx2` paper(s) to thank Greg for his generous contribution!
+Note that this will average $\rho$ (or $\phi$ or $\phi_s$) across many MC instances which may or may not be desired. In theory, using MC instances should lessen the impact of zero or low counts on your final result. In practice, proportionality analysis will take a lot longer to run. We have not yet benchmarked whether `aldex2propr` is better or worse than `perb` alone, but find the iqlr transformation a very attractive option. Note, however, that you can also use the iqlr transformation without any MC instances:
+
+```{r, eval = FALSE}
+rho <- perb(caneToad.counts, ivar = "iqlr")
+```
+
+When using `aldex2propr` (or the iqlr transformation), please make sure to cite the appropriate `ALDEx2` paper(s) to thank Greg for his generous contribution!
 
 ## Why can't we just use the VLR by itself?
 
@@ -45,7 +51,7 @@ Quoting Lovell et al. 2015 (quoting Friedman et al. 2012):
 
 ## Why does my `smear` plot show perfectly proportional pairs?
 
-We call this phenomena **auto-proportionality**. Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. We recommend removing auto-proportional pairs to avoid swamping interesting biological modules with artifactual noise. You can do this by removing the set of extremely proportional pairs (e.g., $\rho > .995$) from the set of highly proportional pairs (e.g., $\rho > .95$):
+We call this phenomena **auto-proportionality**. Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can wrongly appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. We recommend removing auto-proportional pairs to avoid swamping interesting biological modules with artifactual noise. You can do this by removing a set of extremely proportional pairs (e.g., $\rho > .995$) from a set of highly proportional pairs (e.g., $\rho > .95$):
 
 ```{r, eval = FALSE}
 data(caneToad.counts)
@@ -57,12 +63,15 @@ rho@pairs <- setdiff(highprop, autoprop)
 
 ## How can I analyze multi-omics data?
 
-This is an area of active research. At a minimum, we recommend making sure that (a) all combined multi-omics data derive from the same samples and (b) log-ratio transformations are applied to each data source individually. The functions `propr:::lr2rho`, `propr:::lr2phi`, and `propr:::lr2phs`, used in conjunction with `propr:::clrRcpp` or `propr:::alrRcpp`, offer a way forward. Note that these `Rcpp` functions modify-in-place, making them dangerous to use if unexperienced with modify-in-place programming practices. Use `[]` at the end of an object to prevent a modification of the input data:
+This is an area of active research. At a minimum, we recommend making sure that (a) all combined multi-omics data derive from the same samples and (b) log-ratio transformations are applied to each data source individually. The functions `propr:::lr2rho`, `propr:::lr2phi`, and `propr:::lr2phs`, used in conjunction with `new("propr")`, offer a way forward. The `propr` initialization method will perform the log-ratio transformation without building a proportionality matrix:
 
 ```{r, eval = FALSE}
 data(caneToad.counts)
-propr:::clrRcpp(caneToad.counts[])
+prop <- new("propr", counts = caneToad.counts, ivar = "iqlr")
+prop@logratio
 ```
+
+You could then `cbind` any number of separate `@logratio` slots to use as input for an "lr2" function.
 
 ## How can I analyze multiple groups?
 
