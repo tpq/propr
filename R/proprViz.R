@@ -499,7 +499,7 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
 mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
-  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = FALSE)
 
   if(missing(group)){
 
@@ -544,7 +544,7 @@ pca <- function(rho, group, prompt = TRUE, plotly = FALSE){
 snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
   dendroCheck()
-  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)
+  rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = FALSE)
 
   # Build a blank figure
   p_empty <- ggplot2::ggplot() + ggplot2::geom_blank() + ggplot2::theme_minimal()

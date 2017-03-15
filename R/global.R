@@ -214,20 +214,10 @@ plotCheck <- function(rho, prompt, plotly, indexNaive){
 
     if(length(rho@pairs) != 0) message("Alert: This function ignores index.")
     if(prompt) promptCheck(nrow(rho@matrix))
-
-  }else{
-
-    if(class(rho) != "propr"){
-      stop("Uh oh! This function requires a 'propr' object.")
-    }
   }
 
-  if(is.null(colnames(rho@logratio))){
-    colnames(rho@logratio) <- as.character(1:ncol(rho@logratio))
-  }
-
-  if(is.null(rownames(rho@logratio))){
-    rownames(rho@logratio) <- as.character(1:nrow(rho@logratio))
+  if(class(rho) != "propr"){
+    stop("Uh oh! This function requires a 'propr' object.")
   }
 
   return(rho)
