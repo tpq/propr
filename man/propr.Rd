@@ -2,15 +2,15 @@
 % Please edit documentation in R/methods.R
 \docType{class}
 \name{propr}
-\alias{[,propr,ANY,ANY-method}
-\alias{[,propr-method}
-\alias{adjacent}
-\alias{plot,propr,missing-method}
 \alias{propr}
 \alias{propr-class}
 \alias{show,propr-method}
-\alias{simplify}
 \alias{subset,propr-method}
+\alias{[,propr,ANY,ANY-method}
+\alias{[,propr-method}
+\alias{plot,propr,missing-method}
+\alias{simplify}
+\alias{adjacent}
 \title{The propr Package}
 \usage{
 \S4method{show}{propr}(object)
@@ -80,6 +80,7 @@ To learn more about compositional data analysis, and its relevance
 
 \item{\code{pairs}}{A vector. Indexes the proportionality metrics of interest.}
 }}
+
 \section{Methods (by generic)}{
 
 \code{show:} Method to show \code{propr} object.

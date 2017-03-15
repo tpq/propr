@@ -102,9 +102,6 @@ aldex2propr <- function(aldex.clr, how = "perb", select){
     prop <- prop + prop.i
   }
 
-  # Clean up NAs in the case of denom = 1
-  prop[is.na(prop)] <- ifelse(how == "lr2rho", 1, 0)
-
   propr <- new("propr")
   propr@counts <- counts
   propr@logratio <- logratio / k

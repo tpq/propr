@@ -1,3 +1,15 @@
+## propr 2.1.8.9000
+---------------------
+* Replace `rhoToPhs` function with `lr2phs`
+    * Fixed `phis` bug when using alr-transformation
+    * Fixed `aldex2propr` bug when using alr-transformation
+    * Add unit tests for `lr2` with `ivar`
+* Create `initialize` method to handle `ivar` and `select`
+    * `phit`, `perb`, and `phis` use `new` with `lr2`
+    * `phit` now accepts `ivar` and `select`
+    * `phit` now has `pca` and `snapshot`
+    * Add `iqlr` and "multi"-alr
+
 ## propr 2.1.8
 ---------------------
 * Modified visualization tools
