@@ -2,28 +2,34 @@
 #'
 #' @description
 #' Let D represent any number of features measured across N biological replicates
-#' 	exposed to a binary or continuous event E. For example, E could represent case-control
+#' 	exposed to a binary or continuous event E. For example, E could indicate case-control
 #' 	status, treatment status, treatment dose, or time. This function converts a "count matrix"
 #' 	with N rows and D columns into a proportionality matrix of D rows and D columns.
 #'
 #' For phi, the result of \code{phit}, one can think of the resultant matrix as
 #' 	analogous to a distance matrix, except that it has no symmetry unless forced.
-#' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
-#' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
 #' 	For rho, the result of \code{perb}, one can think of the resultant matrix as
 #' 	analogous to a correlation matrix.
+#' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
+#' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
 #'
-#' These methods will use the centered log-ratio transformation by default,
-#'  but will use an additive log-ratio transformation instead if a non-zero
+#' These methods all use the centered log-ratio transformation by default,
+#'  but will use an additive log-ratio transformation instead if a scalar
 #'  \code{ivar} is provided. When using an additive log-ratio transformation,
 #'  this function will return \code{rho = 0} for the column and row in the
 #'  \code{@@matrix} slot that would contain the reference feature.
+#'  Setting \code{ivar} to a numeric or character vector will transform
+#'  data using the geometric mean of only the indexed features.
+#'  Alternatively, setting \code{ivar} to "iqlr" will transform data using
+#'  the geometric mean of only the features with variances that fall in
+#'  the inter-quartile range of all per-feature variances. We base this
+#'  "iqlr" transformation on the \code{ALDEx2} package.
 #'
-#' Log-ratio transformation, by its nature, fails if the input data contain
-#'  any zero values. To avoid an error in this case, these functions automatically
-#'  replace all zero values with 1. Note, however, that the topic of
-#'  zero replacement is controversial. Proceed carefully when analyzing data
-#'  that contain zero values.
+#' Log-ratio transformation, by its nature, fails if the input data
+#'  contain any zero values. To avoid an error in this case, these
+#'  methods automatically replace all zero values with 1. However,
+#'  the topic of zero replacement is controversial. Proceed carefully
+#'  when analyzing data that contain any zero values.
 #'
 #' The \code{select} argument subsets the feature matrix
 #'  after log-ratio transformation but before calculating
@@ -36,14 +42,16 @@
 #'  subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry
 #'  by reflecting the "lower left triangle".
-#' @param ivar A numeric scalar. Specificies a reference feature
+#' @param ivar A numeric scalar. Specificies reference feature(s)
 #'  for additive log-ratio transformation. The argument will also
-#'  accept a feature name(s) instead of the index position.
+#'  accept feature name(s) instead of the index position(s).
+#'  Set to "iqlr" to use inter-quartile log-ratio transformation.
+#'  Ignore to use centered log-ratio transformation.
 #' @param select Subsets via \code{object@counts[, select]}.
 #'  Optional. Use this argument to subset the proportionality
-#'  matrix without altering the final result.
-#' @param .Object Missing. Ignore. Leftover from the generic method
-#'  definition.
+#'  matrix before building without altering the final result.
+#' @param .Object Missing. Ignore. Leftover from the generic
+#'  method definition.
 #'
 #' @return Returns a \code{propr} object.
 #'
@@ -51,8 +59,8 @@
 #' library(propr)
 #' data(mail)
 #' phi <- phit(mail)
-#' phs <- phis(mail)
 #' rho <- perb(mail)
+#' phs <- phis(mail)
 #' @name proportionality
 NULL
 

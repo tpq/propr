@@ -5,7 +5,7 @@
 #'
 #' The \code{ALDEx2} package has two exceptional features useful
 #'  in proportionality analysis too. First, \code{ALDEx2} offers
-#'  a number of additional log-ratio transformations, toggled
+#'  a number of extra log-ratio transformations, toggled
 #'  by the \code{denom} argument in \code{aldex.clr}. Second,
 #'  \code{ALDEx2} estimates per-feature technical variation
 #'  within each sample using Monte-Carlo instances drawn
@@ -23,14 +23,12 @@
 #'  filled with the proportionality matrix as averaged
 #'  across all Monte Carlo instances.
 #'
-#' The \code{select} argument subsets the proportionality
-#'  matrix without altering the final result. This allows
-#'  the user to filter lowly abundant features after
-#'  log-ratio transformation without increasing run-time
-#'  or RAM overhead. Otherwise, the removal of lowly abundant
-#'  features could change the centered log-ratio
-#'  transformation, and therefore change the
-#'  proportionality measure.
+#' The \code{select} argument subsets the feature matrix
+#'  after log-ratio transformation but before calculating
+#'  proportionality. This reduces the run-time and RAM
+#'  overhead without impacting the final result. Removing
+#'  lowly abundant features prior to log-ratio transformation
+#'  could otherwise change the proportionality measure.
 #'
 #' @param aldex.clr An \code{aldex.clr} object.
 #' @param how A character string. The proportionality method

@@ -3,14 +3,17 @@
 #' @description
 #' Welcome to the \code{propr} package!
 #'
-#' To learn more about how to calculate proportionality, see
+#' To learn more about calculating proportionality, see
 #'  \code{\link{proportionality}}.
 #'
-#' To learn more about proportionality plots, see
+#' To learn more about visualizing proportionality, see
 #'  \code{\link{visualize}}.
 #'
+#' To learn more about \code{ALDEx2} package integration, see
+#'  \code{\link{aldex2propr}}.
+#'
 #' To learn more about differential proportionality, see
-#'  \code{\link{prop2prob}}.
+#'  \code{\link{propd}}.
 #'
 #' To learn more about compositional data analysis, and its relevance
 #'  to biological count data, see the bundled vignette.
@@ -33,8 +36,8 @@
 #'  \code{@@matrix} slot.
 #' @param tiny A logical scalar. Toggles whether to pass the indexed
 #'  result through \code{\link{simplify}}.
-#' @param y Missing. Ignore. Leftover from the generic method
-#'  definition.
+#' @param y Missing. Ignore. Leftover from the generic
+#'  method definition.
 #' @inheritParams visualize
 #'
 #' @name propr

@@ -10,9 +10,11 @@ proprPerb(counts, ivar = 0)
 \item{counts}{A data.frame or matrix. A "count matrix" with
 subjects as rows and features as columns.}
 
-\item{ivar}{A numeric scalar. Specificies a reference feature
+\item{ivar}{A numeric scalar. Specificies reference feature(s)
 for additive log-ratio transformation. The argument will also
-accept a feature name(s) instead of the index position.}
+accept feature name(s) instead of the index position(s).
+Set to "iqlr" to use inter-quartile log-ratio transformation.
+Ignore to use centered log-ratio transformation.}
 }
 \value{
 Returns proportionality matrix.

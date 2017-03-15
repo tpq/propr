@@ -138,7 +138,7 @@ to color \code{red} or \code{blue}, respectively.}
  Heatmap intensity is not scaled.
 
 \code{cytescape:}
- Builds a table of indexed pairs and proportionality.
+ Builds a table of indexed pairs and their proportionality.
  In doing so, this function displays a preview of the
  interaction network, built using \code{igraph}.
  We recommend using the result as input to a
