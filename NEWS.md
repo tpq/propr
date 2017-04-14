@@ -1,3 +1,9 @@
+## propr 2.1.9.9000
+---------------------
+* [Add data set from Marguerat et al. 2012]
+    * [Absolute data stored as `marg.abs`]
+    * [Relative data stored as `marg.rel`]
+
 ## propr 2.1.9
 ---------------------
 * Replace `rhoToPhs` function with `lr2phs`
