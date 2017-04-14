@@ -11,6 +11,7 @@ caneToad.groups <- caneToad.groups[1,]
 
 # Build propr object
 keep <- apply(caneToad.counts, 2, function(x) sum(x >= 10) >= 10)
+caneToad.counts <- caneToad.counts[, keep]
 rho <- perb(caneToad.counts, select = keep)
 best.995 <- rho[">", .995]
 top <- simplify(best.995)

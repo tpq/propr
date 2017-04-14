@@ -4,7 +4,7 @@
 \name{caneToad.counts}
 \alias{caneToad.counts}
 \title{Example Cane Toad Count Data}
-\format{An object of class \code{matrix} with 20 rows and 57580 columns.}
+\format{An object of class \code{matrix} with 20 rows and 25774 columns.}
 \source{
 <DOI:10.1111/mec.13184>
 }
@@ -12,6 +12,9 @@
 data(caneToad.counts)
 }
 \description{
-Example Cane Toad Count Data
+Raw RNA-seq counts for twenty toads sampled from one
+ of two regions in Australia. Data set reduced to
+ exclude any transcripts without at least 10 counts
+ in at least 10 samples.
 }
 \keyword{datasets}

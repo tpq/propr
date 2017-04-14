@@ -12,6 +12,9 @@
 data(caneToad.groups)
 }
 \description{
-Example Cane Toad Group Data
+Group labels for twenty toads sampled from one
+ of two regions in Australia. Data set reduced to
+ exclude any transcripts without at least 10 counts
+ in at least 10 samples.
 }
 \keyword{datasets}

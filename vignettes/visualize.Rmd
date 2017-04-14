@@ -37,7 +37,7 @@ That said, in some circumstances, it is simply infeasible to calculate a proport
 keep <- apply(caneToad.counts, 2, function(x) sum(x >= 10) >= 10)
 ```
 
-The proportionality metric $\rho$ has two advantages compared to $\phi$. First, $\rho$ is measured on a scale from $[-1, 1]$, reinforcing its analogy to correlation. Second, $\rho$ adjusts the measure of dependence between two features by the individual variance of *both* features. This symmetrizes the proportionality matrix and may help make proportionality more robust (Erb 2016).
+The proportionality metric $\rho$ has two advantages compared to $\phi$. First, $\rho$ is measured on a scale from $[-1, 1]$, reinforcing its analogy to correlation. Second, $\rho$ adjusts the measure of dependence between two features by the individual variance of *both* features. This symmetrizes the proportionality matrix and may help make proportionality more robust (Erb 2016). Note, however, that since version 2.2.0, `caneToad.counts` is bundled as already pre-filtered in order to satisfy strict file size limits imposed by CRAN.
 
 ```{r, eval = FALSE}
 rho <- perb(caneToad.counts, select = keep)
