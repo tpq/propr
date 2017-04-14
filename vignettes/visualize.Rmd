@@ -43,7 +43,7 @@ The proportionality metric $\rho$ has two advantages compared to $\phi$. First, 
 rho <- perb(caneToad.counts, select = keep)
 ```
 
-Next, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $\rho>0.99$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $\rho<-0.99$ to include only "very unproportional" pairs. However, take note that we use a more stringent threshold here so that the vignette renders more quickly.
+Next, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we set this threshold at $\rho>0.95$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $\rho<-0.95$ to include only "very unproportional" pairs. However, take note that we use a more stringent threshold here so that the vignette renders more quickly.
 
 ```{r, eval = FALSE}
 best <- rho[">", .995]
