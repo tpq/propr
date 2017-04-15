@@ -1,8 +1,9 @@
-## propr 2.1.9.9000
+## propr 2.2.0
 ---------------------
-* [Add data set from Marguerat et al. 2012]
-    * [Absolute data stored as `marg.abs`]
-    * [Relative data stored as `marg.rel`]
+* Modified data set from Rollins et al. 2015
+    * Removed transcripts with < 10 counts in < 10 samples
+* Add data set from Marguerat et al. 2012
+    * Absolute data stored as `marg.abs`
 
 ## propr 2.1.9
 ---------------------
