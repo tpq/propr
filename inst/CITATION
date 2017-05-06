@@ -18,6 +18,23 @@ citEntry(entry = "Article",
 )
 
 citEntry(entry = "Article",
+         title        = paste("Differential Proportionality - A Normalization-Free Approach",
+                              "To Differential Gene Expression"),
+         author       = personList(as.person("Ionas Erb"),
+                                   as.person("Thomas Quinn"),
+                                   as.person("David Lovell"),
+                                   as.person("Cedric Notredame")),
+         journal      = "bioRxiv",
+         year         = "2017",
+
+         textVersion  =
+           paste("Erb I, Quinn T, Lovell D, Notredame C (2017)",
+                 "Differential Proportionality - A Normalization-Free",
+                 "Approach To Differential Gene Expression.",
+                 "bioRxiv: doi:10.1101/134536")
+)
+
+citEntry(entry = "Article",
          title        = "Proportionality: A Valid Alternative to Correlation for Relative Data",
          author       = personList(as.person("David Lovell"),
                                    as.person("Vera Pawlowsky-Glahn"),
