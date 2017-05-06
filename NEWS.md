@@ -1,3 +1,9 @@
+## propr 2.2.0.9000
+---------------------
+* Manually merge C++ code from propriety project
+    * New functions: `half2matrix`, `boxRcpp`, `ctzRcpp`, `lrmRcpp`
+    * Also deprecated functions anticipating unit tests
+
 ## propr 2.2.0
 ---------------------
 * Modified data set from Rollins et al. 2015
