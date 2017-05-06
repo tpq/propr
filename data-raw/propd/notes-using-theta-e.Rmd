@@ -1,0 +1,136 @@
+---
+title: "Emergent Proportionality Update"
+author: "Thomas Quinn"
+date: "March 16, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Differential proportionality
+
+This is an informal first pass through the data considering disjointed and emergent proportionality as distinct concepts. This document will serve as the foundation for a more detailed vignette later.
+
+The `propd` function calculates both $\theta$ and $\theta_e$, returning a `propd` object as the result. We apply this to the cane toad transcript data included with the `propr` package. The `propd` function no longer calculates FDR by default (although the permutations still get saved in `pd@permutes`); the user can (re-)calculate FDR at any point using the `updateCutoffs` function.
+
+```{r, fig.keep = "last"}
+library(propriety)
+library(propr)
+data(caneToad.counts)
+keep <- apply(caneToad.counts, 2, function(x) sum(x > 40) > 10)
+ct <- caneToad.counts[, keep]
+test <- ct[, sample(1:ncol(ct))[1:1000]]
+group <- caneToad.groups
+pd <- propd(test, group)
+```
+
+I tried to make it possible for users to "easily" switch between analysis modes. Two functions, `setDisjointed` and `setEmergent` toggles which $\theta$ is used for FDR calculation and visualization. Disjointed proportionality is the default setting.
+
+```{r}
+pd.d <- updateCutoffs(pd, cutoff = seq(.5, .95, .05))
+```
+
+For $\theta_e$:
+
+```{r}
+pd.e <- setEmergent(pd)
+pd.e <- updateCutoffs(pd.e, cutoff = seq(.5, .95, .05))
+```
+
+I can extend this to *yet another* $\theta$ if needed. Note that the `alpha` parameter (triggering the unnamed "Box-Cox transformation") will work for both $\theta$ and $\theta_e$.
+
+## Visualization
+
+Now, `pd.d` and `pd.e` have the same `@theta` slot. Therefore, they have the same information available for plotting. The only difference is which column is named "theta".
+
+```{r, fig.keep = "last"}
+library(testthat)
+expect_equivalent(
+  pd.d@theta,
+  pd.e@theta
+)
+```
+
+Shale works the same for `pd.d` and `pd.e` when there is no `cutoff` argument (i.e., `cutoff = 1`). They just return the table in a different order. However, the choosing a meaningful `cutoff` will lead to different results.
+
+```{r, fig.keep = "last", eval = FALSE}
+d <- shale(pd.d, cutoff = 1, prompt = FALSE)
+d <- d[order(d$theta), ]
+e <- shale(pd.e, cutoff = 1, prompt = FALSE)
+e <- e[order(e$theta_d), ]
+expect_equivalent(
+  d,
+  e
+)
+```
+
+Let us make sure that $\theta$ and $\theta_e$ relate to one another per Ionas's derivation.
+
+```{r, fig.keep = "last"}
+df <- pd.d@theta
+group1 <- group == unique(group)[1]
+group2 <- group == unique(group)[2]
+n1 <- sum(group1)
+n2 <- sum(group2)
+theta_e <- 1 - df$theta + pmin((n1-1) * df$lrv1, (n2-1) * df$lrv2) / ((n1+n2-1) * df$lrv)
+theta_e[is.na(theta_e)] <- 1
+expect_equal(
+  df$theta_e,
+  theta_e
+)
+```
+
+Two plots from the first edition have not changed much.
+
+```{r, fig.keep = "last"}
+geiser(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+gemini(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+But we can now build them using top pairs selected by $\theta_e$.
+
+```{r, fig.keep = "last"}
+geiser(pd.e, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+gemini(pd.e, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+A new function plots log-ratio means for group 1 against those from group 2. Like `gemini`, this figure arranges each ratio so that the PAL is in the denominator. Pairs without a participating PAL get exlcuded from the figure. By removing "Bridged" and "Missing", pairs these figures now can project more top $k$ PALs.
+
+```{r, fig.keep = "last"}
+bowtie(pd.d, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+bowtie(pd.e, prompt = FALSE)
+```
+
+Naturally, `bowtie` makes more sense to use with $\theta$ while `geiser` makes more sense to use with $\theta_e$.
+
+Quite a lot has changed with the network visualization `plot` method. Edges now get colored based on the active $\theta$. When studying disjointed proportionality, edges get colored based on the log-ratio means. When studying emergent proportionality, edges get colored based on the log-ratio variance.
+
+```{r, fig.keep = "last"}
+plot(pd.d, prompt = FALSE)
+```
+
+Both allow for integratio with `propr` networks.
+
+```{r, fig.keep = "last"}
+plot(pd.e, prompt = FALSE)
+```
+
+The `slice` function has not changed.
+
+```{r, fig.keep = "last"}
+df <- shale(pd.d, prompt = FALSE)
+a <- table(df$PAL)
+x <- names(a[which.max(a[names(a) != "Missing"])])
+slice(pd.d, reference = x, prompt = FALSE)
+```

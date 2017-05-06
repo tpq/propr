@@ -1,0 +1,119 @@
+---
+title: "Theta and DE"
+author: "Thomas Quinn"
+date: "March 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here, I explore how differential proportionality (disjointed, $\theta$) relates to differential expression (DE). For this, I use a data set simulated with the R package `polyester`, aligned with Salmon, and mapped with quasi-counts.
+
+Let us import the data and take a random sample of 10,000 genes:
+
+```{r}
+# Import simulated transcriptome and take random sample
+txs <- read.csv("/home/thom/Dropbox/R/projects/manuscripts/bench/sim_lv_slQUASI_counts.csv",
+                row.names = 1)
+rand <- sample(1:nrow(txs), 10000)
+txs <- txs[rand, ]
+txs[1:5, 1:5]
+```
+
+I will remove low counts from the data:
+
+```{r}
+keep <- apply(txs, 1, function(x) sum(x > 20) > 20)
+txs <- txs[keep, ]
+```
+
+Since this is a simulated data set, we know *a priori* what is differentially expressed. This is available from a separate file:
+
+```{r}
+# Import known annotations
+truth <- read.delim("/home/thom/Dropbox/R/projects/manuscripts/bench/lo-var/sim_tx_info.txt", row.names = 1)
+rownames(truth) <- unlist(lapply(rownames(truth), function(x) strsplit(x, split = "\\s")[[1]][1]))
+true <- truth[rownames(txs), ]
+true[1:5, ]
+```
+
+We will calculate disjointed proportionality on the sample.
+
+```{r}
+library(propriety)
+pd.tx <- propd(t(txs), group = c(rep("A", 20), rep("B", 20)))
+```
+
+Let us define a few functions for DE benchmarking. The first, `calcStats`, calculates precision and recall. The second, `simpleEdger`, runs a basic exact test using the DE software `edgeR`:
+
+```{r}
+calcStats <- function(obs, ref, what){
+
+  all <- rownames(ref)
+  tru <- rownames(ref)[ref$DEstatus.1]
+
+  observed <- all %in% obs
+  actual <- all %in% tru
+
+  conf <- table(observed, actual)
+  if(what == "precision"){
+    out <- conf["TRUE", "TRUE"] / (conf["TRUE", "FALSE"] + conf["TRUE", "TRUE"])
+  }else if(what == "recall"){
+    out <- conf["TRUE", "TRUE"] / (conf["FALSE", "TRUE"] + conf["TRUE", "TRUE"])
+  }
+  return(out)
+}
+
+simpleEdger <- function(ct, group){
+
+  library(edgeR)
+  y <- DGEList(counts = ct, group = group)
+  y <- calcNormFactors(y)
+  y <- estimateCommonDisp(y)
+  y <- estimateTagwiseDisp(y)
+  et <- exactTest(y)
+  tt <- as.data.frame(topTags(et, n = nrow(et)))
+  deGenes <- rownames(tt)[tt$FDR < .05]
+  plotSmear(et, de.tags = deGenes, cex = 0.5)
+  return(deGenes)
+}
+```
+
+```{r}
+de <- simpleEdger(txs, group = c(rep("A", 20), rep("B", 20)))
+calcStats(de, true, "precision")
+calcStats(de, true, "recall")
+```
+
+In the previous document, we filtered nodes based on connectivity. Here, we will filter edges based on total VLR. Specifically, we remove pairs with a total VLR less than the 50th and 75th percentile:
+
+```{r}
+metrix <- lapply(c(3200, 6400, 12000, 24000, 48000),
+                 function(x){
+                   
+                   check <- shale(pd.tx, cutoff = x, prompt = FALSE)
+                   lrv.cutoff <- quantile(check$LRV, probs = .5)
+                   check <- check[check$LRV >= lrv.cutoff, ]
+                   top <- union(check$PartnerName, check$PairName)
+                   data.frame(calcStats(top, true, "precision"),
+                              calcStats(top, true, "recall"))
+                 })
+do.call("rbind", metrix)
+```
+
+```{r}
+metrix <- lapply(c(3200, 6400, 12000, 24000, 48000, 96000, 96000 * 2, 96000 * 3, 96000 * 4,
+                   96000 * 6, 96000 * 8, 96000 * 12, 96000 * 16),
+                 function(x){
+                   
+                   check <- shale(pd.tx, cutoff = x, prompt = FALSE)
+                   lrv.cutoff <- quantile(check$LRV, probs = .75)
+                   check <- check[check$LRV >= lrv.cutoff, ]
+                   top <- union(check$PartnerName, check$PairName)
+                   data.frame(calcStats(top, true, "precision"),
+                              calcStats(top, true, "recall"))
+                 })
+do.call("rbind", metrix)
+```
