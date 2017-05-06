@@ -181,6 +181,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// half2mat
+NumericMatrix half2mat(NumericVector X);
+RcppExport SEXP propr_half2mat(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(half2mat(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_if
+int count_if(LogicalVector x);
+RcppExport SEXP propr_count_if(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< LogicalVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_if(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pairmutate
+List pairmutate(NumericMatrix counts, LogicalVector group);
+RcppExport SEXP propr_pairmutate(SEXP countsSEXP, SEXP groupSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type counts(countsSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type group(groupSEXP);
+    rcpp_result_gen = Rcpp::wrap(pairmutate(counts, group));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lr2vlr
 NumericMatrix lr2vlr(NumericMatrix lr);
 RcppExport SEXP propr_lr2vlr(SEXP lrSEXP) {
@@ -222,6 +256,40 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type lr(lrSEXP);
     rcpp_result_gen = Rcpp::wrap(lr2phs(lr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// boxRcpp
+NumericVector boxRcpp(NumericMatrix& X, const double a);
+RcppExport SEXP propr_boxRcpp(SEXP XSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const double >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(boxRcpp(X, a));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ctzRcpp
+NumericVector ctzRcpp(NumericMatrix& X);
+RcppExport SEXP propr_ctzRcpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(ctzRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lrmRcpp
+NumericVector lrmRcpp(NumericMatrix& X);
+RcppExport SEXP propr_lrmRcpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrmRcpp(X));
     return rcpp_result_gen;
 END_RCPP
 }

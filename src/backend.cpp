@@ -391,3 +391,22 @@ List labRcpp(int nfeats){
     _["Pair"] = pair
   );
 }
+
+// Function to make matrix from half-matrix
+// [[Rcpp::export]]
+NumericMatrix half2mat(NumericVector X){
+
+  int nfeats = sqrt(2 * X.length() + .25) + .5;
+  NumericMatrix A(nfeats, nfeats);
+  int counter = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      A(i, j) = X(counter);
+      A(j, i) = X(counter);
+      counter += 1;
+    }
+  }
+
+  return A;
+}
