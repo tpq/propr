@@ -1,0 +1,106 @@
+#' Calculate Theta
+#'
+#' Calculate differential proportionality measure, theta.
+#'  Used by \code{\link{propd}} to build the \code{@@theta}
+#'  slot. A numeric \code{alpha} argument will trigger
+#'  the Box-Cox transformation.
+#'
+#' @inheritParams propd
+#' @param lrv A numeric vector. A vector of pre-computed
+#'  log-ratio variances. Optional parameter.
+#' @return A \code{data.frame} of \code{theta} values.
+#'
+#' @export
+calculateTheta <- function(counts, group, alpha, lrv){
+
+  ct <- as.matrix(counts)
+  if(missing(alpha)) alpha <- NA
+  if(!is.character(group)) group <- as.character(group)
+  if(length(unique(group)) != 2) stop("Please use exactly two unique groups.")
+  if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
+  if(missing(lrv)){ firstpass <- TRUE
+  }else{ firstpass <- FALSE }
+
+  group1 <- group == unique(group)[1]
+  group2 <- group == unique(group)[2]
+  n1 <- sum(group1)
+  n2 <- sum(group2)
+
+  if(is.na(alpha)){
+
+    if(firstpass) lrv <- lltRcpp(vlrRcpp(ct[]))
+    lrv1 <- lltRcpp(vlrRcpp(ct[group1,]))
+    lrv2 <- lltRcpp(vlrRcpp(ct[group2,]))
+
+  }else{
+
+    if(firstpass) lrv <- boxRcpp(ct[], alpha)
+    lrv1 <- boxRcpp(ct[group1,], alpha)
+    lrv2 <- boxRcpp(ct[group2,], alpha)
+  }
+
+  theta <- ((n1-1) * lrv1 + (n2-1) * lrv2) / ((n1+n2-1) * lrv)
+  theta_e <- 1 - pmax((n1-1) * lrv1, (n2-1) * lrv2) / ((n1+n2-1) * lrv)
+
+  # Replace NaN thetas (from VLR = 0) with 1
+  lrv0 <- lrv == 0
+  if(any(lrv0)){
+    if(firstpass) message("Alert: Replacing NaN theta values with 1.")
+    theta[lrv0] <- 1
+    theta_e[lrv0] <- 1
+  }
+
+  labels <- labRcpp(ncol(counts))
+  return(
+    data.frame(
+      "Partner" = labels[[1]],
+      "Pair" = labels[[2]],
+      "theta" = theta,
+      "theta_e" = theta_e,
+      "lrv" = lrv,
+      "lrv1" = lrv1,
+      "lrv2" = lrv2
+    ))
+}
+
+#' @rdname propd
+#' @export
+updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
+
+  # Let NA cutoff skip function
+  if(identical(cutoff, NA)) return(propd)
+
+  # Set up FDR cutoff table
+  FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
+  colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
+  FDR$cutoff <- cutoff
+  p <- ncol(propd@permutes)
+  lrv <- propd@theta$lrv
+
+  # Tally permuted thetas that fall below each cutoff
+  i <- which("theta" == colnames(propd@theta))
+  if(i == 3) cat("Permuting disjointed proportionality (theta_d):\n")
+  if(i == 4) cat("Permuting emergent proportionality (theta_e):\n")
+  for(k in 1:p){
+
+    numTicks <- progress(k, p, numTicks)
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- propd@permutes[, k]
+    getTheta <- which("theta" == colnames(propd@theta))
+    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv)[, getTheta]
+    for(cut in 1:nrow(FDR)){
+      FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
+    }
+  }
+
+  # Calculate FDR based on real and permuted tallys
+  FDR$randcounts <- FDR$randcounts / p
+  for(cut in 1:nrow(FDR)){
+    FDR[cut, "truecounts"] <- sum(propd@theta$theta < FDR[cut, "cutoff"])
+    FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
+  }
+
+  propd@fdr <- FDR
+  return(propd)
+}
