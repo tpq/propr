@@ -1,8 +1,9 @@
 ## propr 2.2.0.9000
 ---------------------
-* Manually merge C++ code from propriety project
+* Manually merged C++ functions from propriety project
     * New functions: `half2matrix`, `boxRcpp`, `ctzRcpp`, `lrmRcpp`
     * Also deprecated functions anticipating unit tests
+* Rebuilt `top` data using filtered `caneToad.counts`
 
 ## propr 2.2.0
 ---------------------
