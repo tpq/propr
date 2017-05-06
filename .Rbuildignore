@@ -2,5 +2,6 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^README-.*\.png$
+^OLDNEWS\.md$
 ^cran-comments\.md$
 ^data-raw$
