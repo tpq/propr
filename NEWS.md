@@ -1,9 +1,15 @@
 ## propr 2.2.0.9000
 ---------------------
+* Added propriety project pre-merger changelog to OLDNEWS.md
+* Manually merged R functions from propriety project
+    * New functions: `propd` and methods, `calculateTheta`, `updateCutoffs`
+    * Added deprecated functions anticipating unit tests
 * Manually merged C++ functions from propriety project
     * New functions: `half2matrix`, `boxRcpp`, `ctzRcpp`, `lrmRcpp`
-    * Also deprecated functions anticipating unit tests
-* Rebuilt `top` data using filtered `caneToad.counts`
+    * Added deprecated functions anticipating unit tests
+* Modified data
+    * Rebuilt `top` data using filtered `caneToad.counts`
+    * Objects `pd.d` and `pd.e` not merged
 
 ## propr 2.2.0
 ---------------------
