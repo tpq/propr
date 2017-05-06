@@ -321,9 +321,10 @@ packageCheck <- function(package){
 
 #' Example propr Object
 #'
-#' Includes results from \code{\link{perb}} as applied to
+#' Includes the log-ratio transformed abundances from all
 #'  cane toad transcripts with at least 10 counts in at least
-#'  10 samples. Used for vignette.
+#'  10 samples, subsetted to include only those indexed
+#'  by \code{rho > .995}. Used for vignette.
 #'
 #' @source <DOI:10.1111/mec.13184>
 #' @usage data(top)
@@ -351,7 +352,7 @@ packageCheck <- function(package){
 #'  cane toad transcripts with at least 40 counts in at least
 #'  20 samples (after removing any transcripts with 0 counts).
 #'  The resultant object is filtered to include only the top
-#'  1000 theta values in the \code{@@theta} slot.
+#'  1000 theta_d values in the \code{@@theta} slot.
 #'
 #' @source <DOI:10.1111/mec.13184>
 #' @usage data(pd.d)

@@ -4,7 +4,7 @@
 \name{top}
 \alias{top}
 \title{Example propr Object}
-\format{An object of class \code{propr} of length 1.}
+\format{An object of class \code{matrix} with 20 rows and 409 columns.}
 \source{
 <DOI:10.1111/mec.13184>
 }
@@ -12,8 +12,9 @@
 data(top)
 }
 \description{
-Includes results from \code{\link{perb}} as applied to
+Includes the log-ratio transformed abundances from all
  cane toad transcripts with at least 10 counts in at least
- 10 samples. Used for vignette.
+ 10 samples, subsetted to include only those indexed
+ by \code{rho > .995}. Used for vignette.
 }
 \keyword{datasets}
