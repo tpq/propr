@@ -121,6 +121,11 @@
 #'  definition.
 #' @param counts A data.frame or matrix. A "count matrix" with
 #'  subjects as rows and features as columns.
+#' @param ivar A numeric scalar. Specificies reference feature(s)
+#'  for additive log-ratio transformation. The argument will also
+#'  accept feature name(s) instead of the index position(s).
+#'  Set to "iqlr" to use inter-quartile log-ratio transformation.
+#'  Ignore to use centered log-ratio transformation.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the row names in \code{counts}.
 #' @param alpha A double. See vignette for details. Leave missing

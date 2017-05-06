@@ -64,6 +64,12 @@ indicates the maximum theta to include in the figure.
 For graph functions, a large integer will instead
 retrieve the top N pairs as ranked by theta.}
 
+\item{ivar}{A numeric scalar. Specificies reference feature(s)
+for additive log-ratio transformation. The argument will also
+accept feature name(s) instead of the index position(s).
+Set to "iqlr" to use inter-quartile log-ratio transformation.
+Ignore to use centered log-ratio transformation.}
+
 \item{y}{Missing. Ignore. Leftover from the generic method
 definition.}
 
