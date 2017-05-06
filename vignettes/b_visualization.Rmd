@@ -27,6 +27,10 @@ data(caneToad.groups)
 library(propr)
 data(caneToad.groups)
 data(top)
+best <- new("propr")
+best@matrix <- propr:::lr2rho(top)
+best@logratio <- top
+best[">", .995]
 ```
 
 Next, we calculate proportionality between all transcripts in the dataset. When working with a large number of transcripts (57,580 in this case), we may first want to filter non-informative transcripts to minimize the computational burden of analysis. However, while the variance of the log-ratio transformed feature pair (VLR) (i.e., the numerator portion of $\phi$ and $\rho$) remains fixed regardless of pre-filtering, the individual log-ratio transformed variances (VLS) (i.e., the denominator portion of $\phi$ and $\rho$) do change. In other words, although VLR is sub-compositionally coherent, VLS is not. Therefore, pre-filtering *before* calculating $\rho$ will impact the final result.
@@ -58,7 +62,7 @@ plot(best)
 ```
 
 ```{r, echo = FALSE, results = "hide", fig.show = "hold", fig.keep = "last"}
-plot(top)
+plot(best)
 ```
 
 You can also inspect how the indexed pairs cluster using the `dendrogram` function. Specifically, this function clusters features based on a hierarchical clustering of the dissimiliarity measure of the proportionality matrix. In this package, we define the dissimiliarity measure of a proportionality matrix as `as.dist(1-abs(rho@matrix))`. Like `plot`, this function is "index-aware" and only plots feature pairs indexed with `[`. Take note that this dendrogram matches the dendrogram used to label co-clusters in the `prism`, `bokeh`, and `bucket` plots, described below. However, it differs from the dendrogram produced by the `snapshot` plot. Heatmap intensity is not scaled.
@@ -68,7 +72,7 @@ dendrogram(best)
 ```
 
 ```{r, echo = FALSE, results = "hide"}
-dendrogram(top)
+dendrogram(best)
 ```
 
 ## Index-naive Plots
@@ -76,7 +80,7 @@ dendrogram(top)
 The remaining visualization methods do not restrict plotting to indexed pairs, but instead incorporate all features present in the `propr` object. To exclude features that do not belong to an indexed feature pair, we `simplify` the indexed `propr` object.
 
 ```{r, eval = FALSE}
-top <- simplify(best)
+best <- simplify(best)
 ```
 
 Compositional data are not distributed in Euclidean space, but rather exist in a space known as the Aitchison simplex (Fernandes 2014). The log-ratio transformation (stored in the `@logratio` slot), used when calculating proportionality, transforms the relative count data from the Aitchison simplex to Euclidean space, allowing us to summarize our data through conventional statistics.
@@ -84,13 +88,13 @@ Compositional data are not distributed in Euclidean space, but rather exist in a
 First, we look at `pca`, a function for visualizing the samples across the first two dimensions as reduced by principal components analysis (PCA). This is a valid implementation of PCA plotting for relative count data, built using log-ratio transformed data (Gloor 2016). The `group` argument allows us to color the sample IDs by group membership.
 
 ```{r, results = "hide", message = FALSE, fig.keep = "last"}
-pca(top, group = caneToad.groups)
+pca(best, group = caneToad.groups)
 ```
 
 Second, we look at `snapshot`, a function for visualizing the intensity of the log-ratio transformed count data across samples. Heatmap intensity is not scaled.
 
 ```{r, results = "hide", message = FALSE}
-snapshot(top)
+snapshot(best)
 ```
 
 Finally, we look at `prism`, `bokeh`, and `bucket` (pronounced *bouquet*), three functions for visualizing the co-clustering of proportional features. We mention these plot functions together because they share some key similiarities. First, these functions are "index-naive" and plot all $\rho$ in the `@matrix` slot of the `propr` object. Second, these functions identify the feature pairs where both of the constituents co-cluster (with the total number of clusters toggled by the argument `k`). Third, these functions return a vector of cluster memberships for the features appear in the `propr` object.
@@ -98,19 +102,19 @@ Finally, we look at `prism`, `bokeh`, and `bucket` (pronounced *bouquet*), three
 The `prism` function plots the variance of the ratio of the log-ratio transformed feature pair (VLR) versus the sum of the individual variances of each log-ratio transformed feature (VLS). The ratio of the VLR to the VLS equals $1 - \rho$. As such, we use here seven rainbow colored lines to indicate where $\rho = [.01, .05, .50, 0, 1.50, 1.95, 1.99]$, going from red to violet. A low VLR with a high VLS suggests that the feature pair remains in an equilibrium despite high variability among the individual features ($\rho \approx 1$). A very high VLR with a high VLS suggests that the feature pair remains in an inverted equilibrium despite high variability among the individual features ($\rho \approx -1$).
 
 ```{r, results = "hide", message = FALSE}
-clusts <- prism(top, k = 5)
+clusts <- prism(best, k = 5)
 ```
 
 The `bokeh` function plots pairs across the individual variances of the constituent log-ratio transformed features. For clarity of visualization, the figure projects the data on a log-fold scale. Therefore, the highly variable co-clusters appear in the top-right of the figure while the lowly variable co-clusters appear in the bottom-left. Meanwhile, highly proportional pairs tend to aggregate around the $y=x$ diagonal. The user can retrieve the table used to generate the `prism` and `bokeh` plots by passing the `propr` object through the `slate` function.
 
 ```{r, results = "hide", message = FALSE}
-clusts <- bokeh(top, k = 5)
+clusts <- bokeh(best, k = 5)
 ```
 
 The `bucket` function (pronounced *bouquet*) plots an estimation of the degree to which a feature pair differentiates the experimental groups versus the proportionality between that pair.
 
 ```{r, results = "hide", message = FALSE}
-clusts <- bucket(top, group = caneToad.groups, k = 5)
+clusts <- bucket(best, group = caneToad.groups, k = 5)
 ```
 
 These figures help us conceptualize high-dimensional data and select a highly proportional module for further analysis. In this example, we have a particular interest in co-cluster 4 because it (1) shows low proportionality in the setting of high individual feature variance, and (2) appears to differentiate the two experimental groups.
@@ -120,7 +124,7 @@ These figures help us conceptualize high-dimensional data and select a highly pr
 We can extract co-cluster 4 from the `propr` object using the `subset` method.
 
 ```{r, results = "hide"}
-sub <- subset(top, select = (clusts == 4))
+sub <- subset(best, select = (clusts == 4))
 ```
 
 Now, we can use the `pca` functions to see how well this cluster differentiates the two experimental groups based on unsupervised methods. We see below in the `pca` plot that projecting our samples across this highly proportional module leads good separation between the experimental groups. This matches the separation achieved in the source publication which used `edgeR` for feature selection (Rollins 2015).
