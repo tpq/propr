@@ -344,3 +344,27 @@ packageCheck <- function(package){
 #'
 #' @usage data(marg.abs)
 "marg.abs"
+
+#' Example propd Object
+#'
+#' Includes results from \code{\link{propd}} as applied to
+#'  cane toad transcripts with at least 40 counts in at least
+#'  20 samples (after removing any transcripts with 0 counts).
+#'  The resultant object is filtered to include only the top
+#'  1000 theta values in the \code{@@theta} slot.
+#'
+#' @source <DOI:10.1111/mec.13184>
+#' @usage data(pd.d)
+"pd.d"
+
+#' Example propd Object
+#'
+#' Includes results from \code{\link{propd}} as applied to
+#'  cane toad transcripts with at least 40 counts in at least
+#'  20 samples (after removing any transcripts with 0 counts).
+#'  The resultant object is filtered to include only the top
+#'  1000 theta_e values in the \code{@@theta} slot.
+#'
+#' @source <DOI:10.1111/mec.13184>
+#' @usage data(pd.e)
+"pd.e"
