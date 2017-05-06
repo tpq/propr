@@ -1,15 +1,20 @@
 ## propr 2.2.0.9000
 ---------------------
-* Added propriety project pre-merger changelog to OLDNEWS.md
+* Modified package skeleton
+    * Added differential proportionality article to CITATION
+    * Added propriety project pre-merger changelog to OLDNEWS.md
 * Manually merged R functions from propriety project
     * New functions: `propd` and methods, `calculateTheta`, `updateCutoffs`
     * Added deprecated functions anticipating unit tests
 * Manually merged C++ functions from propriety project
     * New functions: `half2matrix`, `boxRcpp`, `ctzRcpp`, `lrmRcpp`
     * Added deprecated functions anticipating unit tests
+* Modified unit tests
+    * Added `requireNamespace` check for `ALDEx2` tests
+    * Added unit tests from propriety project
 * Modified data
-    * Rebuilt `top` data using filtered `caneToad.counts`
-    * Objects `pd.d` and `pd.e` not merged
+    * Rebuilt `top` as log-ratio data using filtered `caneToad.counts`
+    * Rebuilt `pd.d` and `pd.e` data
 
 ## propr 2.2.0
 ---------------------
