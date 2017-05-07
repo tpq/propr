@@ -1,4 +1,4 @@
-library(propriety)
+library(propr)
 
 data(iris)
 keep <- iris$Species %in% c("setosa", "versicolor")

@@ -1,6 +1,6 @@
 context("aldex2propr")
 
-if(requireNamespace(ALDEx2, quietly = TRUE)){
+if(requireNamespace("ALDEx2", quietly = TRUE)){
 
   library(propr)
   library(ALDEx2)
