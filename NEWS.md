@@ -1,4 +1,4 @@
-## propr 2.2.0.9000
+## propr 3.0.0
 ---------------------
 * Modified package skeleton
     * Added differential proportionality article to CITATION
@@ -13,8 +13,10 @@
     * Added `requireNamespace` check for `ALDEx2` tests
     * Added unit tests from propriety project
 * Modified data
-    * Rebuilt `top` as log-ratio data using filtered `caneToad.counts`
     * Rebuilt `pd.d` and `pd.e` data
+    * Added `top.counts` as count data using filtered `caneToad.counts`
+    * Added `top.lr` as log-ratio data using filtered `caneToad.counts`
+    * Removed `top` data
 
 ## propr 2.2.0
 ---------------------

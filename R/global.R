@@ -321,14 +321,25 @@ packageCheck <- function(package){
 
 #' Example propr Object
 #'
+#' Includes the non-transformed count abundances from all
+#'  cane toad transcripts with at least 10 counts in at least
+#'  10 samples, subsetted to include only those indexed
+#'  by \code{rho > .995}. Used for vignette.
+#'
+#' @source <DOI:10.1111/mec.13184>
+#' @usage data(top.counts)
+"top.counts"
+
+#' Example propr Object
+#'
 #' Includes the log-ratio transformed abundances from all
 #'  cane toad transcripts with at least 10 counts in at least
 #'  10 samples, subsetted to include only those indexed
 #'  by \code{rho > .995}. Used for vignette.
 #'
 #' @source <DOI:10.1111/mec.13184>
-#' @usage data(top)
-"top"
+#' @usage data(top.lr)
+"top.lr"
 
 #' Example Absolute mRNA
 #'
