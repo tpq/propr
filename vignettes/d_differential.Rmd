@@ -59,7 +59,7 @@ The `propd` function estimates differential proportionality by calculating $\the
 
 Below, we run `propd` using the `iris` data set.
 
-```{r}
+```{r, dpi = 72}
 library(propr)
 data(iris)
 keep <- iris$Species %in% c("setosa", "versicolor")
@@ -70,14 +70,14 @@ pd <- propd(counts, group, alpha = NA, p = 100, cutoff = NA)
 
 This resultant `propd` object contains both $\theta_d$ and $\theta_e$ metrics, although only $\theta_d$ is *active* by default. While a $\theta$ is active, it forms the basis for permutation testing (i.e., FDR estimation) and visualization. Users can easily change which $\theta$ is active using the functions `setDisjointed` and `setEmergent`.
 
-```{r, message = FALSE}
+```{r, dpi = 72, message = FALSE}
 theta_d <- setDisjointed(pd)
 theta_e <- setEmergent(pd)
 ```
 
 Once the $\theta$ of interest is active, the user can calculate FDR using the `updateCutoffs` function. By default, providing a `cutoff` argument directly to the `propd` function will run `updateCutoffs` for $\theta_d$.
 
-```{r}
+```{r, dpi = 72}
 theta_d <- updateCutoffs(theta_d, cutoff = seq(0.05, 0.95, 0.3))
 theta_d <- updateCutoffs(theta_e, cutoff = seq(0.05, 0.95, 0.3))
 ```
@@ -90,7 +90,7 @@ To understand differential proportionality, we use two `propd` objects, called `
 
 Note that in this vignette, we never apply `updateCutoffs` to either of these data objects. When estimating FDR, it is necessary to use an unfiltered `propd` object to keep estimations unbiased.
 
-```{r}
+```{r, dpi = 72}
 data(pd.d, package = "propr") # top 1000 disjointed pairs
 data(pd.e, package = "propr") # top 1000 emergent pairs
 ```
@@ -101,7 +101,7 @@ We begin now by looking at *disjointed proportionality* in more detail. Based on
 
 Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pair-wise measurements. Then, we show a log-log plot of the abundance for features "39" and "37" (equivalent to the `smear` plot in the companion vignette), as colored by the experimental group.
 
-```{r, message = FALSE, fig.keep = "last"}
+```{r, dpi = 72, message = FALSE, fig.keep = "last"}
 tab <- shale(pd.d)
 head(round(tab[, c("Partner", "Pair", "theta", "LRV", "LRV1", "LRV2", "LRM1", "LRM2")], 2))
 srt <- order(pd.d@counts[, 39])
@@ -115,7 +115,7 @@ points(x[!grp1], y[!grp1], col = "blue", type = "l")
 
 Here, we see that these two features change proportionally across the samples within each group (as expected based on their small values of $\textrm{VLR}_1$ and $\textrm{VLR}_2$). However, when ignoring the group labels, the relationship between these two features appears noisy. It seems as if the experimental condition has moved the *set point* around which the transcripts behave proportionally (i.e., the y-intercept has moved). In other words, we see that, while "37" (y-axis) has increased in expression relative to "39" (x-axis), "37" is no less coordinated with "39". Such a change in ratio abundance makes more sense when viewed through another projection.
 
-```{r, fig.keep = "last"}
+```{r, dpi = 72, fig.keep = "last"}
 plot(pd.d@counts[, 37] / pd.d@counts[, 39],
      col = ifelse(pd.d@group == "WA", "red", "blue"))
 ```
@@ -128,7 +128,7 @@ In contrast, *emergent proportionality* has more in common with a test for diffe
 
 Below, we use the `shale` function again to tabulate important pair-wise measurements. Then, we show a log-log plot of the abundance for features "106" and "2" (equivalent to the `smear` plot in the companion vignette), as colored by the experimental group.
 
-```{r, fig.keep = "last"}
+```{r, dpi = 72, fig.keep = "last"}
 tab <- shale(pd.e)
 head(round(tab[, c("Partner", "Pair", "theta", "LRV", "LRV1", "LRV2", "LRM1", "LRM2")], 2))
 srt <- order(pd.e@counts[, 106])
@@ -142,7 +142,7 @@ points(x[!grp1], y[!grp1], col = "blue", type = "l")
 
 Here, we see that these two features change proportionally across the samples within one group but not the other. Moreover, when ignoring the group labels, we see that one group happens to dominate the total VLR. In other words, the experimental condition appears to have removed the coordination between the transcripts. However, this has happened without any change in ratio abundance.
 
-```{r, fig.keep = "last"}
+```{r, dpi = 72, fig.keep = "last"}
 plot(pd.e@counts[, 2] / pd.e@counts[, 106],
      col = ifelse(pd.d@group == "WA", "red", "blue"))
 ```
@@ -159,13 +159,13 @@ $$1-\vartheta\le\vartheta_\mathrm{e}\le1-\vartheta/2,$$
 
 A good first step in understanding $\theta$ begins with an examination of the disproportionality network. The `plot` method provides an easy way to build a network such that each circular "node" indicates a transcript while each connecting "edge" indicates an indexed pair (i.e., $\theta < cutoff$). Providing a value of $[0, 1]$ to the `cutoff` argument will index pairs based on a maximum value of $\theta$. Providing an integer greater than $1$ to the `cutoff` argument will index the top $N$ pairs as ranked by $\theta$. Note that setting `d3 = TRUE` will have the `rgl` package render the network in 3D.
 
-```{r}
+```{r, dpi = 72}
 g <- plot(pd.d, cutoff = 1000)
 ```
 
 For *disjointed proportionality* networks, red edges show an increase in log-ratio means in Group 1 compared to Group 2 (i.e., increased ratio abundance in Western Australia toads) while blue edges show a decrease in log-ratio means in Group 1 compared to Group 2 (i.e., decreased ratio abundance in Western Australia toads). Importantly, we see that a small number of transcripts participate in a large number of differentially proportional pairs. This resembles a network architecture called scale-free topology in which there exists conspicuous "hub" transcripts. Scale-free topology is well-established in biological systems, including within the correlative structure of genetic regulatory networks (Barabási 2004).
 
-```{r}
+```{r, dpi = 72}
 g <- plot(pd.e, cutoff = 1000)
 ```
 
@@ -181,31 +181,31 @@ Next, we assign each edge a PAL. Edges that have a top PAL as one and only one o
 
 The `bowtie` function shows the log-ratio means (LRM) for Group 1 against LRM from Group 2 for all pairs indexed by the `cutoff` argument. Pairs along the $y = x$ line have approximately equal LRM between groups. When determining the sign of the LRM, the PAL is always the denominator reference. Note that this figure is more applicable to understanding *disjointed proportionality*.
 
-```{r, fig.keep = "first"}
+```{r, dpi = 72, fig.keep = "first"}
 bowtie(pd.d, prompt = FALSE)
 ```
 
-```{r, fig.keep = "first"}
+```{r, dpi = 72, fig.keep = "first"}
 bowtie(pd.e, prompt = FALSE)
 ```
 
 The `geiser` function shows VLR for Group 1 plotted against VLR for Group 2 for all pairs indexed by the `cutoff` argument. Pairs along the $y = x$ line have approximately equal VLR between groups. Otherwise, pairs above (or below) the $y = x$ line show relatively increased (or decreased) proportionality in Group 1, respectively. Note that this figure is more applicable to understanding *emergent proportionality*.
 
-```{r, results = "hide", fig.keep = "first"}
+```{r, dpi = 72, results = "hide", fig.keep = "first"}
 geiser(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
 ```
 
-```{r, fig.keep = "last"}
+```{r, dpi = 72, fig.keep = "last"}
 geiser(pd.e, cutoff = 1000, k = 5, prompt = FALSE)
 ```
 
 The `gemini` function shows log-fold change in VLR against difference in the log-ratio means (LRM) of the count ratio relative to its PAL. This figure provides a lot of information, summarizing how the PAL modules change in coordination *and* in relative abundance between the groups. Here, an *increase* along the **y-axis** represents a relative *decrease* in proportionality in Group 1. An *increase* along the **x-axis** represents a *increase* in mean abundance of a feature relative to its PAL in Group 1.
 
-```{r, results = "hide", fig.keep = "first"}
+```{r, dpi = 72, results = "hide", fig.keep = "first"}
 gemini(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
 ```
 
-```{r, fig.keep = "last"}
+```{r, dpi = 72, fig.keep = "last"}
 gemini(pd.e, cutoff = 1000, k = 5, prompt = FALSE)
 ```
 
@@ -215,11 +215,11 @@ On the other hand, for $\theta_e$, all features connected to a top PAL "hub" cha
 
 Finally, the `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, but users would likely choose a PAL "hub" as the reference. Note that this figure is more applicable to understanding *disjointed proportionality*.
 
-```{r, fig.keep = "first"}
+```{r, dpi = 72, fig.keep = "first"}
 slice(pd.d, reference = "c19327_g2_i3")
 ```
 
-```{r, fig.keep = "first"}
+```{r, dpi = 72, fig.keep = "first"}
 slice(pd.e, reference = "c27054_g5_i1")
 ```
 
@@ -227,7 +227,7 @@ slice(pd.e, reference = "c27054_g5_i1")
 
 This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through a union of a `propr` network with a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate cutoff of $\rho$. Note that, because CRAN imposes limits on the size of bundled data as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
 
-```{r, eval = FALSE}
+```{r, dpi = 72, eval = FALSE}
 data(caneToad.counts)
 keep <- apply(caneToad.counts, 2, function(x) sum(x >= 40) >= 20 & all(x != 0))
 caneToad.sub <- caneToad.counts[, keep]
