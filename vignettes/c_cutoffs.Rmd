@@ -9,6 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## Introduction
+
+In this vignette, we use a real dataset to show how correlation analysis yields spurious results when applied to RNA-seq count data, and how proportionality analysis minimizes the discovery of falsely positive associations. We conclude by establishing a well-reasoned "rule of thumb" to answer the question, "How proportional is proportional enough?". This vignette discusses the `propr` method.
+
 ## Correlation on relative data yields spurious results
 
 Relative, or compositional, data do not exist in Euclidean space, but rather in a sub-space known as the Aitchison simplex (Aitchison 1986). As a consequence, calculating the Euclidean distance between points in relative space does not reflect the absolute distance between them. Many commonly used metrics implicitly assume that underlying data exist in Euclidean space; such metrics are invalid for relative data. Notably, this includes Pearson's correlation coefficient, a measure of the association between two variables (Lovell 2015).
