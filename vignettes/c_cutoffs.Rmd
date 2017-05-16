@@ -11,7 +11,7 @@ vignette: >
 
 ## Introduction
 
-In this vignette, we use a real dataset to show how correlation analysis yields spurious results when applied to RNA-seq count data, and how proportionality analysis minimizes the discovery of falsely positive associations. We conclude by establishing a well-reasoned "rule of thumb" to answer the question, "How proportional is proportional enough?". This vignette discusses the `propr` method.
+In this vignette, we use a real dataset to show how correlation analysis yields spurious results when applied to RNA-seq count data, and how proportionality analysis minimizes the discovery of falsely positive associations. We conclude by establishing a well-reasoned "rule of thumb" to answer the question, "How proportional is proportional enough?".
 
 ## Correlation on relative data yields spurious results
 
