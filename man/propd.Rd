@@ -223,6 +223,8 @@ Note that Group 1 always refers to the first element of the
 
 \item{\code{theta}}{A data.frame. Stores the pairwise theta measurements.}
 
+\item{\code{active}}{A character. Stores the name of the active theta type.}
+
 \item{\code{permutes}}{A data.frame. Stores the shuffled group labels,
 used to reproduce permutations of theta.}
 

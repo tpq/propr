@@ -1,5 +1,7 @@
 ## propr 3.0.0.9000
 ---------------------
+* Modified `propd` Class
+    * Added `@active` slot to store active theta type
 * Modified `calculateTheta`
     * Added `theta_f` which equals `1 - theta_e`
     * Added `only` argument to retrieve only one theta type

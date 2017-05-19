@@ -112,6 +112,7 @@
 #' @slot group A character vector. Stores the original group labels.
 #' @slot alpha A double. Stores the alpha value used for transformation.
 #' @slot theta A data.frame. Stores the pairwise theta measurements.
+#' @slot active A character. Stores the name of the active theta type.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of theta.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for theta.
@@ -166,6 +167,7 @@ setClass("propd",
            group = "character",
            alpha = "numeric",
            theta = "data.frame",
+           active = "character",
            permutes = "data.frame",
            fdr = "data.frame"
          )
@@ -210,6 +212,7 @@ propd <- function(counts, group, alpha, p = 100, cutoff = NA){
   result@theta$lrm1 <- lrmRcpp(as.matrix(ct[group == unique(group)[1], ]))
   result@theta$lrm2 <- lrmRcpp(as.matrix(ct[group == unique(group)[2], ]))
   result@theta$F_d <- (length(group) - 2) * (1 - result@theta$theta) / result@theta$theta
+  result@active <- "theta_d" # set theta_d active by default
 
   # Tally frequency of 0 counts
   if(any(counts == 0)){
@@ -256,6 +259,7 @@ setDisjointed <- function(propd){
 
   if(class(propd) != "propd") stop("Please provide a 'propd' object.")
   colnames(propd@theta)[3:4] <- c("theta", "theta_e")
+  propd@active <- "theta_d"
 
   message("Use 'updateCutoffs' to refresh FDR.")
   return(propd)
@@ -267,6 +271,7 @@ setEmergent <- function(propd){
 
   if(class(propd) != "propd") stop("Please provide a 'propd' object.")
   colnames(propd@theta)[3:4] <- c("theta_d", "theta")
+  propd@active <- "theta_e"
 
   message("Use 'updateCutoffs' to refresh FDR.")
   return(propd)

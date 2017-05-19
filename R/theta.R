@@ -99,21 +99,6 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
   p <- ncol(propd@permutes)
   lrv <- propd@theta$lrv
 
-  # Tally permuted thetas that fall below each cutoff
-  i <- which("theta" == colnames(propd@theta))
-  if(i == 3){
-    cat("Permuting disjointed proportionality (theta_d):\n")
-    onlyTheta <- "theta_d"
-  }else if(i == 4){
-    if(i == 4) cat("Permuting emergent proportionality (theta_e):\n")
-    onlyTheta <- "theta_e"
-  }else if(i == 5){
-    if(i == 5) cat("Permuting fettered proportionality (theta_f):\n")
-    onlyTheta <- "theta_f"
-  }else{
-    stop("No 'updateCutoffs' method in place for active theta.")
-  }
-
   # Use calculateTheta to permute active theta
   for(k in 1:p){
 
@@ -121,7 +106,7 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- propd@permutes[, k]
-    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv, only = onlyTheta)
+    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv, only = propd@active)
     for(cut in 1:nrow(FDR)){
       FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
     }
