@@ -79,7 +79,7 @@ Once the $\theta$ of interest is active, the user can calculate FDR using the `u
 
 ```{r, dpi = 72}
 theta_d <- updateCutoffs(theta_d, cutoff = seq(0.05, 0.95, 0.3))
-theta_d <- updateCutoffs(theta_e, cutoff = seq(0.05, 0.95, 0.3))
+theta_e <- updateCutoffs(theta_e, cutoff = seq(0.05, 0.95, 0.3))
 ```
 
 In order to reduce RAM overhead, the `propd` object never stores the intermediate $\theta$ values for permutation testing. However, when a `propd` object is created, it contains all the randomized group assignments needed for permutation testing, meaning that each `updateCutoffs` run effectively uses the same random seed. One could exploit the data contained in `pd@permutes` to reproduce the intermediate calculations if needed.
