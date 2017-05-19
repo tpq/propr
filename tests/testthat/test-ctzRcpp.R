@@ -1,8 +1,8 @@
 mat <- matrix(sample(0:10, replace = TRUE, size = 150), 10, 15)
 cts <- apply(mat, 2, function(x) sum(x == 0))
 
-df <- data.frame(propriety:::labRcpp(ncol(mat)),
-                 "Z" = propriety:::ctzRcpp(mat))
+df <- data.frame(propr:::labRcpp(ncol(mat)),
+                 "Z" = propr:::ctzRcpp(mat))
 
 test_that("ctzRcpp correctly counts joint zero frequency", {
 
@@ -20,12 +20,12 @@ grp <- c(rep("A", 5), rep("B", 5))
 test_that("lrmRcpp correctly calculates log-ratio mean", {
 
   expect_equal(
-    propriety:::calculateTheta_old(mat, grp)$lrm1,
-    propriety:::lrmRcpp(as.matrix(mat[1:5, ]))
+    propr:::calculateTheta_old(mat, grp)$lrm1,
+    propr:::lrmRcpp(as.matrix(mat[1:5, ]))
   )
 
   expect_equal(
-    propriety:::calculateTheta_old(mat, grp)$lrm2,
-    propriety:::lrmRcpp(as.matrix(mat[6:10, ]))
+    propr:::calculateTheta_old(mat, grp)$lrm2,
+    propr:::lrmRcpp(as.matrix(mat[6:10, ]))
   )
 })

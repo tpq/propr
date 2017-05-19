@@ -12,6 +12,6 @@ test_that("half-matrix correctly turned into matrix", {
 
   expect_equal(
     rho,
-    propriety:::half2mat(propriety:::lltRcpp(rho))
+    propr:::half2mat(propr:::lltRcpp(rho))
   )
 })
