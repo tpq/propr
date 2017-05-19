@@ -8,10 +8,13 @@
 #' @inheritParams propd
 #' @param lrv A numeric vector. A vector of pre-computed
 #'  log-ratio variances. Optional parameter.
+#' @param only A character string. The name of the theta
+#'  type to calculate if only calculating one theta type.
+#'  Used to make \code{updateCutoffs} faster.
 #' @return A \code{data.frame} of \code{theta} values.
 #'
 #' @export
-calculateTheta <- function(counts, group, alpha, lrv){
+calculateTheta <- function(counts, group, alpha, lrv, only = "all"){
 
   ct <- as.matrix(counts)
   if(missing(alpha)) alpha <- NA
@@ -39,15 +42,33 @@ calculateTheta <- function(counts, group, alpha, lrv){
     lrv2 <- boxRcpp(ct[group2,], alpha)
   }
 
-  theta <- ((n1-1) * lrv1 + (n2-1) * lrv2) / ((n1+n2-1) * lrv)
-  theta_e <- 1 - pmax((n1-1) * lrv1, (n2-1) * lrv2) / ((n1+n2-1) * lrv)
-
   # Replace NaN thetas (from VLR = 0) with 1
   lrv0 <- lrv == 0
-  if(any(lrv0)){
+  replaceNaNs <- any(lrv0)
+  if(replaceNaNs){
     if(firstpass) message("Alert: Replacing NaN theta values with 1.")
-    theta[lrv0] <- 1
-    theta_e[lrv0] <- 1
+  }
+
+  # Build all theta types unless only != "all"
+  if(only == "all" | only == "d"){
+
+    theta <- ((n1-1) * lrv1 + (n2-1) * lrv2) / ((n1+n2-1) * lrv)
+    if(replaceNaNs) theta[lrv0] <- 1
+    if(only == "d") return(theta)
+  }
+
+  if(only == "all" | only == "e"){
+
+    theta_e <- 1 - pmax((n1-1) * lrv1, (n2-1) * lrv2) / ((n1+n2-1) * lrv)
+    if(replaceNaNs) theta_e[lrv0] <- 1
+    if(only == "e") return(theta_e)
+  }
+
+  if(only == "all" | only == "f"){
+
+    theta_f <- 1 - theta_e
+    if(replaceNaNs) theta_f[lrv0] <- 1
+    if(only == "f") return(theta_f)
   }
 
   labels <- labRcpp(ncol(counts))
@@ -57,6 +78,7 @@ calculateTheta <- function(counts, group, alpha, lrv){
       "Pair" = labels[[2]],
       "theta" = theta,
       "theta_e" = theta_e,
+      "theta_f" = theta_f,
       "lrv" = lrv,
       "lrv1" = lrv1,
       "lrv2" = lrv2
@@ -79,16 +101,27 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
 
   # Tally permuted thetas that fall below each cutoff
   i <- which("theta" == colnames(propd@theta))
-  if(i == 3) cat("Permuting disjointed proportionality (theta_d):\n")
-  if(i == 4) cat("Permuting emergent proportionality (theta_e):\n")
+  if(i == 3){
+    cat("Permuting disjointed proportionality (theta_d):\n")
+    onlyTheta <- "d"
+  }else if(i == 4){
+    if(i == 4) cat("Permuting emergent proportionality (theta_e):\n")
+    onlyTheta <- "e"
+  }else if(i == 5){
+    if(i == 5) cat("Permuting fettered proportionality (theta_f):\n")
+    onlyTheta <- "f"
+  }else{
+    stop("No 'updateCutoffs' method in place for active theta.")
+  }
+
+  # Use calculateTheta to permute theta
   for(k in 1:p){
 
     numTicks <- progress(k, p, numTicks)
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- propd@permutes[, k]
-    getTheta <- which("theta" == colnames(propd@theta))
-    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv)[, getTheta]
+    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv, only = onlyTheta)
     for(cut in 1:nrow(FDR)){
       FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
     }

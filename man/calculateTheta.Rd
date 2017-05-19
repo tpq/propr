@@ -4,7 +4,7 @@
 \alias{calculateTheta}
 \title{Calculate Theta}
 \usage{
-calculateTheta(counts, group, alpha, lrv)
+calculateTheta(counts, group, alpha, lrv, only = "all")
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with
@@ -18,6 +18,10 @@ to skip Box-Cox transformation.}
 
 \item{lrv}{A numeric vector. A vector of pre-computed
 log-ratio variances. Optional parameter.}
+
+\item{only}{A character string. The name of the theta
+type to calculate if only calculating one theta type.
+Used to make \code{updateCutoffs} faster.}
 }
 \value{
 A \code{data.frame} of \code{theta} values.
