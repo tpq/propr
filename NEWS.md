@@ -1,7 +1,7 @@
 ## propr 3.0.0.9000
 ---------------------
 * Modified `calculateTheta`
-    * Added `theta_f` which measures `1 - theta_e`
+    * Added `theta_f` which equals `1 - theta_e`
     * Added `only` argument to retrieve only one theta type
 * Modified `updateCutoffs`
     * Use `only` argument to run more efficiently

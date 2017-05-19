@@ -9,7 +9,7 @@
 #' @param lrv A numeric vector. A vector of pre-computed
 #'  log-ratio variances. Optional parameter.
 #' @param only A character string. The name of the theta
-#'  type to calculate if only calculating one theta type.
+#'  type to return if only calculating one theta type.
 #'  Used to make \code{updateCutoffs} faster.
 #' @return A \code{data.frame} of \code{theta} values.
 #'
@@ -50,25 +50,25 @@ calculateTheta <- function(counts, group, alpha, lrv, only = "all"){
   }
 
   # Build all theta types unless only != "all"
-  if(only == "all" | only == "d"){
+  if(only == "all" | only == "theta_d"){
 
     theta <- ((n1-1) * lrv1 + (n2-1) * lrv2) / ((n1+n2-1) * lrv)
     if(replaceNaNs) theta[lrv0] <- 1
-    if(only == "d") return(theta)
+    if(only == "theta_d") return(theta)
   }
 
-  if(only == "all" | only == "e"){
+  if(only == "all" | only == "theta_e"){
 
     theta_e <- 1 - pmax((n1-1) * lrv1, (n2-1) * lrv2) / ((n1+n2-1) * lrv)
     if(replaceNaNs) theta_e[lrv0] <- 1
-    if(only == "e") return(theta_e)
+    if(only == "theta_e") return(theta_e)
   }
 
-  if(only == "all" | only == "f"){
+  if(only == "all" | only == "theta_f"){
 
-    theta_f <- 1 - theta_e
+    theta_f <- pmax((n1-1) * lrv1, (n2-1) * lrv2) / ((n1+n2-1) * lrv)
     if(replaceNaNs) theta_f[lrv0] <- 1
-    if(only == "f") return(theta_f)
+    if(only == "theta_f") return(theta_f)
   }
 
   labels <- labRcpp(ncol(counts))
@@ -103,18 +103,18 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
   i <- which("theta" == colnames(propd@theta))
   if(i == 3){
     cat("Permuting disjointed proportionality (theta_d):\n")
-    onlyTheta <- "d"
+    onlyTheta <- "theta_d"
   }else if(i == 4){
     if(i == 4) cat("Permuting emergent proportionality (theta_e):\n")
-    onlyTheta <- "e"
+    onlyTheta <- "theta_e"
   }else if(i == 5){
     if(i == 5) cat("Permuting fettered proportionality (theta_f):\n")
-    onlyTheta <- "f"
+    onlyTheta <- "theta_f"
   }else{
     stop("No 'updateCutoffs' method in place for active theta.")
   }
 
-  # Use calculateTheta to permute theta
+  # Use calculateTheta to permute active theta
   for(k in 1:p){
 
     numTicks <- progress(k, p, numTicks)

@@ -20,7 +20,7 @@ to skip Box-Cox transformation.}
 log-ratio variances. Optional parameter.}
 
 \item{only}{A character string. The name of the theta
-type to calculate if only calculating one theta type.
+type to return if only calculating one theta type.
 Used to make \code{updateCutoffs} faster.}
 }
 \value{
