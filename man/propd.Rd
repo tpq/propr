@@ -108,8 +108,6 @@ a dynamic plot using the \code{plotly} package.}
 
 \item{reference}{A character string. A feature to use as the
 denominator reference when comparing log-ratio abundances.}
-
-\item{what}{A character string. The theta type to set active.}
 }
 \description{
 Welcome to the \code{propd} method!

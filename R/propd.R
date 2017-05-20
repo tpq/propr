@@ -256,7 +256,6 @@ propd2propr <- function(object, ivar){
 }
 
 #' @rdname propd
-#' @param what A character string. The theta type to set active.
 #' @export
 setActive <- function(propd, what = "theta_d"){
 
