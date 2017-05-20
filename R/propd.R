@@ -20,11 +20,12 @@
 #'  \code{group} vector argument supplied to \code{propd}.
 #'
 #' @details
-#' \code{setDisjointed:}
-#'  Run analyses and figures using disjointed theta.
-#'
-#' \code{setEmergent:}
-#'  Run analyses and figures using emergent theta.
+#' \code{setActive:}
+#'  Build analyses and figures using a specific theta type. For
+#'  example, set \code{what = "theta_d"} to analyze disjointed
+#'  proportionality and \code{what = "theta_e"} to analyze
+#'  emergent proportionality. These provide the same results as
+#'  \code{setDisjointed} and \code{setEmergent}, respectively.
 #'
 #' \code{updateCutoffs:}
 #'  Use the \code{propd} object to permute theta across a
@@ -111,8 +112,8 @@
 #' @slot counts A data.frame. Stores the original "count matrix" input.
 #' @slot group A character vector. Stores the original group labels.
 #' @slot alpha A double. Stores the alpha value used for transformation.
-#' @slot theta A data.frame. Stores the pairwise theta measurements.
 #' @slot active A character. Stores the name of the active theta type.
+#' @slot theta A data.frame. Stores the pairwise theta measurements.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of theta.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for theta.
@@ -127,6 +128,7 @@
 #'  accept feature name(s) instead of the index position(s).
 #'  Set to "iqlr" to use inter-quartile log-ratio transformation.
 #'  Ignore to use centered log-ratio transformation.
+#' @param what A character string. The theta type to set active.
 #' @param group A character vector. Group or sub-group memberships,
 #'  ordered according to the row names in \code{counts}.
 #' @param alpha A double. See vignette for details. Leave missing
@@ -166,8 +168,8 @@ setClass("propd",
            counts = "data.frame",
            group = "character",
            alpha = "numeric",
-           theta = "data.frame",
            active = "character",
+           theta = "data.frame",
            permutes = "data.frame",
            fdr = "data.frame"
          )
@@ -187,7 +189,7 @@ setMethod("show", "propd",
                 paste(table(object@group), collapse = " x "), ")\n")
 
             cat("@theta summary:",
-                nrow(object@theta), "feature pairs\n")
+                nrow(object@theta), "feature pairs (", object@active, ")\n")
 
             cat("@fdr summary:",
                 ncol(object@permutes), "iterations\n")
@@ -254,25 +256,38 @@ propd2propr <- function(object, ivar){
 }
 
 #' @rdname propd
+#' @param what A character string. The theta type to set active.
 #' @export
-setDisjointed <- function(propd){
+setActive <- function(propd, what = "theta_d"){
 
   if(class(propd) != "propd") stop("Please provide a 'propd' object.")
-  colnames(propd@theta)[3:4] <- c("theta", "theta_e")
-  propd@active <- "theta_d"
+  if(!any(what == colnames(propd@theta)) & what != propd@active){
+    stop("Provided theta type not recognized.")
+  }
 
+  # Rename old active theta type
+  i <- which(colnames(propd@theta) == "theta")
+  colnames(propd@theta)[i] <- propd@active
+
+  # Name new active theta type
+  i <- which(colnames(propd@theta) == what)
+  colnames(propd@theta)[i] <- "theta"
+
+  propd@active <- what
   message("Use 'updateCutoffs' to refresh FDR.")
   return(propd)
 }
 
 #' @rdname propd
 #' @export
+setDisjointed <- function(propd){
+
+  setActive(propd, what = "theta_d")
+}
+
+#' @rdname propd
+#' @export
 setEmergent <- function(propd){
 
-  if(class(propd) != "propd") stop("Please provide a 'propd' object.")
-  colnames(propd@theta)[3:4] <- c("theta_d", "theta")
-  propd@active <- "theta_e"
-
-  message("Use 'updateCutoffs' to refresh FDR.")
-  return(propd)
+  setActive(propd, what = "theta_e")
 }

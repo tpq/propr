@@ -2,6 +2,7 @@
 ---------------------
 * Modified `propd` Class
     * Added `@active` slot to store active theta type
+    * Added `setActive` method to switch between theta types
 * Modified `calculateTheta`
     * Added `theta_f` which equals `1 - theta_e`
     * Added `only` argument to retrieve only one theta type

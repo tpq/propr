@@ -7,6 +7,7 @@
 \alias{show,propd-method}
 \alias{propd}
 \alias{propd2propr}
+\alias{setActive}
 \alias{setDisjointed}
 \alias{setEmergent}
 \alias{plot,propd,missing-method}
@@ -23,6 +24,8 @@
 propd(counts, group, alpha, p = 100, cutoff = NA)
 
 propd2propr(object, ivar)
+
+setActive(propd, what = "theta_d")
 
 setDisjointed(propd)
 
@@ -70,6 +73,8 @@ accept feature name(s) instead of the index position(s).
 Set to "iqlr" to use inter-quartile log-ratio transformation.
 Ignore to use centered log-ratio transformation.}
 
+\item{what}{A character string. The theta type to set active.}
+
 \item{y}{Missing. Ignore. Leftover from the generic method
 definition.}
 
@@ -103,6 +108,8 @@ a dynamic plot using the \code{plotly} package.}
 
 \item{reference}{A character string. A feature to use as the
 denominator reference when comparing log-ratio abundances.}
+
+\item{what}{A character string. The theta type to set active.}
 }
 \description{
 Welcome to the \code{propd} method!
@@ -124,11 +131,12 @@ Note that Group 1 always refers to the first element of the
  \code{group} vector argument supplied to \code{propd}.
 }
 \details{
-\code{setDisjointed:}
- Run analyses and figures using disjointed theta.
-
-\code{setEmergent:}
- Run analyses and figures using emergent theta.
+\code{setActive:}
+ Build analyses and figures using a specific theta type. For
+ example, set \code{what = "theta_d"} to analyze disjointed
+ proportionality and \code{what = "theta_e"} to analyze
+ emergent proportionality. These provide the same results as
+ \code{setDisjointed} and \code{setEmergent}, respectively.
 
 \code{updateCutoffs:}
  Use the \code{propd} object to permute theta across a
@@ -221,9 +229,9 @@ Note that Group 1 always refers to the first element of the
 
 \item{\code{alpha}}{A double. Stores the alpha value used for transformation.}
 
-\item{\code{theta}}{A data.frame. Stores the pairwise theta measurements.}
-
 \item{\code{active}}{A character. Stores the name of the active theta type.}
+
+\item{\code{theta}}{A data.frame. Stores the pairwise theta measurements.}
 
 \item{\code{permutes}}{A data.frame. Stores the shuffled group labels,
 used to reproduce permutations of theta.}
