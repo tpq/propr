@@ -46,3 +46,22 @@ test_that("propd FDR mirrors permuteTheta_prime", {
     pd@fdr$FDR
   )
 })
+
+n1 <- 50
+n2 <- 50
+
+test_that("active theta_e matches calculation using theta_d", {
+
+  expect_equal(
+    setActive(pd, what = "theta_e")@theta$theta,
+    1 - pd@theta$theta + pmin((n1-1) * pd@theta$lrv1, (n2-1) * pd@theta$lrv2) / ((n1+n2-1) * pd@theta$lrv)
+  )
+})
+
+test_that("active theta_f matches calculation using theta_e", {
+
+  expect_equal(
+    setActive(pd, what = "theta_f")@theta$theta,
+    1 - setActive(pd, what = "theta_e")@theta$theta
+  )
+})
