@@ -1,5 +1,4 @@
 library(propr)
-context("phis")
 
 data(mail)
 lr <- propr:::clrRcpp(mail[])

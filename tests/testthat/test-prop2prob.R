@@ -1,5 +1,4 @@
 library(propr)
-context("prop2prob")
 
 data(caneToad.counts)
 rho <- perb(caneToad.counts, ivar = 15, select = 1:20)

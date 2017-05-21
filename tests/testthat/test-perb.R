@@ -1,5 +1,4 @@
 library(propr)
-context("perb")
 
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)

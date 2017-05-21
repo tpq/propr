@@ -1,6 +1,5 @@
 library(propr)
 library(compositions)
-context("logratio")
 
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)

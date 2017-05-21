@@ -1,5 +1,4 @@
 library(propr)
-context("phit")
 
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)

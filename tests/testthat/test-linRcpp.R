@@ -1,6 +1,5 @@
 library(propr)
 library(cccrm)
-context("linRcpp")
 
 data(mail)
 rho <- perb(mail, 3)

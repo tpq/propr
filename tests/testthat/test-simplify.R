@@ -1,5 +1,4 @@
 library(propr)
-context("simplify")
 
 set.seed(1)
 N <- 100
