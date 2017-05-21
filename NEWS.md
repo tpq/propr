@@ -1,4 +1,4 @@
-## propr 3.0.0.9000
+## propr 3.0.1
 ---------------------
 * Modified `propd` Class
     * Added `@active` slot to store active theta type
