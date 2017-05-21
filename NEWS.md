@@ -1,3 +1,9 @@
+## propr 3.0.1.9000
+---------------------
+* Implement "weighted theta" calculation
+    * Added `wtmRcpp` for weighted mean calculation
+    * Added `wtvRcpp` for weighted variance calculation
+
 ## propr 3.0.1
 ---------------------
 * Modified `propd` Class
