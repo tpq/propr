@@ -10,7 +10,7 @@ double wtmRcpp(NumericVector x,
   return sum(x * w) / sum(w);
 }
 
-// Calculate weighted variance
+// Calculate weighted var
 // [[Rcpp::export]]
 double wtvRcpp(NumericVector x,
                NumericVector w){
@@ -21,28 +21,64 @@ double wtvRcpp(NumericVector x,
 
 // Calculate lrm with weights
 // [[Rcpp::export]]
-NumericMatrix lrmRcppWt(NumericMatrix & X,
-                        NumericMatrix & W){
-  return X;
+NumericVector lrm(NumericMatrix & X,
+                  NumericMatrix & W,
+                  bool weighted = false){
+
+  int nfeats = X.ncol();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericVector result(llt);
+  Rcpp::NumericVector Wij(nfeats);
+  int counter = 0;
+
+  if(weighted){
+    for(int i = 1; i < nfeats; i++){
+      for(int j = 0; j < i; j++){
+        Wij = W(_, i) * W(_, j);
+        result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
+        counter += 1;
+      }
+    }
+  }else{
+    for(int i = 1; i < nfeats; i++){
+      for(int j = 0; j < i; j++){
+        result(counter) = mean(log(X(_, i) / X(_, j)));
+        counter += 1;
+      }
+    }
+  }
+
+  return result;
 }
 
-// Calculate vlr with weights
+// Calculate lrv with weights
 // [[Rcpp::export]]
-NumericMatrix vlrRcppWt(NumericMatrix & X,
-                        NumericMatrix & W){
-  return X;
-}
+NumericVector lrv(NumericMatrix & X,
+                  NumericMatrix & W,
+                  bool weighted = false){
 
-// Calculate lrm with or without weights
-// [[Rcpp::export]]
-NumericMatrix lrm(NumericMatrix & X,
-                  NumericMatrix & W){
-  return X;
-}
+  int nfeats = X.ncol();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericVector result(llt);
+  Rcpp::NumericVector Wij(nfeats);
+  int counter = 0;
 
-// Calculate vlr with or without weights
-// [[Rcpp::export]]
-NumericMatrix vlr(NumericMatrix & X,
-                  NumericMatrix & W){
-  return X;
+  if(weighted){
+    for(int i = 1; i < nfeats; i++){
+      for(int j = 0; j < i; j++){
+        Wij = W(_, i) * W(_, j);
+        result(counter) = wtvRcpp(log(X(_, i) / X(_, j)), Wij);
+        counter += 1;
+      }
+    }
+  }else{
+    for(int i = 1; i < nfeats; i++){
+      for(int j = 0; j < i; j++){
+        result(counter) = var(log(X(_, i) / X(_, j)));
+        counter += 1;
+      }
+    }
+  }
+
+  return result;
 }

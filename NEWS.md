@@ -3,6 +3,8 @@
 * Implement "weighted theta" calculation
     * Added `wtmRcpp` for weighted mean calculation
     * Added `wtvRcpp` for weighted variance calculation
+    * Added `lrm` function with optional weighted calculations
+    * Added `lrv` function with optional weighted calculations
 
 ## propr 3.0.1
 ---------------------

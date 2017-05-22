@@ -109,19 +109,11 @@ wtvRcpp <- function(x, w) {
     .Call('propr_wtvRcpp', PACKAGE = 'propr', x, w)
 }
 
-lrmRcppWt <- function(X, W) {
-    .Call('propr_lrmRcppWt', PACKAGE = 'propr', X, W)
+lrm <- function(X, W, weighted = FALSE) {
+    .Call('propr_lrm', PACKAGE = 'propr', X, W, weighted)
 }
 
-vlrRcppWt <- function(X, W) {
-    .Call('propr_vlrRcppWt', PACKAGE = 'propr', X, W)
-}
-
-lrm <- function(X, W) {
-    .Call('propr_lrm', PACKAGE = 'propr', X, W)
-}
-
-vlr <- function(X, W) {
-    .Call('propr_vlr', PACKAGE = 'propr', X, W)
+lrv <- function(X, W, weighted = FALSE) {
+    .Call('propr_lrv', PACKAGE = 'propr', X, W, weighted)
 }
 
