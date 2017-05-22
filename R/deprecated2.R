@@ -55,9 +55,9 @@ calculateThetaW_old <- function(counts, group){
   n1=length(cere)
   n2=length(cort)
 
-  design=matrix(0,dim(M)[1],2)
+  design=matrix(0,dim(counts)[1],2)
   design[1:length(cere),1]=rep(1,length(cere))
-  design[(length(cere)+1):dim(M)[1],2]=rep(1,length(cort))
+  design[(length(cere)+1):dim(counts)[1],2]=rep(1,length(cort))
   v=limma::voom(t(counts), design=design, plot=TRUE)
   w=t(v$weights)
 
@@ -72,21 +72,21 @@ calculateThetaW_old <- function(counts, group){
       s=sum(W^2)
       p=n-s/n
 
-      n1=sum(W[ce])
-      s1=sum(W[ce]^2)
+      n1=sum(W[group1])
+      s1=sum(W[group1]^2)
       p1=n1-s1/n1
 
-      n2=sum(W[co])
-      s2=sum(W[co]^2)
+      n2=sum(W[group2])
+      s2=sum(W[group2]^2)
       p2=n2-s2/n2
 
       st[i,1]=as.integer(j)
       st[i,2]=as.integer(k)
       st[i,4]=wt.var(log(counts[,j]/counts[,k]), W)
-      st[i,5]=wt.var(log(counts[cere,j]/counts[cere,k]), W[ce])
-      st[i,6]=wt.var(log(counts[cort,j]/counts[cort,k]), W[co])
-      st[i,7]=wt.mean(log(counts[cere,j]/counts[cere,k]), W[ce])
-      st[i,8]=wt.mean(log(counts[cort,j]/counts[cort,k]), W[co])
+      st[i,5]=wt.var(log(counts[cere,j]/counts[cere,k]), W[group1])
+      st[i,6]=wt.var(log(counts[cort,j]/counts[cort,k]), W[group2])
+      st[i,7]=wt.mean(log(counts[cere,j]/counts[cere,k]), W[group1])
+      st[i,8]=wt.mean(log(counts[cort,j]/counts[cort,k]), W[group2])
       st[i,3]=(p1*st[i,5]+p2*st[i,6])/(p*st[i,4])
       i=i+1
     }
