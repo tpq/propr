@@ -112,7 +112,10 @@
 #' @slot counts A data.frame. Stores the original "count matrix" input.
 #' @slot group A character vector. Stores the original group labels.
 #' @slot alpha A double. Stores the alpha value used for transformation.
+#' @slot weighted A logical. Stores whether the theta is weighted.
+#'  Used by \code{updateCutoffs}.
 #' @slot active A character. Stores the name of the active theta type.
+#'  Used by \code{updateCutoffs}.
 #' @slot theta A data.frame. Stores the pairwise theta measurements.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of theta.
@@ -170,6 +173,7 @@ setClass("propd",
            counts = "data.frame",
            group = "character",
            alpha = "numeric",
+           weighted = "logical",
            active = "character",
            theta = "data.frame",
            permutes = "data.frame",
@@ -214,6 +218,7 @@ propd <- function(counts, group, alpha, p = 100, cutoff = NA,
   # Prepare theta results object
   result <- new("propd")
   result@theta <- calculateTheta(ct, group, alpha, weighted = weighted)
+  result@weighted <- weighted
   result@active <- "theta_d" # set theta_d active by default
 
   # Tally frequency of 0 counts

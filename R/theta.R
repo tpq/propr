@@ -136,7 +136,8 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- propd@permutes[, k]
-    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv, only = propd@active)
+    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv,
+                          only = propd@active, weighted = propd@weighted)
     for(cut in 1:nrow(FDR)){
       FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
     }
