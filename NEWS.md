@@ -1,3 +1,8 @@
+## propr 3.0.3
+---------------------
+* Modified visualization tools
+    * Updated `plot.propd` method to display `theta_f`
+
 ## propr 3.0.2
 ---------------------
 * Modified `propd` Class

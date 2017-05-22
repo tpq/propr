@@ -12,6 +12,7 @@ setMethod("plot", signature(x = "propd", y = "missing"),
             if(any(0 == x@counts)) stop("Function does not support 0 counts.")
             if(cutoff > nrow(x@theta)) cutoff <- nrow(x@theta)
             if(cutoff > 1) cutoff <- sort(x@theta$theta)[cutoff]
+            type <- x@active
             x <- x@theta[x@theta$theta <= cutoff, ]
             if(nrow(x) == 0) stop("No theta remain after cutoff.")
             if(prompt) promptCheck(nrow(x))
@@ -43,18 +44,15 @@ setMethod("plot", signature(x = "propd", y = "missing"),
               }
             }
 
-            i <- which("theta" == colnames(x))
-            if(i == 3){
+            if(type == "theta_d" | type == "theta_f"){
 
-              message("Visualizing disjointed proportionality (theta_d):")
               g <- migraph.color(g, partners[x$lrm1 > x$lrm2], pairs[x$lrm1 > x$lrm2], "coral1") # red
               g <- migraph.color(g, partners[x$lrm1 < x$lrm2], pairs[x$lrm1 < x$lrm2], "lightseagreen") # blue
               message("Red: Pair has higher LRM in group ", group[1], " than in group ", group[2])
               message("Blue: Pair has lower LRM in group ", group[1], " than in group ", group[2])
 
-            }else if(i == 4){
+            }else if(type == "theta_e"){
 
-              message("Visualizing emergent proportionality (theta_e):")
               g <- migraph.color(g, partners[x$lrv1 < x$lrv2], pairs[x$lrv1 < x$lrv2], "coral1") # red
               g <- migraph.color(g, partners[x$lrv1 > x$lrv2], pairs[x$lrv1 > x$lrv2], "lightseagreen") # blue
               message("Red: Pair has lower LRV in group ", group[1], " than in group ", group[2])
@@ -62,7 +60,7 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 
             }else{
 
-              stop("Supported theta column not found.")
+              stop("Provided theta type not supported.")
             }
 
             # Optional coloring of nodes
