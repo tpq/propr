@@ -11,8 +11,6 @@
 #' @param only A character string. The name of the theta
 #'  type to return if only calculating one theta type.
 #'  Used to make \code{updateCutoffs} faster.
-#' @param weighted A boolean. Toggles whether to calculate
-#'  theta using \code{limma::voom} weights.
 #' @return A \code{data.frame} of \code{theta} values.
 #'
 #' @export
@@ -47,7 +45,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
 
   }else{
 
-    W = matrix(0)
+    W <- ct # not used by lrv() or lrm()
     p1 <- n1 - 1
     p2 <- n2 - 1
     p <- n1 + n2 - 1
@@ -96,6 +94,10 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     if(only == "theta_f") return(theta_f)
   }
 
+  lrm1 <- lrm(ct[group1,], W[group1,], weighted)
+  lrm2 <- lrm(ct[group2,], W[group2,], weighted)
+  F_d <- (n1 + n2 - 2) * (1 - theta) / theta
+
   labels <- labRcpp(ncol(counts))
   return(
     data.frame(
@@ -106,7 +108,10 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       "theta_f" = theta_f,
       "lrv" = lrv,
       "lrv1" = lrv1,
-      "lrv2" = lrv2
+      "lrv2" = lrv2,
+      "lrm1" = lrm1,
+      "lrm2" = lrm2,
+      "F_d" = F_d
     ))
 }
 

@@ -133,6 +133,8 @@
 #'  ordered according to the row names in \code{counts}.
 #' @param alpha A double. See vignette for details. Leave missing
 #'  to skip Box-Cox transformation.
+#' @param weighted A boolean. Toggles whether to calculate
+#'  theta using \code{limma::voom} weights.
 #' @param p An integer. The number of permutation cycles.
 #' @param cutoff For \code{propd}, a numeric vector.
 #'  this argument provides the FDR cutoffs to test for theta.
@@ -202,7 +204,8 @@ setMethod("show", "propd",
 
 #' @rdname propd
 #' @export
-propd <- function(counts, group, alpha, p = 100, cutoff = NA){
+propd <- function(counts, group, alpha, p = 100, cutoff = NA,
+                  weighted = FALSE){
 
   # Clean "count matrix" using propr
   prop <- new("propr", counts)
@@ -210,10 +213,7 @@ propd <- function(counts, group, alpha, p = 100, cutoff = NA){
 
   # Prepare theta results object
   result <- new("propd")
-  result@theta <- calculateTheta(ct, group, alpha)
-  result@theta$lrm1 <- lrmRcpp(as.matrix(ct[group == unique(group)[1], ]))
-  result@theta$lrm2 <- lrmRcpp(as.matrix(ct[group == unique(group)[2], ]))
-  result@theta$F_d <- (length(group) - 2) * (1 - result@theta$theta) / result@theta$theta
+  result@theta <- calculateTheta(ct, group, alpha, weighted = weighted)
   result@active <- "theta_d" # set theta_d active by default
 
   # Tally frequency of 0 counts
@@ -238,6 +238,7 @@ propd <- function(counts, group, alpha, p = 100, cutoff = NA){
     message("Alert: Theta rounded to 14 decimal digits.")
     result@theta$theta <- round(result@theta$theta, 14)
     result@theta$theta_e <- round(result@theta$theta_e, 14)
+    result@theta$theta_f <- round(result@theta$theta_f, 14)
   }
 
   # Calculate FDR for cutoffs
