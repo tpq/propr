@@ -82,11 +82,11 @@ calculateThetaW_old <- function(counts, group){
 
       st[i,1]=as.integer(j)
       st[i,2]=as.integer(k)
-      st[i,4]=wt.var(log(counts[,j]/counts[,k]), W)
-      st[i,5]=wt.var(log(counts[cere,j]/counts[cere,k]), W[group1])
-      st[i,6]=wt.var(log(counts[cort,j]/counts[cort,k]), W[group2])
-      st[i,7]=wt.mean(log(counts[cere,j]/counts[cere,k]), W[group1])
-      st[i,8]=wt.mean(log(counts[cort,j]/counts[cort,k]), W[group2])
+      st[i,4]=wtvRcpp(log(counts[,j]/counts[,k]), W)
+      st[i,5]=wtvRcpp(log(counts[cere,j]/counts[cere,k]), W[group1])
+      st[i,6]=wtvRcpp(log(counts[cort,j]/counts[cort,k]), W[group2])
+      st[i,7]=wtmRcpp(log(counts[cere,j]/counts[cere,k]), W[group1])
+      st[i,8]=wtmRcpp(log(counts[cort,j]/counts[cort,k]), W[group2])
       st[i,3]=(p1*st[i,5]+p2*st[i,6])/(p*st[i,4])
       i=i+1
     }
