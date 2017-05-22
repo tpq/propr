@@ -343,3 +343,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lrvMod
+NumericVector lrvMod(NumericMatrix& X, NumericMatrix& W);
+RcppExport SEXP propr_lrvMod(SEXP XSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrvMod(X, W));
+    return rcpp_result_gen;
+END_RCPP
+}

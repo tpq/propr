@@ -117,3 +117,7 @@ lrv <- function(X, W, weighted = FALSE) {
     .Call('propr_lrv', PACKAGE = 'propr', X, W, weighted)
 }
 
+lrvMod <- function(X, W) {
+    .Call('propr_lrvMod', PACKAGE = 'propr', X, W)
+}
+
