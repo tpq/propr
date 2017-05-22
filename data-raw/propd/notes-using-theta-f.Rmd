@@ -1,0 +1,104 @@
+---
+title: "Weighted Disproportionality Update"
+author: "Thomas Quinn"
+date: "May 22, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Extensible theta typing
+
+In addition to $\theta_d$ (for disjointed proportionality) and $\theta_e$ (for emergent proportionality), `propr` version 3.0.2 now addps support for $theta_f$ (equivalent to $1 - \theta_e$). I have chosen "f" (code name: fettered proportionality) for no reason other than to continue the alphabetical sequence.
+
+```{r, fig.keep = "last"}
+library(propr)
+data(caneToad.counts)
+keep <- apply(caneToad.counts, 2, function(x) sum(x > 40) >= 20)
+ct <- caneToad.counts[, keep]
+test <- ct[, sample(1:ncol(ct))[1:1000]]
+group <- caneToad.groups
+pd <- propd(test, group)
+```
+
+I have replaced the `setDisjointed` and `setEmergent` functions with the more useful `setActive` function. This new function (among other changes) will make it easier to add more theta variants in the future.
+
+```{r}
+pd.d <- setActive(pd, what = "theta_d")
+head(pd.d@theta)
+pd.e <- setActive(pd, what = "theta_e")
+head(pd.e@theta)
+pd.f <- setActive(pd, what = "theta_f")
+head(pd.f@theta)
+```
+
+## Introducing weights
+
+A new argument, `weighted`, will calculate $\theta_d$, $\theta_e$, and $\theta_f$ using `limma::voom` weights. I have written the weighted lrm and lrv calculations in C++, so they run extremely fast. See "tests/testthat/test-wt.R" for code validating that results from C++ implementation match those returned by the (slower) R implementation.
+
+```{r}
+pd.w <- propd(test, group, weighted = TRUE)
+pd.dw <- setActive(pd.w, what = "theta_d") # just like unweighted
+head(pd.dw@theta)
+```
+
+The `propd` object created by the `propd` function now contains two additional slots to track which theta type is under study. This is used by `updateCutoffs` to make it possible to permute FDR for *any* theta type *with or without* weights.
+
+```{r, eval = FALSE}
+pd.f <- updateCutoffs(pd.f, cutoff = seq(.5, .95, .05))
+pd.dw <- updateCutoffs(pd.dw, cutoff = seq(.5, .95, .05))
+```
+
+Note that the `alpha` parameter will work for $\theta$,  $\theta_e$, and $\theta_f$. However, for now, trying to use the alpha transformation in addition to weights will trigger an error.
+
+```{r, eval = FALSE}
+propd(test, group, alpha = .01, weighted = TRUE) # throws error
+```
+
+## Visualization
+
+All visualization functions work the same for $\theta_f$ and the weighted thetas. Out of curiosity, I generate all figures for $\theta_f$ and $\theta_w$.
+
+```{r, fig.keep = "last"}
+bowtie(pd.d, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+bowtie(pd.f, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+bowtie(pd.dw, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+geiser(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+geiser(pd.f, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+geiser(pd.dw, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+gemini(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+gemini(pd.f, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r, fig.keep = "last"}
+gemini(pd.dw, cutoff = 1000, k = 5, prompt = FALSE)
+```
+
+```{r}
+plot(pd.d, cutoff = 1000, prompt = FALSE)
+plot(pd.f, cutoff = 1000, prompt = FALSE)
+plot(pd.dw, cutoff = 1000, prompt = FALSE)
+```
