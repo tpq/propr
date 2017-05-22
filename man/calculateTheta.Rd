@@ -4,7 +4,8 @@
 \alias{calculateTheta}
 \title{Calculate Theta}
 \usage{
-calculateTheta(counts, group, alpha, lrv, only = "all")
+calculateTheta(counts, group, alpha, lrv = NA, only = "all",
+  weighted = FALSE)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with
@@ -22,6 +23,9 @@ log-ratio variances. Optional parameter.}
 \item{only}{A character string. The name of the theta
 type to return if only calculating one theta type.
 Used to make \code{updateCutoffs} faster.}
+
+\item{weighted}{A boolean. Toggles whether to calculate
+theta using \code{limma::voom} weights.}
 }
 \value{
 A \code{data.frame} of \code{theta} values.
