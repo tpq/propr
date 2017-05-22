@@ -1,5 +1,7 @@
-## propr 3.0.1.9000
+## propr 3.0.2
 ---------------------
+* Modified `propd` Class
+    * Added `@weighted` slot now used by `updateCutoffs`
 * Implement backend for "weighted theta" calculation
     * Added `wtmRcpp` for weighted mean calculation
     * Added `wtvRcpp` for weighted variance calculation
@@ -7,17 +9,19 @@
     * Added `lrv` function with optional weighted calculations
 * Implement "weighted theta" calculation
     * Added `calculateThetaW_old` for unit testing
+    * Added weighted lrv calculation
+* Modified `calculateTheta`
+    * Moved log-ratio mean calculations here
+    * Added weighted lrm calculation
 
 ## propr 3.0.1
 ---------------------
 * Modified `propd` Class
-    * Added `@active` slot to store active theta type
+    * Added `@active` slot now used by `updateCutoffs`
     * Added `setActive` method to switch between theta types
 * Modified `calculateTheta`
     * Added `theta_f` which equals `1 - theta_e`
     * Added `only` argument to retrieve only one theta type
-* Modified `updateCutoffs`
-    * Use `only` argument to run more efficiently
 
 ## propr 3.0.0
 ---------------------

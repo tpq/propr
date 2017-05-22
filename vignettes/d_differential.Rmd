@@ -179,27 +179,7 @@ The remaining visualization tools all make use of the **Popular Adjacent Ligand 
 
 Next, we assign each edge a PAL. Edges that have a top PAL as one and only one of their nodes get assigned that PAL. Edges that have top PALs as both of their nodes get assigned "Bridged". Edges without a top PAL as one of their nodes will get assigned a PAL if either (a) both nodes have the same adjacent PAL or (b) one node has a "Missing" adjacent PAL. In the setting of relative data, we cannot compare absolute abundances: therefore, we use the PAL criteria as a simple way to group features that share a common "hub". Although we cannot easily compare feature abundances across PAL modules (at least without an adjoining reference), we can easily compare feature abundances within a PAL module. As such, for these figures, we color pairs based on the PAL for that edge, excluding any pairs with a "Missing" or "Bridged" PAL.
 
-The `bowtie` function shows the log-ratio means (LRM) for Group 1 against LRM from Group 2 for all pairs indexed by the `cutoff` argument. Pairs along the $y = x$ line have approximately equal LRM between groups. When determining the sign of the LRM, the PAL is always the denominator reference. Note that this figure is more applicable to understanding *disjointed proportionality*.
-
-```{r, dpi = 72, fig.keep = "first"}
-bowtie(pd.d, prompt = FALSE)
-```
-
-```{r, dpi = 72, fig.keep = "first"}
-bowtie(pd.e, prompt = FALSE)
-```
-
-The `geiser` function shows VLR for Group 1 plotted against VLR for Group 2 for all pairs indexed by the `cutoff` argument. Pairs along the $y = x$ line have approximately equal VLR between groups. Otherwise, pairs above (or below) the $y = x$ line show relatively increased (or decreased) proportionality in Group 1, respectively. Note that this figure is more applicable to understanding *emergent proportionality*.
-
-```{r, dpi = 72, results = "hide", fig.keep = "first"}
-geiser(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
-```
-
-```{r, dpi = 72, fig.keep = "last"}
-geiser(pd.e, cutoff = 1000, k = 5, prompt = FALSE)
-```
-
-The `gemini` function shows log-fold change in VLR against difference in the log-ratio means (LRM) of the count ratio relative to its PAL. This figure provides a lot of information, summarizing how the PAL modules change in coordination *and* in relative abundance between the groups. Here, an *increase* along the **y-axis** represents a relative *decrease* in proportionality in Group 1. An *increase* along the **x-axis** represents a *increase* in mean abundance of a feature relative to its PAL in Group 1.
+We draw attention here to the `gemini` function which plots log-fold change in VLR against difference in the log-ratio means (LRM) of the count ratio relative to its PAL. This figure provides a lot of information, summarizing how the PAL modules change in coordination *and* in relative abundance between the groups. Here, an *increase* along the **y-axis** represents a relative *decrease* in proportionality in Group 1. An *increase* along the **x-axis** represents a *increase* in mean abundance of a feature relative to its PAL in Group 1.
 
 ```{r, dpi = 72, results = "hide", fig.keep = "first"}
 gemini(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
@@ -213,7 +193,7 @@ This figure shows that, for $\theta_d$, all features connected to a top PAL "hub
 
 On the other hand, for $\theta_e$, all features connected to a top PAL "hub" change together (i.e., in coordination) the same way relative to their PAL. Again, this seems to occur regardless of whether there is a gain or loss in the log-ratio abundance (although each module seems to slightly favor gain or loss). We remind the reader here that a software package like `ALDEx2` uses a log-ratio transformation to estimate "absolute" changes in abundance, although its performance depends on how well the transformation approximates an unchanged reference.
 
-Finally, the `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, but users would likely choose a PAL "hub" as the reference. Note that this figure is more applicable to understanding *disjointed proportionality*.
+In addition, the `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, but users would likely choose a PAL "hub" as the reference.
 
 ```{r, dpi = 72, fig.keep = "first"}
 slice(pd.d, reference = "c19327_g2_i3")
