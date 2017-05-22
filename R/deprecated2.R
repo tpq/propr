@@ -36,6 +36,65 @@ calculateTheta_old <- function(counts, group){
   return(as.data.frame(st))
 }
 
+#' Calculate Weighted Theta
+#'
+#' Do not use this function. For testing purposes only.
+#'
+#' @inheritParams propd
+calculateThetaW_old <- function(counts, group){
+
+  packageCheck("limma")
+
+  if(length(unique(group)) != 2) stop("Please use two groups.")
+  if(length(group) != nrow(counts)) stop("Too many or too few groups.")
+  group1 <- group == unique(group)[1]
+  group2 <- group == unique(group)[2]
+
+  cere=rownames(counts)[group1]
+  cort=rownames(counts)[group2]
+  n1=length(cere)
+  n2=length(cort)
+
+  design=matrix(0,dim(M)[1],2)
+  design[1:length(cere),1]=rep(1,length(cere))
+  design[(length(cere)+1):dim(M)[1],2]=rep(1,length(cort))
+  v=limma::voom(t(counts), design=design, plot=TRUE)
+  w=t(v$weights)
+
+  st=matrix(0,(dim(counts)[2]*(dim(counts)[2]-1)/2),8)
+  colnames(st)=c("gene1","gene2","theta","lrv","lrv1","lrv2","lrm1","lrm2")
+  i=1
+  for(j in 2:dim(counts)[2]){
+    for(k in 1:(j-1)){
+
+      W=w[,j]*w[,k]
+      n=sum(W)
+      s=sum(W^2)
+      p=n-s/n
+
+      n1=sum(W[ce])
+      s1=sum(W[ce]^2)
+      p1=n1-s1/n1
+
+      n2=sum(W[co])
+      s2=sum(W[co]^2)
+      p2=n2-s2/n2
+
+      st[i,1]=as.integer(j)
+      st[i,2]=as.integer(k)
+      st[i,4]=wt.var(log(counts[,j]/counts[,k]), W)
+      st[i,5]=wt.var(log(counts[cere,j]/counts[cere,k]), W[ce])
+      st[i,6]=wt.var(log(counts[cort,j]/counts[cort,k]), W[co])
+      st[i,7]=wt.mean(log(counts[cere,j]/counts[cere,k]), W[ce])
+      st[i,8]=wt.mean(log(counts[cort,j]/counts[cort,k]), W[co])
+      st[i,3]=(p1*st[i,5]+p2*st[i,6])/(p*st[i,4])
+      i=i+1
+    }
+  }
+
+  return(as.data.frame(st))
+}
+
 #' Permute Theta
 #'
 #' Do not use this function. For testing purposes only.
