@@ -35,7 +35,7 @@ The first difference between $\phi$ and $\rho$ is scale. The values of $\phi$ ra
 
 For now, we will focus on the implementations that use clr-transformation, saving a discussion of alr-transformation for later. Let us begin by building an arbitrary dataset of 4 features (e.g., genes) measured across 100 subjects. In this example, the feature pairs "a" and "b" will show proportional change as well as the feature pairs "c" and "d".
 
-```{r}
+```{r, dpi = 72}
 set.seed(12345)
 N <- 100
 X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
@@ -49,7 +49,7 @@ Let $D$ represent any number of features measured across $N$ observations expose
 * `@matrix` A matrix. Stores the proportionality metrics, $\phi$ or $\rho$.
 * `@pairs` A vector. Indexes the proportionality metrics of interest.
 
-```{r, results = "hide"}
+```{r, dpi = 72, results = "hide"}
 library(propr)
 phi <- phit(X, symmetrize = TRUE)
 rho <- perb(X, ivar = 0)
@@ -63,7 +63,7 @@ We have provided methods for indexing and subsetting objects belonging to the `p
 
 In this first example, we use `[` to index the matrix by $\rho > .99$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the new index to the previous index.
 
-```{r}
+```{r, dpi = 72}
 rho99 <- rho[">", .99]
 rho99@pairs
 ```
@@ -72,14 +72,14 @@ Alternatively, using the `subset` method, we can subset an *entire* `propr` obje
 
 In this second example, we subset by the feature names "a" and "b".
 
-```{r}
+```{r, dpi = 72}
 rhoab <- subset(rho, select = c("a", "b"))
 rhoab@matrix
 ```
 
 The convenience function, `simplify`, can subset an *entire* `propr` object based on the index saved in its `@pairs` slot. This function converts the saved index into a paired list of coordinates and passes them along to the `subset` method. As such, this method does copy-on-modify the proportionality matrix, making it potentially unsuitable for large datasets. Unlike `subset`, `simplify` returns an object with the `@pairs` slot updated.
 
-```{r}
+```{r, dpi = 72}
 simplify(rho99)
 ```
 
@@ -87,7 +87,7 @@ simplify(rho99)
 
 Each feature belonging to a highly proportional data pair should show approximately fixed \*lr-transformed expression with one another across all subjects. The method `plot` (or, equivalently, `smear`) provides a means by which to visually inspect whether this holds true. Since this function will plot **all** pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
 
-```{r, results = "hide", fig.show = "hold", fig.keep = "last"}
+```{r, dpi = 72, results = "hide", fig.show = "hold", fig.keep = "last"}
 plot(rho99)
 ```
 
@@ -111,7 +111,7 @@ High-throughput genomic sequencing has the ability to measure tens of thousands 
 
 We recognize that this package uses concepts that are not necessarily intuitive. Since the log-ratio transformation of relative data comprises a major portion of proportionality analysis, we decided to dedicate some extra space to this topic specifically. In this section, we discuss the **centered log-ratio** (clr) and its limitations in context of proportionality analysis. To this end, we begin by simulating count data for 5 features (e.g., genes) labeled "a", "b", "c", "d", and "e", as measured across 100 subjects.
 
-```{r}
+```{r, dpi = 72}
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)
 b <- a * rnorm(N, mean = 1, sd = 0.1)
@@ -123,36 +123,36 @@ X <- data.frame(a, b, c, d, e)
 
 Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset, $Y$, by distorting $X$ accordingly:
 
-```{r}
+```{r, dpi = 72}
 Y <- X / rowSums(X) * abs(rnorm(N))
 ```
 
 As a "sanity check", we will confirm that these new feature vectors do in fact contain relative quantities. We do this by calculating the ratio of the second feature vector to the first for both the absolute and relative datasets.
 
-```{r}
+```{r, dpi = 72}
 all(round(X[, 2] / X[, 1] - Y[, 2] / Y[, 1], 5) == 0)
 ```
 
 The following figures compare pairwise scatterplots for the absolute count data and the corresponding relative count data. We see quickly how these relative data suggest a *spurious correlation*: although genes "c" and "d" do not correlate with one another absolutely, their relative quantities do.
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(X)
 ```
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(Y)
 ```
 
 Next, we will see that when we do calculate correlation, the coefficients differ for the absolute and relative datasets. This further demonstrates the *spurious correlation*.
 
-```{r, warning = FALSE}
+```{r, dpi = 72, warning = FALSE}
 suppressWarnings(cor(X))
 cor(Y)
 ```
 
 However, by calculating the **variance of the log-ratios** (VLR), defined as the variance of the logarithm of the ratio of two feature vectors, we can arrive at a single measure of dependence that (a) does not change with respect to the nature of the data (i.e., absolute or relative), and (b) does not change with respect to the number of features included in the computation. As such, the VLR, constituting the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric as well, is considered *sub-compositionally coherent*. Yet, while VLR yields valid results for compositional data, it lacks a meaningful scale.
 
-```{r}
+```{r, dpi = 72}
 propr:::proprVLR(Y[, 1:4])
 propr:::proprVLR(X)
 ```
@@ -161,29 +161,29 @@ In the calculation of proportionality, we use the variance about the clr-transfo
 
 In the next figures, we compare pairwise scatterplots for the clr-transformed absolute count data and the corresponding clr-transformed relative count data. While equivalent, we see a relationship between "c" and "d" that should not exist based on what we know from the non-transformed absolute count data. This relationship is ultimately reflected (at least partially) in the results of `phit` and `perb` alike.
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(propr:::proprCLR(Y[, 1:4]))
 ```
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(propr:::proprCLR(X))
 ```
 
 However, division of the VLR by the variance of the clr lacks *sub-compositional coherence*. As such, neither $\phi$ nor $\rho$, at least when calculated via clr, yield the same in the setting of missing feature data. This may explain why these methods do not, *per se*, prevent the possible discovery of *spurious proportionality*.
 
-```{r}
+```{r, dpi = 72}
 phit(Y[, 1:4])@matrix
 phit(X)@matrix
 ```
 
-```{r}
+```{r, dpi = 72}
 perb(Y[, 1:4])@matrix
 perb(X)@matrix
 ```
 
 Still, in comparing the dependence between "c" and "d" as calculated by $cov(Y)$ with that of $\rho(Y)$, it appears that proportionality analysis offers at least partial protection against spurious results.
 
-```{r}
+```{r, dpi = 72}
 cor(Y)
 perb(Y)@matrix
 ```
@@ -194,41 +194,41 @@ Unlike the **centered log-ratio** (clr) which adjusts each subject vector by the
 
 The following figures compare pairwise scatterplots for alr-transformed relative count data (i.e., $alr(Y)$ with "e" as the reference) and the corresponding absolute count data. We see here how alr-transformation eliminates the *spurious correlation* between "c" and "d".
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(propr:::proprALR(Y, ivar = 5))
 ```
 
-```{r, fig.show = "hold"}
+```{r, dpi = 72, fig.show = "hold"}
 pairs(X[, 1:4])
 ```
 
 Again, this gets reflected in the results of `perb` when we select "e" as the reference.
 
-```{r}
+```{r, dpi = 72}
 perb(Y, ivar = 5)@matrix
 ```
 
 Now, let us assume these same data, $X$, actually measure relative counts. In other words, $X$ is already relative and we do not know the real quantities which correspond to $X$ absolutely. Well, if we knew that "a" represented a known fixed quantity, we could use alr-transformation again to "back-calculate" the absolute abundances. In this case, we will see that "c", "d", and "e" actually do have proportional expression under these conditions. Although the measured quantity of "c", "d", and "e" do not change considerably across subjects, the measured quantity of the known fixed feature does change. As such. whenever "a" increases while "c", "d", and "e" remains the same, the latter three features have actually decreased. Since they all decreased together, they act as a highly proportional *module*.
 
-```{r}
+```{r, dpi = 72}
 pairs(propr:::proprALR(X, ivar = 1))
 ```
 
 Again, this gets reflected in the results of `perb` when we select "a" as the reference.
 
-```{r}
+```{r, dpi = 72}
 perb(X, ivar = 1)@matrix
 ```
 
 We can visualize this *module* using the bundled visualization method `dendrogram`.
 
-```{r}
+```{r, dpi = 72}
 dendrogram(perb(X, ivar = 1))
 ```
 
 Resuming our initial claim that the matrix $X$ contains absolute count data while the matrix $Y$ contains relative count data, we can show that alr-transformation not only corrects for *spurious proportionality*, but it also serves as a *sub-compositionally coherent* measure of dependence. However, unlike the aforementioned VLR, $\rho$ has a meaningful scale. In the example below, we calculate $\rho$ using the alr-transformation about the reference "e" for four compositions of the relative count matrix, $Y$, as well as for the absolute count matrix, $X$. We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects. Still, at this point, one might also consider "back-calculating" the absolute abundances and measuring dependence through more conventional means.
 
-```{r}
+```{r, dpi = 72}
 perb(Y[, 2:5], ivar = 4)@matrix
 perb(X, ivar = 5)@matrix
 ```
