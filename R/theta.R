@@ -111,7 +111,10 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       "lrv2" = lrv2,
       "lrm1" = lrm1,
       "lrm2" = lrm2,
-      "F_d" = F_d
+      "F_d" = F_d,
+      "p1" = p1,
+      "p2" = p2,
+      "p" = p
     ))
 }
 
