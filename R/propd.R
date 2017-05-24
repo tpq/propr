@@ -103,6 +103,11 @@
 #'  This makes a useful adjunct function to visualize how
 #'  features vary across samples relative to a PAL.
 #'
+#' \code{decompose:}
+#'  Plots the decomposition of log-ratio variance into
+#'  (weighted) group variances and between-group variance.
+#'  Useful for visualizing how a theta type selects pairs.
+#'
 #' \code{propd2propr:}
 #'  Transforms a \code{propd} object into a \code{propr} object
 #'  where the \code{@@matrix} slot contains \eqn{1 - \theta}.

@@ -388,3 +388,24 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
 
   return(g)
 }
+
+#' @rdname propd
+#' @export
+decompose <- function(object, cutoff = 1000, prompt = TRUE){
+
+  packageCheck("compositions")
+
+  df <- shale(object, cutoff = cutoff, prompt = prompt, clean = TRUE)
+
+  # Generalize decomposition for weighted theta types
+  decomp <- matrix(0, nrow = nrow(df), ncol = 3)
+  decomp[, 1] <- df$p1 * df$LRV1 / (df$p * df$LRV)
+  decomp[, 2] <- df$p2 * df$LRV2 / (df$p * df$LRV)
+  decomp[, 3] <- df$p1 * df$p2 * (df$LRM2 - df$LRM1)^2 / (df$p^2 * df$LRV)
+
+  x <- compositions::acomp(decomp)
+  plot(x, pch = 20, col = rgb(0.1, 0.1, 0.1, 0.1),
+       labels = c("group 1  ", "  group 2", "between-group"), axes = TRUE)
+
+  return(TRUE)
+}

@@ -16,6 +16,7 @@
 \alias{bowtie}
 \alias{gemini}
 \alias{slice}
+\alias{decompose}
 \alias{updateCutoffs}
 \title{The propd Method}
 \usage{
@@ -43,6 +44,8 @@ bowtie(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 gemini(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
 slice(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALSE)
+
+decompose(object, cutoff = 1000, prompt = TRUE)
 
 updateCutoffs(propd, cutoff = seq(0.05, 0.95, 0.3))
 }
@@ -214,6 +217,11 @@ Note that Group 1 always refers to the first element of the
  node for all pairs that include the reference itself.
  This makes a useful adjunct function to visualize how
  features vary across samples relative to a PAL.
+
+\code{decompose:}
+ Plots the decomposition of log-ratio variance into
+ (weighted) group variances and between-group variance.
+ Useful for visualizing how a theta type selects pairs.
 
 \code{propd2propr:}
  Transforms a \code{propd} object into a \code{propr} object
