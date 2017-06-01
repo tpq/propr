@@ -17,6 +17,12 @@ Next, we assign each edge a PAL. Edges that have a top PAL as one and only one o
 
 We draw attention here to the `gemini` function which plots log-fold change in VLR against difference in the log-ratio means (LRM) of the count ratio relative to its PAL. This figure provides a lot of information, summarizing how the PAL modules change in coordination *and* in relative abundance between the groups. Here, an *increase* along the **y-axis** represents a relative *decrease* in proportionality in Group 1. An *increase* along the **x-axis** represents a *increase* in mean abundance of a feature relative to its PAL in Group 1.
 
+```{r, message = FALSE, results = "hide", echo = FALSE}
+library(propr)
+data(pd.d)
+data(pd.e)
+```
+
 ```{r, dpi = 72, results = "hide", fig.keep = "first"}
 gemini(pd.d, cutoff = 1000, k = 5, prompt = FALSE)
 ```

@@ -55,8 +55,8 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 
               g <- migraph.color(g, partners[x$lrv1 < x$lrv2], pairs[x$lrv1 < x$lrv2], "coral1") # red
               g <- migraph.color(g, partners[x$lrv1 > x$lrv2], pairs[x$lrv1 > x$lrv2], "lightseagreen") # blue
-              message("Red: Pair has near absence of LRV in group ", group[1], " than in group ", group[2])
-              message("Blue: Pair has near totality of LRV in group ", group[1], " than in group ", group[2])
+              message("Red: Pair has nearly absent LRV in group ", group[1], " than in group ", group[2])
+              message("Blue: Pair has nearly total LRV in group ", group[1], " than in group ", group[2])
 
             }else{
 
