@@ -55,8 +55,8 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 
               g <- migraph.color(g, partners[x$lrv1 < x$lrv2], pairs[x$lrv1 < x$lrv2], "coral1") # red
               g <- migraph.color(g, partners[x$lrv1 > x$lrv2], pairs[x$lrv1 > x$lrv2], "lightseagreen") # blue
-              message("Red: Pair has lower LRV in group ", group[1], " than in group ", group[2])
-              message("Blue: Pair has higher LRV in group ", group[1], " than in group ", group[2])
+              message("Red: Pair has near absence of LRV in group ", group[1], " than in group ", group[2])
+              message("Blue: Pair has near totality of LRV in group ", group[1], " than in group ", group[2])
 
             }else{
 
@@ -391,7 +391,7 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
 
 #' @rdname propd
 #' @export
-decompose <- function(object, cutoff = 1000, prompt = TRUE){
+decomposed <- function(object, cutoff = 1000, prompt = TRUE){
 
   packageCheck("compositions")
   df <- shale(object, cutoff = cutoff, prompt = prompt, clean = TRUE)

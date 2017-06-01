@@ -103,7 +103,7 @@
 #'  This makes a useful adjunct function to visualize how
 #'  features vary across samples relative to a PAL.
 #'
-#' \code{decompose:}
+#' \code{decomposed:}
 #'  Plots the decomposition of log-ratio variance into
 #'  (weighted) group variances and between-group variance.
 #'  Useful for visualizing how a theta type selects pairs.
