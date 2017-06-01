@@ -11,15 +11,15 @@ vignette: >
 
 ## Introduction
 
-In this vignette, we use a real dataset to show how we can apply differential proportionality analysis to understand RNA-seq count data. We place a particular emphasis here on documenting the visualization tools included with this package. This vignette discusses the `propd` method.
+In this vignette, we use a real dataset to show how we can apply differential proportionality analysis to understand RNA-seq count data. We place a particular emphasis here on documenting the several differential proportionality measures available through this package. This vignette discusses the `propd` method.
 
 ## Theory
 
-Let us consider two non-zero positive integer vectors, $X$ and $Y$, measuring the relative abundance of raw sequence counts. One way to understand whether two vectors associate is to consider the variance of the log-ratios (VLR), a compositionally valid measure of association that makes up part of the definition of the proportionality metrics $\phi$ and $\rho$. Although we can calculate VLR using log-ratio transformed data, we see that in this case the denominator factor (e.g., the geometric mean or unchanged reference) cancels. As such, we can use these counts without any transformation:
+Let us consider two non-zero positive integer vectors, $X$ and $Y$, measuring the relative abundance of raw sequence counts. One way to understand whether two vectors associate with one another is to consider the variance of the log-ratios (VLR), a compositionally valid measure of association that makes up part of the definition of the proportionality metrics $\phi$ and $\rho$. Although we can calculate VLR using log-ratio transformed data, we see that in this case the denominator factor (e.g., the geometric mean or unchanged reference) cancels. As such, we can use these counts without any transformation:
 
 $$\textrm{VLR(X, Y)} = \textrm{var}(\log(\textrm{X} - \textrm{Y}))$$
 
-The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we extract the fraction of variance (interpretted as the residual variance of proportional features) where proportionality holds in only one or in both of the groups.
+The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we extract the fraction of variance (interpretted as the residual variance of proportional features) where proportionality holds in only one (or both) of two groups.
 
 We consider here two forms of differential proportionality. The first, which we call *disjointed proportionality*, considers the case where the proportionality of a pair holds in both groups, but the ratio between the partners changes between the groups (i.e., the *slope* of the proportionality changes). The second, which we call *emergent proportionality*, considers the case where there is proportionality in only one of the groups (i.e., the *strength* of the proportionality changes).
 
@@ -41,7 +41,7 @@ $$\textrm{aVLR(X, Y)} = \frac{\sum\left(\frac{\textrm{X}^{\alpha}}{\textrm{mean}
 
 ## False discovery rate
 
-The `propd` method, due to the unwiedly number of pairs, does not return a vector of p-values like most statistical tests. Instead, it calculates the false discovery rate (FDR) directly using permutations of the group assignments to generate an empiric distribution of $\theta$ values specific to the supplied data. With this, for each arbitrary cutoff of $\theta$, we can calculate a FDR based on the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$.
+The `propd` method, due to the unwieldy number of pairs, does not return a vector of p-values like most statistical tests. Instead, it calculates the false discovery rate (FDR) directly using permutations of the group assignments to generate an empiric distribution of $\theta$ values specific to the supplied data. With this, for each arbitrary cutoff of $\theta$, we can calculate a FDR based on the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$.
 
 Alternatively, it is possible to calculate the FDR based on the F-statistic, a procedure which we will discuss in more detail in a future vignette:
 
@@ -68,7 +68,7 @@ group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
 pd <- propd(counts, group, alpha = NA, p = 100, cutoff = NA)
 ```
 
-This resultant `propd` object contains both $\theta_d$ and $\theta_e$ metrics, although only $\theta_d$ is *active* by default. While a $\theta$ is active, it forms the basis for permutation testing (i.e., FDR estimation) and visualization. Users can easily change which $\theta$ is active using the functions `setDisjointed` and `setEmergent`.
+The resultant `propd` object contains both $\theta_d$ and $\theta_e$ metrics, although only $\theta_d$ is *active* by default. While a $\theta$ is active, it forms the basis for permutation testing (i.e., FDR estimation) and visualization. Users can easily change which $\theta$ is active using the functions `setDisjointed` and `setEmergent`.
 
 ```{r, dpi = 72, message = FALSE}
 theta_d <- setDisjointed(pd)
@@ -97,9 +97,9 @@ data(pd.e, package = "propr") # top 1000 emergent pairs
 
 ## Disjointed proportionality
 
-We begin now by looking at *disjointed proportionality* in more detail. Based on its definition, we see that low values of $\theta_d$ select pairs where the total VLR far exceeds the weighted sum of the within-group VLRs. Often, the within-group VLRs are about the same size. However, this is not a requirement so long as the within-group VLRS are both small compared to the total VLR.
+We begin now by looking at *disjointed proportionality* in more detail. Based on its definition, we see that low values of $\theta_d$ select pairs where the total VLR far exceeds the weighted sum of the within-group VLRs. Often, the within-group VLRs are about the same size. However, this is not a requirement so long as the within-group VLRs are both small compared to the total VLR.
 
-Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pair-wise measurements. Then, we show a log-log plot of the abundance for features "39" and "37" (equivalent to the `smear` plot in the companion vignette), as colored by the experimental group.
+Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pair-wise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 72, message = FALSE, fig.keep = "last"}
 tab <- shale(pd.d)
@@ -111,20 +111,20 @@ abline(a = 0, b = pd.d@counts[grp1, 37] / pd.d@counts[grp1, 39], col = "red")
 abline(a = 0, b = pd.d@counts[grp2, 37] / pd.d@counts[grp2, 39], col = "blue")
 ```
 
-Here, we see that these two features change proportionally across the samples within each group (as expected based on their small values of $\textrm{VLR}_1$ and $\textrm{VLR}_2$). However, when ignoring the group labels, the relationship between these two features appears noisy. It seems as if the experimental condition has moved the *set point* around which the transcripts behave proportionally (i.e., the y-intercept has moved). In other words, we see that, while "37" (y-axis) has increased in expression relative to "39" (x-axis), "37" is no less coordinated with "39". Such a change in ratio abundance makes more sense when viewed through another projection.
+Here, we see that these two features change proportionally across the samples within each group (as expected based on their small values of $\textrm{VLR}_1$ and $\textrm{VLR}_2$). However, when ignoring the group labels, the relationship between these two features appears noisy. It seems as if the experimental condition has moved the *set point* around which the transcripts behave proportionally (i.e., the y-intercept has moved). In other words, we see that, while "37" (y-axis) has increased in expression relative to "39" (x-axis), "37" is no less coordinated with "39". This change in ratio abundance is apparent when viewed through another projection.
 
 ```{r, dpi = 72, fig.keep = "last"}
 plot(pd.d@counts[, 37] / pd.d@counts[, 39],
      col = ifelse(pd.d@group == "WA", "red", "blue"))
 ```
 
-This figure shows a clear difference in the ratio abundances between the groups. It also highlights the analogy between *disjointed proportionality* and differential expression, although the interpretation of differentially abundant ratios differs considerably. Possible biological explanations for this event might include a reduction in the amount of mRNA degradation, a change in isoform splice bias, or an increase in the binding affinity (i.e., $K_a$) of a transcriptionally relevant co-factor.
+This figure shows a clear difference in the ratio abundances between the groups. It also highlights the analogy between disjointed proportionality and differential expression, although the interpretation of differentially abundant ratios differs considerably. Possible biological explanations for this event might include a reduction in the amount of mRNA degradation, a change in isoform splice bias, or an increase in the binding affinity (i.e., $K_a$) of a transcriptionally relevant co-factor.
 
 ## Emergent proportionality
 
-In contrast, *emergent proportionality* has more in common with a test for differences in correlation coefficients. That is, *emergent proportionality* occurs when a pair is proportional in one group but not the other. The group with no proportionality contributes the most to the total variance.
+In contrast, *emergent proportionality* has more in common with a test for differences in correlation coefficients. That is, emergent proportionality occurs when a pair is proportional in one group but not the other, such that the group with no proportionality contributes most of the total variance.
 
-Below, we use the `shale` function again to tabulate important pair-wise measurements. Then, we show a log-log plot of the abundance for features "106" and "2" (equivalent to the `smear` plot in the companion vignette), as colored by the experimental group.
+Below, we use the `shale` function again to tabulate important pair-wise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 72, fig.keep = "last"}
 tab <- shale(pd.e)
@@ -136,7 +136,7 @@ abline(a = 0, b = pd.e@counts[grp1, 2] / pd.e@counts[grp1, 106], col = "red")
 abline(a = 0, b = pd.e@counts[grp2, 2] / pd.e@counts[grp2, 106], col = "blue")
 ```
 
-Here, we see that these two features change proportionally across the samples within one group but not the other. Moreover, when ignoring the group labels, we see that one group happens to dominate the total VLR. In other words, the experimental condition appears to have removed the coordination between the transcripts. However, this has happened without any change in the average abundance ratio.
+Here, we see that these two features change proportionally across the samples within one group but not the other. Moreover, when ignoring the group labels, we see that one group happens to dominate the total VLR. In other words, the experimental condition appears to have removed the coordination between the transcripts. However, this has happened here without much change in the average abundance ratio.
 
 ```{r, dpi = 72, fig.keep = "last"}
 plot(pd.e@counts[, 2] / pd.e@counts[, 106],
@@ -151,7 +151,7 @@ From this, we establish the inequality:
 
 $$1-\vartheta\le\vartheta_\mathrm{e}\le1-\vartheta/2,$$
 
-Interestingly, one can use $1 - \theta_e$ for a stricter definition of *disjointed proportionality*. This is implemented in `propd` as $\theta_f$, which one can set active using the function `setActive`.
+Interestingly, one can use $1 - \theta_e$ for a stricter definition of *disjointed proportionality*. This is implemented in `propd` as $\theta_f$, which one can set active using the `setActive` function.
 
 ```{r}
 pd.f <- setActive(pd, what = "theta_f")
@@ -177,7 +177,7 @@ Note that with the appropriate `cutoff`, a network will project all $\theta$ pai
 
 ## Visualizing log-ratio abundance
 
-The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is possible for a "hub" to have changed relative to its neighbors or for a "hub" and its neighbors to have changed simultaneously.
+The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is always possible for a "hub" to have changed relative to its neighbors or for a "hub" and its neighbors to have changed simultaneously.
 
 ```{r, dpi = 72, fig.keep = "first"}
 slice(pd.d, reference = "c19327_g2_i3")
@@ -189,7 +189,7 @@ slice(pd.e, reference = "c27054_g5_i1")
 
 ## Integrating propd with propr
 
-This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through a union of a `propr` network with a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate cutoff of $\rho$. Note that, because CRAN imposes limits on the size of bundled data as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
+This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through a union of a `propr` network with a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate cutoff of $\rho$. Note that, because CRAN imposes limits on the size of bundled data, as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
 
 ```{r, dpi = 72, eval = FALSE}
 data(caneToad.counts)
@@ -202,7 +202,7 @@ plot(pd.e, propr = rho, d3 = TRUE)
 
 ## Future work
 
-Future updates and vignettes will introduce advanced network analyses, weighted power transformations, moderated F-statistics, classical statistical testing, and more. Stay tuned!
+Future updates and vignettes will introduce advanced network analyses, weighted power transformations, moderated F-statistics, classical hypothesis testing, and more. Stay tuned!
 
 ## References
 
