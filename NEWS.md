@@ -3,7 +3,7 @@
 * Modified `calculateTheta`
     * Now saves log-ratio variance (LRV) modifier in output
 * Modified visualization tools
-    * New `decompose` function for LRV decomposition
+    * New `decomposed` function for LRV decomposition
     * Uses LRV modifier for weighted theta types
 
 ## propr 3.0.3

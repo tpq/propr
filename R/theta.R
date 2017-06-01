@@ -22,7 +22,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
   if(!is.character(group)) group <- as.character(group)
   if(length(unique(group)) != 2) stop("Please use exactly two unique groups.")
   if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
-  if(is.na(lrv)){ firstpass <- TRUE
+  if(identical(lrv, NA)){ firstpass <- TRUE
   }else{ firstpass <- FALSE }
 
   group1 <- group == unique(group)[1]
