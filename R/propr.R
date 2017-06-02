@@ -42,7 +42,7 @@
 #'  subjects as rows and features as columns.
 #' @param symmetrize A logical. If \code{TRUE}, forces symmetry
 #'  by reflecting the "lower left triangle".
-#' @param ivar A numeric scalar. Specificies reference feature(s)
+#' @param ivar A numeric scalar. Specifies reference feature(s)
 #'  for additive log-ratio transformation. The argument will also
 #'  accept feature name(s) instead of the index position(s).
 #'  Set to "iqlr" to use inter-quartile log-ratio transformation.

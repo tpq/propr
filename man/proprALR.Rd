@@ -10,7 +10,7 @@ proprALR(X, ivar, check = FALSE)
 \item{X}{A data.frame or matrix. A "count matrix" with
 subjects as rows and features as columns.}
 
-\item{ivar}{A numeric scalar. Specificies feature to use
+\item{ivar}{A numeric scalar. Specifies feature to use
 as reference for additive log-ratio transformation.}
 
 \item{check}{A logical. If TRUE, function first checks

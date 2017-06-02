@@ -124,7 +124,7 @@ proprCLR <- function(X, check = FALSE){
 #'
 #' Provided for backend use.
 #'
-#' @param ivar A numeric scalar. Specificies feature to use
+#' @param ivar A numeric scalar. Specifies feature to use
 #'  as reference for additive log-ratio transformation.
 #' @inheritParams proprVLR
 #' @return A matrix. Returns the additive log-ratio

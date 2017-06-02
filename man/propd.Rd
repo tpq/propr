@@ -73,7 +73,7 @@ retrieve the top N pairs as ranked by theta.}
 \item{weighted}{A boolean. Toggles whether to calculate
 theta using \code{limma::voom} weights.}
 
-\item{ivar}{A numeric scalar. Specificies reference feature(s)
+\item{ivar}{A numeric scalar. Specifies reference feature(s)
 for additive log-ratio transformation. The argument will also
 accept feature name(s) instead of the index position(s).
 Set to "iqlr" to use inter-quartile log-ratio transformation.
@@ -154,7 +154,7 @@ Note that Group 1 always refers to the first element of the
  indicate that LRM1 > LRM2 while blue edges indicate
  that LRM1 < LRM2. When plotting emergent proportionality,
  red edges indicate that VLR1 < VLR2 while blue edges
- indcate that VLR1 > VLR2. Group labels numbered based on
+ indicate that VLR1 > VLR2. Group labels numbered based on
  the order of the \code{group} argument to \code{propd}.
  Use \code{col1} and \code{col2} arguments to color nodes.
  For more control over the visualization of the network,

@@ -23,7 +23,7 @@ first set connects (i.e., element-wise), thereby defining
 a set of edges.}
 
 \item{force}{A boolean. If true, the function adds any
-missing vertcies before adding edges. If false, the
+missing vertices before adding edges. If false, the
 function only adds edges that have both vertices
 already present.}
 

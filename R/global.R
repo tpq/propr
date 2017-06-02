@@ -10,7 +10,7 @@
 #'  vertices (or edges) specified by the \code{names1} (or
 #'  \code{names2}) argument.
 #' @param force A boolean. If true, the function adds any
-#'  missing vertcies before adding edges. If false, the
+#'  missing vertices before adding edges. If false, the
 #'  function only adds edges that have both vertices
 #'  already present.
 #'
