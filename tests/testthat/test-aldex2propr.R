@@ -1,4 +1,5 @@
-if(requireNamespace("ALDEx2", quietly = TRUE)){
+if(requireNamespace("ALDEx2", quietly = TRUE) &
+   requireNamespace("Biobase", quietly = TRUE)){
 
   library(propr)
   library(ALDEx2)
