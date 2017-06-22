@@ -17,9 +17,9 @@ In this vignette, we use a real dataset to show how correlation analysis yields 
 
 Relative, or compositional, data do not exist in Euclidean space, but rather in a sub-space known as the Aitchison simplex (Aitchison 1986). As a consequence, calculating the Euclidean distance between points in relative space does not reflect the absolute distance between them. Many commonly used metrics implicitly assume that underlying data exist in Euclidean space; such metrics are invalid for relative data. Notably, this includes Pearson's correlation coefficient, a measure of the association between two variables (Lovell 2015).
 
-What does it mean when we say that Pearson's correlation coefficient is invalid for relative data? When applied to relative data, including many of the biological data sets routinely studied, correlation yields erroneous results. Pearson first described this phenomenon in 1896 as spurious correlation (Pearson 1896). A spurious correlation is a falsely positive measure of association between two variables that are, in fact, not associated.
+What does it mean when we say that Pearson's correlation coefficient is invalid for relative data? When applied to relative data, including many of the biological datasets routinely studied, correlation yields erroneous results. Pearson first described this phenomenon in 1896 as spurious correlation (Pearson 1896). A spurious correlation is a falsely positive measure of association between two variables that are, in fact, not associated.
 
-Below, we re-examine the data set discussed by Lovell et al. (Lovell 2015) (as published by Marguerat et al. (Marguerat 2012)) which describes a time series of mRNA transcript abundance for yeast cells after the removal of a nutrient. The source data contain two parts: microarray data as expressed relative to the first time point, and a measure of the total RNA at timepoint 0. From these two parts, it is possible to approximate absolute RNA abundance at each timepoint.
+Below, we re-examine the dataset discussed by Lovell et al. (Lovell 2015) (as published by Marguerat et al. (Marguerat 2012)) which describes a time series of mRNA transcript abundance for yeast cells after the removal of a nutrient. The source data contain two parts: microarray data as expressed relative to the first time point, and a measure of the total RNA at timepoint 0. From these two parts, it is possible to approximate absolute RNA abundance at each timepoint.
 
 Starting with propr version 2.2.0, the absolute abundances are available within the package itself for testing and exploration. The object, "marg.abs" corresponds to the object "Abs.t" as used in the supplementary materials of Lovell et al. (Lovell 2015). Note that we can make the absolute data relative by dividing each composition (i.e., time point) by the total sum of that composition. This constrains measurements to a proportion of the total, hence making them compositional.
 
@@ -29,16 +29,16 @@ data(marg.abs)
 marg.rel <- t(apply(marg.abs, 1, function(x) x / sum(x)))
 ```
 
-We now have two data sets: the first contains the absolute abundances of each transcript over time while the second contains the relative abundances of each transcript over time. Although this is microarray data, RNA-seq data is also compositional in that counts carry meaning only as a proportion of the total number of counts (i.e., library size). The compositional nature of RNA-seq data becomes more obvious when expressed, for example, as FPKM.
+We now have two datasets: the first contains the absolute abundances of each transcript over time while the second contains the relative abundances of each transcript over time. Although this is microarray data, RNA-seq data is also compositional in that counts carry meaning only as a proportion of the total number of counts (i.e., library size). The compositional nature of RNA-seq data becomes more obvious when expressed, for example, as FPKM.
 
-This data set provides us with the opportunity to contrast the analysis of relative data with the analysis of the absolute counter-part. The importance of this evaluation comes from the reality that it is not always feasible to acquire data in absolute form. Note, however, that having access to absolute abundances usually makes the analysis of relative data superfluous. Below, we calculate Pearson's correlation coefficient for all pairs using both data sets.
+This dataset provides us with the opportunity to contrast the analysis of relative data with the analysis of the absolute counter-part. The importance of this evaluation comes from the reality that it is not always feasible to acquire data in absolute form. Note, however, that having access to absolute abundances usually makes the analysis of relative data superfluous. Below, we calculate Pearson's correlation coefficient for all pairs using both datasets.
 
 ```{r, dpi = 72}
 Abs.cor <- stats::cor(marg.abs, use = "pairwise.complete.obs")
 Rel.cor <- stats::cor(marg.rel, use = "pairwise.complete.obs")
 ```
 
-Next, we plot a histogram of the absolute correlation coefficients. Interestingly, we see that this data set contains a lot of truly (i.e., absolutely) positively correlated transcripts.
+Next, we plot a histogram of the absolute correlation coefficients. Interestingly, we see that this dataset contains a lot of truly (i.e., absolutely) positively correlated transcripts.
 
 ```{r, dpi = 72, fig.keep = "last"}
 plot(hist(Abs.cor))
@@ -61,14 +61,14 @@ plot(llt(Abs.cor)[x], llt(Rel.cor)[x],
 
 In this figure we see that the relative correlations do not correlate with the absolute correlations. In other words, knowing only the relative correlation tells us nothing about the absolute correlation (Lovell 2015). In fact, some features which appear perfectly correlated in relative space have *negative* correlations in absolute space (i.e., top left of the figure).
 
-When studying a relative data set, we usually want to know about the true relationships in the corresponding (but unattainable) absolute data set. In this context, it is maybe helpful to think about relative correlation as a potential proxy for the presence of absolute correlation. As such, we can measure the diagnostic performance of relative correlation as a predictor of absolute correlation. One way to do this is by calculating precision and recall at a number of cutoff values. This results in a contingency table of the agreement between relative and absolute correlation coefficients greater than the cutoff. As an example, we use a cutoff of 0.95 below.
+When studying a relative dataset, we usually want to know about the true relationships in the corresponding (but unattainable) absolute dataset. In this context, it is maybe helpful to think about relative correlation as a potential proxy for the presence of absolute correlation. As such, we can measure the diagnostic performance of relative correlation as a predictor of absolute correlation. One way to do this is by calculating precision and recall at a number of cutoff values. This results in a contingency table of the agreement between relative and absolute correlation coefficients greater than the cutoff. As an example, we use a cutoff of 0.95 below.
 
 ```{r, dpi = 72}
 table("Observed" = llt(Rel.cor) > .95,
       "Actual" = llt(Abs.cor) > .95)
 ```
 
-Here, we define functions for calculating precision and recall from a contingency table like the one above. Note that because each contingency table is specific to the data set, the precision and recall of relative correlation depends on the data set too.
+Here, we define functions for calculating precision and recall from a contingency table like the one above. Note that because each contingency table is specific to the dataset, the precision and recall of relative correlation depends on the dataset too.
 
 ```{r, dpi = 72}
 calculatePrecision <- function(observed, actual){
@@ -187,7 +187,7 @@ Since we have shown that the proportionality coefficient, $\rho$, provides a hig
 
 ## Adjusting the proportionality cutoff for multiple tests
 
-For high-dimensional data sets, we often measure pair-wise proportionality between a large number of features. Given D total features, a complete proportionality matrix (i.e., akin to a complete correlation matrix) contains $\frac{D(D-1)}{2}$ unique values. To prevent false discoveries from repeat testing, we must adjust our original $\alpha$ cutoff by the number of tests performed.
+For high-dimensional datasets, we often measure pair-wise proportionality between a large number of features. Given D total features, a complete proportionality matrix (i.e., akin to a complete correlation matrix) contains $\frac{D(D-1)}{2}$ unique values. To prevent false discoveries from repeat testing, we must adjust our original $\alpha$ cutoff by the number of tests performed.
 
 As an example, we find the $r_{cutoff}$ for which any correlation coefficient greater would indicate Bonferroni-adjusted significance. As above, we extrapolate this to mean that any $\rho > r_{cutoff}$ would imply (with a high positive predictive value) the presence of a statistically significant *absolute* correlation coefficient.
 

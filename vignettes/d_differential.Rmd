@@ -57,7 +57,7 @@ The `propd` function estimates differential proportionality by calculating $\the
 * **p:** the total number of permutations used to estimate FDR
 * **cutoff:** an optional vector of cutoffs for which to estimate FDR
 
-Below, we run `propd` using the `iris` data set.
+Below, we run `propd` using the `iris` dataset.
 
 ```{r, dpi = 72}
 library(propr)
