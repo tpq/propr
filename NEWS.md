@@ -1,3 +1,7 @@
+## propr 3.0.5
+---------------------
+* Fix cluster error in `b_visualization.Rmd` vignette
+
 ## propr 3.0.4
 ---------------------
 * Modified `calculateTheta`

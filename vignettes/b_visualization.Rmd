@@ -11,7 +11,7 @@ vignette: >
 
 ## Introduction
 
-In this vignette, we use a real dataset to show how we can apply proportionality analysis to understand RNA-seq count data. We place a particular emphasis here on documenting the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "Calculating the Proportionality Coefficients of Compositional Data".
+In this vignette, we use a real dataset to show how we can apply proportionality analysis to RNA-seq count data. We place a particular emphasis here on documenting the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "Calculating the Proportionality Coefficients of Compositional Data".
 
 ## Big Counts
 
@@ -35,9 +35,9 @@ best@matrix <- propr:::lr2rho(top.lr)
 best <- best[">", .995]
 ```
 
-Next, we calculate proportionality between all transcripts in the dataset. When working with a large number of transcripts (57,580 in this case), we may first want to filter non-informative transcripts to minimize the computational burden of analysis. However, while the variance of the log-ratio transformed feature pair (VLR) (i.e., the numerator portion of $\phi$ and $\rho$) remains fixed regardless of pre-filtering, the individual log-ratio transformed variances (VLS) (i.e., the denominator portion of $\phi$ and $\rho$) do change. In other words, although VLR is sub-compositionally coherent, VLS is not. Therefore, pre-filtering *before* calculating $\rho$ will impact the final result.
+Next, we calculate proportionality between all transcripts in the dataset. When working with a large number of transcripts (57,580 in this case), we may first want to filter non-informative transcripts to minimize the computational burden of analysis. However, while the variance of the log-ratio transformed feature pair (VLR) (i.e., the numerator portion of $\phi$ and $\rho$) remains fixed regardless of pre-filtering, the individual log-ratio transformed variances (VLS) (i.e., the denominator portion of $\phi$ and $\rho$) do change. In other words, although VLR is sub-compositionally coherent, VLS is not.
 
-That said, in some circumstances, it is simply infeasible to calculate a proportionality matrix using all features. For example, calculating pairwise proportionality in this case requires at least 32 GB of RAM, not counting the additional RAM required for indexing and visualization. However, beginning with version 2.0.3, we can now pre-filter *while* calculating $\rho$, which does not impact the final result. For this pre-filter step, we remove all transcripts that do not have at least 10 counts in at least 10 samples. We base this on the intuition that lowly-expressed transcripts likely have high relative error in cross-sample comparisons due to random noise from the assay technology.
+Therefore, pre-filtering *before* calculating $\rho$ will impact the final result. That said, in some circumstances, it is simply infeasible to calculate a proportionality matrix using all features. For example, calculating pairwise proportionality in this case requires at least 32 GB of RAM, not counting the additional RAM required for indexing and visualization. However, beginning with version 2.0.3, we can now pre-filter *while* calculating $\rho$, which does not impact the final result. For this pre-filter step, we remove all transcripts that do not have at least 10 counts in at least 10 samples. We base this on the intuition that lowly-expressed transcripts likely have high relative error in cross-sample comparisons due to random noise from the assay technology.
 
 ```{r, dpi = 72, eval = FALSE}
 keep <- apply(caneToad.counts, 2, function(x) sum(x >= 10) >= 10)
@@ -111,14 +111,20 @@ The `bucket` function (pronounced *bouquet*) plots an estimation of the degree t
 clusts <- bucket(best, group = caneToad.groups, k = 5)
 ```
 
-These figures help us conceptualize high-dimensional data and select a highly proportional module for further analysis. In this example, we have a particular interest in co-cluster 4 because it (1) shows low proportionality in the setting of high individual feature variance, and (2) appears to differentiate the two experimental groups.
+These figures help us conceptualize high-dimensional data and select a highly proportional module for further analysis. In this example, we have a particular interest in co-cluster 2 because it (1) shows high proportionality in the setting of high individual feature variance, and (2) appears to differentiate the two experimental groups.
 
 ## Down-stream
 
-We can extract co-cluster 4 from the `propr` object using the `subset` method.
+We can extract co-cluster 2 from the `propr` object using the `subset` method.
 
 ```{r, dpi = 72, results = "hide"}
-sub <- subset(best, select = (clusts == 4))
+sub <- subset(best, select = (clusts == 2))
+```
+
+We can visualize this cluster as a network using the `cytescape` function. The resultant figure shows indexed proportional pairs as edges connecting the constituent features. Providing feature names to the optional arguments `col1` and `col2` will color those nodes red and blue, respectively. We recommend using this function for integrating proportionality analysis with conventional differential expression analysis. Note that setting `d3 = TRUE` will have the `rgl` package render the network in 3D.
+
+```{r, dpi = 72, results = "hide", message = FALSE, fig.keep = "last"}
+cyt <- cytescape(sub[">", .95])
 ```
 
 Now, we can use the `pca` functions to see how well this cluster differentiates the two experimental groups based on unsupervised methods. We see below in the `pca` plot that projecting our samples across this highly proportional module leads good separation between the experimental groups. This matches the separation achieved in the source publication which used `edgeR` for feature selection (Rollins 2015).
@@ -135,9 +141,7 @@ transcripts <- colnames(sub@logratio)
 
 ## Conclusions
 
-In place of a highly parameterized "black box" algorithm, we introduce a simple tool that is valid for all biological count data, including the most "difficult-to-normalize" datasets. In the example above, we show how this package can uncover a highly proportional transcript module that accurately differentiates the experimental groups. We find this feat particularly impressive considering that, with the exception of the superfluous `bucket` plot, we discovered this module without ever specifying how the experimental groups should guide feature selection.
-
-Although `propr` currently lacks a hypothesis testing framework, we believe that some degree of "certainty" arises from the fact that we discovered a differentially expressed module using unsupervised methods. Still, in light of this limitation, we emphasize here that data analytics is not the end of scientific inquiry, but rather the beginning. No amount of hypothesis testing can substitute experimental validation in the lab.
+We introduce here a simple tool that is valid for all biological count data, including the most "difficult-to-normalize" datasets. In the example above, we show how this package can uncover a highly proportional transcript module that accurately differentiates the experimental groups. We find this feat particularly impressive considering that, with the exception of the superfluous `bucket` plot, we discovered this module without ever specifying how the experimental groups should guide feature selection.
 
 ## References
 
