@@ -1,6 +1,12 @@
 ## propr 3.0.5
 ---------------------
-* Fix cluster error in `b_visualization.Rmd` vignette
+* Modified `propd` Class
+    * Now only replaces 0s if alpha is missing or `NA`
+    * Now tabulates 0s whether replaced or not
+* Modified `calculateTheta`
+    * Now replaces 0s to calculate LRM if alpha is provided
+    * Now alerts user when using alpha to approximate LRV
+* Fix co-cluster selection mistake in vignette
 
 ## propr 3.0.4
 ---------------------
