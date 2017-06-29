@@ -216,9 +216,19 @@ setMethod("show", "propd",
 propd <- function(counts, group, alpha, p = 100, cutoff = NA,
                   weighted = FALSE){
 
-  # Clean "count matrix" using propr
-  prop <- new("propr", counts)
-  ct <- prop@counts
+  # Clean "count matrix"
+  if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
+  if(class(counts) == "data.frame") counts <- as.matrix(counts)
+  if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
+  if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
+  if(missing(alpha)) alpha <- NA
+  ct <- counts
+
+  # Replace zeros unless alpha is provided
+  if(any(as.matrix(counts) == 0) & is.na(alpha)){
+    message("Alert: Replacing 0s in \"count matrix\" with 1.")
+    ct[ct == 0] <- 1
+  }
 
   # Prepare theta results object
   result <- new("propd")
@@ -227,9 +237,9 @@ propd <- function(counts, group, alpha, p = 100, cutoff = NA,
   result@active <- "theta_d" # set theta_d active by default
 
   # Tally frequency of 0 counts
-  if(any(counts == 0)){
-    message("Alert: 0 counts can distort log-ratio means.")
-    result@theta$Zeroes <- ctzRcpp(as.matrix(counts)) # count 0s before replacement
+  if(any(as.matrix(counts) == 0)){
+    message("Alert: Tabulating the presence of 0 counts.")
+    result@theta$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s before replacement
   }
 
   # Save important intermediate values
