@@ -53,16 +53,33 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
 
   if(is.na(alpha)){
 
+    # Calculate LRV and LRM with provided counts
     if(firstpass) lrv <- lrv(ct, W, weighted)
     lrv1 <- lrv(ct[group1,], W[group1,], weighted)
     lrv2 <- lrv(ct[group2,], W[group2,], weighted)
+    lrm1 <- lrm(ct[group1,], W[group1,], weighted)
+    lrm2 <- lrm(ct[group2,], W[group2,], weighted)
 
   }else{
 
+    # Calculate LRV and LRM with 0s present
     if(weighted) stop("No method available for weighted aVLR.")
-    if(firstpass) lrv <- boxRcpp(ct[], alpha)
+    if(firstpass){
+      if(any(ct == 0)) message("Alert: Approximating LRV in setting of 0s.")
+      lrv <- boxRcpp(ct[], alpha)
+    }
     lrv1 <- boxRcpp(ct[group1,], alpha)
     lrv2 <- boxRcpp(ct[group2,], alpha)
+
+    # Replace 0s to calculate LRM
+    if(firstpass){
+      if(any(ct == 0)){
+        message("Alert: Replacing 0s to calculate LRM.")
+        ct[ct == 0] <- 1 # ct not used again in scope
+      }
+    }
+    lrm1 <- lrm(ct[group1,], W[group1,], weighted)
+    lrm2 <- lrm(ct[group2,], W[group2,], weighted)
   }
 
   # Replace NaN thetas (from VLR = 0) with 1
@@ -94,11 +111,9 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     if(only == "theta_f") return(theta_f)
   }
 
-  lrm1 <- lrm(ct[group1,], W[group1,], weighted)
-  lrm2 <- lrm(ct[group2,], W[group2,], weighted)
   F_d <- (n1 + n2 - 2) * (1 - theta) / theta
-
   labels <- labRcpp(ncol(counts))
+
   return(
     data.frame(
       "Partner" = labels[[1]],
