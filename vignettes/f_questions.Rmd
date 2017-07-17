@@ -71,7 +71,7 @@ prop <- new("propr", counts = caneToad.counts, ivar = "iqlr")
 prop@logratio
 ```
 
-You could then `cbind` any number of separate `@logratio` slots to use as input for an "lr2" function.
+You could then `cbind` any number of separate `@logratio` slots into a single `data.frame` to use as input for an "lr2" function.
 
 ## How can I analyze multiple groups?
 
