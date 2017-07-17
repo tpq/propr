@@ -6,7 +6,13 @@
 * Modified `calculateTheta`
     * Now replaces 0s to calculate LRM if alpha is provided
     * Now alerts user when using alpha to approximate LRV
-* Fix co-cluster selection mistake in vignette
+* Update documentation
+    * Create new DESCRIPTION that includes differential proportionality
+    * Create new README that includes differential proportionality
+    * Revise "a_introduction" and move portion to stand-alone critique
+    * Revise "b_visualization" and fix co-cluster selection mistake
+    * Fork off and revise "d_advanced" as stand-alone critique
+    * Spell check and revise other vignettes
 
 ## propr 3.0.4
 ---------------------
@@ -68,9 +74,9 @@
 
 ## propr 2.2.0
 ---------------------
-* Modified data set from Rollins et al. 2015
+* Modified dataset from Rollins et al. 2015
     * Removed transcripts with < 10 counts in < 10 samples
-* Add data set from Marguerat et al. 2012
+* Add dataset from Marguerat et al. 2012
     * Absolute data stored as `marg.abs`
 
 ## propr 2.1.9
