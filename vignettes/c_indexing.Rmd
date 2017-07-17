@@ -187,7 +187,7 @@ Since we have shown that the proportionality coefficient, $\rho$, provides a hig
 
 ## Adjusting the proportionality cutoff for multiple tests
 
-For high-dimensional datasets, we often measure pair-wise proportionality between a large number of features. Given D total features, a complete proportionality matrix (i.e., akin to a complete correlation matrix) contains $\frac{D(D-1)}{2}$ unique values. To prevent false discoveries from repeat testing, we must adjust our original $\alpha$ cutoff by the number of tests performed.
+For high-dimensional datasets, we often measure pairwise proportionality between a large number of features. Given D total features, a complete proportionality matrix (i.e., akin to a complete correlation matrix) contains $\frac{D(D-1)}{2}$ unique values. To prevent false discoveries from repeat testing, we must adjust our original $\alpha$ cutoff by the number of tests performed.
 
 As an example, we find the $r_{cutoff}$ for which any correlation coefficient greater would indicate Bonferroni-adjusted significance. As above, we extrapolate this to mean that any $\rho > r_{cutoff}$ would imply (with a high positive predictive value) the presence of a statistically significant *absolute* correlation coefficient.
 

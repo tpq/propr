@@ -33,7 +33,7 @@ $$\theta_e(\textrm{X}, \textrm{Y}) = 1 - \frac{\mathrm{max}[(k-1)\textrm{VLR}_1,
 
 ## Handling of zero values
 
-Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. By default, `propr` and `propd` take the simplest approach of replacing all zeros with the value one. Analysts should carefully evaluate the effect that this has on their results.
+Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. By default, `propr` and `propd` take the simplest approach of replacing all zero values with 1. Analysts should carefully evaluate the effect that this has on their results.
 
 In addition, the `propd` method offers the option to use a transformation to approximate VLR based on a parameter $\alpha$ that is usually close to zero. We define aVLR as an approximation of VLR, used in place of VLR in any $\theta$ equation:
 
@@ -86,7 +86,7 @@ In order to reduce RAM overhead, the `propd` object never stores the intermediat
 
 ## Sample data
 
-To understand differential proportionality, we use two `propd` objects, called `pd.d` (for $\theta_d$) and `pd.e` (for $\theta_e$), built from the bundled `caneToad.counts` RNA-Seq data (Rollins 2015). Specifically, we use the results of the `propd` function as applied to cane toad transcripts with at least 40 counts in all 20 samples (after removing any transcripts with 0 counts), subsetted to include only pairs with the top 1000 smallest $\theta$.
+To understand differential proportionality, we use two `propd` objects, called `pd.d` (for $\theta_d$) and `pd.e` (for $\theta_e$), built from the bundled `caneToad.counts` RNA-seq data (Rollins 2015). Specifically, we use the results of the `propd` function as applied to cane toad transcripts with at least 40 counts in all 20 samples (after removing any transcripts with 0 counts), subsetted to include only pairs with the top 1000 smallest $\theta$.
 
 Note that in this vignette, we never apply `updateCutoffs` to either of these data objects. When estimating FDR, it is necessary to use an unfiltered `propd` object to keep estimations unbiased.
 
@@ -99,7 +99,7 @@ data(pd.e, package = "propr") # top 1000 emergent pairs
 
 We begin now by looking at *disjointed proportionality* in more detail. Based on its definition, we see that low values of $\theta_d$ select pairs where the total VLR far exceeds the weighted sum of the within-group VLRs. Often, the within-group VLRs are about the same size. However, this is not a requirement so long as the within-group VLRs are both small compared to the total VLR.
 
-Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pair-wise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
+Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 72, message = FALSE, fig.keep = "last"}
 tab <- shale(pd.d)
@@ -124,7 +124,7 @@ This figure shows a clear difference in the ratio abundances between the groups.
 
 In contrast, *emergent proportionality* has more in common with a test for differences in correlation coefficients. That is, emergent proportionality occurs when a pair is proportional in one group but not the other, such that the group with no proportionality contributes most of the total variance.
 
-Below, we use the `shale` function again to tabulate important pair-wise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
+Below, we use the `shale` function again to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 72, fig.keep = "last"}
 tab <- shale(pd.e)
@@ -206,6 +206,6 @@ Future updates and vignettes will introduce advanced network analyses, weighted 
 
 ## References
 
-1. Erb I, Quinn T, Lovell D, Notredame C (2017) Differential Proportionality - A Normalization-Free Approach To Differential Gene Expression. bioRxiv: http://dx.doi.org/10.1101/134536
+1. Erb, Ionas, Thomas Quinn, David Lovell, and Cedric Notredame. “Differential Proportionality - A Normalization-Free Approach To Differential Gene Expression.” bioRxiv, May 5, 2017, 134536. http://dx.doi.org/10.1101/134536.
 
 2. Rollins, Lee A., Mark F. Richardson, and Richard Shine. “A Genetic Perspective on Rapid Evolution in Cane Toads (Rhinella Marina).” Molecular Ecology 24, no. 9 (May 2015): 2264-76. http://dx.doi.org/10.1111/mec.13184.
