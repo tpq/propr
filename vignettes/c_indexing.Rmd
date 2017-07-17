@@ -166,7 +166,7 @@ N <- 20
 sd <- 1/sqrt(N - 3)
 ```
 
-Knowing standard deviation, we can establish an equality to solve for the $z'$ cutoff. Ultimately, we want to know which value of $\frac{z'}{\sigma_{z'}}$ correponds to the standard z-score at our desired $\alpha$ cutoff. Here, we choose $\alpha = .05$.
+Knowing standard deviation, we can establish an equality to solve for the $z'$ cutoff. Ultimately, we want to know which value of $\frac{z'}{\sigma_{z'}}$ corresponds to the standard z-score at our desired $\alpha$ cutoff. Here, we choose $\alpha = .05$.
 
 $$z_{\alpha=.05} = \frac{z_{cutoff}}{\sigma_z}$$
 

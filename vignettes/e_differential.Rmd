@@ -19,7 +19,7 @@ Let us consider two non-zero positive vectors, $X$ and $Y$, measuring the relati
 
 $$\textrm{VLR(X, Y)} = \textrm{var}(\log(\textrm{X} - \textrm{Y}))$$
 
-The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we extract the fraction of variance (interpretted as the residual variance of proportional features) where proportionality holds in both or only one of two groups.
+The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we extract the fraction of variance (interpreted as the residual variance of proportional features) where proportionality holds in both or only one of two groups.
 
 We consider here two forms of differential proportionality. The first, which we call *disjointed proportionality*, considers the case where the proportionality of a pair holds in both groups, but the ratio between the partners changes between the groups (i.e., the *slope* of the proportionality changes). The second, which we call *emergent proportionality*, considers the case where there is proportionality in only one of the groups (i.e., the *strength* of the proportionality changes).
 
