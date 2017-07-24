@@ -1,3 +1,8 @@
+## propr 3.0.5.9000
+---------------------
+* Update documentation
+    * Finish revision of all vignettes
+
 ## propr 3.0.5
 ---------------------
 * Modified `propd` Class

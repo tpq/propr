@@ -23,19 +23,19 @@ $$\rho(A_i, A_j) = 1 - \frac{var(A_i - A_j)}{var(A_i) + var(A_j)}$$
 
 $$\phi_s(A_i, A_j) = \frac{var(A_i - A_j)}{var(A_i + A_j)}$$
 
-Log-ratio transformation is applied to each subject vector, $x$, containing $D$ features (e.g., genes). In this vignette, we consider the centered log-ratio (clr) transformation and the additive log-ratio (alr) transformation. In clr-transformation, sample vectors undergo a transformation based on the logarithm of the ratio between the individual elements and the geometric mean of the vector, $g(\textrm{x}) = \sqrt[D]{x_i...x_D}$. In alr-transformation, sample vectors undergo a transformation based on the logarithm of the ratio between the individual elements and chosen reference feature. We define these accordingly:
+Log-ratio transformation is applied to each subject vector, $x$, containing $D$ features (e.g., genes). In this vignette, we consider the centered log-ratio (clr) transformation and the additive log-ratio (alr) transformation. In clr-transformation, sample vectors undergo a transformation based on the logarithm of the ratio between the individual elements and the geometric mean of the vector, $g(\textrm{x}) = \sqrt[D]{x_i...x_D}$. In alr-transformation, sample vectors undergo a transformation based on the logarithm of the ratio between the individual elements and chosen reference feature, $x_D$. We define these accordingly:
 
 $$\textrm{clr(x)} = \left[\ln\frac{x_i}{g(\textrm{x})};...;\ln\frac{x_D}{g(\textrm{x})}\right]$$
 
 $$\textrm{alr(x)} = \left[\ln\frac{x_i}{x_D};...;\ln\frac{x_{D-1}}{x_D}\right]$$
 
-Note that this package also implements the interquartile log-ratio transformation (iqlr) as used by the `ALDEx2` package. For more information on integrating `propr` with `ALDEx2`, refer to the "Frequently Asked Questions" vignette.
+Note that this package also implements the interquartile log-ratio transformation (iqlr) as used by the `ALDEx2` package. For more information on integrating `propr` with `ALDEx2`, we refer the reader to the "Frequently Asked Questions" vignette.
 
 ## Calculating proportionality
 
-We provide three principal functions for calculating proportionality. The first function, `phit`, calculates $\phi$. The second function, `perb`, calculates $\rho$. The third function, `phis`, calculates $\phi_s$.
+We provide three principal functions for calculating proportionality. The first, `phit`, calculates $\phi$. The second, `perb`, calculates $\rho$. The third, `phis`, calculates $\phi_s$.
 
-The measures $\phi$ and $\rho$ differ in three ways. First, the values of $\phi$ range from $[0, \infty)$ (with lower $\phi$ values indicating more proportionality) while the values of $\rho$ range from $[-1, 1]$ (with greater $|\rho|$ values indicating more proportionality and negative $\rho$ values indicating inverse proportionality). Second, $\phi$ lacks symmetry, although one can force symmetry by reflecting the lower left triangle of the matrix across the diagonal (toggled by the argument `symmetrize = TRUE`). Third, $\rho$ corrects for the individual variance of each feature in the pair, rather than for just one of the features. On the other hand, $\phi_s$ is a naturally symmetric variant of $\phi$ that also corrects for each feature in the pair.
+The measures $\phi$ and $\rho$ differ in three ways. First, the values of $\phi$ range from $[0, \infty)$ (with lower $\phi$ values indicating more proportionality) while the values of $\rho$ range from $[-1, 1]$ (with greater $|\rho|$ values indicating more proportionality and negative $\rho$ values indicating inverse proportionality). Second, $\phi$ lacks symmetry, although one can force symmetry by reflecting the lower left triangle of the matrix across the diagonal (toggled by the argument `symmetrize = TRUE`). Third, $\rho$ corrects for the individual variance of each feature in the pair, rather than for just one of the features. On the other hand, $\phi_s$ is a naturally symmetric variant of $\phi$ that also corrects for the individual variance of each feature in the pair.
 
 Let us begin by building an arbitrary dataset of 4 features (e.g., genes) measured across 100 subjects. In this example, the feature pairs "a" and "b" will show proportional change as will the feature pairs "c" and "d".
 
@@ -46,7 +46,7 @@ X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
                 c=(N:1), d=(N:1) * rnorm(N, 10, 1.0))
 ```
 
-Let $D$ represent any number of features measured across $N$ observations exposed to a binary or continuous event $E$. For example, $E$ could represent differences in case-control status, treatment status, treatment dose, or time. The `phit` and `perb` functions ultimately convert a "count matrix" with $N$ rows and $D$ columns into a proportionality matrix of $D$ rows and $D$ columns measuring proportionality for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four key slots:
+Let $D$ represent any number of features measured across $N$ observations exposed to a binary or continuous event $E$. For example, $E$ could represent differences in case-control status, treatment status, treatment dose, or time. These functions convert a "count matrix" with $N$ rows and $D$ columns into a proportionality matrix of $D$ rows and $D$ columns measuring proportionality for each feature pair. One can think of this matrix as analogous to a dissimilarity matrix (in the case of $\phi$) or a correlation matrix (in the case of $\rho$). Both functions return the proportionality matrix bundled within an object of the class `propr`. This object contains four key slots:
 
 * `@counts` A matrix. Stores the original "count matrix" input.
 * `@logratio` A matrix. Stores the log-ratio transformed "count matrix".
@@ -64,9 +64,9 @@ Note that the log-ratio transformation, by its nature, fails if the input data c
 
 ## Subsetting propr objects
 
-We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (`@matrix`) based on an inequality operator and a reference value.
+We have provided methods for indexing and subsetting objects belonging to the `propr` class. Using the familiar `[` method, we can efficiently index the proportionality matrix (i.e., the `@matrix` slot) based on an inequality operator and a reference value.
 
-In this first example, we use `[` to index the matrix by $\rho > .95$. This indexes the location of all values (i.e., in the lower left triangle of the matrix) satisfying that inequality, and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the new index to the previous index.
+In this first example, we use `[` to index the matrix by $\rho > .95$. This indexes the location of all values satisfying that inequality (i.e., in the lower left triangle of the matrix), and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the new index to the previous index (via a union merge).
 
 ```{r, dpi = 72}
 rho99 <- rho[">", .95]
@@ -90,7 +90,7 @@ simplify(rho99)
 
 ## Visualizing pairs
 
-Each feature belonging to a highly proportional data pair should show approximately fixed log-ratio transformed expression with one another across all subjects. The method `plot` (or, equivalently, `smear`) provides a means by which to visually inspect whether this holds true. Since this function will plot all pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
+Each feature belonging to a highly proportional data pair should have about the same log-ratio transformed abundance across all subjects. The method `plot` (or, equivalently, `smear`) provides a means by which to visually inspect whether this holds true. Since this function will plot all pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
 
 ```{r, dpi = 72, results = "hide", fig.show = "hold", fig.keep = "last"}
 plot(rho99)
@@ -98,7 +98,7 @@ plot(rho99)
 
 ## Computational burden
 
-High-throughput genomic sequencing has the ability to measure tens of thousands of features for each subject. Since calculating proportionality generates a matrix sized $D^2$, this method uses a lot of RAM when applied to real biological datasets. To address this, `propr` harnesses the power of C++ (via the `Rcpp` package) to minimize computational run-time and RAM overhead. Below, we provide a small table that estimates the approximate amount of RAM needed to render a proportionality matrix based on the number of features studied. The user should account for up to 25% more MiB in additional RAM for subsequent `[` indexing and visualization.
+High-throughput genomic sequencing has the ability to measure tens of thousands of features for each subject. Since calculating proportionality generates a matrix sized $D^2$, this method uses a lot of RAM when applied to real biological datasets. To address this, `propr` harnesses the power of C++ (via the `Rcpp` package) to minimize the run-time and RAM overhead. Below, we provide a table that estimates the approximate amount of RAM needed to render a proportionality matrix based on the number of features studied. The user should account for up to 25% more RAM for subsequent `[` indexing and visualization.
 
 | Features | Peak RAM (MiB) |
 |---------:|---------------:|
@@ -114,7 +114,7 @@ High-throughput genomic sequencing has the ability to measure tens of thousands 
 
 ## Limitations
 
-Although we developed this package with biological count data in mind, compositional count data is not truly compositional in that it contains integer values only. As such, measuring the "Gene A" as $1$ in one subject and "Gene B" as $2$ in another subject (i.e., the feature vector $[1, 2]$) does not carry the same information as measuring "Gene A" as $1000$ in one subject and "Gene B" as $2000$ in another subject (i.e., the feature vector $[1000, 2000]$). We advise the investigator to proceed with caution when analyzing low counts.
+Although we developed this package with biological count data in mind, compositional count data is not truly compositional in that count data contain integer values only. As such, measuring "Gene A" as $1$ in one subject and "Gene B" as $2$ in another subject (i.e., the feature vector $[1, 2]$) does not carry the same information as measuring "Gene A" as $1000$ in one subject and "Gene B" as $2000$ in another subject (i.e., the feature vector $[1000, 2000]$) due to how additive variation affects the relative abundance of small counts more than large counts (Quinn 2017). We advise the investigator to proceed with caution when analyzing low counts.
 
 ## References
 
