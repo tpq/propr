@@ -193,7 +193,7 @@ shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
                                          -1 * df$LRM2, 0))
   df$DiffLRMbyPAL <- df$LRM1byPAL - df$LRM2byPAL
 
-  # Clean data for plot -- used by 'geiser', 'bowtie', and 'gemini'
+  # Clean data for plot -- used by 'geyser', 'bowtie', and 'gemini'
   if(clean) return(df[df$PairName == df$PAL | df$PartnerName == df$PAL, ])
 
   return(df)
@@ -201,7 +201,7 @@ shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
 
 #' @rdname propd
 #' @export
-geiser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
+geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
   df <- shale(object, cutoff, k, prompt, clean = TRUE)
 

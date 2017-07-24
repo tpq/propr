@@ -1,5 +1,6 @@
 ## propr 3.0.5.9000
 ---------------------
+* Correctly spell `geiser` function as `geyser`
 * Update documentation
     * Finish revision of all vignettes
 

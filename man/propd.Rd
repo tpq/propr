@@ -12,7 +12,7 @@
 \alias{setEmergent}
 \alias{plot,propd,missing-method}
 \alias{shale}
-\alias{geiser}
+\alias{geyser}
 \alias{bowtie}
 \alias{gemini}
 \alias{slice}
@@ -37,7 +37,7 @@ setEmergent(propd)
 
 shale(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE)
 
-geiser(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
+geyser(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
 bowtie(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
@@ -106,7 +106,7 @@ Used by \code{\link{pals}}.}
 when calculating \code{\link{pals}} in the network.}
 
 \item{clean}{A boolean. Toggles whether to remove pairs
-with "Bridged" or "Missing" PALs. Used by \code{geiser},
+with "Bridged" or "Missing" PALs. Used by \code{geyser},
 \code{bowtie}, and \code{gemini}.}
 
 \item{plotly}{A logical scalar. Set to \code{TRUE} to produce
@@ -179,7 +179,7 @@ Note that Group 1 always refers to the first element of the
  \code{cutoff} will instead retrieve the top N pairs as
  ranked by theta.
 
-\code{geiser:}
+\code{geyser:}
  Plots indexed pairs based on the within-group
  log-ratio variance (VLR) for each group. Pairs near the
  origin show a highly proportional relationship in

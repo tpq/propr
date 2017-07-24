@@ -64,7 +64,7 @@
 #'  \code{cutoff} will instead retrieve the top N pairs as
 #'  ranked by theta.
 #'
-#' \code{geiser:}
+#' \code{geyser:}
 #'  Plots indexed pairs based on the within-group
 #'  log-ratio variance (VLR) for each group. Pairs near the
 #'  origin show a highly proportional relationship in
@@ -157,7 +157,7 @@
 #' @param propr An indexed \code{propr} object. Use to add
 #'  proportional edges (colored green) to a \code{propd} network.
 #' @param clean A boolean. Toggles whether to remove pairs
-#'  with "Bridged" or "Missing" PALs. Used by \code{geiser},
+#'  with "Bridged" or "Missing" PALs. Used by \code{geyser},
 #'  \code{bowtie}, and \code{gemini}.
 #' @param plotSkip A boolean. Toggles whether to build
 #'  the network graph without plotting it.
