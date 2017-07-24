@@ -96,7 +96,7 @@ knitr::kable(result)
 
 ## Proportionality is a precise indicator of absolute correlation
 
-Proportionality coefficients, as introduced by Lovell et al. (Lovell 2015) and expounded in Erb & Notredame (Erb 2016), provide a measure of association that is valid for relative data. Although several measures of proportionality exist, we focus here on the metric $\rho$. This, like correlation, takes on values from $[-1, 1]$, where a value of 1 indicates perfect proportionality. However, unlike correlation, the proportionality coefficient is the same for both relative data and its absolute counter-part, and advantageously tends not to produce fewer spurious results. This allows proportionality to serve as a precise indicator of absolute correlation when analyzing relative data.
+Proportionality coefficients, as introduced by Lovell et al. (Lovell 2015) and expounded in Erb & Notredame (Erb 2016), provide a measure of association that is valid for relative data. Although several measures of proportionality exist, we focus here on the metric $\rho$. This, like correlation, takes on values from $[-1, 1]$, where a value of 1 indicates perfect proportionality. However, unlike correlation, the proportionality coefficient is the same for both relative data and its absolute counter-part, and advantageously tends to produce fewer spurious results. This allows proportionality to serve as a precise indicator of absolute correlation when analyzing relative data.
 
 First, we use the `perb` function from the `propr` package to calculate $\rho$ for all feature pairs. We retrieve the proportionality matrix itself from the `@matrix` slot of the resultant object.
 
@@ -198,7 +198,7 @@ r_cutoff <- tanh(z_cutoff)
 r_cutoff
 ```
 
-To visualize how $r_{cutoff}$ relates to the sample size, $N$, and total number of features, $D$, we build a contour map. This will tell us the correlation coefficient (and, by proxy, the proportionality coefficient) needed to approximate Bonferroni-adjusted significance.
+To visualize how $r_{cutoff}$ relates to the sample size, $N$, and total number of features, $D$, we build a contour map. This will tell us the correlation coefficient (and, by proxy, the proportionality coefficient) needed to reach Bonferroni-adjusted significance.
 
 ```{r, dpi = 72}
 result <- NULL

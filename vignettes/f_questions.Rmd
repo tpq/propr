@@ -17,7 +17,7 @@ We use the term sub-compositional coherence to describe a method in which the re
 
 The centered log-ratio is not perfect, but it is maybe *good enough*. Still, this is the major limitation of proportionality analysis: it inherits all the limitations of the choice in log-ratio transformation. However, as long as the majority of genes remain unchanged across the conditions, the clr is appropriate. Excerpted from Erb et al. 2016:
 
-> This is known as the centred log-ratio transformation with g(x) the geometric mean over the genes for the given condition. The problem with this transformation is that it is sub-compositionally incoherent Aitchison (2003), so results will change to some extent when using subsets of genes for the analysis. In some cases, g(x) can approximate an unchanged reference. This applies whenever the majority of genes remains unchanged across conditions, so the unchanged genes will dominate the behaviour of the reference. Note that this is also the condition needed for a normalization by effective library size Robinson and Oshlack (2012).
+> This is known as the centered log-ratio transformation with g(x) the geometric mean over the genes for the given condition. The problem with this transformation is that it is sub-compositionally incoherent Aitchison (2003), so results will change to some extent when using subsets of genes for the analysis. In some cases, g(x) can approximate an unchanged reference. This applies whenever the majority of genes remains unchanged across conditions, so the unchanged genes will dominate the behaviour of the reference. Note that this is also the condition needed for a normalization by effective library size Robinson and Oshlack (2012).
     
 ## What if the centered log-ratio isn't for me?
 
@@ -51,7 +51,7 @@ Quoting Lovell et al. 2015 (quoting Friedman et al. 2012):
 
 ## Why does my `smear` plot show perfectly proportional pairs?
 
-We call this phenomena **auto-proportionality**. Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can wrongly appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. We recommend removing auto-proportional pairs to avoid swamping interesting biological modules with artifactual noise. You can do this by removing a set of extremely proportional pairs (e.g., $\rho > .995$) from a set of highly proportional pairs (e.g., $\rho > .95$):
+We call this phenomena **auto-proportionality**. Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can wrongly appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. We recommend removing such pairs to avoid swamping interesting biological signals with artifactual noise. You can do this by removing the set of extremely proportional pairs (e.g., $\rho > .995$) from the set of highly proportional pairs (e.g., $\rho > .95$):
 
 ```{r, eval = FALSE}
 data(caneToad.counts)
@@ -75,7 +75,7 @@ You could then `cbind` any number of separate `@logratio` slots into a single `d
 
 ## How can I analyze multiple groups?
 
-This is another area of active research. At a minimum, we recommend making sure that data filtering (e.g., removal of low and zero counts) and log-ratio transformation is applied equally to all data prior to analysis. From there, the usual pipeline would likely involve separating the data into several pairwise (i.e., two-way) comparisons. Users should take care when crafting their research hypotheses and consider whether one-vs-all or one-vs-one comparisons better suit their needs.
+This is another area of active research. At a minimum, we recommend making sure that data filtering (e.g., removal of low and zero counts) and log-ratio transformation is applied identically to all data prior to analysis. From there, the usual pipeline would likely involve separating the data into several pairwise (i.e., two-way) comparisons. Users should take care when crafting their hypotheses and consider whether one-vs-all or one-vs-one comparisons better suit their goals.
 
 ## References
 

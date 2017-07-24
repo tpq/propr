@@ -15,11 +15,11 @@ In this vignette, we use a real dataset to show how we can apply differential pr
 
 ## Theory
 
-Let us consider two non-zero positive vectors, $X$ and $Y$, measuring the relative abundance of raw sequence counts. One way to understand whether two vectors associate with one another is to consider the variance of the log-ratios (VLR), a compositionally valid measure of association that makes up part of the definition of the proportionality metrics $\phi$ and $\rho$. Although we can calculate VLR using log-ratio transformed data, we see that in this case the denominator factor (e.g., the geometric mean or unchanged reference) cancels. As such, we can use these counts without any transformation:
+Let us consider two non-zero positive vectors, $X$ and $Y$, measuring the relative abundance of raw sequence counts. One way to understand whether two vectors associate with one another is to consider the variance of the log-ratios (VLR), a compositionally valid measure of association that makes up part of the definition of the proportionality metrics. Although we can calculate VLR using log-ratio transformed data, we see that in this case the denominator factor (e.g., the geometric mean or unchanged reference) cancels. As such, we can use these counts without any transformation:
 
 $$\textrm{VLR(X, Y)} = \textrm{var}(\log(\textrm{X} - \textrm{Y}))$$
 
-The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we extract the fraction of variance (interpreted as the residual variance of proportional features) where proportionality holds in both or only one of two groups.
+The `propd` method uses the VLR to test for differential proportionality. Recall that the reason we do not use the VLR for proportionality analysis is that we cannot compare the VLR for one pair against the VLR for another pair (thus why we defined $\phi$ and $\rho$ as a modification to the VLR that gives it scale). However, in differential proportionality analysis, we compare the VLR for one pair across groups. Specifically, we extract the fraction of variance (interpreted as the residual variance of proportional features) where proportionality holds in both or only one of two groups.
 
 We consider here two forms of differential proportionality. The first, which we call *disjointed proportionality*, considers the case where the proportionality of a pair holds in both groups, but the ratio between the partners changes between the groups (i.e., the *slope* of the proportionality changes). The second, which we call *emergent proportionality*, considers the case where there is proportionality in only one of the groups (i.e., the *strength* of the proportionality changes).
 
@@ -33,9 +33,9 @@ $$\theta_e(\textrm{X}, \textrm{Y}) = 1 - \frac{\mathrm{max}[(k-1)\textrm{VLR}_1,
 
 ## Handling of zero values
 
-Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. By default, `propr` and `propd` take the simplest approach of replacing all zero values with 1. Analysts should carefully evaluate the effect that this has on their results.
+Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. By default, `propd` takes the simplest approach of replacing all zero values with 1. Analysts should carefully evaluate the effect that this has on their results.
 
-In addition, the `propd` method offers the option to use a transformation to approximate VLR based on a parameter $\alpha$ that is usually close to zero. We define aVLR as an approximation of VLR, used in place of VLR in any $\theta$ equation:
+Alternatively, the `propd` method offers the option to use a transformation to approximate VLR based on a parameter $\alpha$ that is usually close to zero. We define aVLR as an approximation of VLR, used in place of VLR in any $\theta$ equation:
 
 $$\textrm{aVLR(X, Y)} = \frac{\sum\left(\frac{\textrm{X}^{\alpha}}{\textrm{mean}(\textrm{X}^{\alpha})} - \frac{\textrm{Y}^{\alpha}}{\textrm{mean}(\textrm{Y}^{\alpha})}\right)^2}{(n-1)\alpha^2}$$
 
@@ -82,7 +82,7 @@ theta_d <- updateCutoffs(theta_d, cutoff = seq(0.05, 0.95, 0.3))
 theta_e <- updateCutoffs(theta_e, cutoff = seq(0.05, 0.95, 0.3))
 ```
 
-In order to reduce RAM overhead, the `propd` object never stores the intermediate $\theta$ values for permutation testing. However, when a `propd` object is created, it contains all the randomized group assignments needed for permutation testing, meaning that each `updateCutoffs` run effectively uses the same random seed. One could exploit the data contained in `pd@permutes` to reproduce the intermediate calculations if needed.
+In order to reduce RAM overhead, the `propd` object never stores the intermediate $\theta$ values for permutation testing. However, when a `propd` object is created, it contains all the randomized group assignments needed for permutation testing, meaning that each `updateCutoffs` run effectively uses the same random seed. One could exploit the data contained in the `@permutes` slot to reproduce the intermediate calculations if needed.
 
 ## Sample data
 
@@ -165,7 +165,7 @@ A good first step in understanding $\theta$ begins with an examination of the di
 g <- plot(pd.d, cutoff = 1000)
 ```
 
-For *disjointed proportionality* networks, red edges show an increase in log-ratio means in Group 1 compared to Group 2 (i.e., increased ratio abundance in Western Australia toads) while blue edges show a decrease in log-ratio means in Group 1 compared to Group 2 (i.e., decreased ratio abundance in Western Australia toads). Importantly, we see that a small number of transcripts participate in a large number of differentially proportional pairs.
+For *disjointed proportionality* networks, red edges show an increase in log-ratio means in Group 1 compared to Group 2 (i.e., increased ratio abundance in Western Australia toads) while blue edges show a decrease in log-ratio means in Group 1 compared to Group 2 (i.e., decreased ratio abundance in Western Australia toads). Importantly, we see that a small number of transcripts participate in a large number of the top differentially proportional pairs.
 
 ```{r, dpi = 72}
 g <- plot(pd.e, cutoff = 1000)
@@ -177,7 +177,7 @@ Note that at the appropriate `cutoff`, a network will contain all pairs for a gi
 
 ## Visualizing log-ratio abundance
 
-The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is not possible to tell which features have changed: it is possible for a "hub" to change relative to its neighbors, for all neighbors to change relative to its "hub", or for a "hub" and its neighbors to have changed simultaneously.
+The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is not possible to tell from this figure which features have changed in absolute abundance: it is possible for a "hub" to change relative to its neighbors, for all neighbors to change relative to its "hub", or for a "hub" and its neighbors to have changed simultaneously.
 
 ```{r, dpi = 72, fig.keep = "first"}
 slice(pd.d, reference = "c19327_g2_i3")
@@ -189,7 +189,7 @@ slice(pd.e, reference = "c27054_g5_i1")
 
 ## Integrating propd with propr
 
-This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through a union of a `propr` network with a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate proportionality cutoff. Note that, because CRAN imposes limits on the size of bundled data, as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
+This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through the union of a `propr` network and a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate proportionality cutoff. Note that, because CRAN imposes limits on the size of bundled data, as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
 
 ```{r, dpi = 72, eval = FALSE}
 data(caneToad.counts)

@@ -11,7 +11,7 @@ vignette: >
 
 ## Introduction
 
-In this vignette, we use a real dataset to show how we can apply proportionality analysis to RNA-seq count data. We place a particular emphasis here on documenting $\rho$ and the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "An Introduction to Proportionality".
+In this vignette, we use a real dataset to show how to apply proportionality analysis to RNA-seq count data. We place a particular emphasis here on documenting $\rho$ and the visualization tools included with this package. Although the user may feel eager to start here, we strongly recommend first reading the companion vignette, "An Introduction to Proportionality".
 
 ## Sample data
 
@@ -60,7 +60,7 @@ After indexing, it is helpful to check the pairwise distribution of proportional
 plot(best)
 ```
 
-You can also inspect how the indexed pairs cluster using the `dendrogram` function. Specifically, this function clusters features based on a hierarchical clustering of the proportionality matrix. In this package, we define the dissimilarity measure as `as.dist(1-abs(rho@matrix))`. Like `plot`, this function is "index-aware" and only plots feature pairs indexed with `[`. Take note that this dendrogram matches the dendrogram used to label co-clusters in the `prism`, `bokeh`, and `bucket` plots below. However, it differs from the dendrogram produced by the `snapshot` plot. Heatmap intensity is not scaled.
+You can also inspect how the indexed pairs cluster using the `dendrogram` function. Specifically, this function clusters features based on a hierarchical clustering of the proportionality matrix. In this package, we define the dissimilarity measure as `as.dist(1-abs(rho@matrix))`. Like `plot`, this function is "index-aware" and only plots feature pairs indexed with `[`. Take note that this dendrogram matches the dendrogram used to label co-clusters in the `prism`, `bokeh`, and `bucket` plots below, but differs from the dendrogram produced by the `snapshot` plot. Heatmap intensity is not scaled.
 
 ```{r, dpi = 72, results = "hide"}
 dendrogram(best)
@@ -74,7 +74,7 @@ The remaining visualization methods do not restrict plotting to indexed pairs, b
 best <- simplify(best)
 ```
 
-Compositional data are not distributed in Euclidean space, but rather exist in a space known as the Aitchison simplex (Fernandes 2014). The log-ratio transformation transforms relative data from the Aitchison simplex to Euclidean space, allowing us to summarize our data through conventional statistics.
+Compositional data are not distributed in Euclidean space, but rather exist in a space known as the Aitchison simplex (Fernandes 2014). The log-ratio transformation transforms such data to Euclidean space, allowing us to summarize our data through conventional statistics.
 
 First, we look at `pca`, a function for visualizing the samples across the first two dimensions as reduced by principal components analysis (PCA). This is a valid implementation of PCA for relative data, computed using log-ratio transformed data (Gloor 2016). The `group` argument allows us to color the sample IDs by group membership.
 

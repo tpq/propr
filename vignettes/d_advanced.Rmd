@@ -28,7 +28,7 @@ e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 ```
 
-Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset, $Y$, by distorting $X$:
+Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset, $Y$, by constraining and perturbing $X$:
 
 ```{r, dpi = 72}
 Y <- X / rowSums(X) * abs(rnorm(N))
@@ -61,7 +61,7 @@ cor(Y) # relative correlation
 
 ## An in-depth look at VLR
 
-In contrast, the **variance of the log-ratios** (VLR), defined as the variance of the logarithm of the ratio of two feature vectors, offer a measure of dependence that (a) does not change with respect to the nature of the data (i.e., absolute or relative), and (b) does not change with respect to the number of features included in the computation. As such, the VLR, constituting the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric as well, is considered *sub-compositionally coherent*. Yet, while VLR yields valid results for compositional data, it lacks a meaningful scale.
+In contrast, the **variance of the log-ratios** (VLR), defined as the variance of the logarithm of the ratio of two feature vectors, offers a measure of dependence that (a) does not change with respect to the nature of the data (i.e., absolute or relative), and (b) does not change with respect to the number of features included in the computation. As such, the VLR, constituting the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric as well, is considered *sub-compositionally coherent*. Yet, while VLR yields valid results for compositional data, it lacks a meaningful scale.
 
 ```{r, dpi = 72}
 propr:::proprVLR(Y[, 1:4]) # relative VLR
@@ -70,7 +70,7 @@ propr:::proprVLR(X) # absolute VLR
 
 ## An in-depth look at clr
 
-In the calculation of proportionality, we adjust the arbitrarily large VLR by the variance of its individual constituents. To do this, we need to place samples on a comparable scale. Log-ratio transformation, such as the **centered log-ratio** (clr) transformation, shifts the VLR-matrix onto a "standardized" scale that allows us to compare differences in VLR.
+In the calculation of proportionality, we adjust the arbitrarily large VLR by the variance of its individual constituents. To do this, we need to place samples on a comparable scale. Log-ratio transformation, such as the **centered log-ratio** (clr) transformation, shifts the data onto a "standardized" scale that allows us to compare differences in the VLR-matrix.
 
 In the next figures, we compare pairwise scatterplots for the clr-transformed absolute count data and the corresponding clr-transformed relative count data. While equivalent, we see a relationship between "c" and "d" that should not exist based on what we know from the non-transformed absolute count data. This demonstrates that, although the clr-transformation helps us compare values across samples, it does not rescue information lost by making absolute data relative.
 
@@ -82,7 +82,7 @@ pairs(propr:::proprCLR(Y[, 1:4])) # relative clr-transformation
 pairs(propr:::proprCLR(X)) # absolute clr-transformation
 ```
 
-Proportionality is a compromise between the advantages of VL and the disadvantages of clr to establish a measure of dependence that is robust yet interpretable. Note, however, that because of the division of VLR by the variance of the clr-transformed data, proportionality is not sub-compositionally coherent. As such, spurious proportionality is possible when the clr does not adequately approximate the absolute data.
+Proportionality is a compromise between the advantages of VLR and the disadvantages of clr to establish a measure of dependence that is robust yet interpretable. Note, however, that because of the division of VLR by the variance of the clr-transformed data, proportionality is not sub-compositionally coherent. As such, spurious proportionality is possible when the clr does not adequately approximate the absolute data.
 
 ```{r, dpi = 72, fig.show = "hold"}
 perb(Y[, 1:4])@matrix # relative proportionality with clr
