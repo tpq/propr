@@ -9,7 +9,6 @@ setMethod("plot", signature(x = "propd", y = "missing"),
             group <- unique(x@group)
 
             # Apply cutoff of [0, 1] or a large integer for top theta
-            if(any(0 == x@counts)) stop("Function does not support 0 counts.")
             if(cutoff > nrow(x@theta)) cutoff <- nrow(x@theta)
             if(cutoff > 1) cutoff <- sort(x@theta$theta)[cutoff]
             type <- x@active
@@ -28,7 +27,7 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 
               ff <- tempfile()
               grDevices::png(filename = ff)
-              cyt <- propr::cytescape(propr, prompt = FALSE)
+              cyt <- suppressMessages(propr::cytescape(propr, prompt = FALSE))
               grDevices::dev.off()
               unlink(ff)
 
@@ -141,7 +140,6 @@ shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
   if(!"lrm2" %in% colnames(object@theta)) stop("This function requires an 'lrm2' column!")
 
   # Apply cutoff of [0, 1] or a large integer for top theta
-  if(any(0 == object@counts)) stop("Function does not support 0 counts.")
   if(cutoff > nrow(object@theta)) cutoff <- nrow(object@theta)
   if(cutoff > 1) cutoff <- sort(object@theta$theta)[cutoff]
   object@theta <- object@theta[object@theta$theta <= cutoff, ]

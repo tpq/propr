@@ -65,3 +65,11 @@ test_that("active theta_f matches calculation using theta_e", {
     1 - setActive(pd, what = "theta_e")@theta$theta
   )
 })
+
+test_that("propd calculates valid LRM when using alpha", {
+
+  expect_equal(
+    shale(propd(counts, group))$DiffLRM,
+    shale(propd(counts, group, alpha = 1))$DiffLRM
+  )
+})
