@@ -1,6 +1,8 @@
-## propr 3.0.5.9000
+## propr 3.0.6
 ---------------------
-* Correctly spell `geiser` function as `geyser`
+* Modified visualization tools
+    * Correctly spell `geiser` function as `geyser`
+    * Allow `propd` methods to accept 0s
 * Update documentation
     * Finish revision of all vignettes
 
