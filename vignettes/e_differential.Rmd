@@ -4,7 +4,7 @@ author: "Thomas Quinn & Ionas Erb"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{4. Calculating Differential Proportionality}
+  %\VignetteIndexEntry{5. Calculating Differential Proportionality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
