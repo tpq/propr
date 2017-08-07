@@ -1,3 +1,8 @@
+## propr 3.0.7
+---------------------
+* New `corr` function calculates log-ratio based correlation
+* Fixed mistake with vignette indexing
+
 ## propr 3.0.6
 ---------------------
 * Modified visualization tools

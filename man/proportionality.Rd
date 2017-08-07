@@ -7,6 +7,7 @@
 \alias{phit}
 \alias{perb}
 \alias{phis}
+\alias{corr}
 \title{Calculate Proportionality}
 \usage{
 \S4method{initialize}{propr}(.Object, counts, ivar, select)
@@ -16,6 +17,8 @@ phit(counts, ivar = 0, select, symmetrize = TRUE)
 perb(counts, ivar = 0, select)
 
 phis(counts, ivar = 0, select)
+
+corr(counts, ivar = 0, select)
 }
 \arguments{
 \item{.Object}{Missing. Ignore. Leftover from the generic
@@ -52,6 +55,8 @@ For phi, the result of \code{phit}, one can think of the resultant matrix as
 	analogous to a correlation matrix.
 	For phs, the result of \code{phis}, one can think of the resultant matrix as
 	either a naturally symmetric variant of phi or a monotonic variant of rho.
+	Another function, \code{corr}, calculates Pearsons' correlation using
+	log-ratio transformed data.
 
 These methods all use the centered log-ratio transformation by default,
  but will use an additive log-ratio transformation instead if a scalar

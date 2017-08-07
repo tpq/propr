@@ -12,6 +12,8 @@
 #' 	analogous to a correlation matrix.
 #' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
 #' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
+#' 	Another function, \code{corr}, calculates Pearsons' correlation using
+#' 	log-ratio transformed data.
 #'
 #' These methods all use the centered log-ratio transformation by default,
 #'  but will use an additive log-ratio transformation instead if a scalar
@@ -159,5 +161,14 @@ phis <- function(counts, ivar = 0, select){
 
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
   prop@matrix <- lr2phs(prop@logratio)
+  return(prop)
+}
+
+#' @rdname proportionality
+#' @export
+corr <- function(counts, ivar = 0, select){
+
+  prop <- new("propr", counts = counts, ivar = ivar, select = select)
+  prop@matrix <- cor(prop@logratio)
   return(prop)
 }
