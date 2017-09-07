@@ -169,6 +169,6 @@ phis <- function(counts, ivar = 0, select){
 corr <- function(counts, ivar = 0, select){
 
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
-  prop@matrix <- cor(prop@logratio)
+  prop@matrix <- stats::cor(prop@logratio)
   return(prop)
 }
