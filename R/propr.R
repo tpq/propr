@@ -66,6 +66,41 @@
 #' @name proportionality
 NULL
 
+#' Build Index from ivar Argument
+#'
+#' This function builds an index from the \code{ivar} argument. Used by
+#'  the \code{propr} initialize method and \code{updateF}.
+#'
+#' @inheritParams proportionality
+ivar2index <- function(counts, ivar){
+
+  if(missing(ivar)) ivar <- 0
+  if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
+  `%is%` <- function(a, b) identical(a, b)
+  if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
+
+    use <- 1:ncol(counts) # use all features for geometric mean
+
+  }else if(ivar %is% "iqlr"){
+
+    counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
+    counts.var <- apply(counts.clr, 1, var)
+    quart <- stats::quantile(counts.var) # use features with unextreme variance
+    use <- which(counts.var < quart[4] & counts.var > quart[2])
+
+  }else{
+
+    if(is.character(ivar)){
+      if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
+      use <- which(colnames(counts) %in% ivar) # use features given by name
+    }else{
+      use <- sort(ivar) # use features given by number
+    }
+  }
+
+  return(use)
+}
+
 #' @rdname proportionality
 setMethod("initialize", "propr",
           function(.Object, counts, ivar, select){
@@ -88,29 +123,7 @@ setMethod("initialize", "propr",
             }
 
             # Get feature set to use in g(x) calculation
-            if(missing(ivar)) ivar <- 0
-            if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
-            `%is%` <- function(a, b) identical(a, b)
-            if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
-
-              use <- 1:ncol(counts) # use all features for geometric mean
-
-            }else if(ivar %is% "iqlr"){
-
-              counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
-              counts.var <- apply(counts.clr, 1, var)
-              quart <- stats::quantile(counts.var) # use features with unextreme variance
-              use <- which(counts.var < quart[4] & counts.var > quart[2])
-
-            }else{
-
-              if(is.character(ivar)){
-                if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
-                use <- which(colnames(counts) %in% ivar) # use features given by name
-              }else{
-                use <- sort(ivar) # use features given by number
-              }
-            }
+            use <- ivar2index(counts, ivar)
 
             # Use g(x) to log-ratio transform data
             logX <- log(counts)
