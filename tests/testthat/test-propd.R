@@ -37,7 +37,8 @@ ptheta <- propr:::permuteTheta_prime(counts, group, p = 5)
 pt <- propr:::calculateFDR(theta, ptheta, cutoff = seq(.95, 1, .01))
 
 set.seed(1)
-pd <- propd(counts, group, p = 5, cutoff = seq(.95, 1, .01))
+pd <- propd(counts, group, p = 5)
+pd <- updateCutoffs(pd, cutoff = seq(.95, 1, .01))
 
 test_that("propd FDR mirrors permuteTheta_prime", {
 

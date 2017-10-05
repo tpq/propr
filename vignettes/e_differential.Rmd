@@ -55,7 +55,6 @@ The `propd` function estimates differential proportionality by calculating $\the
 * **group:** an $n$-dimensional vector corresponding to subject labels
 * **alpha:** an optional argument to trigger and guide transformation
 * **p:** the total number of permutations used to estimate FDR
-* **cutoff:** an optional vector of cutoffs for which to estimate FDR
 
 Below, we run `propd` using the `iris` dataset.
 
@@ -65,7 +64,7 @@ data(iris)
 keep <- iris$Species %in% c("setosa", "versicolor")
 counts <- iris[keep, 1:4] * 10
 group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
-pd <- propd(counts, group, alpha = NA, p = 100, cutoff = NA)
+pd <- propd(counts, group, alpha = NA, p = 100)
 ```
 
 The resultant `propd` object contains both $\theta_d$ and $\theta_e$ metrics (among others), although only $\theta_d$ is *active* by default. While a $\theta$ is active, it forms the basis for permutation testing (i.e., FDR estimation) and visualization. Users can easily change which $\theta$ is active using the functions `setDisjointed` and `setEmergent`.
@@ -75,7 +74,7 @@ theta_d <- setDisjointed(pd)
 theta_e <- setEmergent(pd)
 ```
 
-Once the $\theta$ of interest is active, the user can calculate FDR using the `updateCutoffs` function. By default, providing a `cutoff` argument directly to the `propd` function will run `updateCutoffs` for $\theta_d$.
+Once the $\theta$ of interest is active, the user can calculate FDR using the `updateCutoffs` function.
 
 ```{r, dpi = 72}
 theta_d <- updateCutoffs(theta_d, cutoff = seq(0.05, 0.95, 0.3))
