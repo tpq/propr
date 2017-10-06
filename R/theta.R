@@ -11,11 +11,13 @@
 #' @param only A character string. The name of the theta
 #'  type to return if only calculating one theta type.
 #'  Used to make \code{updateCutoffs} faster.
+#' @param weights A matrix. Pre-computed \code{limma}-based
+#'  weights. Optional parameter.
 #' @return A \code{data.frame} of \code{theta} values.
 #'
 #' @export
 calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
-                           weighted = FALSE){
+                           weighted = FALSE, weights = as.matrix(NA)){
 
   ct <- as.matrix(counts)
   if(missing(alpha)) alpha <- NA
@@ -33,19 +35,24 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
   # Calculate weights and lrv modifier
   if(weighted){
 
-    packageCheck("limma")
-    design <- matrix(0, nrow = nrow(ct), ncol = 2)
-    design[group1, 1] <- 1
-    design[group2, 2] <- 1
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
-    p1 <- lrvMod(ct[group1,], W[group1,])
-    p2 <- lrvMod(ct[group2,], W[group2,])
-    p <- lrvMod(ct, W)
+    if(is.na(weights[1,1])){
+      message("Alert: Calculating limma-based weights.")
+      packageCheck("limma")
+      design <- matrix(0, nrow = nrow(ct), ncol = 2)
+      design[group == unique(group)[1], 1] <- 1
+      design[group == unique(group)[2], 2] <- 1
+      v <- limma::voom(t(counts), design = design)
+      weights <- t(v$weights)
+    }
+
+    W <- weights
+    p1 <- omega(ct[group1,], W[group1,])
+    p2 <- omega(ct[group2,], W[group2,])
+    p <- omega(ct, W)
 
   }else{
 
-    W <- ct # not used by lrv() or lrm()
+    W <- ct # not used by lrv() or lrm() if weighted = FALSE
     p1 <- n1 - 1
     p2 <- n2 - 1
     p <- n1 + n2 - 1
@@ -57,8 +64,6 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     if(firstpass) lrv <- lrv(ct, W, weighted)
     lrv1 <- lrv(ct[group1,], W[group1,], weighted)
     lrv2 <- lrv(ct[group2,], W[group2,], weighted)
-    lrm1 <- lrm(ct[group1,], W[group1,], weighted)
-    lrm2 <- lrm(ct[group2,], W[group2,], weighted)
 
   }else{
 
@@ -70,15 +75,17 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     }
     lrv1 <- boxRcpp(ct[group1,], alpha)
     lrv2 <- boxRcpp(ct[group2,], alpha)
+  }
 
-    # Replace 0s to calculate LRM
-    if(firstpass){
-      if(any(ct == 0)){
-        message("Alert: Replacing 0s to calculate LRM.")
-        ct[ct == 0] <- 1 # ct not used again in scope
-      }
+  # Calculate LRM (replacing 0s if alpha is used)
+  if(only == "all"){
+
+    if(any(ct == 0)){
+      if(firstpass) message("Alert: Replacing 0s to calculate LRM.")
+      ct[ct == 0] <- 1 # ct not used again in scope
     }
-    lrm1 <- lrm(ct[group1,], W[group1,], weighted)
+
+    lrm1 <- lrm(ct[group1,], W[group1,], weighted) # LRM not changed by alpha
     lrm2 <- lrm(ct[group2,], W[group2,], weighted)
   }
 
@@ -111,9 +118,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     if(only == "theta_f") return(theta_f)
   }
 
-  F_d <- (n1 + n2 - 2) * (1 - theta) / theta
   labels <- labRcpp(ncol(counts))
-
   return(
     data.frame(
       "Partner" = labels[[1]],
@@ -126,7 +131,6 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       "lrv2" = lrv2,
       "lrm1" = lrm1,
       "lrm2" = lrm2,
-      "F_d" = F_d,
       "p1" = p1,
       "p2" = p2,
       "p" = p
@@ -154,8 +158,13 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- propd@permutes[, k]
-    pkt <- calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv,
-                          only = propd@active, weighted = propd@weighted)
+    pkt <-
+      calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha,
+                     lrv, only = propd@active,
+                     weighted = propd@weighted,
+                     weights = propd@weights)
+
+    # Find number of theta less than cutoff
     for(cut in 1:nrow(FDR)){
       FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
     }
@@ -168,6 +177,48 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
     FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
   }
 
+  # Initialize @fdr
   propd@fdr <- FDR
+
   return(propd)
 }
+
+#' #' @rdname propd
+#' #' @export
+#' updateF <- function(propd, moderated, ivar){
+#'
+#'   # Check that active theta is theta_d? propd@active
+#'
+#'   if(moderated){
+#'
+#'     # A reference is needed for moderation
+#'     propd@counts # Zeros replaced unless alpha provided...
+#'     use <- ivar2index(propd@counts, ivar)
+#'     geoZ <- geoean(use)
+#'     if(any(geoZ) == 0) stop("Zeros present in the reference set.")
+#'
+#'     if(propd@weighted){
+#'
+#'       if(is.na(pd@alpha)){
+#'         # Weighted and not transformed
+#'       }else{
+#'         # Weighted and transformed
+#'       }
+#'
+#'     }else{
+#'
+#'       if(is.na(pd@alpha)){
+#'         # Not weighted and not transformed
+#'       }else{
+#'         # Not weighted and transformed
+#'       }
+#'     }
+#'
+#'   }else{
+#'
+#'     Fstat <- (n1 + n2 - 2) * (1 - theta) / theta
+#'   }
+#'
+#'   propd@theta$Fstat <- Fstat
+#'   return(propd)
+#' }

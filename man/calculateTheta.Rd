@@ -5,7 +5,7 @@
 \title{Calculate Theta}
 \usage{
 calculateTheta(counts, group, alpha, lrv = NA, only = "all",
-  weighted = FALSE)
+  weighted = FALSE, weights = as.matrix(NA))
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with
@@ -26,6 +26,9 @@ Used to make \code{updateCutoffs} faster.}
 
 \item{weighted}{A boolean. Toggles whether to calculate
 theta using \code{limma::voom} weights.}
+
+\item{weights}{A matrix. Pre-computed \code{limma}-based
+weights. Optional parameter.}
 }
 \value{
 A \code{data.frame} of \code{theta} values.
