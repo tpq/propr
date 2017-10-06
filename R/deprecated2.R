@@ -181,6 +181,64 @@ alphaTheta_old <- function(counts, group, alpha){
   return(as.data.frame(ast))
 }
 
+#' Calculate Weighted Theta
+#'
+#' Do not use this function. For testing purposes only.
+#'
+#' @inheritParams propd
+alphaThetaW_old <- function(counts, group, alpha, weights){
+
+  if(length(unique(group)) != 2) stop("Please use two groups.")
+  if(length(group) != nrow(counts)) stop("Too many or too few groups.")
+  group1 <- group == unique(group)[1]
+  group2 <- group == unique(group)[2]
+
+  cere=as.numeric(rownames(counts)[group1])
+  cort=as.numeric(rownames(counts)[group2])
+  n1=length(cere)
+  n2=length(cort)
+
+  lrvMaw=function(x,y,a,W){
+    n=sum(W)
+    s=sum(W^2)
+    p=n-s/n
+    N=length(x)
+    w=W/n
+    s=sum(W*(x/(N*mean(w*x))-y/(N*mean(w*y)))^2)/(p*a^2)
+    return(s)
+  }
+
+  a=alpha
+  Ma=counts^a
+  llt=ncol(counts)*(ncol(counts)-1)/2
+  modwa=c(1:llt)
+  stwa=matrix(0,llt,2)
+  colnames(stwa)=c("lrv","theta")
+  i=0
+  for (j in 2:dim(Ma)[2]){
+    for (k in 1:(j-1)){
+
+      i=i+1
+      W=weights[,j]*weights[,k]
+      n=sum(W)
+      s=sum(W^2)
+      p=n-s/n
+      n1=sum(W[cere])
+      s1=sum(W[cere]^2)
+      p1=n1-s1/n1
+      n2=sum(W[cort])
+      s2=sum(W[cort]^2)
+      p2=n2-s2/n2
+      swxy1=lrvMaw(Ma[cere,j],Ma[cere,k],a,W[cere])
+      swxy2=lrvMaw(Ma[cort,j],Ma[cort,k],a,W[cort])
+      stwa[i,"lrv"]=lrvMaw(Ma[,j],Ma[,k],a,W)
+      stwa[i,"theta"]=(p1*swxy1+p2*swxy2)/(p*stwa[i,"lrv"])
+    }
+  }
+
+  return(as.data.frame(stwa))
+}
+
 #' Calculate FDR Cutoffs
 #'
 #' Do not use this function. For testing purposes only.
@@ -342,15 +400,15 @@ calculateFDR <- function(theta, ptheta, cutoff = seq(.6, .9, .1)){
 alphaTheta <- function(counts, group, alpha){
 
   ct <- as.matrix(counts)
-  lrv <- boxRcpp(ct[], alpha)
+  lrv <- lrv(ct, ct, a = alpha)
 
   if(length(unique(group)) != 2) stop("Please use two groups.")
   if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
   group1 <- group == unique(group)[1]
   group2 <- group == unique(group)[2]
 
-  lrv1 <- boxRcpp(ct[group1,], alpha)
-  lrv2 <- boxRcpp(ct[group2,], alpha)
+  lrv1 <- lrv(ct[group1,], ct[group1,], a = alpha)
+  lrv2 <- lrv(ct[group2,], ct[group2,], a = alpha)
   n1 <- sum(group1)
   n2 <- sum(group2)
 
