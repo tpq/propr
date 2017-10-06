@@ -71,3 +71,38 @@ List pairmutate(NumericMatrix counts,
     _["lrv2"] = lrv2
   );
 }
+
+// Function for Box-Cox psuedo-vlr
+// [[Rcpp::export]]
+NumericVector boxRcpp(NumericMatrix & X,
+                      const double a){
+
+  // Raise all of X to the a power
+  for(int i = 0; i < X.nrow(); i++){
+    for(int j = 0; j < X.ncol(); j++){
+      X(i, j) = pow(X(i, j), a);
+    }
+  }
+
+  // Sweep out column means
+  for(int j = 0; j < X.ncol(); j++){
+    X(_, j) = X(_, j) / mean(X(_, j));
+  }
+
+  // Output a half-matrix
+  int nfeats = X.ncol();
+  int llt = nfeats * (nfeats - 1) / 2;
+  NumericVector result(llt);
+  int counter = 0;
+
+  // Calculate sum([i - j]^2)
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      result(counter) = sum(pow(X(_, i) - X(_, j), 2));
+      counter += 1;
+    }
+  }
+
+  result = result / (pow(a, 2) * (X.nrow() - 1));
+  return result;
+}
