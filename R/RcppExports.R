@@ -73,10 +73,6 @@ pairmutate <- function(counts, group) {
     .Call('propr_pairmutate', PACKAGE = 'propr', counts, group)
 }
 
-boxRcpp <- function(X, a) {
-    .Call('propr_boxRcpp', PACKAGE = 'propr', X, a)
-}
-
 lr2vlr <- function(lr) {
     .Call('propr_lr2vlr', PACKAGE = 'propr', lr)
 }

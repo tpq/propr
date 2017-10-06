@@ -215,18 +215,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// boxRcpp
-NumericVector boxRcpp(NumericMatrix& X, const double a);
-RcppExport SEXP propr_boxRcpp(SEXP XSEXP, SEXP aSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const double >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(boxRcpp(X, a));
-    return rcpp_result_gen;
-END_RCPP
-}
 // lr2vlr
 NumericMatrix lr2vlr(NumericMatrix lr);
 RcppExport SEXP propr_lr2vlr(SEXP lrSEXP) {
@@ -320,7 +308,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // lrv
-NumericVector lrv(NumericMatrix& Y, NumericMatrix& W, bool weighted, const double a);
+NumericVector lrv(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a);
 RcppExport SEXP propr_lrv(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -328,7 +316,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
     Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
-    Rcpp::traits::input_parameter< const double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
     rcpp_result_gen = Rcpp::wrap(lrv(Y, W, weighted, a));
     return rcpp_result_gen;
 END_RCPP
