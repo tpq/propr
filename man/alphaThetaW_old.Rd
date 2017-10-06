@@ -15,6 +15,9 @@ ordered according to the row names in \code{counts}.}
 
 \item{alpha}{A double. See vignette for details. Leave missing
 to skip Box-Cox transformation.}
+
+\item{weights}{A matrix. Pre-computed \code{limma}-based
+weights. Optional parameter.}
 }
 \description{
 Do not use this function. For testing purposes only.

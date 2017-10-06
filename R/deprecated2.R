@@ -185,6 +185,8 @@ alphaTheta_old <- function(counts, group, alpha){
 #'
 #' Do not use this function. For testing purposes only.
 #'
+#' @param weights A matrix. Pre-computed \code{limma}-based
+#'  weights. Optional parameter.
 #' @inheritParams propd
 alphaThetaW_old <- function(counts, group, alpha, weights){
 
