@@ -73,6 +73,10 @@ pairmutate <- function(counts, group) {
     .Call('propr_pairmutate', PACKAGE = 'propr', counts, group)
 }
 
+boxRcpp <- function(X, a) {
+    .Call('propr_boxRcpp', PACKAGE = 'propr', X, a)
+}
+
 lr2vlr <- function(lr) {
     .Call('propr_lr2vlr', PACKAGE = 'propr', lr)
 }
@@ -89,16 +93,8 @@ lr2phs <- function(lr) {
     .Call('propr_lr2phs', PACKAGE = 'propr', lr)
 }
 
-boxRcpp <- function(X, a) {
-    .Call('propr_boxRcpp', PACKAGE = 'propr', X, a)
-}
-
 ctzRcpp <- function(X) {
     .Call('propr_ctzRcpp', PACKAGE = 'propr', X)
-}
-
-lrmRcpp <- function(X) {
-    .Call('propr_lrmRcpp', PACKAGE = 'propr', X)
 }
 
 wtmRcpp <- function(x, w) {
@@ -113,11 +109,11 @@ lrm <- function(X, W, weighted = FALSE) {
     .Call('propr_lrm', PACKAGE = 'propr', X, W, weighted)
 }
 
-lrv <- function(X, W, weighted = FALSE) {
-    .Call('propr_lrv', PACKAGE = 'propr', X, W, weighted)
+lrv <- function(Y, W, weighted = FALSE, a = NA_real_) {
+    .Call('propr_lrv', PACKAGE = 'propr', Y, W, weighted, a)
 }
 
-lrvMod <- function(X, W) {
-    .Call('propr_lrvMod', PACKAGE = 'propr', X, W)
+omega <- function(X, W) {
+    .Call('propr_omega', PACKAGE = 'propr', X, W)
 }
 
