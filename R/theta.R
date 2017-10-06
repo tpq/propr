@@ -52,32 +52,18 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
 
   }else{
 
-    W <- ct # not used by lrv() or lrm() if weighted = FALSE
+    W <- ct
     p1 <- n1 - 1
     p2 <- n2 - 1
     p <- n1 + n2 - 1
   }
 
-  if(is.na(alpha)){
+  # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
+  if(firstpass) lrv <- lrv(ct, W, weighted, alpha)
+  lrv1 <- lrv(ct[group1,], W[group1,], weighted, alpha)
+  lrv2 <- lrv(ct[group2,], W[group2,], weighted, alpha)
 
-    # Calculate LRV and LRM with provided counts
-    if(firstpass) lrv <- lrv(ct, W, weighted)
-    lrv1 <- lrv(ct[group1,], W[group1,], weighted)
-    lrv2 <- lrv(ct[group2,], W[group2,], weighted)
-
-  }else{
-
-    # Calculate LRV and LRM with 0s present
-    if(weighted) stop("No method available for weighted aVLR.")
-    if(firstpass){
-      if(any(ct == 0)) message("Alert: Approximating LRV in setting of 0s.")
-      lrv <- boxRcpp(ct[], alpha)
-    }
-    lrv1 <- boxRcpp(ct[group1,], alpha)
-    lrv2 <- boxRcpp(ct[group2,], alpha)
-  }
-
-  # Calculate LRM (replacing 0s if alpha is used)
+  # Calculate LRM (replacing 0s if alpha is used) -- LRM not affected by alpha
   if(only == "all"){
 
     if(any(ct == 0)){
@@ -85,7 +71,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       ct[ct == 0] <- 1 # ct not used again in scope
     }
 
-    lrm1 <- lrm(ct[group1,], W[group1,], weighted) # LRM not changed by alpha
+    lrm1 <- lrm(ct[group1,], W[group1,], weighted)
     lrm2 <- lrm(ct[group2,], W[group2,], weighted)
   }
 
