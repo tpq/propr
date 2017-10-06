@@ -8,11 +8,11 @@
 * Modified `calculateTheta`
     * Added `weights` argument to pass pre-computed weights
     * Still calculates weights if `NA` weights argument
-    * [Consolidated alpha and weighted lrv calls]
+    * Consolidated weighted and alpha lrv calls
 * Modified C++ backend
     * Extend `lrv` to weighted alpha calls
-    * [Added unit test for weighted alpha calls]
-    * Merge `boxRcpp` with `lrv` and deprecate `boxRcpp`
+    * Added unit test for weighted alpha calls
+    * Merge `boxRcpp` with `lrv` and remove `boxRcpp`
     * Merge `lrmRcpp` with `lrm` and remove `lrmRcpp`
     * Rename `lrvMod` function to `omega`
 * New `updateF` function
