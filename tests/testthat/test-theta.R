@@ -42,19 +42,27 @@ test_that("new FDR matches old FDR", {
   )
 })
 
-test_that("boxRcpp matches pseudo-lrv from alphaTheta_old", {
+test_that("alpha-transformed lrv matches pseudo-lrv from alphaTheta_old", {
 
   expect_equal(
-    propr:::boxRcpp(as.matrix(counts), .1),
+    propr:::lrv(as.matrix(counts), as.matrix(counts), a = .1),
     propr:::alphaTheta_old(counts, group, .1)$alrv
   )
-})
-
-test_that("fast calculateTheta matches slow alphaTheta", {
 
   expect_equal(
-    as.vector(propr:::calculateTheta(counts, group, .1)$theta),
-    as.vector(propr:::alphaTheta_old(counts, group, .1)$atheta)
+    propd(counts, group, weighted = FALSE, alpha = .1)@theta$theta,
+    propr:::alphaTheta_old(counts, group, .1)$atheta
+  )
+
+  pd <- propd(counts, group, weighted = TRUE)
+  expect_equal(
+    propr:::lrv(as.matrix(counts), pd@weights, weighted = TRUE, a = .1),
+    propr:::alphaThetaW_old(counts, group, .1, pd@weights)$lrv
+  )
+
+  expect_equal(
+    propd(counts, group, weighted = TRUE, alpha = .1)@theta$theta,
+    propr:::alphaThetaW_old(counts, group, .1, pd@weights)$theta
   )
 })
 

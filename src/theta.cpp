@@ -87,7 +87,7 @@ NumericVector lrm(NumericMatrix & X,
 NumericVector lrv(NumericMatrix & Y,
                   NumericMatrix & W,
                   bool weighted = false,
-                  const double a = NA_REAL){
+                  double a = NA_REAL){
 
   // Output a half-matrix
   NumericMatrix X = clone(Y);
@@ -108,17 +108,17 @@ NumericVector lrv(NumericMatrix & Y,
     if(weighted){
 
       // Sweep out (weighted) column means
-      for(int j = 0; j < X.ncol(); j++){
-        X(_, j) = X(_, j) / wtmRcpp(X(_, j), W(_, j));
-      }
-
       // Calculate sum(W * [i - j]^2)
       // Divide sum(W * [i - j]^2) by (p * a^2)
       Rcpp::NumericVector Wij(nfeats);
+      Rcpp::NumericVector Xiscaled(nfeats);
+      Rcpp::NumericVector Xjscaled(nfeats);
       for(int i = 1; i < nfeats; i++){
         for(int j = 0; j < i; j++){
           Wij = W(_, i) * W(_, j);
-          result(counter) = sum(Wij * pow(X(_, i) - X(_, j), 2));
+          Xiscaled = X(_, i) / wtmRcpp(X(_, i), Wij);
+          Xjscaled = X(_, j) / wtmRcpp(X(_, j), Wij);
+          result(counter) = sum(Wij * pow(Xiscaled - Xjscaled, 2));
           result(counter) = result(counter) /
             (pow(a, 2) * (sum(Wij) - sum(pow(Wij, 2)) / sum(Wij)));
           counter += 1;
