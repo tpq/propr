@@ -333,3 +333,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lrz
+NumericVector lrz(NumericMatrix& Y, NumericMatrix& W, NumericVector& Z, bool weighted, double a);
+RcppExport SEXP propr_lrz(SEXP YSEXP, SEXP WSEXP, SEXP ZSEXP, SEXP weightedSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrz(Y, W, Z, weighted, a));
+    return rcpp_result_gen;
+END_RCPP
+}

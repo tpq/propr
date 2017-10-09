@@ -50,7 +50,7 @@ double wtvRcpp(NumericVector x,
   return sum(w * pow(x - xbar, 2)) * (sum(w) / (pow(sum(w), 2) - sum(pow(w, 2))));
 }
 
-// Calculate lrm with weights
+// Calculate lrm with or without weights
 // [[Rcpp::export]]
 NumericVector lrm(NumericMatrix & X,
                   NumericMatrix & W,
@@ -82,7 +82,7 @@ NumericVector lrm(NumericMatrix & X,
   return result;
 }
 
-// Calculate lrv with weights
+// Calculate lrv with or without weights
 // [[Rcpp::export]]
 NumericVector lrv(NumericMatrix & Y,
                   NumericMatrix & W,
@@ -172,7 +172,7 @@ NumericVector lrv(NumericMatrix & Y,
   return result;
 }
 
-// Calculate lrv modifier
+// Calculate lrv weight modifier
 // [[Rcpp::export]]
 NumericVector omega(NumericMatrix & X,
                     NumericMatrix & W){
@@ -190,6 +190,92 @@ NumericVector omega(NumericMatrix & X,
       n = sum(Wij);
       result(counter) = n - sum(pow(Wij, 2)) / n;
       counter += 1;
+    }
+  }
+
+  return result;
+}
+
+// Calculate lrv w.r.t. z
+// [[Rcpp::export]]
+NumericVector lrz(NumericMatrix & Y,
+                  NumericMatrix & W,
+                  NumericVector & Z,
+                  bool weighted = false,
+                  double a = NA_REAL){
+
+  // Output a half-matrix
+  NumericMatrix X = clone(Y);
+  NumericVector z = clone(Z);
+  int nfeats = X.ncol();
+  int nsamps = X.nrow();
+  NumericVector result(nfeats);
+  int counter = 0;
+
+  if(!R_IsNA(a)){ // Weighted and non-weighted, alpha-transformed
+
+    // Raise all of X and z to the a power
+    for(int i = 0; i < nsamps; i++){
+      z(i) = pow(Z(i), a);
+      for(int j = 0; j < nfeats; j++){
+        X(i, j) = pow(X(i, j), a);
+      }
+    }
+
+    if(weighted){
+
+      // Sweep out (weighted) column means
+      // Calculate sum(W * [i - j]^2)
+      // Divide sum(W * [i - j]^2) by (p * a^2)
+      Rcpp::NumericVector Wij(nfeats);
+      Rcpp::NumericVector Xiscaled(nfeats);
+      Rcpp::NumericVector Xjscaled(nfeats);
+      for(int j = 0; j < nfeats; j++){
+        Wij = W(_, j);
+        Xiscaled = X(_, j) / wtmRcpp(X(_, j), Wij);
+        Xjscaled = z / wtmRcpp(z, Wij);
+        result(counter) = sum(Wij * pow(Xiscaled - Xjscaled, 2));
+        result(counter) = result(counter) /
+          (pow(a, 2) * (sum(Wij) - sum(pow(Wij, 2)) / sum(Wij)));
+        counter += 1;
+      }
+
+    }else{
+
+      // Sweep out column means
+      z = z / mean(z);
+      for(int j = 0; j < nfeats; j++){
+        X(_, j) = X(_, j) / mean(X(_, j));
+      }
+
+      // Calculate sum([i - j]^2)
+      // Divide sum([i - j]^2) by ((N-1) * a^2)
+      for(int j = 0; j < nfeats; j++){
+        result(counter) = sum(pow(X(_, j) - z, 2));
+        result(counter) = result(counter) /
+          (pow(a, 2) * (X.nrow() - 1));
+        counter += 1;
+      }
+    }
+
+
+  }else{ // Weighted and non-weighted, non-transformed
+
+    if(weighted){
+
+      Rcpp::NumericVector Wij(nfeats);
+      for(int j = 0; j < nfeats; j++){
+        Wij = W(_, j);
+        result(counter) = wtvRcpp(log(X(_, j) / z), Wij);
+        counter += 1;
+      }
+
+    }else{
+
+      for(int j = 0; j < nfeats; j++){
+        result(counter) = var(log(X(_, j) / z));
+        counter += 1;
+      }
     }
   }
 
