@@ -20,6 +20,7 @@
     * Calculates 4 types of moderated F-statistics
     * [Calculates 4 types of non-moderated F-statistics]
     * Update `propd` documentation to reflect change
+    * [Extend moderation to non-clr references]
     * [New vignette to discuss F-statistics]
 
 ## propr 3.0.7
