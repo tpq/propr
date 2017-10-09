@@ -200,6 +200,9 @@ setClass("propd",
 setMethod("show", "propd",
           function(object){
 
+            cat(ifelse(object@weighted, "Weighted", "Not weighted"), "and",
+                ifelse(is.na(object@alpha), "not alpha-transformed", "alpha-transformed"), "\n")
+
             cat("@counts summary:",
                 nrow(object@counts), "subjects by", ncol(object@counts), "features\n")
 
@@ -212,7 +215,9 @@ setMethod("show", "propd",
             cat("@fdr summary:",
                 ncol(object@permutes), "iterations\n")
 
-            print(object@fdr)
+            if(nrow(object@fdr) > 0){
+              print(object@fdr)
+            }
 
             cat("See ?propd for object methods\n")
           }
