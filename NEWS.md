@@ -17,7 +17,7 @@
     * Rename `lrvMod` function to `omega`
 * New `updateF` function
     * Added new `ivar2index` function used by `propr` and `updateF`
-    * [Calculates 4 types of moderated F-statistics]
+    * Calculates 4 types of moderated F-statistics
     * [Calculates 4 types of non-moderated F-statistics]
     * Update `propd` documentation to reflect change
     * [New vignette to discuss F-statistics]

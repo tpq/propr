@@ -18,6 +18,7 @@
 \alias{slice}
 \alias{decomposed}
 \alias{updateCutoffs}
+\alias{updateF}
 \title{The propd Method}
 \usage{
 \S4method{show}{propd}(object)
@@ -48,6 +49,8 @@ slice(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALSE)
 decomposed(object, cutoff = 1000, prompt = TRUE)
 
 updateCutoffs(propd, cutoff = seq(0.05, 0.95, 0.3))
+
+updateF(propd, moderated = FALSE, ivar = "clr")
 }
 \arguments{
 \item{object, x, propd}{A \code{propd} object.}

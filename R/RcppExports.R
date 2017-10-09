@@ -113,3 +113,7 @@ omega <- function(X, W) {
     .Call('propr_omega', PACKAGE = 'propr', X, W)
 }
 
+lrz <- function(Y, W, Z, weighted = FALSE, a = NA_real_) {
+    .Call('propr_lrz', PACKAGE = 'propr', Y, W, Z, weighted, a)
+}
+

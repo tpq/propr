@@ -169,42 +169,96 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
   return(propd)
 }
 
-#' #' @rdname propd
-#' #' @export
-#' updateF <- function(propd, moderated, ivar){
-#'
-#'   # Check that active theta is theta_d? propd@active
-#'
-#'   if(moderated){
-#'
-#'     # A reference is needed for moderation
-#'     propd@counts # Zeros replaced unless alpha provided...
-#'     use <- ivar2index(propd@counts, ivar)
-#'     geoZ <- geoean(use)
-#'     if(any(geoZ) == 0) stop("Zeros present in the reference set.")
-#'
-#'     if(propd@weighted){
-#'
-#'       if(is.na(pd@alpha)){
-#'         # Weighted and not transformed
-#'       }else{
-#'         # Weighted and transformed
-#'       }
-#'
-#'     }else{
-#'
-#'       if(is.na(pd@alpha)){
-#'         # Not weighted and not transformed
-#'       }else{
-#'         # Not weighted and transformed
-#'       }
-#'     }
-#'
-#'   }else{
-#'
-#'     Fstat <- (n1 + n2 - 2) * (1 - theta) / theta
-#'   }
-#'
-#'   propd@theta$Fstat <- Fstat
-#'   return(propd)
-#' }
+#' @rdname propd
+#' @export
+updateF <- function(propd, moderated = FALSE, ivar = "clr"){
+
+  # Check that active theta is theta_d? propd@active
+  if(!propd@active == "theta_d"){
+    stop("Make theta_d the active theta.")
+  }
+
+  group1 <- group == unique(group)[1]
+  group2 <- group == unique(group)[2]
+  n1 <- sum(group1)
+  n2 <- sum(group2)
+
+  if(moderated){
+
+    # A reference is needed for moderation
+    propd@counts # Zeros replaced unless alpha provided...
+    use <- ivar2index(propd@counts, ivar)
+
+    # Establish data with regard to a reference Z
+    X <- as.matrix(propd@counts)
+    logX <- log(X)
+    z.set <- logX[, use, drop = FALSE]
+    z.geo <- rowMeans(z.set)
+    if(any(z.geo == 0)) stop("Zeros present in reference set.")
+    z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
+    z.cr <- exp(z.lr)
+    z <- exp(z.geo)
+
+    # Fit limma-voom to reference-based data
+    message("Alert: Calculating weights with regard to reference.")
+    packageCheck("limma")
+    z.sr <- t(z.cr * mean(z)) # scale counts by mean of reference mean
+    design <- matrix(0, nrow = nrow(propd@counts), ncol = 2)
+    design[propd@group == unique(propd@group)[1], 1] <- 1
+    design[propd@group == unique(propd@group)[2], 2] <- 1
+    v <- limma::voom(z.sr, design = design)
+    param <- limma::lmFit(v, design)
+    param <- limma::eBayes(param)
+    z.df <- param$df.prior
+    z.s2 <- param$s2.prior
+
+    # Extract weights for "pure" data
+    if(propd@weighted){
+
+      # Calculate weights w.r.t. reference Z -- used by lrz if weighted
+      message("Alert: Calculating weight of reference set.")
+      warning("Correct use of non-clr 'ivar' reference not yet confirmed.")
+      W.pt <- sweep(propd@weights, 1, rowSums(propd@weights), "/")
+      W.z <- exp(rowMeans(W.pt[,use] * logX[,use] * ncol(logX))) / z
+      W <- propd@weights * W.z
+
+      p1 <- colSums(W[group1,]) - colSums(W[group1,]^2) / colSums(W[group1,])
+      p2 <- colSums(W[group2,]) - colSums(W[group2,]^2) / colSums(W[group2,])
+      p <- colSums(W) - colSums(W^2) / colSums(W)
+
+    }else{
+
+      message("Alert: Provided theta not already weighted.")
+      W <- as.matrix(propd@counts) # not used by lrz
+      p1 <- n1 - 1
+      p2 <- n2 - 1
+      p <- n1 + n2 - 1
+    }
+
+    # Calculate per-feature variances w.r.t. Z -- changes with theta type
+    z.var1 <- lrz(X[group1,], W[group1,], z[group1],
+                  propd@weighted, propd@alpha)
+    z.var2 <- lrz(X[group2,], W[group2,], z[group2],
+                  propd@weighted, propd@alpha)
+    z.pool <- (p1 * z.var1 + p2 * z.var2) / p
+
+    # Call Rcpp function to calculate z.mod -- always the same
+    labs <- propr:::labRcpp(4)
+    mod <- 2 * z.s2 - z.pool[labs$Partner] - z.pool[labs$Pair]
+
+    # Moderate F-statistic
+    mod <- mod / (propd@theta$lrv * propd@theta$theta * (1 + (n1 + n2)/z.df))
+    Fprime <- (1 - propd@theta$theta) / (propd@theta$theta * (1 + mod))
+    theta_mod <- 1 / (1 + Fprime)
+    propd@theta$theta_mod <- theta_mod
+    Fstat <- (n1 + n2 - 2) * Fprime
+
+  }else{
+
+    stop("Non-moderated F-stat not yet available.")
+    Fstat <- (n1 + n2 - 2) * (1 - propd@theta$theta) / propd@theta$theta
+  }
+
+  propd@theta$Fstat <- Fstat
+  return(propd)
+}
