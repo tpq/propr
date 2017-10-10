@@ -41,9 +41,9 @@ $$\textrm{aVLR(X, Y)} = \frac{\sum\left(\frac{\textrm{X}^{\alpha}}{\textrm{mean}
 
 ## False discovery rate
 
-The `propd` method, due to the unwieldy number of pairs, does not return a vector of p-values like most statistical tests. Instead, it calculates the false discovery rate (FDR) directly using permutations of the group assignments to generate an empiric distribution of $\theta$ values specific to the supplied data. With this, for each arbitrary cutoff of $\theta$, we can calculate a FDR based on the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$.
+The `propd` method does not return a vector of p-values like most statistical tests. Instead, the user may choose to estimate the false discovery rate (FDR) using permutations of the group assignments to generate an empiric distribution of $\theta$ values (specific to the supplied data). With this, for each arbitrary cutoff of $\theta$, the FDR is calculated as the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$.
 
-Alternatively, it is possible to calculate the FDR based on the F-statistic, a procedure which we will discuss in more detail in a future vignette:
+Alternatively, it is possible to calculate an F-statistic, as discussed in the next vignette:
 
 $$F = (n-2)\frac{1-\theta_d}{\theta_d}$$
 
@@ -74,7 +74,7 @@ theta_d <- setDisjointed(pd)
 theta_e <- setEmergent(pd)
 ```
 
-Once the $\theta$ of interest is active, the user can calculate FDR using the `updateCutoffs` function.
+Once the $\theta$ of interest is active, the user can estimate FDR using the `updateCutoffs` function.
 
 ```{r, dpi = 72}
 theta_d <- updateCutoffs(theta_d, cutoff = seq(0.05, 0.95, 0.3))
@@ -201,7 +201,7 @@ plot(pd.e, propr = rho, d3 = TRUE)
 
 ## Future work
 
-Future updates and vignettes will introduce advanced network analyses, weighted power transformations, moderated F-statistics, classical hypothesis testing, and more. Stay tuned!
+Future updates and vignettes will introduce advanced network analyses, precision-weighted $\theta$ values, moderated F-statistics, classical hypothesis testing, and more. Stay tuned!
 
 ## References
 
