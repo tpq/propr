@@ -243,7 +243,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     z.pool <- (p1 * z.var1 + p2 * z.var2) / p
 
     # Call Rcpp function to calculate z.mod -- always the same
-    labs <- propr:::labRcpp(4)
+    labs <- labRcpp(length(z.pool))
     mod <- 2 * z.s2 - z.pool[labs$Partner] - z.pool[labs$Pair]
 
     # Moderate F-statistic
