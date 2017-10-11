@@ -202,7 +202,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     # Fit limma-voom to reference-based data
     message("Alert: Calculating weights with regard to reference.")
     packageCheck("limma")
-    z.sr <- t(z.cr * mean(z)) # scale counts by mean of reference mean
+    z.sr <- t(z.cr * mean(z)) # scale counts by mean of reference
     design <- matrix(0, nrow = nrow(propd@counts), ncol = 2)
     design[propd@group == unique(propd@group)[1], 1] <- 1
     design[propd@group == unique(propd@group)[2], 2] <- 1
@@ -219,7 +219,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
       message("Alert: Calculating weight of reference set.")
       warning("Correct use of non-clr 'ivar' reference not yet confirmed.")
       W.pt <- sweep(propd@weights, 1, rowSums(propd@weights), "/")
-      W.z <- exp(rowMeans(W.pt[,use] * logX[,use] * ncol(logX))) / z
+      W.z <- exp(rowMeans(W.pt[,use] * logX[,use] * length(use))) / z
       W <- propd@weights * W.z
 
       p1 <- colSums(W[group1,]) - colSums(W[group1,]^2) / colSums(W[group1,])
@@ -249,16 +249,17 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     # Moderate F-statistic
     mod <- mod / (propd@theta$lrv * propd@theta$theta * (1 + (n1 + n2)/z.df))
     Fprime <- (1 - propd@theta$theta) / (propd@theta$theta * (1 + mod))
-    theta_mod <- 1 / (1 + Fprime)
-    propd@theta$theta_mod <- theta_mod
     Fstat <- (n1 + n2 - 2) * Fprime
+    theta_mod <- 1 / (1 + Fprime)
 
   }else{
 
     stop("Non-moderated F-stat not yet available.")
     Fstat <- (n1 + n2 - 2) * (1 - propd@theta$theta) / propd@theta$theta
+    theta_mod <- 0
   }
 
+  propd@theta$theta_mod <- theta_mod
   propd@theta$Fstat <- Fstat
   return(propd)
 }
