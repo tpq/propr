@@ -43,9 +43,9 @@ if(requireNamespace("limma", quietly = TRUE) &
     su=apply(v$weights,2,sum)
     w=t(v$weights)/su
     #weighted geometric mean
-    zw=exp(apply(w*log(M)*dim(M)[2],1,mean))
+    zw=apply(w*log(M)*dim(M)[2],1,mean)
     #define weight of geometric mean:
-    wz=zw/z
+    wz=zw/apply(log(M),1,mean)
 
     ###########################################################
 

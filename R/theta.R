@@ -178,8 +178,8 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     stop("Make theta_d the active theta.")
   }
 
-  group1 <- group == unique(group)[1]
-  group2 <- group == unique(group)[2]
+  group1 <- propd@group == unique(propd@group)[1]
+  group2 <- propd@group == unique(propd@group)[2]
   n1 <- sum(group1)
   n2 <- sum(group2)
 
@@ -217,9 +217,8 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
       # Calculate weights w.r.t. reference Z -- used by lrz if weighted
       message("Alert: Calculating weight of reference set.")
-      warning("Correct use of non-clr 'ivar' reference not yet confirmed.")
       W.pt <- sweep(propd@weights, 1, rowSums(propd@weights), "/")
-      W.z <- exp(rowMeans(W.pt[,use] * logX[,use] * length(use))) / z
+      W.z <- (rowMeans(W.pt[,use] * logX[,use] * length(use))) / (rowMeans(logX[,use]))
       W <- propd@weights * W.z
 
       p1 <- colSums(W[group1,]) - colSums(W[group1,]^2) / colSums(W[group1,])
@@ -254,7 +253,6 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   }else{
 
-    stop("Non-moderated F-stat not yet available.")
     Fstat <- (n1 + n2 - 2) * (1 - propd@theta$theta) / propd@theta$theta
     theta_mod <- 0
   }

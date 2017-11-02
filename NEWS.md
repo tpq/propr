@@ -1,4 +1,4 @@
-## propr 3.0.7.9000
+## propr 3.1.0
 ---------------------
 * Modified `propd` methods
     * The `propd` function no longer calls `updateCutoffs`
@@ -18,10 +18,9 @@
 * New `updateF` function
     * Added new `ivar2index` function used by `propr` and `updateF`
     * Calculates 4 types of moderated F-statistics
-    * [Calculates 4 types of non-moderated F-statistics]
+    * Calculates 4 types of non-moderated F-statistics
     * Update `propd` documentation to reflect change
-    * [Extend moderation to non-clr references]
-    * [New vignette to discuss F-statistics]
+    * Extend moderation to non-clr references
 
 ## propr 3.0.7
 ---------------------

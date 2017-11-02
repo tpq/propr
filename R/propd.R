@@ -150,12 +150,14 @@
 #' @param weighted A boolean. Toggles whether to calculate
 #'  theta using \code{limma::voom} weights.
 #' @param p An integer. The number of permutation cycles.
-#' @param cutoff For \code{propd}, a numeric vector.
+#' @param cutoff For \code{updateCutoffs}, a numeric vector.
 #'  this argument provides the FDR cutoffs to test for theta.
 #'  For graph functions, a numeric scalar. This argument
 #'  indicates the maximum theta to include in the figure.
 #'  For graph functions, a large integer will instead
 #'  retrieve the top N pairs as ranked by theta.
+#' @param moderated For \code{updateF}, a boolean. Toggles
+#'  whether to calculate a moderated F-statistic.
 #' @param k An integer. The maximum number of PALs to index
 #'  when calculating \code{\link{pals}} in the network.
 #' @param reference A character string. A feature to use as the
