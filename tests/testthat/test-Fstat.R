@@ -1,4 +1,5 @@
-if(requireNamespace("limma", quietly = TRUE)){
+if(requireNamespace("limma", quietly = TRUE) &
+   requireNamespace("SDMTools", quietly = TRUE)){
 
   testFmod <- function(counts, group, a = .05){
 
@@ -90,7 +91,6 @@ if(requireNamespace("limma", quietly = TRUE)){
     message("(2) weighted moderated statistic:")
 
     #weighted within-group variances wrt reference z:
-    library(SDMTools)
     sw2xz=rep(0,dim(Mz)[2])
     for (i in 1:dim(Mz)[2]){
 
@@ -111,8 +111,8 @@ if(requireNamespace("limma", quietly = TRUE)){
 
 
 
-      sw1=wt.var(log(Mz[ce,i]),W[ce])
-      sw2=wt.var(log(Mz[co,i]),W[co])
+      sw1=SDMTools::wt.var(log(Mz[ce,i]),W[ce])
+      sw2=SDMTools::wt.var(log(Mz[co,i]),W[co])
       sw2xz[i]=(p1*sw1+p2*sw2)/p
 
     }
@@ -180,8 +180,6 @@ if(requireNamespace("limma", quietly = TRUE)){
     Fpmoda=(1-sta[,"theta"])/(sta[,"theta"]*(1+moda))
     thetamoda=1/(1+Fpmoda)
     Fmoda=(nce+nco-2)*Fpmoda
-
-    save(sa2xz,moda,thetamoda,Fmoda,file="modstat_alpha.R")
 
     message("(4) weighted power-transformed moderated statistic:")
 
