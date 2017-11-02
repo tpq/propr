@@ -13,7 +13,7 @@ calculateFDR(theta, ptheta, cutoff = seq(0.6, 0.9, 0.1))
 \item{ptheta}{A \code{data.frame}. The result of a
 \code{permuteTheta} call.}
 
-\item{cutoff}{For \code{propd}, a numeric vector.
+\item{cutoff}{For \code{updateCutoffs}, a numeric vector.
 this argument provides the FDR cutoffs to test for theta.
 For graph functions, a numeric scalar. This argument
 indicates the maximum theta to include in the figure.

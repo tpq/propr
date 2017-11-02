@@ -80,7 +80,7 @@ Ignore to use centered log-ratio transformation.}
 \item{y}{Missing. Ignore. Leftover from the generic method
 definition.}
 
-\item{cutoff}{For \code{propd}, a numeric vector.
+\item{cutoff}{For \code{updateCutoffs}, a numeric vector.
 this argument provides the FDR cutoffs to test for theta.
 For graph functions, a numeric scalar. This argument
 indicates the maximum theta to include in the figure.
@@ -117,6 +117,9 @@ a dynamic plot using the \code{plotly} package.}
 
 \item{reference}{A character string. A feature to use as the
 denominator reference when comparing log-ratio abundances.}
+
+\item{moderated}{For \code{updateF}, a boolean. Toggles
+whether to calculate a moderated F-statistic.}
 }
 \description{
 Welcome to the \code{propd} method!
