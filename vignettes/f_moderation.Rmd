@@ -1,0 +1,110 @@
+---
+title: "Moderating Differential Proportionality"
+author: "Thomas Quinn & Ionas Erb"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{6. Moderating Differential Proportionality}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+This vignette reviews the $\theta$ types and their variant definitions. It also discusses how to calculate an $F$-statistic from $\theta_d$. In presenting this, we provide details on how to moderate the $F$-statistic using `voom` from the `limma` package. To keep this vignette tractable yet reproducible, we use a subset of the `iris` data set as an example.
+
+```{r}
+library(propr)
+data(iris)
+keep <- iris$Species %in% c("setosa", "versicolor")
+counts <- iris[keep, 1:4] * 10
+group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
+```
+
+## The three types of theta
+
+In the companion vignette, "Calculating Differential Proportionality", we introduce three types of differential proportionality: $\theta_d$, $\theta_e$, and $\theta_f$. Each of these are defined as a fraction of the within-group log-ratio variances (i.e., VLR) for two features compared with the total VLR. Although at least three types of $\theta$ exist, we focus here on $\theta_d$. Given two groups, sized $k$ and $n - k$, we define $\theta_d$, a measure of *disjointed proportionality*, as the pooled (weighted) VLR within the two groups divided by the total VLR:
+
+$$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(k-1)\textrm{VLR}_1 + (n-k-1)\textrm{VLR}_2}{(n-1)\textrm{VLR}}$$
+
+## The four variant states of theta
+
+Recall from the companion vignette that we can approximate VLR using a power transformation based on a parameter $\alpha$ that is usually close to zero. There, we suggested that we could calculate any $\theta$ using the $\alpha$-transformed VLR (i.e., $\textrm{aVLR}$) in place of the VLR. Hence, we realize the first variant state of $\theta_d$:
+
+$$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(k-1)\textrm{aVLR}_1 + (n-k-1)\textrm{aVLR}_2}{(n-1)\textrm{aVLR}}$$
+
+Meanwhile, the third and fourth variant states of $\theta$ make use of precision weights as estimated by the `voom` function of the `limma` package. The nature of sequencing count data makes it such highly abundant genes have more variance than lowly abundant genes. However, this trend gets reversed with log-transformation: highly abundant genes come to have less variance after transformation. Therefore, it follows that we would systematically see less variance around log-ratio pairs involving highly abundant genes. We can thus use precision weights to correct this, placing all VLR measurements on the same scale.
+
+The particulars of `voom` are established elsewhere, but we mention here that it returns a matrix, $V$, of the per-feature weights for each sample. From this, we can calculate the weights of a feature ratio, $\mathbf{V^{\textrm{X},\textrm{Y}}}$, as the element-wise product of the per-feature weights (i.e., $\mathbf{V^{\textrm{X},\textrm{Y}}} = \mathbf{V}^\textrm{X} * \mathbf{V}^\textrm{Y}$). Analogous to other formulations of $\theta$, this uses the weighted variance of the log-ratios (i.e., $\textrm{wVLR}$) in place of the VLR. In addition, we use here the modifier $\Omega=\sum \mathbf{w} - \frac{\sum \mathbf{w}^2}{\sum \mathbf{w}}$ in place of the sample sizes, where $\mathbf{w} = \mathbf{V^{\textrm{X},\textrm{Y}}}$:
+
+$$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(\Omega_1)\textrm{wVLR}_1 + (\Omega_2)\textrm{wVLR}_2}{(\Omega)\textrm{wVLR}}$$
+
+Likewise, we can calculate $\theta$ using both precision weights and the $\alpha$ transformation together. This requires a weighted and $\alpha$-transformed approximation of the VLR (i.e., $\textrm{waVLR}$) to use in conjunction with the $\Omega$ modifier from above:
+
+$$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(\Omega_1)\textrm{waVLR}_1 + (\Omega_2)\textrm{waVLR}_2}{(\Omega)\textrm{waVLR}}$$
+
+When using the `propd` function, it is simple to calculate any variant state of $\theta$ To use the $\alpha$-transformation, set the `alpha` argument to any positive number. To use precision weights, set the `weighted` argument to `TRUE`. Note that changing either of these arguments affects all $\theta$ calculations, not just $\theta_d$. The user can access the intermediate precision weights via the `@weights` slot.
+
+```{r, message = FALSE}
+pd.nn <- propd(counts, group, weighted = FALSE)
+pd.wn <- propd(counts, group, weighted = TRUE)
+pd.na <- propd(counts, group, weighted = FALSE, alpha = .01)
+pd.wa <- propd(counts, group, weighted = TRUE, alpha = .01)
+```
+
+We refer the reader to Erb et al. 2017 for an elaboration of the four variant states of $\theta$.
+
+## Why so many options?
+
+Each $\theta$ type serves a different research purpose. The $\theta_d$ measure tends to identify pairs with a large difference in their log-ratio means. The $\theta_e$ measure tends to identify pairs with a large difference in their VLR. Like $\theta_d$, $\theta_f$ tends to identify pairs with a large difference in their log-ratio means, but these pairs also tend to have small differences in their VLR.
+
+Each $\theta$ can exist in any of the four variant states. In some contexts, the use of a variant can augment an analysis. For example, the $\alpha$ transformation provides a way of computing VLR in the presence of zeros (although missing data may still require prior imputing). Meanwhile, precision weights provide a way of using information about the distribution of the feature counts to adjust VLR estimates, shrinking the VLR for pairs with lowly abundant features.
+
+## Calculating the F-statistic
+
+In the companion vignette, we show how it is possible to use the `updateCutoffs` function to calculate a false discovery rate (FDR) using permutations of the group assignments to generate an empiric null distribution of $\theta$ values. This method works for all $\theta$ types and variant states.
+
+```{r, message = FALSE}
+pd.nn <- propd(counts, group, weighted = FALSE)
+pd.wn <- propd(counts, group, weighted = TRUE)
+pd.na <- propd(counts, group, weighted = FALSE, alpha = .01)
+pd.wa <- propd(counts, group, weighted = TRUE, alpha = .01)
+```
+
+However, analysts may find it desirable or necessary to calculate a $p$-value exactly. For this, we provide a relationship between $\theta_d$ and the $F$-statistic:
+
+$$F = (n-2)\frac{1-\theta_d}{\theta_d}$$
+
+This relationship holds true regardless of whether precision weights or a power transformation is used. The `updateF` function calculates the $F$-statistic from $\theta_d$, appending an "Fstat" column to the `@theta` slot.
+
+```{r, message = FALSE, eval = FALSE}
+pd.nn <- updateF(pd.nn, moderated = FALSE)
+pd.nn@theta$Fstat
+```
+
+## Moderating the F-statistic
+
+Borrowing again from the `limma` package, we offer a way to calculate a moderated $F$-statistic for differential proportionality analysis. The principle behind moderation states that it is possible to "borrow information between genes" (i.e., via a Bayesian hierarchical model) to improve the power of statistical hypothesis testing in the setting of small sample sizes (Smyth 2004). This technique was first for developed for measuring the differential expression (DE) of (normally distributed) microarray data, but was subsequently extended to RNA-Seq count data through the use of precision weights (Law 2014). Precision weights, like those described above, can model mean-variance trends in count data to facilitate the analysis of counts as if they were normally distributed (Law 2014).
+
+To calculate a moderated $F$-statistic from $\theta_d$, we fit the data to an empirical Bayes model (via `limma::eBayes`) with underlying mean-variance modeling (via `limma::voom`). Conventionally, for per-gene (i.e., DE) analysis (and also for VLR weighting), moderation and modeling is done for individual genes. However, for per-ratio (i.e., $\theta_d$) analysis, moderation and modeling is done for gene ratios. To do this, we must select an arbitrary reference, $z$, for which to define a hierarchical model (effectively calculating `limma::voom` on log-ratio transformed data, re-scaled as pseudo-counts). As a consequence, the moderation of the $F$-statistic depends on the chosen reference (although the unmoderated $F$-statistic does not).
+
+In analogy to the clr, we call $g(\mathbf{x_i})$ the geometric mean of the i-th composition (i.e., sample vector). Thus, for $N$ samples, the grand mean of all geometric means is $\Gamma := \frac{\sum_i^N g(\mathbf{x_i})}{N}$. We can now turn the i-th scaled composition (i.e., $\frac{\mathbf{x_i}}{g(\mathbf{x_i})}$) into pseudo-counts using $\Gamma * \frac{\mathbf{x_i}}{g(\mathbf{x_i})}$. It is a matrix of these pseudo-counts that we use for empirical Bayes moderation with underlying mean-variance modeling.
+
+The `updateF` function calculates the moderated $F$-statistic if the argument `moderated` equals `TRUE`. Meanwhile, the `ivar` argument defines the arbitrary feature set to use as the reference. By default, the `updateF` function uses the geometric mean of all features as the reference (analogous to the clr transformation), although the user may specify any reference as described in `?updateF`. This function appends an "Fstat" and "theta_mod" column to the `@theta` slot. Note that while per-ratio modeling is used to moderate the $F$-statistic, per-gene modeling is still used to calculate a weighted VLR. Although `limma::voom` is used in both scenarios, it remains possible to moderate the $F$-statistic without weighting VLR (and *vice versa*).
+
+```{r, message = FALSE, eval = FALSE}
+pd.nn <- updateF(pd.nn, moderated = TRUE, ivar = "clr")
+pd.wn <- updateF(pd.wn, moderated = TRUE, ivar = "clr")
+pd.na <- updateF(pd.na, moderated = TRUE, ivar = "clr")
+pd.wa <- updateF(pd.wa, moderated = TRUE, ivar = "clr")
+```
+
+We refer the reader to Erb et al. 2017 for an elaboration of $F$-statistic moderation.
+
+## References
+
+1. Erb, Ionas, Thomas Quinn, David Lovell, and Cedric Notredame. “Differential Proportionality - A Normalization-Free Approach To Differential Gene Expression.” bioRxiv, May 5, 2017, 134536. http://dx.doi.org/10.1101/134536.
+
+2. Law, Charity W., Yunshun Chen, Wei Shi, and Gordon K. Smyth. “Voom: Precision Weights Unlock Linear Model Analysis Tools for RNA-Seq Read Counts.” Genome Biology 15 (January 3, 2014): R29. https://doi.org/10.1186/gb-2014-15-2-r29.
+
+3. Smyth, Gordon K. “Linear Models and Empirical Bayes Methods for Assessing Differential Expression in Microarray Experiments.” Statistical Applications in Genetics and Molecular Biology 3 (2004): Article3. https://doi.org/10.2202/1544-6115.1027.

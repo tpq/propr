@@ -1,3 +1,9 @@
+## propr 3.1.1
+---------------------
+* New vignette to discuss F-statistics
+* Modified `propd` methods
+    * Add `suppressWarnings` to `compositions::acomp` call
+
 ## propr 3.1.0
 ---------------------
 * Modified `propd` methods
