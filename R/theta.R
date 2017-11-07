@@ -196,13 +196,12 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     z.geo <- rowMeans(z.set)
     if(any(z.geo == 0)) stop("Zeros present in reference set.")
     z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
-    z.cr <- exp(z.lr)
     z <- exp(z.geo)
 
     # Fit limma-voom to reference-based data
     message("Alert: Calculating weights with regard to reference.")
     packageCheck("limma")
-    z.sr <- t(z.cr * mean(z)) # scale counts by mean of reference
+    z.sr <- t(exp(z.lr) * mean(z)) # scale counts by mean of reference
     design <- matrix(0, nrow = nrow(propd@counts), ncol = 2)
     design[propd@group == unique(propd@group)[1], 1] <- 1
     design[propd@group == unique(propd@group)[2], 2] <- 1
