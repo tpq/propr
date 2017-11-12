@@ -48,14 +48,14 @@ setMethod("plot", signature(x = "propd", y = "missing"),
               g <- migraph.color(g, partners[x$lrm1 > x$lrm2], pairs[x$lrm1 > x$lrm2], "coral1") # red
               g <- migraph.color(g, partners[x$lrm1 < x$lrm2], pairs[x$lrm1 < x$lrm2], "lightseagreen") # blue
               message("Red: Pair has higher LRM in group ", group[1], " than in group ", group[2])
-              message("Blue: Pair has lower LRM in group ", group[1], " than in group ", group[2])
+              message("Blue: Pair has higher LRM in group ", group[2], " than in group ", group[1])
 
             }else if(type == "theta_e"){
 
               g <- migraph.color(g, partners[x$lrv1 < x$lrv2], pairs[x$lrv1 < x$lrv2], "coral1") # red
               g <- migraph.color(g, partners[x$lrv1 > x$lrv2], pairs[x$lrv1 > x$lrv2], "lightseagreen") # blue
-              message("Red: Pair has nearly absent LRV in group ", group[1], " than in group ", group[2])
-              message("Blue: Pair has nearly total LRV in group ", group[1], " than in group ", group[2])
+              message("Red: Nearly all of total LRV explained by ", group[2])
+              message("Blue: Nearly all of total LRV explained by ", group[1])
 
             }else{
 
