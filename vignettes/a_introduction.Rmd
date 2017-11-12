@@ -39,7 +39,7 @@ The measures $\phi$ and $\rho$ differ in three ways. First, the values of $\phi$
 
 Let us begin by building an arbitrary dataset of 4 features (e.g., genes) measured across 100 subjects. In this example, the feature pairs "a" and "b" will show proportional change as will the feature pairs "c" and "d".
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 set.seed(12345)
 N <- 100
 X <- data.frame(a=(1:N), b=(1:N) * rnorm(N, 10, 0.1),
@@ -53,7 +53,7 @@ Let $D$ represent any number of features measured across $N$ observations expose
 * `@matrix` A matrix. Stores the proportionality metrics.
 * `@pairs` A vector. Indexes proportionality of interest.
 
-```{r, dpi = 72, results = "hide"}
+```{r, dpi = 66, results = "hide"}
 library(propr)
 phi <- phit(X, symmetrize = TRUE)
 rho <- perb(X, ivar = 0)
@@ -68,7 +68,7 @@ We have provided methods for indexing and subsetting objects belonging to the `p
 
 In this first example, we use `[` to index the matrix by $\rho > .95$. This indexes the location of all values satisfying that inequality (i.e., in the lower left triangle of the matrix), and saves those indices to the `@pairs` slot. Indexing helps guide some of the bundled visualization methods in lieu of copy-on-modify subsetting. Note that indexing an already indexed object appends the new index to the previous index (via a union merge).
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 rho99 <- rho[">", .95]
 rho99@pairs
 ```
@@ -77,14 +77,14 @@ Alternatively, using the `subset` method, we can subset an *entire* `propr` obje
 
 In this second example, we subset by the feature names "a" and "b".
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 rhoab <- subset(rho, select = c("a", "b"))
 rhoab@matrix
 ```
 
 The convenience function, `simplify`, can subset an *entire* `propr` object based on the index saved in its `@pairs` slot. This function converts the saved index into a paired list of coordinates and passes them along to the `subset` method. As such, this method does copy-on-modify the proportionality matrix, making it potentially unsuitable for large datasets. Unlike `subset`, `simplify` returns an object with the `@pairs` slot updated. Most users will find `simplify` preferable to `subset.`
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 simplify(rho99)
 ```
 
@@ -92,7 +92,7 @@ simplify(rho99)
 
 Each feature belonging to a highly proportional data pair should have about the same log-ratio transformed abundance across all subjects. The method `plot` (or, equivalently, `smear`) provides a means by which to visually inspect whether this holds true. Since this function will plot all pairs unless indexed with the `[` method, we recommend the user first index or subset the `propr` object before plotting. A "noisy" relationship between some feature pairs could suggest that the proportionality cutoff is too lenient. We include this plot as a handy "sanity check" when working with high-dimensional datasets.
 
-```{r, dpi = 72, results = "hide", fig.show = "hold", fig.keep = "last"}
+```{r, dpi = 66, results = "hide", fig.show = "hold", fig.keep = "last"}
 plot(rho99)
 ```
 

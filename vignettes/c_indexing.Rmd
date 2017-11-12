@@ -23,7 +23,7 @@ Below, we re-examine the dataset discussed by Lovell et al. (Lovell 2015) (as pu
 
 Starting with propr version 2.2.0, the absolute abundances are available within the package itself for testing and exploration. The object, "marg.abs" corresponds to the object "Abs.t" as used in the supplementary materials of Lovell et al. (Lovell 2015). Note that we can make the absolute data relative by dividing each composition (i.e., time point) by the total sum of that composition. This constrains measurements to a proportion of the total, hence making them compositional.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 library(propr)
 data(marg.abs)
 marg.rel <- t(apply(marg.abs, 1, function(x) x / sum(x)))
@@ -33,26 +33,26 @@ We now have two datasets: the first contains the absolute abundances of each tra
 
 This dataset provides us with the opportunity to contrast the analysis of relative data with the analysis of the absolute counter-part. The importance of this evaluation comes from the reality that it is not always feasible to acquire data in absolute form. Note, however, that having access to absolute abundances usually makes the analysis of relative data superfluous. Below, we calculate Pearson's correlation coefficient for all pairs using both datasets.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 Abs.cor <- stats::cor(marg.abs, use = "pairwise.complete.obs")
 Rel.cor <- stats::cor(marg.rel, use = "pairwise.complete.obs")
 ```
 
 Next, we plot a histogram of the absolute correlation coefficients. Interestingly, we see that this dataset contains a lot of truly (i.e., absolutely) positively correlated transcripts.
 
-```{r, dpi = 72, fig.keep = "last"}
+```{r, dpi = 66, fig.keep = "last"}
 plot(hist(Abs.cor))
 ```
 
 Perhaps surprisingly, there are fewer correlations when looking at the relative data than the absolute data. We emphasize here that *spurious correlations* does not mean *more correlations*, but rather *wrong correlations*.
 
-```{r, dpi = 72, fig.keep = "last"}
+```{r, dpi = 66, fig.keep = "last"}
 plot(hist(Rel.cor))
 ```
 
 We will not discuss the distribution of these correlations further; rather, we focus now on the agreement between them. For this, we plot the *relative correlations* against the *absolute correlations*. Since correlation matrices have symmetry, we only need to consider one half (e.g., the lower left triangle) of the square matrix. We use the function `propr:::lltRcpp` to pull out this lower left triangle. We sample 5,000 pairs to render the figure quickly.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 llt <- propr:::lltRcpp
 x <- sample(1:length(llt(Abs.cor)), 5000)
 plot(llt(Abs.cor)[x], llt(Rel.cor)[x],
@@ -63,14 +63,14 @@ In this figure we see that the relative correlations do not correlate with the a
 
 When studying a relative dataset, we usually want to know about the true relationships in the corresponding (but unattainable) absolute dataset. In this context, it is maybe helpful to think about relative correlation as a potential proxy for the presence of absolute correlation. As such, we can measure the diagnostic performance of relative correlation as a predictor of absolute correlation. One way to do this is by calculating precision and recall at a number of cutoff values. This results in a contingency table of the agreement between relative and absolute correlation coefficients greater than the cutoff. As an example, we use a cutoff of 0.95 below.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 table("Observed" = llt(Rel.cor) > .95,
       "Actual" = llt(Abs.cor) > .95)
 ```
 
 Here, we define functions for calculating precision and recall from a contingency table like the one above. Note that because each contingency table is specific to the dataset, the precision and recall of relative correlation depends on the dataset too.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 calculatePrecision <- function(observed, actual){
   conf <- table("Observed" = observed, "Actual" = actual)
   precision <- conf["TRUE", "TRUE"] / (conf["TRUE", "FALSE"] + conf["TRUE", "TRUE"])
@@ -84,7 +84,7 @@ calculateRecall <- function(observed, actual){
 
 We can now calculate the precision and recall of relative correlation across a range of cutoff values. From this, we see that relative correlation is neither a precise nor sensitive indicator of absolute correlation. The preponderance of falsely positive correlations here are known as spurious correlations. The poor agreement between relative correlation and absolute correlation leads us to conclude that correlation is invalid for relative data.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 result <- NULL
 for(cutoff in c(0, .5, .8, .9, .95, .98)){
   p <- calculatePrecision(llt(Rel.cor) > cutoff, llt(Abs.cor) > cutoff)
@@ -100,21 +100,21 @@ Proportionality coefficients, as introduced by Lovell et al. (Lovell 2015) and e
 
 First, we use the `perb` function from the `propr` package to calculate $\rho$ for all feature pairs. We retrieve the proportionality matrix itself from the `@matrix` slot of the resultant object.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 library(propr)
 rho.clr <- perb(marg.abs)@matrix
 ```
 
 We can now plot the agreement between $\rho$ and absolute correlation. On inspection, we see immediately that this scatter plot is tapered in such a way that the absolute correlation coefficient is almost always larger than the proportionality coefficient. Since $\rho$ rarely exceeds the absolute correlation coefficient, $\rho$ is rarely falsely positive (i.e., spurious). Moreover, when it is falsely positive, it only inflates the absolute correlation coefficient marginally (unlike relative correlation).
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 plot(llt(Abs.cor)[x], llt(rho.clr)[x],
      xlab = "Abs", ylab = "rho (clr)", ylim = c(-1,1), xlim = c(-1,1))
 ```
 
 We can now calculate the precision and recall of proportionality across a range of cutoff values. From this, we can see that $\rho$ is a highly precise, albeit not very sensitive, indicator of absolute correlation.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 result <- NULL
 for(cutoff in c(0, .5, .8, .9, .95, .98)){
   p <- calculatePrecision(llt(rho.clr) > cutoff, llt(Abs.cor) > cutoff)
@@ -130,7 +130,7 @@ Ideally, this reference is an *unchanged reference*: a feature that has fixed ab
 
 We support this claim by re-calculating $\rho$ using a different log-ratio transformation. When using the `perb` function, the 'ivar' argument allows us to define a custom reference set to use during the geometric mean calculation. Here, we use the 5 most invariant features (i.e., in absolute space) for the custom reference set. This should provide a reasonable approximation of an idealized unchanged reference. Since we know the absolute abundances, we can determine the invariant features easily. Note that this a contrived example; we most often do not have the absolute abundances when analyzing relative data, or else we would analyze the absolute data directly!
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 i <- order(apply(marg.abs, 2, var))[1:5]
 rho.alr <- perb(marg.abs, ivar = i)@matrix
 plot(llt(Abs.cor)[x], llt(rho.alr)[x],
@@ -139,7 +139,7 @@ plot(llt(Abs.cor)[x], llt(rho.alr)[x],
 
 We can now plot the agreement between the reference-based $\rho$ and absolute correlation. Here, we see that using the this invariant reference set improves the agreement between $\rho$ and absolute correlation. This translates to higher recall (and precision too). Importantly, precision remains high regardless of the log-ratio transformation used. The stable precision is what makes proportionality an ideal alternative to correlation in the setting of relative data.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 result <- NULL
 for(cutoff in c(0, .5, .8, .9, .95, .98)){
   p <- calculatePrecision(llt(rho.alr) > cutoff, llt(Abs.cor) > cutoff)
@@ -161,7 +161,7 @@ $$\sigma_z = \frac{1}{\sqrt{N - 3}}$$
 
 Since we have established that proportionality is a highly precise (albeit, non-sensitive) indicator of absolute correlation, we could simply choose a statistically sound cutoff for $r$ to stand in place as our proportionalilty cutoff. In other words, we threshold $\rho$ based on a value of $r$ that corresponds to a statistically significant correlation (i.e., for a given sample size and p-value). To do this, we must first determine a cutoff for the transformed value $z'$ based on its the standard deviation. Here, we assume a sample size of 20.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 N <- 20
 sd <- 1/sqrt(N - 3)
 ```
@@ -172,14 +172,14 @@ $$z_{\alpha=.05} = \frac{z_{cutoff}}{\sigma_z}$$
 
 Below, we use R to find $z_{\alpha=.05}$ based on a one-tailed test (justified in that we only consider positive correlations here). We then use this value to find the $z'$ cutoff.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 z05 <- qnorm(.05, lower.tail = FALSE)
 z_cutoff <- sd * z05
 ```
 
 Now, because $z'$ relates to $r$ by the hyperbolic arctangent function, we compute the hyperbolic tangent of $z_{cutoff}$ to find $r_{cutoff}'$.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 r_cutoff <- tanh(z_cutoff)
 ```
 
@@ -191,7 +191,7 @@ For high-dimensional datasets, we often measure pairwise proportionality between
 
 As an example, we find the $r_{cutoff}$ for which any correlation coefficient greater would indicate Bonferroni-adjusted significance. As above, we extrapolate this to mean that any $\rho > r_{cutoff}$ would imply (with a high positive predictive value) the presence of a statistically significant *absolute* correlation coefficient.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 D <- 1000
 z_cutoff <- 1 / sqrt(N - 3) * qnorm(.05 / (D * (D - 1)), lower.tail = FALSE)
 r_cutoff <- tanh(z_cutoff)
@@ -200,7 +200,7 @@ r_cutoff
 
 To visualize how $r_{cutoff}$ relates to the sample size, $N$, and total number of features, $D$, we build a contour map. This will tell us the correlation coefficient (and, by proxy, the proportionality coefficient) needed to reach Bonferroni-adjusted significance.
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 result <- NULL
 for(D in unique(round(2^seq(1, 16, .05)))){
   for(N in unique(4*seq(1, 32))){
@@ -213,7 +213,7 @@ for(D in unique(round(2^seq(1, 16, .05)))){
 knitr::kable(head(result))
 ```
 
-```{r, dpi = 72}
+```{r, dpi = 66}
 library(ggplot2)
 library(directlabels)
 g <- ggplot(result, aes(x = D, y = N)) + stat_contour(binwidth = .05,
