@@ -401,8 +401,8 @@ decomposed <- function(object, cutoff = 1000, prompt = TRUE){
   decomp[, 3] <- df$p1 * df$p2 * (df$LRM2 - df$LRM1)^2 / (df$p^2 * df$LRV)
 
   x <- suppressWarnings(compositions::acomp(decomp))
-  plot(x, pch = 20, col = grDevices::rgb(0.1, 0.1, 0.1, 0.1),
-       labels = c("group 1  ", "  group 2", "between-group"), axes = TRUE)
-
-  return(TRUE)
+  suppressWarnings(
+    plot(x, pch = 20, col = grDevices::rgb(0.1, 0.1, 0.1, 0.1),
+         labels = c("group 1  ", "  group 2", "between-group"), axes = TRUE)
+  )
 }

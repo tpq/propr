@@ -1,3 +1,8 @@
+## propr 3.1.2
+---------------------
+* Modified `propd` methods
+    * Add `suppressWarnings` to `compositions::plot` call
+
 ## propr 3.1.1
 ---------------------
 * New vignette to discuss F-statistics
