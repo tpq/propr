@@ -35,6 +35,23 @@ citEntry(entry = "Article",
 )
 
 citEntry(entry = "Article",
+         title        = paste("Understanding sequencing data as compositions:",
+                              "an outlook and review"),
+         author       = personList(as.person("Thomas Quinn"),
+                                   as.person("Ionas Erb"),
+                                   as.person("Mark F. Richardson"),
+                                   as.person("Tamsyn Crowley")),
+         journal      = "bioRxiv",
+         year         = "2017",
+
+         textVersion  =
+           paste("Quinn T, Erb I, Richardson MF, Crowley T (2017)",
+                 "Understanding sequencing data as compositions:",
+                 "an outlook and review.",
+                 "bioRxiv: doi:10.1101/206425")
+)
+
+citEntry(entry = "Article",
          title        = "Proportionality: A Valid Alternative to Correlation for Relative Data",
          author       = personList(as.person("David Lovell"),
                                    as.person("Vera Pawlowsky-Glahn"),

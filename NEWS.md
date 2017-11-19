@@ -1,5 +1,7 @@
 ## propr 3.1.2
 ---------------------
+* Rename "Calculating Differential Proportionality" vignette
+* Update CITATION with literature review
 * Modified `propd` methods
     * Add `suppressWarnings` to `compositions::plot` call
 

@@ -1,10 +1,10 @@
 ---
-title: "Calculating Differential Proportionality"
+title: "An Introduction to Differential Proportionality"
 author: "Thomas Quinn & Ionas Erb"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{5. Calculating Differential Proportionality}
+  %\VignetteIndexEntry{5. An Introduction to Differential Proportionality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
