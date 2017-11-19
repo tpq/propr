@@ -24,7 +24,7 @@ library(propr)
 
 ## Further reading
 
-To learn more about proportionality, we refer the reader to the relevant literature.
+To learn more about proportionality, please see the vignettes and other relevant literature.
 
 ```{r}
 citation("propr")
