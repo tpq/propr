@@ -169,9 +169,6 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
 
     return(plotly::ggplotly(g))
 
-  }else{
-
-    plot(g)
   }
 
   return(g)
@@ -526,7 +523,6 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
     g <- g + ggplot2::geom_text(
       ggplot2::aes_string(x = "PC1", y = "PC2", label = "ID", colour = "Group"),
       data = df, size = 3, vjust = -1)
-    plot(g)
   }
 
   return(g)
