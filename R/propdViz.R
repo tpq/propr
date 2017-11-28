@@ -76,9 +76,6 @@ setMethod("plot", signature(x = "propd", y = "missing"),
               coords <- igraph::layout_with_fr(g, dim = 3)
               suppressWarnings(igraph::rglplot(g, layout = coords))
 
-            }else{
-
-              plot(g)
             }
 
             return(g)
@@ -232,9 +229,6 @@ geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     packageCheck("plotly")
     return(plotly::ggplotly(g))
 
-  }else{
-
-    plot(g)
   }
 
   return(g)
@@ -275,9 +269,6 @@ bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     packageCheck("plotly")
     return(plotly::ggplotly(g))
 
-  }else{
-
-    plot(g)
   }
 
   return(g)
@@ -315,9 +306,6 @@ gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     packageCheck("plotly")
     return(plotly::ggplotly(g))
 
-  }else{
-
-    plot(g)
   }
 
   return(g)
@@ -379,9 +367,6 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
     packageCheck("plotly")
     return(plotly::ggplotly(g))
 
-  }else{
-
-    plot(g)
   }
 
   return(g)
