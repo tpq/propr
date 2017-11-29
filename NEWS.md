@@ -4,6 +4,7 @@
 * Update CITATION with literature review
 * Modified `propd` methods
     * Stop plot functions from creating surplus figure in notebook
+    * Use theta_d network method for any non-emergent theta type
     * Add `suppressWarnings` to `compositions::plot` call
 
 ## propr 3.1.1

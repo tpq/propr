@@ -43,14 +43,7 @@ setMethod("plot", signature(x = "propd", y = "missing"),
               }
             }
 
-            if(type == "theta_d" | type == "theta_f"){
-
-              g <- migraph.color(g, partners[x$lrm1 > x$lrm2], pairs[x$lrm1 > x$lrm2], "coral1") # red
-              g <- migraph.color(g, partners[x$lrm1 < x$lrm2], pairs[x$lrm1 < x$lrm2], "lightseagreen") # blue
-              message("Red: Pair has higher LRM in group ", group[1], " than in group ", group[2])
-              message("Blue: Pair has higher LRM in group ", group[2], " than in group ", group[1])
-
-            }else if(type == "theta_e"){
+            if(type == "theta_e" | type == "theta_h"){
 
               g <- migraph.color(g, partners[x$lrv1 < x$lrv2], pairs[x$lrv1 < x$lrv2], "coral1") # red
               g <- migraph.color(g, partners[x$lrv1 > x$lrv2], pairs[x$lrv1 > x$lrv2], "lightseagreen") # blue
@@ -59,7 +52,10 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 
             }else{
 
-              stop("Provided theta type not supported.")
+              g <- migraph.color(g, partners[x$lrm1 > x$lrm2], pairs[x$lrm1 > x$lrm2], "coral1") # red
+              g <- migraph.color(g, partners[x$lrm1 < x$lrm2], pairs[x$lrm1 < x$lrm2], "lightseagreen") # blue
+              message("Red: Pair has higher LRM in group ", group[1], " than in group ", group[2])
+              message("Blue: Pair has higher LRM in group ", group[2], " than in group ", group[1])
             }
 
             # Optional coloring of nodes
