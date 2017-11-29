@@ -3,6 +3,7 @@
 * Rename "Calculating Differential Proportionality" vignette
 * Update CITATION with literature review
 * Modified `propd` methods
+    * Stop plot functions from creating surplus figure in notebook
     * Add `suppressWarnings` to `compositions::plot` call
 
 ## propr 3.1.1
