@@ -382,7 +382,10 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
 
   }else{
 
-    if(!missing(k)) return(clust)
+    if(!missing(k)){
+      plot(g)
+      return(clust)
+    }
   }
 
   return(g)
@@ -430,7 +433,10 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   }else{
 
-    if(!missing(k)) return(clust)
+    if(!missing(k)){
+      plot(g)
+      return(clust)
+    }
   }
 
   return(g)
@@ -477,7 +483,10 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   }else{
 
-    if(!missing(k)) return(clust)
+    if(!missing(k)){
+      plot(g)
+      return(clust)
+    }
   }
 
   return(g)
