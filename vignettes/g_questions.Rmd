@@ -35,7 +35,7 @@ x <- ALDEx2::aldex.clr(counts, caneToad.groups, denom = "iqlr")
 rho <- propr::aldex2propr(x, how = "rho")
 ```
 
-Note that this will average $\rho$ (or $\phi$ or $\phi_s$) across many MC instances which may or may not be desired. In theory, using MC instances should lessen the impact of zero or low counts on your final result. In practice, proportionality analysis will take a lot longer to run. We have not yet benchmarked whether `aldex2propr` is better or worse than `perb` alone, but find the iqlr transformation a very attractive option. Note, however, that you can also use the iqlr transformation without any MC instances:
+Note that this will average $\rho$ (or $\phi$ or $\phi_s$) across many MC instances which may or may not be desired. In theory, using MC instances should lessen the impact of zero or low counts on your final result. In practice, proportionality analysis will take a lot longer to run. Note, however, that you can also use the iqlr transformation without any MC instances:
 
 ```{r, eval = FALSE}
 rho <- perb(caneToad.counts, ivar = "iqlr")
