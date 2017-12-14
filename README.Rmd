@@ -16,6 +16,7 @@ The bioinformatic evaluation of gene co-expression often begins with correlation
 library(devtools)
 devtools::install_github("tpq/propr")
 library(propr)
+?propr
 ```
 
 ```{r, echo = FALSE}

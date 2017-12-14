@@ -1,7 +1,7 @@
 ## propr 3.1.2
 ---------------------
 * Rename "Calculating Differential Proportionality" vignette
-* Update CITATION with literature review
+* Update CITATION file and README
 * Modified `propd` methods
     * Stop plot functions from creating surplus figure in notebook
     * Use theta_d network method for any non-emergent theta type
