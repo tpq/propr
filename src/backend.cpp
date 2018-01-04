@@ -410,3 +410,23 @@ NumericMatrix half2mat(NumericVector X){
 
   return A;
 }
+
+// Function to recast matrix as feature ratios
+// [[Rcpp::export]]
+NumericMatrix ratiosRcpp(NumericMatrix & X){
+
+  int nfeats = X.ncol();
+  int nsamps = X.nrow();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericMatrix result(nsamps, llt);
+  int counter = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      result(_, counter) = X(_, i) / X(_, j);
+      counter += 1;
+    }
+  }
+
+  return result;
+}

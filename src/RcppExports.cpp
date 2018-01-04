@@ -192,6 +192,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ratiosRcpp
+NumericMatrix ratiosRcpp(NumericMatrix& X);
+RcppExport SEXP propr_ratiosRcpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(ratiosRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // count_if
 int count_if(LogicalVector x);
 RcppExport SEXP propr_count_if(SEXP xSEXP) {

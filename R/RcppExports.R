@@ -65,6 +65,10 @@ half2mat <- function(X) {
     .Call('propr_half2mat', PACKAGE = 'propr', X)
 }
 
+ratiosRcpp <- function(X) {
+    .Call('propr_ratiosRcpp', PACKAGE = 'propr', X)
+}
+
 count_if <- function(x) {
     .Call('propr_count_if', PACKAGE = 'propr', x)
 }

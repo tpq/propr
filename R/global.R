@@ -1,3 +1,24 @@
+#' Recast Matrix as Feature Ratios
+#'
+#' The \code{ratios} function recasts a matrix with N feature columns
+#'  as a new matrix with N * (N - 1) / 2 feature ratio columns.
+#'
+#' @param matrix A matrix. The data to recast.
+#' @return A matrix.
+#' @export
+ratios <- function(matrix){
+
+  lab <- labRcpp(ncol(matrix))
+  ratios <- matrix[, lab$Partner] / matrix[, lab$Pair]
+  if(!is.null(colnames(matrix))){
+    colnames(ratios) <-
+      paste0(colnames(matrix)[lab$Partner],
+             "/", colnames(matrix)[lab$Pair])
+  }
+
+  return(ratios)
+}
+
 #' \code{igraph} Helper Functions
 #'
 #' @param g An \code{igraph} object.

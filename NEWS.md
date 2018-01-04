@@ -1,3 +1,7 @@
+## propr 3.1.3
+---------------------
+* New `ratios` and `ratiosRcpp` functions recast matrix as feature ratios
+
 ## propr 3.1.2
 ---------------------
 * Rename "Calculating Differential Proportionality" vignette
