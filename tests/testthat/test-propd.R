@@ -67,10 +67,13 @@ test_that("active theta_f matches calculation using theta_e", {
   )
 })
 
-test_that("propd calculates valid LRM when using alpha", {
+if(requireNamespace("igraph", quietly = TRUE)){
 
-  expect_equal(
-    shale(propd(counts, group))$DiffLRM,
-    shale(propd(counts, group, alpha = 1))$DiffLRM
-  )
-})
+  test_that("propd calculates valid LRM when using alpha", {
+
+    expect_equal(
+      shale(propd(counts, group))$DiffLRM,
+      shale(propd(counts, group, alpha = 1))$DiffLRM
+    )
+  })
+}
