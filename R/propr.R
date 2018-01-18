@@ -156,6 +156,8 @@ phit <- function(counts, ivar = 0, select, symmetrize = TRUE){
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
   prop@matrix <- lr2phi(prop@logratio)
   if(symmetrize) symRcpp(prop@matrix)
+  colnames(prop@matrix) <- colnames(prop@logratio)
+  rownames(prop@matrix) <- colnames(prop@logratio)
   return(prop)
 }
 
@@ -165,6 +167,8 @@ perb <- function(counts, ivar = 0, select){
 
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
   prop@matrix <- lr2rho(prop@logratio)
+  colnames(prop@matrix) <- colnames(prop@logratio)
+  rownames(prop@matrix) <- colnames(prop@logratio)
   return(prop)
 }
 
@@ -174,6 +178,8 @@ phis <- function(counts, ivar = 0, select){
 
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
   prop@matrix <- lr2phs(prop@logratio)
+  colnames(prop@matrix) <- colnames(prop@logratio)
+  rownames(prop@matrix) <- colnames(prop@logratio)
   return(prop)
 }
 
@@ -183,5 +189,7 @@ corr <- function(counts, ivar = 0, select){
 
   prop <- new("propr", counts = counts, ivar = ivar, select = select)
   prop@matrix <- stats::cor(prop@logratio)
+  colnames(prop@matrix) <- colnames(prop@logratio)
+  rownames(prop@matrix) <- colnames(prop@logratio)
   return(prop)
 }

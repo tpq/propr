@@ -11,7 +11,7 @@ diag(rho) <- 0
 test_that("half-matrix correctly turned into matrix", {
 
   expect_equal(
-    rho,
-    propr:::half2mat(propr:::lltRcpp(rho))
+    rho[1:16],
+    propr:::half2mat(propr:::lltRcpp(rho))[1:16]
   )
 })
