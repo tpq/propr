@@ -42,29 +42,32 @@ test_that("new FDR matches old FDR", {
   )
 })
 
-test_that("alpha-transformed lrv matches pseudo-lrv from alphaTheta_old", {
+if(requireNamespace("limma", quietly = TRUE)){
 
-  expect_equal(
-    propr:::lrv(as.matrix(counts), as.matrix(counts), a = .1),
-    propr:::alphaTheta_old(counts, group, .1)$alrv
-  )
+  test_that("alpha-transformed lrv matches pseudo-lrv from alphaTheta_old", {
 
-  expect_equal(
-    propd(counts, group, weighted = FALSE, alpha = .1)@theta$theta,
-    propr:::alphaTheta_old(counts, group, .1)$atheta
-  )
+    expect_equal(
+      propr:::lrv(as.matrix(counts), as.matrix(counts), a = .1),
+      propr:::alphaTheta_old(counts, group, .1)$alrv
+    )
 
-  pd <- propd(counts, group, weighted = TRUE)
-  expect_equal(
-    propr:::lrv(as.matrix(counts), pd@weights, weighted = TRUE, a = .1),
-    propr:::alphaThetaW_old(counts, group, .1, pd@weights)$lrv
-  )
+    expect_equal(
+      propd(counts, group, weighted = FALSE, alpha = .1)@theta$theta,
+      propr:::alphaTheta_old(counts, group, .1)$atheta
+    )
 
-  expect_equal(
-    propd(counts, group, weighted = TRUE, alpha = .1)@theta$theta,
-    propr:::alphaThetaW_old(counts, group, .1, pd@weights)$theta
-  )
-})
+    pd <- propd(counts, group, weighted = TRUE)
+    expect_equal(
+      propr:::lrv(as.matrix(counts), pd@weights, weighted = TRUE, a = .1),
+      propr:::alphaThetaW_old(counts, group, .1, pd@weights)$lrv
+    )
+
+    expect_equal(
+      propd(counts, group, weighted = TRUE, alpha = .1)@theta$theta,
+      propr:::alphaThetaW_old(counts, group, .1, pd@weights)$theta
+    )
+  })
+}
 
 mat <- matrix(sample(0:10, replace = TRUE, size = 150), 10, 15)
 cts <- apply(mat, 2, function(x) sum(x == 0))

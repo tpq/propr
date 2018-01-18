@@ -47,6 +47,9 @@ When using the `propd` function, it is simple to calculate any variant state of 
 
 ```{r, message = FALSE}
 pd.nn <- propd(counts, group, weighted = FALSE)
+```
+
+```{r, message = FALSE, eval = FALSE}
 pd.wn <- propd(counts, group, weighted = TRUE)
 pd.na <- propd(counts, group, weighted = FALSE, alpha = .01)
 pd.wa <- propd(counts, group, weighted = TRUE, alpha = .01)
@@ -63,13 +66,6 @@ Each $\theta$ can exist in any of the four variant states. In some contexts, the
 ## Calculating the F-statistic
 
 In the companion vignette, we show how it is possible to use the `updateCutoffs` function to calculate a false discovery rate (FDR) using permutations of the group assignments to generate an empiric null distribution of $\theta$ values. This method works for all $\theta$ types and variant states.
-
-```{r, message = FALSE}
-pd.nn <- propd(counts, group, weighted = FALSE)
-pd.wn <- propd(counts, group, weighted = TRUE)
-pd.na <- propd(counts, group, weighted = FALSE, alpha = .01)
-pd.wa <- propd(counts, group, weighted = TRUE, alpha = .01)
-```
 
 However, analysts may find it desirable or necessary to calculate a $p$-value exactly. For this, we provide a relationship between $\theta_d$ and the $F$-statistic:
 
