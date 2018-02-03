@@ -144,20 +144,36 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- propd@permutes[, k]
-    pkt <-
-      calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha,
-                     lrv, only = propd@active,
-                     weighted = propd@weighted,
-                     weights = propd@weights)
 
-    # Find number of theta less than cutoff
-    for(cut in 1:nrow(FDR)){
+    if(propd@active == "theta_mod"){
+
+      # Calculate theta_mod with updateF (using i-th permuted propd)
+      if(is.na(propd@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+      propdi <- suppressMessages(
+        propd(propd@counts[shuffle, ], group = propd@group,
+              alpha = propd@alpha, weighted = propd@weighted))
+      propdi <- suppressMessages(
+        updateF(propdi, moderated = TRUE, ivar = propd@Fivar))
+      pkt <- propdi@theta$theta_mod
+
+    }else{
+
+      # Calculate all other thetas directly (using calculateTheta)
+      pkt <- calculateTheta(propd@counts[shuffle, ],
+                            propd@group, propd@alpha,
+                            lrv, only = propd@active,
+                            weighted = propd@weighted,
+                            weights = propd@weights)
+    }
+
+    # Find number of permuted theta less than cutoff
+    for(cut in 1:nrow(FDR)){ # randcounts as cumsum
       FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
     }
   }
 
   # Calculate FDR based on real and permuted tallys
-  FDR$randcounts <- FDR$randcounts / p
+  FDR$randcounts <- FDR$randcounts / p # randcounts as mean
   for(cut in 1:nrow(FDR)){
     FDR[cut, "truecounts"] <- sum(propd@theta$theta < FDR[cut, "cutoff"])
     FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
@@ -245,6 +261,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     mod <- 2 * z.s2 - z.pool[labs$Partner] - z.pool[labs$Pair]
 
     # Moderate F-statistic
+    propd@Fivar <- ivar # used by updateCutoffs
     mod <- mod / (propd@theta$lrv * propd@theta$theta * (1 + (n1 + n2)/z.df))
     Fprime <- (1 - propd@theta$theta) / (propd@theta$theta * (1 + mod))
     Fstat <- (n1 + n2 - 2) * Fprime
@@ -252,8 +269,16 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   }else{
 
+    propd@Fivar <- NA # used by updateCutoffs
     Fstat <- (n1 + n2 - 2) * (1 - propd@theta$theta) / propd@theta$theta
     theta_mod <- 0
+  }
+
+  # Check for out-of-bounds theta_mod
+  index <- theta_mod < 0 | theta_mod > 1
+  if(any(index)){
+    message("Alert: All out-of-bounds theta_mod replaced with 1.")
+    theta_mod[index] <- 1
   }
 
   propd@theta$theta_mod <- theta_mod
