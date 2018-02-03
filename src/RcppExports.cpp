@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // corRcpp
 NumericMatrix corRcpp(NumericMatrix& X);
-RcppExport SEXP propr_corRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_corRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,7 +18,7 @@ END_RCPP
 }
 // covRcpp
 NumericMatrix covRcpp(NumericMatrix& X, const int norm_type);
-RcppExport SEXP propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP) {
+RcppExport SEXP _propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // vlrRcpp
 NumericMatrix vlrRcpp(NumericMatrix& X);
-RcppExport SEXP propr_vlrRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_vlrRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -41,7 +41,7 @@ END_RCPP
 }
 // clrRcpp
 NumericMatrix clrRcpp(NumericMatrix& X);
-RcppExport SEXP propr_clrRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_clrRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,7 +52,7 @@ END_RCPP
 }
 // alrRcpp
 NumericMatrix alrRcpp(NumericMatrix& X, const int ivar);
-RcppExport SEXP propr_alrRcpp(SEXP XSEXP, SEXP ivarSEXP) {
+RcppExport SEXP _propr_alrRcpp(SEXP XSEXP, SEXP ivarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // symRcpp
 NumericMatrix symRcpp(NumericMatrix& X);
-RcppExport SEXP propr_symRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_symRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,7 @@ END_RCPP
 }
 // phiRcpp
 NumericMatrix phiRcpp(NumericMatrix X, const bool sym);
-RcppExport SEXP propr_phiRcpp(SEXP XSEXP, SEXP symSEXP) {
+RcppExport SEXP _propr_phiRcpp(SEXP XSEXP, SEXP symSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -87,7 +87,7 @@ END_RCPP
 }
 // rhoRcpp
 NumericMatrix rhoRcpp(NumericMatrix X, NumericMatrix lr, const int ivar);
-RcppExport SEXP propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP) {
+RcppExport SEXP _propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -100,7 +100,7 @@ END_RCPP
 }
 // indexPairs
 std::vector<int> indexPairs(NumericMatrix& X, const String op, const double ref);
-RcppExport SEXP propr_indexPairs(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP) {
+RcppExport SEXP _propr_indexPairs(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -113,7 +113,7 @@ END_RCPP
 }
 // indexToCoord
 List indexToCoord(IntegerVector V, const int N);
-RcppExport SEXP propr_indexToCoord(SEXP VSEXP, SEXP NSEXP) {
+RcppExport SEXP _propr_indexToCoord(SEXP VSEXP, SEXP NSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -125,7 +125,7 @@ END_RCPP
 }
 // coordToIndex
 IntegerVector coordToIndex(IntegerVector row, IntegerVector col, const int N);
-RcppExport SEXP propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP) {
+RcppExport SEXP _propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -138,7 +138,7 @@ END_RCPP
 }
 // linRcpp
 NumericMatrix linRcpp(NumericMatrix& rho, NumericMatrix lr);
-RcppExport SEXP propr_linRcpp(SEXP rhoSEXP, SEXP lrSEXP) {
+RcppExport SEXP _propr_linRcpp(SEXP rhoSEXP, SEXP lrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -150,7 +150,7 @@ END_RCPP
 }
 // lltRcpp
 NumericVector lltRcpp(NumericMatrix& X);
-RcppExport SEXP propr_lltRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_lltRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,7 +161,7 @@ END_RCPP
 }
 // urtRcpp
 NumericVector urtRcpp(NumericMatrix& X);
-RcppExport SEXP propr_urtRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_urtRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -172,7 +172,7 @@ END_RCPP
 }
 // labRcpp
 List labRcpp(int nfeats);
-RcppExport SEXP propr_labRcpp(SEXP nfeatsSEXP) {
+RcppExport SEXP _propr_labRcpp(SEXP nfeatsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -183,7 +183,7 @@ END_RCPP
 }
 // half2mat
 NumericMatrix half2mat(NumericVector X);
-RcppExport SEXP propr_half2mat(SEXP XSEXP) {
+RcppExport SEXP _propr_half2mat(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -194,7 +194,7 @@ END_RCPP
 }
 // ratiosRcpp
 NumericMatrix ratiosRcpp(NumericMatrix& X);
-RcppExport SEXP propr_ratiosRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_ratiosRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -205,7 +205,7 @@ END_RCPP
 }
 // count_if
 int count_if(LogicalVector x);
-RcppExport SEXP propr_count_if(SEXP xSEXP) {
+RcppExport SEXP _propr_count_if(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -216,7 +216,7 @@ END_RCPP
 }
 // pairmutate
 List pairmutate(NumericMatrix counts, LogicalVector group);
-RcppExport SEXP propr_pairmutate(SEXP countsSEXP, SEXP groupSEXP) {
+RcppExport SEXP _propr_pairmutate(SEXP countsSEXP, SEXP groupSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -228,7 +228,7 @@ END_RCPP
 }
 // lr2vlr
 NumericMatrix lr2vlr(NumericMatrix lr);
-RcppExport SEXP propr_lr2vlr(SEXP lrSEXP) {
+RcppExport SEXP _propr_lr2vlr(SEXP lrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -239,7 +239,7 @@ END_RCPP
 }
 // lr2phi
 NumericMatrix lr2phi(NumericMatrix lr);
-RcppExport SEXP propr_lr2phi(SEXP lrSEXP) {
+RcppExport SEXP _propr_lr2phi(SEXP lrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -250,7 +250,7 @@ END_RCPP
 }
 // lr2rho
 NumericMatrix lr2rho(NumericMatrix lr);
-RcppExport SEXP propr_lr2rho(SEXP lrSEXP) {
+RcppExport SEXP _propr_lr2rho(SEXP lrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -261,7 +261,7 @@ END_RCPP
 }
 // lr2phs
 NumericMatrix lr2phs(NumericMatrix lr);
-RcppExport SEXP propr_lr2phs(SEXP lrSEXP) {
+RcppExport SEXP _propr_lr2phs(SEXP lrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -272,7 +272,7 @@ END_RCPP
 }
 // ctzRcpp
 NumericVector ctzRcpp(NumericMatrix& X);
-RcppExport SEXP propr_ctzRcpp(SEXP XSEXP) {
+RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -283,7 +283,7 @@ END_RCPP
 }
 // wtmRcpp
 double wtmRcpp(NumericVector x, NumericVector w);
-RcppExport SEXP propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {
+RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -295,7 +295,7 @@ END_RCPP
 }
 // wtvRcpp
 double wtvRcpp(NumericVector x, NumericVector w);
-RcppExport SEXP propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP) {
+RcppExport SEXP _propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -307,7 +307,7 @@ END_RCPP
 }
 // lrm
 NumericVector lrm(NumericMatrix& X, NumericMatrix& W, bool weighted);
-RcppExport SEXP propr_lrm(SEXP XSEXP, SEXP WSEXP, SEXP weightedSEXP) {
+RcppExport SEXP _propr_lrm(SEXP XSEXP, SEXP WSEXP, SEXP weightedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -320,7 +320,7 @@ END_RCPP
 }
 // lrv
 NumericVector lrv(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a);
-RcppExport SEXP propr_lrv(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP) {
+RcppExport SEXP _propr_lrv(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -334,7 +334,7 @@ END_RCPP
 }
 // omega
 NumericVector omega(NumericMatrix& X, NumericMatrix& W);
-RcppExport SEXP propr_omega(SEXP XSEXP, SEXP WSEXP) {
+RcppExport SEXP _propr_omega(SEXP XSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -346,7 +346,7 @@ END_RCPP
 }
 // lrz
 NumericVector lrz(NumericMatrix& Y, NumericMatrix& W, NumericVector& Z, bool weighted, double a);
-RcppExport SEXP propr_lrz(SEXP YSEXP, SEXP WSEXP, SEXP ZSEXP, SEXP weightedSEXP, SEXP aSEXP) {
+RcppExport SEXP _propr_lrz(SEXP YSEXP, SEXP WSEXP, SEXP ZSEXP, SEXP weightedSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -358,4 +358,43 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(lrz(Y, W, Z, weighted, a));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_propr_corRcpp", (DL_FUNC) &_propr_corRcpp, 1},
+    {"_propr_covRcpp", (DL_FUNC) &_propr_covRcpp, 2},
+    {"_propr_vlrRcpp", (DL_FUNC) &_propr_vlrRcpp, 1},
+    {"_propr_clrRcpp", (DL_FUNC) &_propr_clrRcpp, 1},
+    {"_propr_alrRcpp", (DL_FUNC) &_propr_alrRcpp, 2},
+    {"_propr_symRcpp", (DL_FUNC) &_propr_symRcpp, 1},
+    {"_propr_phiRcpp", (DL_FUNC) &_propr_phiRcpp, 2},
+    {"_propr_rhoRcpp", (DL_FUNC) &_propr_rhoRcpp, 3},
+    {"_propr_indexPairs", (DL_FUNC) &_propr_indexPairs, 3},
+    {"_propr_indexToCoord", (DL_FUNC) &_propr_indexToCoord, 2},
+    {"_propr_coordToIndex", (DL_FUNC) &_propr_coordToIndex, 3},
+    {"_propr_linRcpp", (DL_FUNC) &_propr_linRcpp, 2},
+    {"_propr_lltRcpp", (DL_FUNC) &_propr_lltRcpp, 1},
+    {"_propr_urtRcpp", (DL_FUNC) &_propr_urtRcpp, 1},
+    {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
+    {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
+    {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
+    {"_propr_count_if", (DL_FUNC) &_propr_count_if, 1},
+    {"_propr_pairmutate", (DL_FUNC) &_propr_pairmutate, 2},
+    {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
+    {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
+    {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},
+    {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 1},
+    {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
+    {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 2},
+    {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 2},
+    {"_propr_lrm", (DL_FUNC) &_propr_lrm, 3},
+    {"_propr_lrv", (DL_FUNC) &_propr_lrv, 4},
+    {"_propr_omega", (DL_FUNC) &_propr_omega, 2},
+    {"_propr_lrz", (DL_FUNC) &_propr_lrz, 5},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_propr(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

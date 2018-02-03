@@ -2,122 +2,122 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 corRcpp <- function(X) {
-    .Call('propr_corRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_corRcpp`, X)
 }
 
 covRcpp <- function(X, norm_type = 0L) {
-    .Call('propr_covRcpp', PACKAGE = 'propr', X, norm_type)
+    .Call(`_propr_covRcpp`, X, norm_type)
 }
 
 vlrRcpp <- function(X) {
-    .Call('propr_vlrRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_vlrRcpp`, X)
 }
 
 clrRcpp <- function(X) {
-    .Call('propr_clrRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_clrRcpp`, X)
 }
 
 alrRcpp <- function(X, ivar = 0L) {
-    .Call('propr_alrRcpp', PACKAGE = 'propr', X, ivar)
+    .Call(`_propr_alrRcpp`, X, ivar)
 }
 
 symRcpp <- function(X) {
-    .Call('propr_symRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_symRcpp`, X)
 }
 
 phiRcpp <- function(X, sym = 1L) {
-    .Call('propr_phiRcpp', PACKAGE = 'propr', X, sym)
+    .Call(`_propr_phiRcpp`, X, sym)
 }
 
 rhoRcpp <- function(X, lr, ivar = 0L) {
-    .Call('propr_rhoRcpp', PACKAGE = 'propr', X, lr, ivar)
+    .Call(`_propr_rhoRcpp`, X, lr, ivar)
 }
 
 indexPairs <- function(X, op = "==", ref = 0) {
-    .Call('propr_indexPairs', PACKAGE = 'propr', X, op, ref)
+    .Call(`_propr_indexPairs`, X, op, ref)
 }
 
 indexToCoord <- function(V, N) {
-    .Call('propr_indexToCoord', PACKAGE = 'propr', V, N)
+    .Call(`_propr_indexToCoord`, V, N)
 }
 
 coordToIndex <- function(row, col, N) {
-    .Call('propr_coordToIndex', PACKAGE = 'propr', row, col, N)
+    .Call(`_propr_coordToIndex`, row, col, N)
 }
 
 linRcpp <- function(rho, lr) {
-    .Call('propr_linRcpp', PACKAGE = 'propr', rho, lr)
+    .Call(`_propr_linRcpp`, rho, lr)
 }
 
 lltRcpp <- function(X) {
-    .Call('propr_lltRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_lltRcpp`, X)
 }
 
 urtRcpp <- function(X) {
-    .Call('propr_urtRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_urtRcpp`, X)
 }
 
 labRcpp <- function(nfeats) {
-    .Call('propr_labRcpp', PACKAGE = 'propr', nfeats)
+    .Call(`_propr_labRcpp`, nfeats)
 }
 
 half2mat <- function(X) {
-    .Call('propr_half2mat', PACKAGE = 'propr', X)
+    .Call(`_propr_half2mat`, X)
 }
 
 ratiosRcpp <- function(X) {
-    .Call('propr_ratiosRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_ratiosRcpp`, X)
 }
 
 count_if <- function(x) {
-    .Call('propr_count_if', PACKAGE = 'propr', x)
+    .Call(`_propr_count_if`, x)
 }
 
 pairmutate <- function(counts, group) {
-    .Call('propr_pairmutate', PACKAGE = 'propr', counts, group)
+    .Call(`_propr_pairmutate`, counts, group)
 }
 
 lr2vlr <- function(lr) {
-    .Call('propr_lr2vlr', PACKAGE = 'propr', lr)
+    .Call(`_propr_lr2vlr`, lr)
 }
 
 lr2phi <- function(lr) {
-    .Call('propr_lr2phi', PACKAGE = 'propr', lr)
+    .Call(`_propr_lr2phi`, lr)
 }
 
 lr2rho <- function(lr) {
-    .Call('propr_lr2rho', PACKAGE = 'propr', lr)
+    .Call(`_propr_lr2rho`, lr)
 }
 
 lr2phs <- function(lr) {
-    .Call('propr_lr2phs', PACKAGE = 'propr', lr)
+    .Call(`_propr_lr2phs`, lr)
 }
 
 ctzRcpp <- function(X) {
-    .Call('propr_ctzRcpp', PACKAGE = 'propr', X)
+    .Call(`_propr_ctzRcpp`, X)
 }
 
 wtmRcpp <- function(x, w) {
-    .Call('propr_wtmRcpp', PACKAGE = 'propr', x, w)
+    .Call(`_propr_wtmRcpp`, x, w)
 }
 
 wtvRcpp <- function(x, w) {
-    .Call('propr_wtvRcpp', PACKAGE = 'propr', x, w)
+    .Call(`_propr_wtvRcpp`, x, w)
 }
 
 lrm <- function(X, W, weighted = FALSE) {
-    .Call('propr_lrm', PACKAGE = 'propr', X, W, weighted)
+    .Call(`_propr_lrm`, X, W, weighted)
 }
 
 lrv <- function(Y, W, weighted = FALSE, a = NA_real_) {
-    .Call('propr_lrv', PACKAGE = 'propr', Y, W, weighted, a)
+    .Call(`_propr_lrv`, Y, W, weighted, a)
 }
 
 omega <- function(X, W) {
-    .Call('propr_omega', PACKAGE = 'propr', X, W)
+    .Call(`_propr_omega`, X, W)
 }
 
 lrz <- function(Y, W, Z, weighted = FALSE, a = NA_real_) {
-    .Call('propr_lrz', PACKAGE = 'propr', Y, W, Z, weighted, a)
+    .Call(`_propr_lrz`, Y, W, Z, weighted, a)
 }
 
