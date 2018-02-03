@@ -1,3 +1,11 @@
+## propr 3.1.5
+---------------------
+* Update `propr` to work with Rcpp >= 0.12.12
+* Modified `propd` methods
+    * All out-of-bounds theta_mod replaced with 1
+    * Add `@Fivar` slot to the `propd` class
+    * Extend `updateCutoffs` to `theta_mod`
+
 ## propr 3.1.4
 ---------------------
 * Automatically set `@matrix` column names when using `propr`
