@@ -259,6 +259,8 @@ Note that Group 1 always refers to the first element of the
 
 \item{\code{theta}}{A data.frame. Stores the pairwise theta measurements.}
 
+\item{\code{Fivar}}{ANY. Stores the reference used to moderate theta.}
+
 \item{\code{permutes}}{A data.frame. Stores the shuffled group labels,
 used to reproduce permutations of theta.}
 

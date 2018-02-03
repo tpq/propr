@@ -128,6 +128,7 @@
 #' @slot weights A matrix. If weighted, stores the limma-based weights.
 #' @slot active A character. Stores the name of the active theta type.
 #' @slot theta A data.frame. Stores the pairwise theta measurements.
+#' @slot Fivar ANY. Stores the reference used to moderate theta.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of theta.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for theta.
@@ -190,6 +191,7 @@ setClass("propd",
            weights = "matrix",
            active = "character",
            theta = "data.frame",
+           Fivar = "ANY",
            permutes = "data.frame",
            fdr = "data.frame"
          )
