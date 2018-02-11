@@ -1,3 +1,9 @@
+## propr 3.1.6
+---------------------
+* Modified `propd` methods
+    * Allow `p = 0` when initializing `propd` objects
+    * Have `calculateTheta` compute new weights each permutation
+
 ## propr 3.1.5
 ---------------------
 * Update `propr` to work with Rcpp >= 0.12.12

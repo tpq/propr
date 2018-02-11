@@ -150,8 +150,8 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
       # Calculate theta_mod with updateF (using i-th permuted propd)
       if(is.na(propd@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
       propdi <- suppressMessages(
-        propd(propd@counts[shuffle, ], group = propd@group,
-              alpha = propd@alpha, weighted = propd@weighted))
+        propd(propd@counts[shuffle, ], group = propd@group, alpha = propd@alpha, p = 0,
+              weighted = propd@weighted))
       propdi <- suppressMessages(
         updateF(propdi, moderated = TRUE, ivar = propd@Fivar))
       pkt <- propdi@theta$theta_mod
@@ -159,11 +159,9 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
     }else{
 
       # Calculate all other thetas directly (using calculateTheta)
-      pkt <- calculateTheta(propd@counts[shuffle, ],
-                            propd@group, propd@alpha,
-                            lrv, only = propd@active,
-                            weighted = propd@weighted,
-                            weights = propd@weights)
+      pkt <- suppressMessages(
+        calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv,
+                       only = propd@active, weighted = propd@weighted))
     }
 
     # Find number of permuted theta less than cutoff
