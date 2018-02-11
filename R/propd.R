@@ -269,9 +269,11 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   }else{ result@alpha <- as.numeric(NA) }
 
   # Initialize @permutes
-  permutes <- as.data.frame(matrix(0, nrow = nrow(ct), ncol = p))
-  for(col in 1:ncol(permutes)) permutes[, col] <- sample(1:nrow(ct))
-  result@permutes <- permutes
+  if(p > 0){
+    permutes <- as.data.frame(matrix(0, nrow = nrow(ct), ncol = p))
+    for(col in 1:ncol(permutes)) permutes[, col] <- sample(1:nrow(ct))
+    result@permutes <- permutes
+  }
 
   # Initialize @theta
   result@theta <-
