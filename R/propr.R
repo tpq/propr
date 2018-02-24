@@ -111,6 +111,7 @@ setMethod("initialize", "propr",
             }
 
             # Quality control check input
+            if(any(counts < 0)) stop("Data may not contain negative measurements.")
             if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
             if(class(counts) == "data.frame") counts <- as.matrix(counts)
             if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))

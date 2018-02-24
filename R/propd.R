@@ -129,6 +129,7 @@
 #' @slot active A character. Stores the name of the active theta type.
 #' @slot theta A data.frame. Stores the pairwise theta measurements.
 #' @slot Fivar ANY. Stores the reference used to moderate theta.
+#' @slot dfz A double. Stores the prior df used to moderate theta.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of theta.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for theta.
@@ -192,6 +193,7 @@ setClass("propd",
            active = "character",
            theta = "data.frame",
            Fivar = "ANY",
+           dfz = "numeric",
            permutes = "data.frame",
            fdr = "data.frame"
          )
@@ -232,6 +234,7 @@ setMethod("show", "propd",
 propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 
   # Clean "count matrix"
+  if(any(counts < 0)) stop("Data may not contain negative measurements.")
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
   if(class(counts) == "data.frame") counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
@@ -250,6 +253,7 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   result@active <- "theta_d" # set theta_d active by default
   result@weights <- as.matrix(NA)
   result@weighted <- weighted
+  result@dfz <- 0
 
   # Initialize @weights
   if(weighted){
