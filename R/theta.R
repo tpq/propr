@@ -226,46 +226,11 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     propd@dfz <- param$df.prior
     z.s2 <- param$s2.prior
 
-    # # Extract weights for "pure" data
-    # if(propd@weighted){
-    #
-    #   # Calculate weights w.r.t. reference Z -- used by lrz if weighted
-    #   message("Alert: Calculating weight of reference set.")
-    #   W.pt <- sweep(propd@weights, 1, rowSums(propd@weights), "/")
-    #   W.z <- (rowMeans(W.pt[,use] * logX[,use] * length(use))) / (rowMeans(logX[,use]))
-    #   W <- propd@weights * W.z
-    #
-    #   p1 <- colSums(W[group1,]) - colSums(W[group1,]^2) / colSums(W[group1,])
-    #   p2 <- colSums(W[group2,]) - colSums(W[group2,]^2) / colSums(W[group2,])
-    #   p <- colSums(W) - colSums(W^2) / colSums(W)
-    #
-    # }else{
-    #
-    #   message("Alert: Provided theta not already weighted.")
-    #   W <- as.matrix(propd@counts) # not used by lrz
-    #   p1 <- n1 - 1
-    #   p2 <- n2 - 1
-    #   p <- n1 + n2 - 1
-    # }
-
-    # # Calculate per-feature variances w.r.t. Z -- changes with theta type
-    # z.var1 <- lrz(X[group1,], W[group1,], z[group1],
-    #               propd@weighted, propd@alpha)
-    # z.var2 <- lrz(X[group2,], W[group2,], z[group2],
-    #               propd@weighted, propd@alpha)
-    # z.pool <- (p1 * z.var1 + p2 * z.var2) / p
-    #
-    # # Call Rcpp function to calculate z.mod -- always the same
-    # labs <- labRcpp(length(z.pool))
-    # mod <- 2 * z.s2 - z.pool[labs$Partner] - z.pool[labs$Pair]
-
     # Calculate simple moderation term based only on LRV
     mod <- z.df * z.s2 / propd@theta$lrv
 
     # Moderate F-statistic
     propd@Fivar <- ivar # used by updateCutoffs
-    # mod <- mod / (propd@theta$lrv * propd@theta$theta * (1 + (n1 + n2)/z.df))
-    # Fprime <- (1 - propd@theta$theta) / (propd@theta$theta * (1 + mod))
     Fprime <- (1 - propd@theta$theta) * (n1 + n2 + z.df) /
       ((n1 + n2) * propd@theta$theta + mod)
     Fstat <- (n1 + n2 + z.df - 2) * Fprime
@@ -280,13 +245,6 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   propd@theta$theta_mod <- theta_mod
   propd@theta$Fstat <- Fstat
-
-  # # Check for out-of-bounds theta_mod
-  # index <- theta_mod < 0 | theta_mod > 1
-  # if(any(index)){
-  #   message("Alert: All out-of-bounds theta_mod replaced with 1.")
-  #   theta_mod[index] <- 1
-  # }
 
   # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
   K <- length(unique(propd@group))

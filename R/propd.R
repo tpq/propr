@@ -177,8 +177,8 @@
 #' @name propd
 #' @importFrom Rcpp sourceCpp
 #' @importFrom methods show new
+#' @importFrom stats var pf
 #' @importFrom utils head
-#' @importFrom stats var
 NULL
 
 #' @rdname propd

@@ -1,3 +1,14 @@
+## propr 3.1.7
+---------------------
+* Check `propr` and `propd` input for negative counts
+* Modified `propd` methods
+    * Add `dfz` slot to the `propd` class (defaults to 0)
+        * Have `updateF` populate `dfz` slot if moderated
+        * Use `dfz` to calculate p-value from F-stat
+    * Implement revised F-stat moderation
+        * Now uses simple moderation term based only on LRV
+        * Update `test-Fstat.R` to reflect changes
+
 ## propr 3.1.6
 ---------------------
 * Modified `propd` methods
