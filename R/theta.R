@@ -204,11 +204,18 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     use <- ivar2index(propd@counts, ivar)
 
     # Establish data with regard to a reference Z
-    X <- as.matrix(propd@counts)
+    if(any(propd@counts == 0)){
+      message("Alert: Building reference set with ivar and counts offset by 1.")
+      X <- as.matrix(propd@counts + 1)
+    }else{
+      message("Alert: Building reference set with ivar and counts.")
+      X <- as.matrix(propd@counts)
+    }
+
     logX <- log(X)
     z.set <- logX[, use, drop = FALSE]
     z.geo <- rowMeans(z.set)
-    if(any(z.geo == 0)) stop("Zeros present in reference set.")
+    if(any(exp(z.geo) == 0)) stop("Zeros present in reference set.")
     z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
     z <- exp(z.geo)
 
