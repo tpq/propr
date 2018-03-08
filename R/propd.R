@@ -241,8 +241,8 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   if(class(counts) == "data.frame") counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
-  if(missing(alpha)) alpha <- NA
-  if(alpha == 0) alpha <- NA
+  if(missing(alpha)){ alpha <- NA
+  }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
   ct <- counts
 
   # Replace zeros unless alpha is provided

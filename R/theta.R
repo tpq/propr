@@ -75,8 +75,8 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     lrm2 <- lrm(ct[group2,], W[group2,], weighted)
   }
 
-  # Replace NaN thetas (from VLR = 0) with 1
-  lrv0 <- lrv == 0
+  # Replace NaN thetas (from VLR = 0 or VLR = NaN) with 1
+  lrv0 <- is.na(lrv1) | is.na(lrv2) | is.na(lrv) | (lrv == 0) # aVLR triggers NaN
   replaceNaNs <- any(lrv0)
   if(replaceNaNs){
     if(firstpass) message("Alert: Replacing NaN theta values with 1.")
