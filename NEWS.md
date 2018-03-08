@@ -1,5 +1,7 @@
 ## propr 3.1.7.9000
 ---------------------
+* Check `propr` and `propd` input for components with all zeros
+* Users can now disable alpha transformation by setting `alpha = 0`
 * Modified `updateF` for `moderated = TRUE`
     * Now offsets counts by 1 to prevent zeros in reference set
     * Now correctly checks for zeros in reference set
