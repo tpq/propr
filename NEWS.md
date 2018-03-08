@@ -1,6 +1,5 @@
 ## propr 3.1.7.9000
 ---------------------
-* Check `propr` and `propd` input for components with all zeros
 * Modified `propd` methods
     * Users can now disable alpha transformation by setting `alpha = 0`
     * Improve `NaN` theta value replacement with 1

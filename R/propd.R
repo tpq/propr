@@ -234,8 +234,8 @@ setMethod("show", "propd",
 propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 
   # Clean "count matrix"
-  if(any(apply(counts, 2, function(x) all(x == 0)))){
-    stop("Remove components with all zeros before proceeding.")}
+  # if(any(apply(counts, 2, function(x) all(x == 0)))){
+  #   stop("Remove components with all zeros before proceeding.")}
   if(any(counts < 0)) stop("Data may not contain negative measurements.")
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
   if(class(counts) == "data.frame") counts <- as.matrix(counts)
