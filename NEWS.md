@@ -1,4 +1,4 @@
-## propr 3.1.7.9000
+## propr 3.1.8
 ---------------------
 * Modified `propd` methods
     * Users can now disable alpha transformation by setting `alpha = 0`
