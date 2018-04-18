@@ -204,10 +204,10 @@ NumericMatrix rhoRcpp(NumericMatrix X,
 
   for(int i = 0; i < nfeats; i++){
     for(int j = 0; j < nfeats; j++){
-      if(i == (ivar - 1) | j == (ivar - 1)){
+      if(i == (ivar - 1) || j == (ivar - 1)){
 
         // Set rho = 0 when ivar is row or column
-        if(i == (ivar - 1) & j == (ivar - 1)){
+        if(i == (ivar - 1) && j == (ivar - 1)){
           mat(i, j) = 1;
         }else{
           mat(i, j) = 0;
@@ -236,7 +236,7 @@ std::vector<int> indexPairs(NumericMatrix & X,
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
 
-      if(op == "==" | op == "="){
+      if(op == "==" || op == "="){
         if(X(i, j) == ref){
           index.push_back(j * nfeats + i + 1);
         }

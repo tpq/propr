@@ -6,7 +6,6 @@
 \alias{propr-class}
 \alias{show,propr-method}
 \alias{subset,propr-method}
-\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{plot,propr,missing-method}
 \alias{simplify}
@@ -17,7 +16,7 @@
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY}(x, i = "all", j, tiny = FALSE)
+\S4method{[}{propr}(x, i = "all", j, tiny = FALSE)
 
 \S4method{plot}{propr,missing}(x, y, prompt = TRUE, plotly = FALSE)
 

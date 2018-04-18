@@ -1,3 +1,7 @@
+## propr 3.1.9
+---------------------
+* Update C++ code to use `&&` and `||` instead of `&` and `|`
+
 ## propr 3.1.8
 ---------------------
 * Modified `propd` methods
