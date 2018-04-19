@@ -105,12 +105,12 @@ wtvRcpp <- function(x, w) {
     .Call(`_propr_wtvRcpp`, x, w)
 }
 
-lrm <- function(X, W, weighted = FALSE) {
-    .Call(`_propr_lrm`, X, W, weighted)
+lrm <- function(Y, W, weighted = FALSE, a = NA_real_, Yfull = matrix(1, 1)) {
+    .Call(`_propr_lrm`, Y, W, weighted, a, Yfull)
 }
 
-lrv <- function(Y, W, weighted = FALSE, a = NA_real_) {
-    .Call(`_propr_lrv`, Y, W, weighted, a)
+lrv <- function(Y, W, weighted = FALSE, a = NA_real_, Yfull = matrix(1, 1)) {
+    .Call(`_propr_lrv`, Y, W, weighted, a, Yfull)
 }
 
 omega <- function(X, W) {

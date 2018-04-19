@@ -52,29 +52,69 @@ double wtvRcpp(NumericVector x,
 
 // Calculate lrm with or without weights
 // [[Rcpp::export]]
-NumericVector lrm(NumericMatrix & X,
+NumericVector lrm(NumericMatrix & Y,
                   NumericMatrix & W,
-                  bool weighted = false){
+                  bool weighted = false,
+                  double a = NA_REAL,
+                  NumericMatrix Yfull = NumericMatrix(1, 1)){
 
+  // Output a half-matrix
+  NumericMatrix X = clone(Y);
   int nfeats = X.ncol();
   int llt = nfeats * (nfeats - 1) / 2;
-  Rcpp::NumericVector result(llt);
-  Rcpp::NumericVector Wij(nfeats);
+  NumericVector result(llt);
   int counter = 0;
 
-  if(weighted){
-    for(int i = 1; i < nfeats; i++){
-      for(int j = 0; j < i; j++){
-        Wij = W(_, i) * W(_, j);
-        result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
-        counter += 1;
+  if(!R_IsNA(a)){ // Weighted and non-weighted, alpha-transformed
+
+    // Check for valid Yfull argument
+    if(Yfull.nrow() == NumericMatrix(1, 1).nrow() &&
+       Yfull.ncol() == NumericMatrix(1, 1).ncol()){
+
+      stop("User must provide valid Yfull argument for alpha-transformation.");
+    }
+
+    if(weighted){
+
+      Rcpp::NumericVector Wij(nfeats);
+      for(int i = 1; i < nfeats; i++){
+        for(int j = 0; j < i; j++){
+          Wij = W(_, i) * W(_, j);
+          result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
+          counter += 1;
+        }
+      }
+
+    }else{
+
+      for(int i = 1; i < nfeats; i++){
+        for(int j = 0; j < i; j++){
+          result(counter) = mean(log(X(_, i) / X(_, j)));
+          counter += 1;
+        }
       }
     }
-  }else{
-    for(int i = 1; i < nfeats; i++){
-      for(int j = 0; j < i; j++){
-        result(counter) = mean(log(X(_, i) / X(_, j)));
-        counter += 1;
+
+  }else{ // Weighted and non-weighted, non-transformed
+
+    if(weighted){
+
+      Rcpp::NumericVector Wij(nfeats);
+      for(int i = 1; i < nfeats; i++){
+        for(int j = 0; j < i; j++){
+          Wij = W(_, i) * W(_, j);
+          result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
+          counter += 1;
+        }
+      }
+
+    }else{
+
+      for(int i = 1; i < nfeats; i++){
+        for(int j = 0; j < i; j++){
+          result(counter) = mean(log(X(_, i) / X(_, j)));
+          counter += 1;
+        }
       }
     }
   }
@@ -87,7 +127,8 @@ NumericVector lrm(NumericMatrix & X,
 NumericVector lrv(NumericMatrix & Y,
                   NumericMatrix & W,
                   bool weighted = false,
-                  double a = NA_REAL){
+                  double a = NA_REAL,
+                  NumericMatrix Yfull = NumericMatrix(1, 1)){
 
   // Output a half-matrix
   NumericMatrix X = clone(Y);
@@ -97,6 +138,13 @@ NumericVector lrv(NumericMatrix & Y,
   int counter = 0;
 
   if(!R_IsNA(a)){ // Weighted and non-weighted, alpha-transformed
+
+    // Check for valid Yfull argument
+    if(Yfull.nrow() == NumericMatrix(1, 1).nrow() &&
+       Yfull.ncol() == NumericMatrix(1, 1).ncol()){
+
+      stop("User must provide valid Yfull argument for alpha-transformation.");
+    }
 
     // Raise all of X to the a power
     for(int i = 0; i < X.nrow(); i++){
@@ -143,7 +191,6 @@ NumericVector lrv(NumericMatrix & Y,
         }
       }
     }
-
 
   }else{ // Weighted and non-weighted, non-transformed
 
