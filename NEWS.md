@@ -1,3 +1,14 @@
+## propr 3.2.0
+---------------------
+* Prepare alpha-transformation routine for update
+    * Update `lrm` C++ code
+        * Add argument `a` and prepare code for alpha-based lrm
+        * Add argument `Yfull` for complete data (and check)
+        * Update calls to pass `Yfull` if provided
+    * Update `lrv` C++ code
+        * Add argument `Yfull` for complete data (and check)
+        * Update calls to pass `Yfull` if provided
+
 ## propr 3.1.9
 ---------------------
 * Update C++ code to use `&&` and `||` instead of `&` and `|`
