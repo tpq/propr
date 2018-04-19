@@ -47,7 +47,7 @@ if(requireNamespace("limma", quietly = TRUE)){
   test_that("alpha-transformed lrv matches pseudo-lrv from alphaTheta_old", {
 
     expect_equal(
-      propr:::lrv(as.matrix(counts), as.matrix(counts), a = .1),
+      propr:::lrv(as.matrix(counts), as.matrix(counts), a = .1, Yfull = as.matrix(counts)),
       propr:::alphaTheta_old(counts, group, .1)$alrv
     )
 
@@ -58,7 +58,7 @@ if(requireNamespace("limma", quietly = TRUE)){
 
     pd <- propd(counts, group, weighted = TRUE)
     expect_equal(
-      propr:::lrv(as.matrix(counts), pd@weights, weighted = TRUE, a = .1),
+      propr:::lrv(as.matrix(counts), pd@weights, weighted = TRUE, a = .1, Yfull = as.matrix(counts)),
       propr:::alphaThetaW_old(counts, group, .1, pd@weights)$lrv
     )
 

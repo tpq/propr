@@ -402,15 +402,15 @@ calculateFDR <- function(theta, ptheta, cutoff = seq(.6, .9, .1)){
 alphaTheta <- function(counts, group, alpha){
 
   ct <- as.matrix(counts)
-  lrv <- lrv(ct, ct, a = alpha)
+  lrv <- lrv(ct, ct, weighted = FALSE, a = alpha, ct)
 
   if(length(unique(group)) != 2) stop("Please use two groups.")
   if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
   group1 <- group == unique(group)[1]
   group2 <- group == unique(group)[2]
 
-  lrv1 <- lrv(ct[group1,], ct[group1,], a = alpha)
-  lrv2 <- lrv(ct[group2,], ct[group2,], a = alpha)
+  lrv1 <- lrv(ct[group1,], ct[group1,], weighted = FALSE, a = alpha, ct)
+  lrv2 <- lrv(ct[group2,], ct[group2,], weighted = FALSE, a = alpha, ct)
   n1 <- sum(group1)
   n2 <- sum(group2)
 
