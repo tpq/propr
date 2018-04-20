@@ -1,3 +1,22 @@
+## propr 3.5.0
+---------------------
+* Update alpha-transformation routine
+    * Update `lrm` C++ code
+        * Clone `Yfull` and set to power of alpha
+        * Add argument `Wfull` for complete weights (and check)
+        * Update calls to pass `Wfull` if provided
+        * Implement new non-weighted alpha-transformed means
+        * Implement new weighted alpha-transformed means
+        * Revise alpha-based unit tests
+    * Update `lrv` C++ code
+        * Clone `Yfull` and set to power of alpha
+        * Add argument `Wfull` for complete weights (and check)
+        * Update calls to pass `Wfull` if provided
+        * Implement new non-weighed alpha-transformed variances
+        * Implement new weighted alpha-transformed variances
+        * Revise alpha-based unit tests
+    * Remove `lrz` function
+
 ## propr 3.2.0
 ---------------------
 * Prepare alpha-transformation routine for update
