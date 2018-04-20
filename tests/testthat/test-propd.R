@@ -1,22 +1,70 @@
 library(propr)
 
+data(mail)
+
+test_that("lrv without weights matches vlrRcpp", {
+
+  expect_equal(
+    propr:::lltRcpp(propr:::vlrRcpp(mail[])),
+    propr:::lrv(mail, mail)
+  )
+})
+
 data(iris)
 keep <- iris$Species %in% c("setosa", "versicolor")
 counts <- iris[keep, 1:4] * 10
 group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
 
-test_that("propd returns correct thetea result", {
+if(requireNamespace("limma", quietly = TRUE)){
 
-  expect_equal(
-    propr:::calculateTheta(counts, group)$theta,
-    propd(counts, group, p = 3)@theta$theta
-  )
+  test_that("propd returns correct theta result", {
 
-  expect_equal(
-    propr:::alphaTheta(counts, group, alpha = .1)$theta,
-    propd(counts, group, p = 3, alpha = .1)@theta$theta
-  )
-})
+    expect_equal(
+      propr:::calculateTheta_old(counts, group)$theta,
+      propd(counts, group, p = 3)@theta$theta
+    )
+
+    expect_equal(
+      propr:::calculateThetaW_old(counts, group)$theta,
+      propd(counts, group, p = 3, weighted = TRUE)@theta$theta
+    )
+
+    expect_equal(
+      propr:::alphaTheta_old(counts, group, alpha = .1)$atheta,
+      propd(counts, group, p = 3, alpha = .1)@theta$theta
+    )
+
+    pdaw <- propd(counts, group, p = 3, weighted = TRUE, alpha = .1)
+    expect_equal(
+      propr:::alphaThetaW_old(counts, group, alpha = .1, pdaw@weights)$theta,
+      pdaw@theta$theta
+    )
+  })
+
+  test_that("propd calculates correct lrm result", {
+
+    expect_equal(
+      propr:::calculateTheta_old(counts, group)$lrm1,
+      propd(counts, group, p = 3)@theta$lrm1
+    )
+
+    expect_equal(
+      propr:::calculateThetaW_old(counts, group)$lrm1,
+      propd(counts, group, p = 3, weighted = TRUE)@theta$lrm1
+    )
+
+    expect_equal(
+      propr:::alphaTheta_old(counts, group, alpha = .1)$alrm1,
+      propd(counts, group, p = 3, alpha = .1)@theta$lrm1
+    )
+
+    pdaw <- propd(counts, group, p = 3, weighted = TRUE, alpha = .1)
+    expect_equal(
+      propr:::alphaThetaW_old(counts, group, alpha = .1, pdaw@weights)$awlrm1,
+      pdaw@theta$lrm1
+    )
+  })
+}
 
 test_that("shuffling group labels does not change lrv", {
 
@@ -32,7 +80,7 @@ test_that("shuffling group labels does not change lrv", {
 })
 
 set.seed(1)
-theta <- propr:::calculateTheta(counts, group)
+theta <- propr:::calculateTheta_old(counts, group)
 ptheta <- propr:::permuteTheta_prime(counts, group, p = 5)
 pt <- propr:::calculateFDR(theta, ptheta, cutoff = seq(.95, 1, .01))
 
@@ -66,14 +114,3 @@ test_that("active theta_f matches calculation using theta_e", {
     1 - setActive(pd, what = "theta_e")@theta$theta
   )
 })
-
-if(requireNamespace("igraph", quietly = TRUE)){
-
-  test_that("propd calculates valid LRM when using alpha", {
-
-    expect_equal(
-      shale(propd(counts, group))$DiffLRM,
-      shale(propd(counts, group, alpha = 1))$DiffLRM
-    )
-  })
-}
