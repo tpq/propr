@@ -59,9 +59,9 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
   }
 
   # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
-  if(firstpass) lrv <- lrv(ct, W, weighted, alpha, ct)
-  lrv1 <- lrv(ct[group1,], W[group1,], weighted, alpha, ct)
-  lrv2 <- lrv(ct[group2,], W[group2,], weighted, alpha, ct)
+  if(firstpass) lrv <- lrv(ct, W, weighted, alpha, ct, W)
+  lrv1 <- lrv(ct[group1,], W[group1,], weighted, alpha, ct, W)
+  lrv2 <- lrv(ct[group2,], W[group2,], weighted, alpha, ct, W)
 
   # Calculate LRM (replacing 0s if alpha is used) -- LRM not affected by alpha
   if(only == "all"){
@@ -71,8 +71,8 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       ct[ct == 0] <- 1 # ct not used again in scope
     }
 
-    lrm1 <- lrm(ct[group1,], W[group1,], weighted, alpha, ct)
-    lrm2 <- lrm(ct[group2,], W[group2,], weighted, alpha, ct)
+    lrm1 <- lrm(ct[group1,], W[group1,], weighted, alpha, ct, W)
+    lrm2 <- lrm(ct[group2,], W[group2,], weighted, alpha, ct, W)
   }
 
   # Replace NaN thetas (from VLR = 0 or VLR = NaN) with 1
