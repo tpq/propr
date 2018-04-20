@@ -152,10 +152,21 @@ alphaTheta_old <- function(counts, group, alpha){
   n1=length(cere)
   n2=length(cort)
 
-  lrvMa=function(x,y,a){
-    N=length(x)
-    s=sum((x/mean(x)-y/mean(y))^2)/(a^2*(N-1))
-    return(s)
+  lrva=function(group,a,x,y){
+
+    N=length(group)
+    lrv=sum(((x[group]-mean(x[group]))/mean(x)-(y[group]-mean(y[group]))/mean(y))^2)
+    lrv=lrv/((N-1)*a^2)
+    return(lrv)
+  }
+
+  lrma=function(group,a,x,y){
+
+    m=mean(x[group]/mean(x)- y[group]/mean(y))
+    gr2=setdiff(c(1:length(x)),group)
+    C=mean(x[group]-y[group])+mean(x[gr2]-y[gr2])
+    lrm=(C/2+m)/a
+    return(lrm)
   }
 
   a=alpha
@@ -168,11 +179,11 @@ alphaTheta_old <- function(counts, group, alpha){
 
       ast[i,1]=as.integer(j)
       ast[i,2]=as.integer(k)
-      ast[i,4]=lrvMa(Ma[,j],Ma[,k],a)
-      ast[i,5]=lrvMa(Ma[cere,j],Ma[cere,k],a)
-      ast[i,6]=lrvMa(Ma[cort,j],Ma[cort,k],a)
-      ast[i,7]=mean(Ma[cere,j]-Ma[cere,k])/a
-      ast[i,8]=mean(Ma[cort,j]-Ma[cort,k])/a
+      ast[i,4]=lrva(which(group1 | group2), a, Ma[,j], Ma[,k])
+      ast[i,5]=lrva(which(group1), a, Ma[,j], Ma[,k])
+      ast[i,6]=lrva(which(group2), a, Ma[,j], Ma[,k])
+      ast[i,7]=lrma(which(group1), a, Ma[,j], Ma[,k])
+      ast[i,8]=lrma(which(group2), a, Ma[,j], Ma[,k])
       ast[i,3]=((n1-1)*ast[i,5]+(n2-1)*ast[i,6])/((n1+n2-1)*ast[i,4])
       i=i+1
     }
@@ -200,22 +211,37 @@ alphaThetaW_old <- function(counts, group, alpha, weights){
   n1=length(cere)
   n2=length(cort)
 
-  lrvMaw=function(x,y,a,W){
-    n=sum(W)
-    s=sum(W^2)
+  lrvaw=function(group,a,x,y,W){
+
+    n=sum(W[group])
+    s=sum(W[group]^2)
     p=n-s/n
-    N=length(x)
-    w=W/n
-    s=sum(W*(x/(N*mean(w*x))-y/(N*mean(w*y)))^2)/(p*a^2)
-    return(s)
+    w=W[group]/n
+
+    lrv=sum(W[group]*((x[group]-sum(w*x[group]))/(sum(W*x)/sum(W))-(y[group]-sum(w*y[group]))/(sum(W*y)/sum(W)))^2)
+    lrv=lrv/(p*a^2)
+    return(lrv)
+  }
+
+  lrmaw=function(group,a,x,y,W){
+
+    w=W[group]/sum(W[group])
+    m=sum(w*(x[group]/(sum(W*x)/sum(W))-y[group]/(sum(W*y)/sum(W))))
+
+    gr2=setdiff(c(1:length(x)),group)
+    w2=W[gr2]/sum(W[gr2])
+    C=sum(w*(x[group]-y[group]))+sum(w2*(x[gr2]-y[gr2]))
+
+    lrm=(C/2+m)/a
+    return(lrm)
   }
 
   a=alpha
   Ma=counts^a
   llt=ncol(counts)*(ncol(counts)-1)/2
   modwa=c(1:llt)
-  stwa=matrix(0,llt,2)
-  colnames(stwa)=c("lrv","theta")
+  stwa=matrix(0,llt,6)
+  colnames(stwa)=c("lrv","theta", "awlrv1", "awlrv2", "awlrm1", "awlrm2")
   i=0
   for (j in 2:dim(Ma)[2]){
     for (k in 1:(j-1)){
@@ -231,10 +257,14 @@ alphaThetaW_old <- function(counts, group, alpha, weights){
       n2=sum(W[cort])
       s2=sum(W[cort]^2)
       p2=n2-s2/n2
-      swxy1=lrvMaw(Ma[cere,j],Ma[cere,k],a,W[cere])
-      swxy2=lrvMaw(Ma[cort,j],Ma[cort,k],a,W[cort])
-      stwa[i,"lrv"]=lrvMaw(Ma[,j],Ma[,k],a,W)
+      swxy1=lrvaw(which(group1), a, Ma[,j], Ma[,k], W)
+      swxy2=lrvaw(which(group2), a, Ma[,j], Ma[,k], W)
+      stwa[i,"lrv"]=lrvaw(which(group1 | group2), a, Ma[,j], Ma[,k], W)
       stwa[i,"theta"]=(p1*swxy1+p2*swxy2)/(p*stwa[i,"lrv"])
+      stwa[i,"awlrv1"] = swxy1
+      stwa[i,"awlrv2"] = swxy2
+      stwa[i,"awlrm1"]=lrmaw(which(group1), a, Ma[,j], Ma[,k], W)
+      stwa[i,"awlrm2"]=lrmaw(which(group2), a, Ma[,j], Ma[,k], W)
     }
   }
 
@@ -391,39 +421,4 @@ calculateFDR <- function(theta, ptheta, cutoff = seq(.6, .9, .1)){
   }
 
   return(out)
-}
-
-#' Calculate alpha Theta
-#'
-#' Calculate differential proportionality measure, theta,
-#'  using the Box-Cox transformation method.
-#'
-#' @inheritParams propd
-alphaTheta <- function(counts, group, alpha){
-
-  ct <- as.matrix(counts)
-  lrv <- lrv(ct, ct, weighted = FALSE, a = alpha, ct)
-
-  if(length(unique(group)) != 2) stop("Please use two groups.")
-  if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
-  group1 <- group == unique(group)[1]
-  group2 <- group == unique(group)[2]
-
-  lrv1 <- lrv(ct[group1,], ct[group1,], weighted = FALSE, a = alpha, ct)
-  lrv2 <- lrv(ct[group2,], ct[group2,], weighted = FALSE, a = alpha, ct)
-  n1 <- sum(group1)
-  n2 <- sum(group2)
-
-  theta <- ((n1-1) * lrv1 + (n2-1) * lrv2) / ((n1+n2-1) * lrv)
-
-  labels <- labRcpp(ncol(counts))
-  return(
-    data.frame(
-      "Partner" = labels[[1]],
-      "Pair" = labels[[2]],
-      "theta" = theta,
-      "lrv" = lrv,
-      "lrv1" = lrv1,
-      "lrv2" = lrv2
-    ))
 }
