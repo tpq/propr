@@ -48,10 +48,14 @@ if(requireNamespace("limma", quietly = TRUE) &
 
     res=propd(counts=M, group=gr, p = 1)
     Res=propd(counts=M, group=gr, p = 1, weighted = TRUE)
+    resa=propd(counts=M, group=gr, p = 1, alpha = a)
+    Resa=propd(counts=M, group=gr, p = 1, weighted = TRUE, alpha = a)
 
     #from these results, we need only theta and LRV:
     st=res@theta[,c("lrv","theta")]
     stw=Res@theta[,c("lrv","theta")]
+    sta=resa@theta[,c("lrv","theta")]
+    stwa=Resa@theta[,c("lrv","theta")]
 
     #print("(1) unweighted moderated statistic")
 
@@ -69,69 +73,12 @@ if(requireNamespace("limma", quietly = TRUE) &
 
     #print("(3) power-transformed moderated statistic")
 
-    #logratio variance function for pre-transformed data:
-    Ma=M^a
-    lrvMa=function(x,y,a){
-      N=length(x)
-      s=sum((x/mean(x)-y/mean(y))^2)/((N-1)*a^2)
-      return(s)
-    }
-
-    sta=matrix(0,dim(st)[1],2)
-    colnames(sta)=c("lrv","theta")
-    i=0
-    for (j in 2:dim(Ma)[2]){
-      for (k in 1:(j-1)){
-        i=i+1
-        sxy1=lrvMa(Ma[ce,j],Ma[ce,k],a)
-        sxy2=lrvMa(Ma[co,j],Ma[co,k],a)
-        sta[i,"lrv"]=lrvMa(Ma[,j],Ma[,k],a)
-        sta[i,"theta"]=((nce-1)*sxy1+(nco-1)*sxy2)/((nce+nco-1)*sta[i,"lrv"])
-      }
-    }
-
     moda=dz*s2z/sta[,"lrv"]
     Fpmoda=(1-sta[,"theta"])*(dz+nce+nco)/((nce+nco)*sta[,"theta"]+moda)
     thetamoda=1/(1+Fpmoda)
     Fmoda=(nce+nco+dz-2)*Fpmoda
 
     #print("(4) weighted power-transformed moderated statistic")
-
-    #weighted logratio variance function for pre-transformed data:
-    #note that this returns a precision-weighted variance like in the SDMTools package:
-    Ma=M^a
-    lrvMaw=function(x,y,a,W){
-      n=sum(W)
-      s=sum(W^2)
-      p=n-s/n
-      N=length(x)
-      w=W/n
-      s=sum(W*(x/(N*mean(w*x))-y/(N*mean(w*y)))^2)/(p*a^2)
-      return(s)
-    }
-
-    stwa=matrix(0,dim(st)[1],2)
-    colnames(stwa)=c("lrv","theta")
-    i=0
-    for (j in 2:dim(Ma)[2]){
-      for (k in 1:(j-1)){
-        i=i+1
-        W=v$weights[j,]*v$weights[k,]
-        n=sum(W)
-        s=sum(W^2)
-        p=n-s/n
-        n1=sum(W[ce])
-        s1=sum(W[ce]^2)
-        p1=n1-s1/n1
-        n2=sum(W[co])
-        s2=sum(W[co]^2)
-        p2=n2-s2/n2
-        swxy1=lrvMaw(Ma[ce,j],Ma[ce,k],a,W[ce])
-        swxy2=lrvMaw(Ma[co,j],Ma[co,k],a,W[co])
-        stwa[i,"lrv"]=lrvMaw(Ma[,j],Ma[,k],a,W)
-        stwa[i,"theta"]=(p1*swxy1+p2*swxy2)/(p*stwa[i,"lrv"])
-      }
-    }
 
     modwa=dz*s2z/stwa[,"lrv"]
     Fpmodwa=(1-stwa[,"theta"])*(dz+nce+nco)/((nce+nco)*stwa[,"theta"]+modwa)
