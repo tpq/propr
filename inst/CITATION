@@ -46,14 +46,14 @@ citEntry(entry = "Article",
                                    as.person("Ionas Erb"),
                                    as.person("Mark F. Richardson"),
                                    as.person("Tamsyn Crowley")),
-         journal      = "bioRxiv",
-         year         = "2017",
+         journal      = "Bioinformatics",
+         year         = "2018",
 
          textVersion  =
-           paste("Quinn T, Erb I, Richardson MF, Crowley T (2017)",
+           paste("Quinn T, Erb I, Richardson MF, Crowley T (2018)",
                  "Understanding sequencing data as compositions:",
-                 "an outlook and review.",
-                 "bioRxiv: doi:10.1101/206425")
+                 "an outlook and review. Bioinformatics.",
+                 "Advanced Access Publication: doi:10.1093/bioinformatics/bty175")
 )
 
 citEntry(entry = "Article",

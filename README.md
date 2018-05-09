@@ -16,7 +16,7 @@ library(propr)
 Further reading
 ---------------
 
-To learn more about proportionality, please see the vignettes and other relevant literature.
+To learn more about proportionality, please see the vignettes and relevant literature.
 
 ``` r
 citation("propr")
@@ -36,9 +36,10 @@ citation("propr")
     ##   Compositional Data Analysis Workshop; available under bioRxiv
     ##   134536: doi:10.1101/134536
     ## 
-    ##   Quinn T, Erb I, Richardson MF, Crowley T (2017) Understanding
-    ##   sequencing data as compositions: an outlook and review. bioRxiv:
-    ##   doi:10.1101/206425
+    ##   Quinn T, Erb I, Richardson MF, Crowley T (2018) Understanding
+    ##   sequencing data as compositions: an outlook and review.
+    ##   Bioinformatics. Advanced Access Publication:
+    ##   doi:10.1093/bioinformatics/bty175
     ## 
     ##   Lovell D, Pawlowsky-Glahn V, Egozcue JJ, Marguerat S, Bahler J
     ##   (2015) Proportionality: A Valid Alternative to Correlation for

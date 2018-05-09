@@ -1,3 +1,7 @@
+## propr 3.5.1
+---------------------
+* Update CITATION file and README
+
 ## propr 3.5.0
 ---------------------
 * Update alpha-transformation routine
