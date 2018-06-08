@@ -1,6 +1,79 @@
+#' Calculate PALs for Pairs
+#'
+#' This function finds the Popular Adjacent Ligand or Self (PALs)
+#'  for each feature in the \code{@@theta} slot of a \code{propd}
+#'  object. Specifically, we define PALs as the adjacent node with
+#'  the highest amount of connectivity. If node itself has more
+#'  connectivity than any of its neighbors, it is its own PAL.
+#'
+#' @inheritParams all
+#' @return A named vector of PALs, ordered by decreasing
+#'  connectivity of the input nodes. The names of the result
+#'  refer to the input nodes themselves.
+#'
+#' @export
+pals <- function(object, k){
+
+  # Get entire graph object
+  g <- suppressMessages(plot(object, cutoff = 1, prompt = FALSE, plotSkip = TRUE))
+
+  # Get graph parameters
+  d <- sort(igraph::degree(g), decreasing = TRUE)
+  el <- igraph::get.edgelist(g)
+
+  pal <- vector("integer", length(d))
+  names(pal) <- names(d)
+  for(i in 1:length(d)){
+
+    # Extract all partners for the i-th object
+    node.i <- names(d)[i]
+    el.i <- el[node.i == el[, 1] | node.i == el[, 2], , drop = FALSE]
+    z <- union(el.i[, 1], el.i[, 2])
+
+    # Index most popular partner
+    pal[i] <- names(d)[names(d) %in% z][1]
+  }
+
+  if(!missing(k)){
+
+    # Only keep the k largest PALs
+    keep <- names(sort(table(pal), decreasing = TRUE))[1:k]
+    pal[!pal %in% keep] <- "Missing"
+  }
+
+  return(pal)
+}
+
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{propd2propr:}
+#'  Transforms a \code{propd} object into a \code{propr} object
+#'  where the \code{@@matrix} slot contains \eqn{1 - \theta}.
+#'  Allows the user to interrogate theta using any
+#'  visualization built for \code{propr} objects.
 #' @rdname propd
-#' @section Methods (by generic):
-#' \code{plot:} Method to plot \code{propd} object.
+#' @export
+propd2propr <- function(object, ivar){
+
+  prop <- new("propr")
+  prop@matrix <- 1 - half2mat(object@theta$theta)
+  return(prop)
+}
+
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{plot:}
+#'  Plots the interactions between pairs as a network.
+#'  When plotting disjointed proportionality, red edges
+#'  indicate that LRM1 > LRM2 while blue edges indicate
+#'  that LRM1 < LRM2. When plotting emergent proportionality,
+#'  red edges indicate that VLR1 < VLR2 while blue edges
+#'  indicate that VLR1 > VLR2. Group labels numbered based on
+#'  the order of the \code{group} argument to \code{propd}.
+#'  Use \code{col1} and \code{col2} arguments to color nodes.
+#'  For more control over the visualization of the network,
+#'  consider exporting the table from \code{shale} to a
+#'  network visualization tool like Cytoscape.
 #' @export
 setMethod("plot", signature(x = "propd", y = "missing"),
           function(x, y, cutoff = 1000, col1, col2, propr, prompt = TRUE, d3 = FALSE, plotSkip = FALSE){
@@ -81,53 +154,25 @@ setMethod("plot", signature(x = "propd", y = "missing"),
           }
 )
 
-#' Calculate PALs for Pairs
-#'
-#' This function finds the Popular Adjacent Ligand or Self (PALs)
-#'  for each feature in the \code{@@theta} slot of a \code{propd}
-#'  object. Specifically, we define PALs as the adjacent node with
-#'  the highest amount of connectivity. If node itself has more
-#'  connectivity than any of its neighbors, it is its own PAL.
-#'
-#' @inheritParams propd
-#' @return A named vector of PALs, ordered by decreasing
-#'  connectivity of the input nodes. The names of the result
-#'  refer to the input nodes themselves.
-#'
-#' @export
-pals <- function(object, k){
-
-  # Get entire graph object
-  g <- suppressMessages(plot(object, cutoff = 1, prompt = FALSE, plotSkip = TRUE))
-
-  # Get graph parameters
-  d <- sort(igraph::degree(g), decreasing = TRUE)
-  el <- igraph::get.edgelist(g)
-
-  pal <- vector("integer", length(d))
-  names(pal) <- names(d)
-  for(i in 1:length(d)){
-
-    # Extract all partners for the i-th object
-    node.i <- names(d)[i]
-    el.i <- el[node.i == el[, 1] | node.i == el[, 2], , drop = FALSE]
-    z <- union(el.i[, 1], el.i[, 2])
-
-    # Index most popular partner
-    pal[i] <- names(d)[names(d) %in% z][1]
-  }
-
-  if(!missing(k)){
-
-    # Only keep the k largest PALs
-    keep <- names(sort(table(pal), decreasing = TRUE))[1:k]
-    pal[!pal %in% keep] <- "Missing"
-  }
-
-  return(pal)
-}
-
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{shale:}
+#'  Builds a table of within-group and total log-ratio
+#'  variances, log-ratio means, and PALs (see: \code{\link{pals}}).
+#'  If the argument \code{k} is provided, the table will
+#'  label at most \code{k} top PALs. Just as each node
+#'  gets assigned a PAL, \code{shale} aims to assign
+#'  each edge a PAL. Edges that have a top PAL as one
+#'  and only one of their nodes get assigned that PAL.
+#'  Edges that have top PALs as both of their nodes
+#'  get assigned "Bridged". Edges without a top PAL
+#'  as one of their nodes will get assigned a PAL if
+#'  either (a) both nodes have the same neighbor PAL
+#'  or (b) one node has a "Missing" neighbor PAL.
+#'  The \code{cutoff} argument guides the maximum value of
+#'  theta above which to exclude the pair. A large integer
+#'  \code{cutoff} will instead retrieve the top N pairs as
+#'  ranked by theta.
 #' @export
 shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
 
@@ -193,7 +238,17 @@ shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
   return(df)
 }
 
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{geyser:}
+#'  Plots indexed pairs based on the within-group
+#'  log-ratio variance (VLR) for each group. Pairs near the
+#'  origin show a highly proportional relationship in
+#'  both groups. Each line away from the \code{y = x} line
+#'  indicates a doubling of VLR compared to the other group.
+#'  All pairs colored based on PAL
+#'  (see: \code{\link{pals}}).
+#'  See \code{gemini}.
 #' @export
 geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
@@ -232,7 +287,17 @@ geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
   return(g)
 }
 
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{bowtie:}
+#'  Plots indexed pairs based on the log-ratio means
+#'  (LRM), relative to its PAL, for each group. Pairs near
+#'  the origin show comparable LRM, relative to its PAL, in
+#'  both groups. Each line away from the \code{y = x} line
+#'  indicates a doubling of LRM compared to the other group.
+#'  All pairs colored based on PAL
+#'  (see: \code{\link{pals}}).
+#'  See \code{gemini}.
 #' @export
 bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
@@ -271,7 +336,20 @@ bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
   return(g)
 }
 
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{gemini:}
+#'  Plots indexed pairs based on the log-fold difference
+#'  in log-ratio variance (VLR) between the two groups
+#'  versus the difference in log-ratio means (LRM). In this
+#'  figure, the LRM for each group is signed (i.e., positive
+#'  or negative) such that the PAL is the denominator
+#'  of the log-ratio. This allows for a fluid comparison
+#'  between pairs within the same PAL module. Pairs with a
+#'  "Bridged" or "Missing" PAL get excluded from this graph.
+#'  Remember that an increase in VLR suggests less
+#'  proportionality. All pairs colored based on PAL
+#'  (see: \code{\link{pals}}).
 #' @export
 gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
@@ -307,7 +385,13 @@ gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
   return(g)
 }
 
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{slice:}
+#'  Plots log-ratio counts relative to a \code{reference}
+#'  node for all pairs that include the reference itself.
+#'  This makes a useful adjunct function to visualize how
+#'  features vary across samples relative to a PAL.
 #' @export
 slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALSE){
 
@@ -367,7 +451,12 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
   return(g)
 }
 
-#' @rdname propd
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{decomposed:}
+#'  Plots the decomposition of log-ratio variance into
+#'  (weighted) group variances and between-group variance.
+#'  Useful for visualizing how a theta type selects pairs.
 #' @export
 decomposed <- function(object, cutoff = 1000, prompt = TRUE){
 
