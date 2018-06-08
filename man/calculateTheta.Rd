@@ -31,7 +31,8 @@ theta using \code{limma::voom} weights.}
 weights. Optional parameter.}
 }
 \value{
-A \code{data.frame} of \code{theta} values.
+A data.frame of theta values if \code{only = "all"}.
+ Otherwise, this function returns a numeric vector.
 }
 \description{
 Calculate differential proportionality measure, theta.

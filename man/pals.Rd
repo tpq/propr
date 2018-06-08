@@ -7,9 +7,12 @@
 pals(object, k)
 }
 \arguments{
-\item{object}{A \code{propd} object.}
+\item{object}{A \code{propr} or \code{propd} object.}
 
-\item{k}{An integer. The maximum number of PALs to index
+\item{k}{An integer. For \code{propr} methods, the number
+of co-clusters (where all pairs receive a specified color
+if and only if both members belong to same the cluster).
+For \code{propd} methods, the maximum number of PALs to index
 when calculating \code{\link{pals}} in the network.}
 }
 \value{
