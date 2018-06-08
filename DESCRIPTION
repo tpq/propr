@@ -41,7 +41,6 @@ Suggests:
     compositions,
     data.table,
     datasets,
-    directlabels,
     grid,
     ggdendro,
     knitr,

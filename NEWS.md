@@ -1,3 +1,31 @@
+## propr 3.5.1.9000
+---------------------
+* Update `propr` object backend and API
+    * Heavily revise documentation to harmonize `propd` with `propr`
+    * Create `propr` function to replace `perb`, `phit`, and `phis`
+    * Add `@propr` slot for storing proportionality half-matrix
+    * Add `@permutes` slot for storing reproducible permutations
+    * Add `@fdr` slot for storing FDR results
+    * Add `alpha` argument
+        * Adjusts alpha-based VLR by var[(component^alpha - reference^alpha)/alpha]
+        * Saves `alpha` to `@alpha` and alpha-based counts to `@logratio`
+        * Note this is not yet technically equivalent to `propd` method
+    * [Add `updateCutoffs` function to permute FDR for proportionality]
+    * Update `subset` and `[` to disable `@propr` and `@permutes`
+* Update `propd` object backend and API
+    * Heavily revise documentation to harmonize `propd` with `propr`
+    * Fix bug where zeros still get replaced for `lrm` calculation
+    * The `updateCutoffs` function is now an S4 method
+* Update `aldex2propr` method
+    * Update `aldex2propr` and `[` to disable `@propr` and `@permutes`
+* Remove methods
+    * Remove `differentialCheck`
+    * Remove `prop2prob`
+    * Remove `abstract`
+    * Remove `initialize`
+    * Remove `adjacent`
+* [Revise vignettes]
+
 ## propr 3.5.1
 ---------------------
 * Update CITATION file and README
