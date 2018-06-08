@@ -31,15 +31,16 @@
 #'  could otherwise change the proportionality measure.
 #'
 #' @param aldex.clr An \code{aldex.clr} object.
-#' @param how A character string. The proportionality method
-#'  used to build the \code{propr} object. For example,
-#'  "perb" returns an estimation of rho while "phit" returns
-#'  an estimation of phi.
-#' @param select See \code{\link{proportionality}}.
+#' @param how A character string. The proportionality metric
+#'  used to build the \code{propr} object. Choose from
+#'  "rho", "phi", or "phs".
+#' @param select Optional. Use this to subset the final
+#'  proportionality matrix without altering the result.
+#'
 #' @return Returns a \code{propr} object.
 #'
 #' @export
-aldex2propr <- function(aldex.clr, how = "perb", select){
+aldex2propr <- function(aldex.clr, how = "rho", select){
 
   packageCheck("ALDEx2")
 
@@ -101,9 +102,15 @@ aldex2propr <- function(aldex.clr, how = "perb", select){
   }
 
   propr <- new("propr")
-  propr@counts <- counts
-  propr@logratio <- logratio / k
+  propr@counts <- as.data.frame(counts)
+  propr@logratio <- as.data.frame(logratio) / k
   propr@matrix <- prop / k
+
+  message("Alert: Using 'aldex2propr' is not compatible the @propr table.")
+  propr@propr <- data.frame()
+
+  message("Alert: Using 'aldex2propr' disables permutation testing.")
+  propr@permutes <- list(NULL)
 
   return(propr)
 }
