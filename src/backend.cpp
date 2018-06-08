@@ -1,8 +1,24 @@
 #include <Rcpp.h>
 #include <math.h>
 #include "backend.h"
-
 using namespace Rcpp;
+
+// Calculate weighted mean
+// [[Rcpp::export]]
+double wtmRcpp(NumericVector x,
+               NumericVector w){
+
+  return sum(x * w) / sum(w);
+}
+
+// Calculate weighted var
+// [[Rcpp::export]]
+double wtvRcpp(NumericVector x,
+               NumericVector w){
+
+  double xbar = wtmRcpp(x, w);
+  return sum(w * pow(x - xbar, 2)) * (sum(w) / (pow(sum(w), 2) - sum(pow(w, 2))));
+}
 
 // Function for centering matrix (via: correlateR package)
 NumericMatrix centerNumericMatrix(NumericMatrix & X){

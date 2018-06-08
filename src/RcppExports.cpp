@@ -5,6 +5,30 @@
 
 using namespace Rcpp;
 
+// wtmRcpp
+double wtmRcpp(NumericVector x, NumericVector w);
+RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(wtmRcpp(x, w));
+    return rcpp_result_gen;
+END_RCPP
+}
+// wtvRcpp
+double wtvRcpp(NumericVector x, NumericVector w);
+RcppExport SEXP _propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(wtvRcpp(x, w));
+    return rcpp_result_gen;
+END_RCPP
+}
 // corRcpp
 NumericMatrix corRcpp(NumericMatrix& X);
 RcppExport SEXP _propr_corRcpp(SEXP XSEXP) {
@@ -203,6 +227,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ctzRcpp
+NumericVector ctzRcpp(NumericMatrix& X);
+RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(ctzRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // count_if
 int count_if(LogicalVector x);
 RcppExport SEXP _propr_count_if(SEXP xSEXP) {
@@ -270,41 +305,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// ctzRcpp
-NumericVector ctzRcpp(NumericMatrix& X);
-RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(ctzRcpp(X));
-    return rcpp_result_gen;
-END_RCPP
-}
-// wtmRcpp
-double wtmRcpp(NumericVector x, NumericVector w);
-RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
-    rcpp_result_gen = Rcpp::wrap(wtmRcpp(x, w));
-    return rcpp_result_gen;
-END_RCPP
-}
-// wtvRcpp
-double wtvRcpp(NumericVector x, NumericVector w);
-RcppExport SEXP _propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
-    rcpp_result_gen = Rcpp::wrap(wtvRcpp(x, w));
-    return rcpp_result_gen;
-END_RCPP
-}
 // lrm
 NumericVector lrm(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a, NumericMatrix Yfull, NumericMatrix Wfull);
 RcppExport SEXP _propr_lrm(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP, SEXP YfullSEXP, SEXP WfullSEXP) {
@@ -351,6 +351,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 2},
+    {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 2},
     {"_propr_corRcpp", (DL_FUNC) &_propr_corRcpp, 1},
     {"_propr_covRcpp", (DL_FUNC) &_propr_covRcpp, 2},
     {"_propr_vlrRcpp", (DL_FUNC) &_propr_vlrRcpp, 1},
@@ -368,15 +370,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
     {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
     {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
+    {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
     {"_propr_count_if", (DL_FUNC) &_propr_count_if, 1},
     {"_propr_pairmutate", (DL_FUNC) &_propr_pairmutate, 2},
     {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
     {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
     {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},
     {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 1},
-    {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
-    {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 2},
-    {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 2},
     {"_propr_lrm", (DL_FUNC) &_propr_lrm, 6},
     {"_propr_lrv", (DL_FUNC) &_propr_lrv, 6},
     {"_propr_omega", (DL_FUNC) &_propr_omega, 2},

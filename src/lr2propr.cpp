@@ -1,7 +1,6 @@
 #include <Rcpp.h>
 #include <math.h>
 #include "backend.h"
-
 using namespace Rcpp;
 
 // Function for vlr
