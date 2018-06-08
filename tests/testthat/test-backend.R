@@ -101,17 +101,17 @@ rho <- perb(X)
 test_that("Rcpp backend does not distort phit or perb results", {
 
   expect_equivalent(
-    phi@logratio,
+    as.matrix(phi@logratio),
     propr:::clrRcpp(X)
   )
 
   expect_equivalent(
-    phi@logratio,
+    as.matrix(phi@logratio),
     X
   )
 
   expect_equivalent(
-    rho@logratio,
+    as.matrix(rho@logratio),
     X
   )
 

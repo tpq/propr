@@ -45,8 +45,8 @@ test_that("calculating rho from perb matches propr:::proprPerb", {
 test_that("perb accepts ivar name or index", {
 
   expect_equal(
-    perb(X, 2),
-    perb(X, "b")
+    perb(X, 2)@matrix,
+    perb(X, "b")@matrix
   )
 })
 

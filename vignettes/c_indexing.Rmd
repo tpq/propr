@@ -198,7 +198,7 @@ r_cutoff <- tanh(z_cutoff)
 r_cutoff
 ```
 
-To visualize how $r_{cutoff}$ relates to the sample size, $N$, and total number of features, $D$, we build a contour map. This will tell us the correlation coefficient (and, by proxy, the proportionality coefficient) needed to reach Bonferroni-adjusted significance.
+To visualize how $r_{cutoff}$ relates to the sample size, $N$, and total number of features, $D$, we build a contour map. This will tell us the correlation coefficient (and, by proxy, the proportionality coefficient) needed to reach Bonferroni-adjusted significance. The lowest band begins at 0.95 and decreases in 0.05 increments.
 
 ```{r, dpi = 66}
 result <- NULL
@@ -215,8 +215,7 @@ knitr::kable(head(result))
 
 ```{r, dpi = 66}
 library(ggplot2)
-library(directlabels)
-g <- ggplot(result, aes(x = D, y = N)) + stat_contour(binwidth = .05,
+ggplot(result, aes(x = D, y = N)) + stat_contour(binwidth = .05,
                                                       aes(z = r_cutoff,
                                                           colour = ..level..)) +
   theme_bw() + scale_colour_gradientn(colours = c("black",
@@ -225,7 +224,6 @@ g <- ggplot(result, aes(x = D, y = N)) + stat_contour(binwidth = .05,
                                       limits = c(0, 1)) +
   scale_y_continuous(breaks = 4*seq(1, 32)) +
   scale_x_continuous(breaks = 2^(c(0, 12, 14, 15, 16)))
-direct.label(g, method = "top.pieces")
 ```
 
 We believe this figure provides a useful "rule of thumb" for selecting a reliable cutoff for the proportionality coefficient, $\rho$. We acknowledge, however, that using $r_{cutoff}$ might lead to slightly inflated false discovery rates (i.e., above $\alpha$) due to the fact that $\rho$ does not predict absolute correlation coefficients with exactly 100% precision. We therefore recommend users interpret results cautiously, choosing larger (and therefore more conservative) cutoffs whenever possible.

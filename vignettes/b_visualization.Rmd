@@ -29,8 +29,8 @@ data(caneToad.groups)
 data(top.counts)
 data(top.lr)
 best <- new("propr")
-best@counts <- top.counts
-best@logratio <- top.lr
+best@counts <- as.data.frame(top.counts)
+best@logratio <- as.data.frame(top.lr)
 best@matrix <- propr:::lr2rho(top.lr)
 best <- best[">", .995]
 ```
