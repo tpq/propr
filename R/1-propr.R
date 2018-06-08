@@ -1,198 +1,278 @@
-#' Calculate Proportionality
+#' The propr Package
 #'
 #' @description
-#' Let D represent any number of features measured across N biological replicates
-#' 	exposed to a binary or continuous event E. For example, E could indicate case-control
-#' 	status, treatment status, treatment dose, or time. This function converts a "count matrix"
-#' 	with N rows and D columns into a proportionality matrix of D rows and D columns.
+#' Welcome to the \code{propr} package!
 #'
-#' For phi, the result of \code{phit}, one can think of the resultant matrix as
+#' To learn more about calculating proportionality, see
+#'  Details.
+#'
+#' To learn more about visualizing proportionality, see
+#'  \code{\link{visualize}}.
+#'
+#' To learn more about \code{ALDEx2} package integration, see
+#'  \code{\link{aldex2propr}}.
+#'
+#' To learn more about differential proportionality, see
+#'  \code{\link{propd}}.
+#'
+#' To learn more about compositional data analysis, and its relevance
+#'  to biological count data, see the bundled vignette.
+#'
+#' @details
+#' Let D represent a number of features measured across N samples.
+#' 	This function calculates proportionality from
+#' 	a data set with N rows and D columns.
+#'  One can think of phi as
 #' 	analogous to a distance matrix, except that it has no symmetry unless forced.
-#' 	For rho, the result of \code{perb}, one can think of the resultant matrix as
+#' 	One can think of rho as
 #' 	analogous to a correlation matrix.
-#' 	For phs, the result of \code{phis}, one can think of the resultant matrix as
+#' 	One can think of phs as
 #' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
-#' 	Another function, \code{corr}, calculates Pearsons' correlation using
-#' 	log-ratio transformed data.
+#' 	Also, one can use \code{corr}
+#' 	to calculate correlation from log-ratio transformed data.
 #'
-#' These methods all use the centered log-ratio transformation by default,
-#'  but will use an additive log-ratio transformation instead if a scalar
-#'  \code{ivar} is provided. When using an additive log-ratio transformation,
-#'  this function will return \code{rho = 0} for the column and row in the
-#'  \code{@@matrix} slot that would contain the reference feature.
-#'  Setting \code{ivar} to a numeric or character vector will transform
-#'  data using the geometric mean of only the indexed features.
-#'  Alternatively, setting \code{ivar} to "iqlr" will transform data using
-#'  the geometric mean of only the features with variances that fall in
-#'  the inter-quartile range of all per-feature variances. We base this
-#'  "iqlr" transformation on the \code{ALDEx2} package.
+#' This function depends on a reference and uses the centered log-ratio
+#'  transformation by default. The user may also specify any number of
+#'  features (by index or name) to use as a reference instead.
+#'  Alternatively, \code{ivar = "iqlr"} will transform data using the
+#'  geometric mean of features with variances that fall in the
+#'  inter-quartile range of all per-feature variances (based on
+#'  the \code{ALDEx2} package).
 #'
-#' Log-ratio transformation, by its nature, fails if the input data
-#'  contain any zero values. To avoid an error in this case, these
-#'  methods automatically replace all zero values with 1. However,
-#'  the topic of zero replacement is controversial. Proceed carefully
-#'  when analyzing data that contain any zero values.
+#' The \code{propr} method calculates proportionality. This fails in
+#'  the setting of zero counts. The \code{propr} method
+#'  will use a Box-Cox transformation to approximate VLR based on
+#'  the parameter \eqn{\alpha}, if provided. We refer the user to
+#'  the vignette for more details.
 #'
-#' The \code{select} argument subsets the feature matrix
-#'  after log-ratio transformation but before calculating
-#'  proportionality. This reduces the run-time and RAM
-#'  overhead without impacting the final result. Removing
-#'  lowly abundant features prior to log-ratio transformation
-#'  could otherwise change the proportionality measure.
+#' @slot counts A data.frame. Stores the original "count matrix" input.
+#' @slot alpha A double. Stores the alpha value used for transformation.
+#' @slot logratio A data.frame. Stores the transformed "count matrix".
+#' @slot matrix A matrix. Stores the proportionality matrix.
+#' @slot pairs A vector. Indexes the proportional pairs of interest.
+#' @slot propr A data.frame. Stores the pairwise \code{propr} measurements.
+#' @slot permutes A list. Stores the shuffled transformed "count matrix"
+#'  instances, used to reproduce permutations of \code{propr}.
+#' @slot fdr A data.frame. Stores the FDR cutoffs for \code{propr}.
 #'
-#' @param counts A data.frame or matrix. A "count matrix" with
-#'  subjects as rows and features as columns.
-#' @param symmetrize A logical. If \code{TRUE}, forces symmetry
-#'  by reflecting the "lower left triangle".
-#' @param ivar A numeric scalar. Specifies reference feature(s)
-#'  for additive log-ratio transformation. The argument will also
-#'  accept feature name(s) instead of the index position(s).
-#'  Set to "iqlr" to use inter-quartile log-ratio transformation.
-#'  Ignore to use centered log-ratio transformation.
-#' @param select Subsets via \code{object@counts[, select]}.
-#'  Optional. Use this argument to subset the proportionality
-#'  matrix before building without altering the final result.
-#' @param .Object Missing. Ignore. Leftover from the generic
-#'  method definition.
-#'
+#' @inheritParams all
 #' @return Returns a \code{propr} object.
 #'
-#' @examples
-#' library(propr)
-#' data(mail)
-#' phi <- phit(mail)
-#' rho <- perb(mail)
-#' phs <- phis(mail)
-#' @name proportionality
+#' @name propr
+#' @useDynLib propr, .registration = TRUE
+#' @importFrom methods show new
+#' @importFrom Rcpp sourceCpp
 NULL
 
-#' Build Index from ivar Argument
-#'
-#' This function builds an index from the \code{ivar} argument. Used by
-#'  the \code{propr} initialize method and \code{updateF}.
-#'
-#' @inheritParams proportionality
-ivar2index <- function(counts, ivar){
+#' @rdname propr
+#' @export
+setClass("propr",
+         slots = c(
+           counts = "data.frame",
+           alpha = "numeric",
+           logratio = "data.frame",
+           matrix = "matrix",
+           pairs = "numeric",
+           propr = "data.frame",
+           permutes = "list",
+           fdr = "data.frame"
+         )
+)
 
-  if(missing(ivar)) ivar <- 0
-  if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
-  `%is%` <- function(a, b) identical(a, b)
-  if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
+#' @rdname propr
+#' @section Methods (by generic):
+#' \code{show:} Method to show \code{propr} object.
+#' @export
+setMethod("show", "propr",
+          function(object){
 
-    use <- 1:ncol(counts) # use all features for geometric mean
+            cat("Not weighted", "and",
+                ifelse(is.na(object@alpha), "not alpha-transformed", "alpha-transformed"), "\n")
 
-  }else if(ivar %is% "iqlr"){
+            cat("@counts summary:",
+                nrow(object@counts), "subjects by", ncol(object@counts), "features\n")
 
-    counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
-    counts.var <- apply(counts.clr, 1, var)
-    quart <- stats::quantile(counts.var) # use features with unextreme variance
-    use <- which(counts.var < quart[4] & counts.var > quart[2])
+            cat("@logratio summary:",
+                nrow(object@logratio), "subjects by", ncol(object@logratio), "features\n")
 
-  }else{
+            cat("@matrix summary:",
+                nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
 
-    if(is.character(ivar)){
-      if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
-      use <- which(colnames(counts) %in% ivar) # use features given by name
-    }else{
-      use <- sort(ivar) # use features given by number
-    }
-  }
+            if(length(object@pairs) > 0 | nrow(object@matrix) == 0){
 
-  return(use)
-}
+              cat("@pairs summary:", length(object@pairs), "feature pairs\n")
 
-#' @rdname proportionality
-setMethod("initialize", "propr",
-          function(.Object, counts, ivar, select){
+            }else{
 
-            # Retain backwards-compatibility
-            if(missing(counts)){
-              return(.Object)
+              cat("@pairs summary: index with `[` method\n")
             }
 
-            # Quality control check input
-            # if(any(apply(counts, 2, function(x) all(x == 0)))){
-            #   stop("Remove components with all zeros before proceeding.")}
-            if(any(counts < 0)) stop("Data may not contain negative measurements.")
-            if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
-            if(class(counts) == "data.frame") counts <- as.matrix(counts)
-            if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
-            if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
+            cat("@fdr summary:",
+                ncol(object@permutes), "iterations\n")
 
-            # Replace zeros if needed
-            if(any(0 == counts)){
-              message("Alert: Replacing 0s in \"count matrix\" with 1.")
-              counts[counts == 0] <- 1
+            if(nrow(object@fdr) > 0){
+              print(object@fdr)
             }
 
-            # Get feature set to use in g(x) calculation
-            use <- ivar2index(counts, ivar)
-
-            # Use g(x) to log-ratio transform data
-            logX <- log(counts)
-            logSet <- logX[, use, drop = FALSE]
-            lr <- sweep(logX, 1, rowMeans(logSet), "-")
-
-            # Subset data after transformation
-            if(!missing(select)){
-
-              # Make select boolean (it's OK if it's integer)
-              if(!is.vector(select)) stop("Provide 'select' as vector.")
-              if(is.character(select)) select <- match(select, colnames(counts))
-              if(any(is.na(select))) stop("Some 'select' not in data.")
-              counts <- counts[, select]
-              lr <- lr[, select]
-            }
-
-            .Object@counts <- as.matrix(counts)
-            .Object@logratio <- lr
-            .Object@pairs <- vector("numeric")
-
-            return(.Object)
+            cat("See ?propr for object methods\n")
           }
 )
 
-#' @rdname proportionality
+#' @rdname propr
 #' @export
-phit <- function(counts, ivar = 0, select, symmetrize = TRUE){
+propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", select, symmetrize = FALSE, alpha, p = 100){
 
-  prop <- new("propr", counts = counts, ivar = ivar, select = select)
-  prop@matrix <- lr2phi(prop@logratio)
-  if(symmetrize) symRcpp(prop@matrix)
-  colnames(prop@matrix) <- colnames(prop@logratio)
-  rownames(prop@matrix) <- colnames(prop@logratio)
-  return(prop)
+  # Clean "count matrix"
+  # if(any(apply(counts, 2, function(x) all(x == 0)))){
+  #   stop("Remove components with all zeros before proceeding.")}
+  if(any(counts < 0)) stop("Data may not contain negative measurements.")
+  if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
+  if(class(counts) == "data.frame") counts <- as.matrix(counts)
+  if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
+  if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
+  if(missing(alpha)){ alpha <- NA
+  }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
+  ct <- counts
+
+  # Replace zeros unless alpha is provided
+  if(any(as.matrix(counts) == 0) & is.na(alpha)){
+    message("Alert: Replacing 0s in \"count matrix\" with 1.")
+    ct[ct == 0] <- 1
+  }
+
+  # Establish reference
+  use <- ivar2index(ct, ivar)
+
+  # Transform counts based on reference
+  if(is.na(alpha)){
+
+    # Use g(x) = Mean[log(x)] to log-ratio transform data
+    message("Alert: Saving log-ratio transformed counts to @logratio.")
+    logX <- log(ct)
+    logSet <- logX[, use, drop = FALSE]
+    ref <- rowMeans(logSet)
+    lr <- sweep(logX, 1, ref, "-")
+
+  }else{
+
+    # Since y = log(x) = [x^a-1]/a, ref = Mean[log(x)] = Mean[y]
+    # Calculate log(x/ref) = log(x) - log(ref) = [x^a-1]/a - [ref^a-1]/a
+    message("Alert: Saving alpha transformed counts to @logratio.")
+    aX <- (ct^alpha - 1) / alpha
+    aSet <- aX[, use, drop = FALSE]
+    ref <- rowMeans(aX)
+    lr <- sweep(aX, 1, ref, "-")
+  }
+
+  # Optionally apply select for performance gain
+  if(!missing(select)){
+
+    message("Alert: Using 'select' disables permutation testing.")
+    p <- 0
+
+    # Make select boolean (it's OK if it's integer)
+    if(!is.vector(select)) stop("Provide 'select' as vector.")
+    if(is.character(select)) select <- match(select, colnames(counts))
+    if(any(is.na(select))) stop("Some 'select' not in data.")
+    ct <- ct[, select]
+    lr <- lr[, select]
+  }
+
+  # Calculate proportionality
+  lrv <- lr2vlr(lr)
+  metric <- metric[1]
+  if(metric == "rho"){
+    mat <- lr2rho(lr)
+  }else if(metric == "phi"){
+    mat <- lr2phi(lr)
+    if(symmetrize) symRcpp(mat) # optionally force symmetry
+  }else if(metric == "phs"){
+    mat <- lr2phs(lr)
+  }else if(metric == "cor"){
+    mat <- stats::cor(lr)
+  }else{
+    stop("Provided 'metric' not recognized.")
+  }
+
+  # Build propr object
+  result <- new("propr")
+  result@counts <- as.data.frame(ct)
+  if(!missing(alpha)){ result@alpha <- as.numeric(alpha)
+  }else{ result@alpha <- as.numeric(NA) }
+  result@logratio <- as.data.frame(lr)
+  result@pairs <- vector("numeric")
+
+  # Clean row and column names
+  result@matrix <- mat
+  colnames(result@matrix) <- colnames(result@logratio)
+  rownames(result@matrix) <- colnames(result@logratio)
+
+  # Set up @permutes
+  result@permutes <- list(NULL)
+  if(p > 0){
+    # Sample compositions so that the clr does not change
+    message("Alert: Fixing permutations to active random seed.")
+    permutes <- vector("list", p)
+    for(ins in 1:length(permutes)) permutes[[ins]] <- apply(ct, 1, sample)
+    result@permutes <- permutes
+  }
+
+  # Set up @propr
+  labels <- labRcpp(ncol(lr))
+  result@propr <-
+    data.frame(
+      "Partner" = labels[[1]],
+      "Pair" = labels[[2]],
+      "lrv" = lltRcpp(lrv),
+      "metric" = factor(metric),
+      "alpha" = factor(alpha),
+      "propr" = lltRcpp(mat)
+    )
+
+  # Initialize @theta -- Tally frequency of 0 counts
+  if(any(as.matrix(counts) == 0)){
+    message("Alert: Tabulating the presence of 0 counts.")
+    result@propr$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
+  }
+
+  message("Alert: Use '[' to index proportionality matrix.")
+  message("Alert: Use 'updateCutoffs' to calculate FDR.")
+
+  return(result)
 }
 
-#' @rdname proportionality
+#' @rdname propr
+#' @section Functions:
+#' \code{phit:}
+#'  A wrapper for \code{propr(counts, metric = "phi", ...)}.
 #' @export
-perb <- function(counts, ivar = 0, select){
-
-  prop <- new("propr", counts = counts, ivar = ivar, select = select)
-  prop@matrix <- lr2rho(prop@logratio)
-  colnames(prop@matrix) <- colnames(prop@logratio)
-  rownames(prop@matrix) <- colnames(prop@logratio)
-  return(prop)
+phit <- function(counts, ...){
+  propr(counts, metric = "phi", ...)
 }
 
-#' @rdname proportionality
+#' @rdname propr
+#' @section Functions:
+#' \code{perb:}
+#'  A wrapper for \code{propr(counts, metric = "rho", ...)}.
 #' @export
-phis <- function(counts, ivar = 0, select){
-
-  prop <- new("propr", counts = counts, ivar = ivar, select = select)
-  prop@matrix <- lr2phs(prop@logratio)
-  colnames(prop@matrix) <- colnames(prop@logratio)
-  rownames(prop@matrix) <- colnames(prop@logratio)
-  return(prop)
+perb <- function(counts, ...){
+  propr(counts, metric = "rho", ...)
 }
 
-#' @rdname proportionality
+#' @rdname propr
+#' @section Functions:
+#' \code{phis:}
+#'  A wrapper for \code{propr(counts, metric = "phs", ...)}.
 #' @export
-corr <- function(counts, ivar = 0, select){
+phis <- function(counts, ...){
+  propr(counts, metric = "phs", ...)
+}
 
-  prop <- new("propr", counts = counts, ivar = ivar, select = select)
-  prop@matrix <- stats::cor(prop@logratio)
-  colnames(prop@matrix) <- colnames(prop@logratio)
-  rownames(prop@matrix) <- colnames(prop@logratio)
-  return(prop)
+#' @rdname propr
+#' @section Functions:
+#' \code{corr:}
+#'  A wrapper for \code{propr(counts, metric = "cor", ...)}.
+#' @export
+corr <- function(counts, ...){
+  propr(counts, metric = "cor", ...)
 }
