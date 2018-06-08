@@ -1,3 +1,30 @@
+#' Update FDR by Permutation
+#'
+#' This function updates FDR for a set of cutoffs.
+#'
+#' This function wraps \code{updateCutoffs.propr} and
+#'  \code{updateCutoffs.propd}.
+#'
+#' @inheritParams all
+#' @return A \code{propr} or \code{propd} object.
+#'
+#' @export
+updateCutoffs <- function(object, cutoff = seq(.05, .95, .3)){
+
+  if(class(object) == "propr"){
+
+    updateCutoffs.propr(object, cutoff)
+
+  }else if(class(object) == "propd"){
+
+    updateCutoffs.propd(object, cutoff)
+
+  }else{
+
+    stop("Provided 'object' not recognized.")
+  }
+}
+
 #' Recast Matrix as Feature Ratios
 #'
 #' The \code{ratios} function recasts a matrix with N feature columns
@@ -253,29 +280,6 @@ dendroCheck <- function(){
   packageCheck("reshape2")
   packageCheck("ggdendro")
   packageCheck("grid")
-}
-
-#' Differential Proportionality Check
-#'
-#' Performs data checks when comparing two \code{propr} objects,
-#'  triggering messages or errors when appropriate. For back-end
-#'  use only.
-#'
-#' @inheritParams prop2prob
-#' @param forceBoth Toggles whether to perform checks for the
-#'  second \code{propr} object.
-differentialCheck <- function(x, y, forceBoth){
-
-  packageCheck("data.table")
-  x <- suppressMessages(plotCheck(x, prompt = FALSE, plotly = FALSE, indexNaive = TRUE))
-
-  if(!missing(y) | forceBoth){
-
-    y <- suppressMessages(plotCheck(y, prompt = FALSE, plotly = FALSE, indexNaive = TRUE))
-    if(!identical(colnames(x@logratio), colnames(y@logratio))){
-      stop("Uh oh! Make sure both 'propr' objects have the same features.")
-    }
-  }
 }
 
 #' Feature Check
