@@ -5,13 +5,13 @@
     * Create `propr` function to replace `perb`, `phit`, and `phis`
     * Add `@propr` slot for storing proportionality half-matrix
     * Add `@permutes` slot for storing reproducible permutations
+    * Update `subset` and `[` to disable `@propr` and `@permutes`
     * Add `@fdr` slot for storing FDR results
     * Add `alpha` argument
         * Adjusts alpha-based VLR by var[(component^alpha - reference^alpha)/alpha]
         * Saves `alpha` to `@alpha` and alpha-based counts to `@logratio`
         * Note this is not yet technically equivalent to `propd` method
     * [Add `updateCutoffs` function to permute FDR for proportionality]
-    * Update `subset` and `[` to disable `@propr` and `@permutes`
 * Update `propd` object backend and API
     * Heavily revise documentation to harmonize `propd` with `propr`
     * Fix bug where zeros still get replaced for `lrm` calculation
