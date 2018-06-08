@@ -10,175 +10,34 @@
 #'  We define theta as the weighted sum of the within-group VLR
 #'  divided by the weighted total VLR.
 #'
-#' The \code{propd} method calculates theta. However, VLR fails in
+#' The \code{propd} method calculates theta. This fails in
 #'  the setting of zero counts. The \code{propd} method
 #'  will use a Box-Cox transformation to approximate VLR based on
-#'  the parameter \eqn{\alpha} if provided. We refer the user to
+#'  the parameter \eqn{\alpha}, if provided. We refer the user to
 #'  the vignette for more details.
 #'
 #' Note that Group 1 always refers to the first element of the
 #'  \code{group} vector argument supplied to \code{propd}.
 #'
-#' @details
-#' \code{setActive:}
-#'  Build analyses and figures using a specific theta type. For
-#'  example, set \code{what = "theta_d"} to analyze disjointed
-#'  proportionality and \code{what = "theta_e"} to analyze
-#'  emergent proportionality. These provide the same results as
-#'  \code{setDisjointed} and \code{setEmergent}, respectively.
-#'
-#' \code{updateCutoffs:}
-#'  Use the \code{propd} object to permute theta across a
-#'  number of theta cutoffs. Since the permutations get saved
-#'  when the object is created, calling \code{updateCutoffs}
-#'  will use the same random seed each time.
-#'
-#' \code{updateF:}
-#'  Use the \code{propd} object to calculate the F-statistic
-#'  from theta as described in the Erb et al. 2017 manuscript
-#'  on differential proportionality. Optionally calculates a
-#'  moderated F-statistic using the limma-voom method. Supports
-#'  weighted and alpha transformed theta values.
-#'
-#' \code{plot:}
-#'  Plots the interactions between pairs as a network.
-#'  When plotting disjointed proportionality, red edges
-#'  indicate that LRM1 > LRM2 while blue edges indicate
-#'  that LRM1 < LRM2. When plotting emergent proportionality,
-#'  red edges indicate that VLR1 < VLR2 while blue edges
-#'  indicate that VLR1 > VLR2. Group labels numbered based on
-#'  the order of the \code{group} argument to \code{propd}.
-#'  Use \code{col1} and \code{col2} arguments to color nodes.
-#'  For more control over the visualization of the network,
-#'  consider exporting the table from \code{shale} to a
-#'  network visualization tool like Cytoscape.
-#'
-#' \code{shale:}
-#'  Builds a table of within-group and total log-ratio
-#'  variances, log-ratio means, and PALs (see: \code{\link{pals}}).
-#'  If the argument \code{k} is provided, the table will
-#'  label at most \code{k} top PALs. Just as each node
-#'  gets assigned a PAL, \code{shale} aims to assign
-#'  each edge a PAL. Edges that have a top PAL as one
-#'  and only one of their nodes get assigned that PAL.
-#'  Edges that have top PALs as both of their nodes
-#'  get assigned "Bridged". Edges without a top PAL
-#'  as one of their nodes will get assigned a PAL if
-#'  either (a) both nodes have the same neighbor PAL
-#'  or (b) one node has a "Missing" neighbor PAL.
-#'  The \code{cutoff} argument guides the maximum value of
-#'  theta above which to exclude the pair. A large integer
-#'  \code{cutoff} will instead retrieve the top N pairs as
-#'  ranked by theta.
-#'
-#' \code{geyser:}
-#'  Plots indexed pairs based on the within-group
-#'  log-ratio variance (VLR) for each group. Pairs near the
-#'  origin show a highly proportional relationship in
-#'  both groups. Each line away from the \code{y = x} line
-#'  indicates a doubling of VLR compared to the other group.
-#'  All pairs colored based on PAL
-#'  (see: \code{\link{pals}}).
-#'  See \code{gemini}.
-#'
-#' \code{bowtie:}
-#'  Plots indexed pairs based on the log-ratio means
-#'  (LRM), relative to its PAL, for each group. Pairs near
-#'  the origin show comparable LRM, relative to its PAL, in
-#'  both groups. Each line away from the \code{y = x} line
-#'  indicates a doubling of LRM compared to the other group.
-#'  All pairs colored based on PAL
-#'  (see: \code{\link{pals}}).
-#'  See \code{gemini}.
-#'
-#' \code{gemini:}
-#'  Plots indexed pairs based on the log-fold difference
-#'  in log-ratio variance (VLR) between the two groups
-#'  versus the difference in log-ratio means (LRM). In this
-#'  figure, the LRM for each group is signed (i.e., positive
-#'  or negative) such that the PAL is the denominator
-#'  of the log-ratio. This allows for a fluid comparison
-#'  between pairs within the same PAL module. Pairs with a
-#'  "Bridged" or "Missing" PAL get excluded from this graph.
-#'  Remember that an increase in VLR suggests less
-#'  proportionality. All pairs colored based on PAL
-#'  (see: \code{\link{pals}}).
-#'
-#' \code{slice:}
-#'  Plots log-ratio counts relative to a \code{reference}
-#'  node for all pairs that include the reference itself.
-#'  This makes a useful adjunct function to visualize how
-#'  features vary across samples relative to a PAL.
-#'
-#' \code{decomposed:}
-#'  Plots the decomposition of log-ratio variance into
-#'  (weighted) group variances and between-group variance.
-#'  Useful for visualizing how a theta type selects pairs.
-#'
-#' \code{propd2propr:}
-#'  Transforms a \code{propd} object into a \code{propr} object
-#'  where the \code{@@matrix} slot contains \eqn{1 - \theta}.
-#'  Allows the user to interrogate theta using any
-#'  function described in \code{\link{visualize}}.
-#'
 #' @slot counts A data.frame. Stores the original "count matrix" input.
-#' @slot group A character vector. Stores the original group labels.
 #' @slot alpha A double. Stores the alpha value used for transformation.
+#' @slot group A character vector. Stores the original group labels.
 #' @slot weighted A logical. Stores whether the theta is weighted.
 #' @slot weights A matrix. If weighted, stores the limma-based weights.
 #' @slot active A character. Stores the name of the active theta type.
-#' @slot theta A data.frame. Stores the pairwise theta measurements.
 #' @slot Fivar ANY. Stores the reference used to moderate theta.
 #' @slot dfz A double. Stores the prior df used to moderate theta.
+#' @slot theta A data.frame. Stores the pairwise \code{propd} measurements.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
-#'  used to reproduce permutations of theta.
-#' @slot fdr A data.frame. Stores the FDR cutoffs for theta.
+#'  used to reproduce permutations of \code{propd}.
+#' @slot fdr A data.frame. Stores the FDR cutoffs for \code{propd}.
 #'
-#' @param object,x,propd A \code{propd} object.
-#' @param y Missing. Ignore. Leftover from the generic method
-#'  definition.
-#' @param counts A data.frame or matrix. A "count matrix" with
-#'  subjects as rows and features as columns.
-#' @param ivar A numeric scalar. Specifies reference feature(s)
-#'  for additive log-ratio transformation. The argument will also
-#'  accept feature name(s) instead of the index position(s).
-#'  Set to "iqlr" to use inter-quartile log-ratio transformation.
-#'  Ignore to use centered log-ratio transformation.
-#' @param what A character string. The theta type to set active.
-#' @param group A character vector. Group or sub-group memberships,
-#'  ordered according to the row names in \code{counts}.
-#' @param alpha A double. See vignette for details. Leave missing
-#'  to skip Box-Cox transformation.
-#' @param weighted A boolean. Toggles whether to calculate
-#'  theta using \code{limma::voom} weights.
-#' @param p An integer. The number of permutation cycles.
-#' @param cutoff For \code{updateCutoffs}, a numeric vector.
-#'  this argument provides the FDR cutoffs to test for theta.
-#'  For graph functions, a numeric scalar. This argument
-#'  indicates the maximum theta to include in the figure.
-#'  For graph functions, a large integer will instead
-#'  retrieve the top N pairs as ranked by theta.
-#' @param moderated For \code{updateF}, a boolean. Toggles
-#'  whether to calculate a moderated F-statistic.
-#' @param k An integer. The maximum number of PALs to index
-#'  when calculating \code{\link{pals}} in the network.
-#' @param reference A character string. A feature to use as the
-#'  denominator reference when comparing log-ratio abundances.
-#' @param propr An indexed \code{propr} object. Use to add
-#'  proportional edges (colored green) to a \code{propd} network.
-#' @param clean A boolean. Toggles whether to remove pairs
-#'  with "Bridged" or "Missing" PALs. Used by \code{geyser},
-#'  \code{bowtie}, and \code{gemini}.
-#' @param plotSkip A boolean. Toggles whether to build
-#'  the network graph without plotting it.
-#'  Used by \code{\link{pals}}.
-#' @inheritParams visualize
+#' @inheritParams all
+#' @return Returns a \code{propr} object.
 #'
 #' @name propd
-#' @importFrom Rcpp sourceCpp
 #' @importFrom methods show new
-#' @importFrom stats var pf
-#' @importFrom utils head
+#' @importFrom Rcpp sourceCpp
 NULL
 
 #' @rdname propd
@@ -186,14 +45,14 @@ NULL
 setClass("propd",
          slots = c(
            counts = "data.frame",
-           group = "character",
            alpha = "numeric",
+           group = "character",
            weighted = "logical",
            weights = "matrix",
            active = "character",
-           theta = "data.frame",
            Fivar = "ANY",
            dfz = "numeric",
+           theta = "data.frame",
            permutes = "data.frame",
            fdr = "data.frame"
          )
@@ -276,7 +135,9 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   }else{ result@alpha <- as.numeric(NA) }
 
   # Initialize @permutes
+  result@permutes <- data.frame()
   if(p > 0){
+    message("Alert: Fixing permutations to active random seed.")
     permutes <- as.data.frame(matrix(0, nrow = nrow(ct), ncol = p))
     for(col in 1:ncol(permutes)) permutes[, col] <- sample(1:nrow(ct))
     result@permutes <- permutes
@@ -310,15 +171,12 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 }
 
 #' @rdname propd
-#' @export
-propd2propr <- function(object, ivar){
-
-  prop <- new("propr", object@counts, ivar)
-  prop@matrix <- 1 - half2mat(object@theta$theta)
-  return(prop)
-}
-
-#' @rdname propd
+#' @section Functions:
+#' \code{setActive:}
+#'  Build analyses and figures using a specific theta type. For
+#'  example, set \code{what = "theta_d"} to analyze disjointed
+#'  proportionality and \code{what = "theta_e"} to analyze
+#'  emergent proportionality.
 #' @export
 setActive <- function(propd, what = "theta_d"){
 
@@ -342,15 +200,19 @@ setActive <- function(propd, what = "theta_d"){
 }
 
 #' @rdname propd
+#' @section Functions:
+#' \code{setDisjointed:}
+#'  A wrapper for \code{setActive(propd, what = "theta_d")}.
 #' @export
 setDisjointed <- function(propd){
-
   setActive(propd, what = "theta_d")
 }
 
 #' @rdname propd
+#' @section Functions:
+#' \code{setEmergent:}
+#'  A wrapper for \code{setActive(propd, what = "theta_e")}.
 #' @export
 setEmergent <- function(propd){
-
   setActive(propd, what = "theta_e")
 }
