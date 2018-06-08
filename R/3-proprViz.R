@@ -1,116 +1,31 @@
 #' Visualize Proportionality
 #'
-#' @description
-#' \code{smear:}
-#'  Plots log-ratio transformed abundances pairwise.
-#'  Index-aware, meaning that it only plots pairs indexed
-#'  in \code{@@pairs}, unless no pairs are indexed.
+#' Visualize proportionality and differential proportionality.
 #'
-#' \code{dendrogram:}
-#'  Plots a clustering of proportionality matrix.
-#'  Index-aware, meaning that it only plots pairs indexed
-#'  in \code{@@pairs}, unless no pairs are indexed.
-#'  Heatmap intensity is not scaled.
-#'
-#' \code{slate:}
-#'  Builds a table of VLR, VLS, and proportionality
-#'  for each feature pair in a \code{propr} object. If the
-#'  argument \code{k} is provided, the table will also
-#'  include co-cluster membership.
-#'
-#' \code{prism:}
-#'  Plots the variance of the ratio of the log-ratio transformed
-#'  feature pair (VLR) versus the sum of the individual variances
-#'  of each log-ratio transformed feature (VLS). The ratio of
-#'  the VLR to the VLS equals \code{1 - rho}. As such, we use
-#'  here seven rainbow colored lines to indicate where \code{rho}
-#'  equals \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going
-#'  from red to violet.
-#'
-#' \code{bokeh:}
-#'  Plots the feature variances for each log-ratio transformed
-#'  feature pair in the \code{propr} object. Highly proportional
-#'  pairs will aggregate near the \code{y = x} diagonal.
-#'  Clusters that appear toward the top-right of the
-#'  figure contain features with highly variable abundance across
-#'  all samples. Clusters that appear toward the
-#'  bottom-left of the figure contain features with fixed
-#'  abundance across all samples. Uses a log scale.
-#'
-#' \code{bucket:}
-#'  Plots an estimation of the degree to which a feature pair
-#'  differentiates the experimental groups versus the
-#'  measure of the proportionality between that feature pair.
-#'  The discrimination score is defined as the negative
-#'  log of the p-values for each feature in the pair,
-#'  computed independently using \code{kruskal.test}.
-#'  "It's pronounced, 'bouquet'." - Hyacinth Bucket
-#'
-#' \code{pca:}
-#'  Plots the first two principal components as calculated
-#'  using the log-ratio transformed feature vectors. This
-#'  provides a statistically valid alternative to
-#'  conventional principal components analysis (PCA).
-#'  For more information, see <DOI:10.1139/cjm-2015-0821>.
-#'
-#' \code{snapshot:}
-#'  Plots the log-ratio transformed feature abundance as
-#'  a heatmap, along with the respective dendrograms.
-#'  Heatmap intensity is not scaled.
-#'
-#' \code{cytescape:}
-#'  Builds a table of indexed pairs and their proportionality.
-#'  In doing so, this function displays a preview of the
-#'  interaction network, built using \code{igraph}.
-#'  We recommend using the result as input to a
-#'  network visualization tool like Cytoscape.
-#'
-#' @return
-#' \code{smear, pca:}
-#'  Returns a \code{ggplot} object.
-#'
-#' \code{dendrogram, snapshot:}
-#'  Returns a \code{dendrogram} object.
-#'
-#' \code{slate:}
-#'  Returns a \code{data.frame} of all pairwise relationships.
-#'  If the argument \code{k} is provided, returns a list of
-#'  the \code{data.frame} of pairwise relationships and the
-#'  cluster membership.
-#'
-#' \code{prism, bokeh, bucket:}
-#'  Returns cluster membership if \code{k} is provided.
-#'  Otherwise, returns a \code{ggplot} object.
-#'
-#' \code{cytescape:}
-#'  Returns a \code{data.frame} of indexed pairs.
-#'
-#' @param object,rho A \code{propr} object created from \code{perb}.
-#'  However, \code{smear}, \code{dendrogram}, and \code{cytescape} will
-#'  also accommodate results from \code{phit} and \code{phis}.
-#' @param group A character vector. Group or sub-group memberships,
-#'  ordered according to the row names in \code{@@counts} and
-#'  \code{@@logratio}. Required parameter for \code{bucket}
-#'  and optional parameter for \code{pca}.
-#' @param k A numeric scalar. The number of clusters. Optional
-#'  parameter for \code{bucket}, \code{prism}, and \code{bokeh}.
-#'  Providing the argument \code{k} will color feature pairs
-#'  by co-cluster membership. In other words, a feature pair
-#'  will receive a color if and only if both features belong
-#'  to same the cluster (calculated using \code{hclust}).
-#' @param prompt A logical scalar. Set to \code{FALSE} to disable
-#'  the courtesy prompt when working with big data.
-#' @param plotly A logical scalar. Set to \code{TRUE} to produce
-#'  a dynamic plot using the \code{plotly} package.
-#' @param col1,col2 A character vector. Specifies which nodes
-#'  to color \code{red} or \code{blue}, respectively.
-#' @param d3 A boolean. Use \code{rgl} to plot 3D network.
-#'
-#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test
+#' @inheritParams all
+#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test pf
 #' @name visualize
 NULL
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{plot:}
+#'  A wrapper for \code{smear(x, ...)}.
+#' @export
+setMethod("plot", signature(x = "propr", y = "missing"),
+          function(x, y, prompt = TRUE, plotly = FALSE){
+
+            smear(x, prompt = prompt, plotly = plotly)
+          }
+)
+
+#' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{smear:}
+#'  Plots log-ratio transformed abundances pairwise.
+#'  Index-aware, meaning that it only plots pairs indexed
+#'  in \code{@@pairs}, unless no pairs are indexed.
+#'  Returns a \code{ggplot} object.
 #' @export
 smear <- function(rho, prompt = TRUE, plotly = FALSE){
 
@@ -175,6 +90,13 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{dendrogram:}
+#'  Plots a clustering of the proportionality matrix.
+#'  Index-aware, meaning that it only plots pairs indexed
+#'  in \code{@@pairs}, unless no pairs are indexed.
+#'  Heatmap intensity is not scaled.
+#'  Returns a \code{dendrogram} object.
 #' @export
 dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
 
@@ -259,6 +181,16 @@ dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{slate:}
+#'  Builds a table of VLR, VLS, and proportionality
+#'  for each feature pair in a \code{propr} object. If the
+#'  argument \code{k} is provided, the table will also
+#'  include co-cluster membership.
+#'  Returns a \code{data.frame} of all pairwise relationships.
+#'  If the argument \code{k} is provided, returns a list of
+#'  the \code{data.frame} of pairwise relationships and the
+#'  cluster membership.
 #' @export
 slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
@@ -266,7 +198,7 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   # Calculate log-ratio transformed variances
   feat.each <- colnames(rho@logratio)
-  var.ratio <- vlrRcpp(rho@counts[])
+  var.ratio <- lr2vlr(as.matrix(rho@logratio))
   var.each <- apply(rho@logratio, 2, var)
 
   # Cluster if k is provided
@@ -325,6 +257,17 @@ slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{bucket:}
+#'  Plots an estimation of the degree to which a feature pair
+#'  differentiates the experimental groups versus the
+#'  measure of the proportionality between that feature pair.
+#'  The discrimination score is defined as the negative
+#'  log of the p-values for each feature in the pair,
+#'  computed independently using \code{kruskal.test}.
+#'  "It's pronounced, 'bouquet'." - Hyacinth Bucket
+#'  Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #' @export
 bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced bouquet
 
@@ -392,6 +335,17 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{prism:}
+#'  Plots the variance of the ratio of the log-ratio transformed
+#'  feature pair (VLR) versus the sum of the individual variances
+#'  of each log-ratio transformed feature (VLS). The ratio of
+#'  the VLR to the VLS equals \code{1 - rho}. As such, we use
+#'  here seven rainbow colored lines to indicate where \code{rho}
+#'  equals \code{[.01, .05, .50, 0, 1.50, 1.95, 1.99]}, going
+#'  from red to violet.
+#'  Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #' @export
 prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
@@ -443,6 +397,18 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{bokeh:}
+#'  Plots the feature variances for each log-ratio transformed
+#'  feature pair in the \code{propr} object. Highly proportional
+#'  pairs will aggregate near the \code{y = x} diagonal.
+#'  Clusters that appear toward the top-right of the
+#'  figure contain features with highly variable abundance across
+#'  all samples. Clusters that appear toward the
+#'  bottom-left of the figure contain features with fixed
+#'  abundance across all samples. Uses a log scale.
+#'  Returns cluster membership if \code{k} is provided.
+#'  Otherwise, returns a \code{ggplot} object.
 #' @export
 bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
@@ -492,7 +458,17 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
   return(g)
 }
 
-mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
+#' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{pca:}
+#'  Plots the first two principal components as calculated
+#'  using the log-ratio transformed feature vectors. This
+#'  provides a statistically valid alternative to
+#'  conventional principal components analysis (PCA).
+#'  For more information, see <DOI:10.1139/cjm-2015-0821>.
+#'  Returns a \code{ggplot} object.
+#' @export
+pca <- function(rho, group, prompt = TRUE, plotly = FALSE){
 
   rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = FALSE)
 
@@ -528,13 +504,12 @@ mds <- function(rho, group, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
-#' @export
-pca <- function(rho, group, prompt = TRUE, plotly = FALSE){
-
-  mds(rho, group = group, prompt = prompt, plotly = plotly)
-}
-
-#' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{snapshot:}
+#'  Plots the log-ratio transformed feature abundance as
+#'  a heatmap, along with the respective dendrograms.
+#'  Heatmap intensity is not scaled.
+#'  Returns a \code{dendrogram} object.
 #' @export
 snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 
@@ -581,6 +556,14 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
 }
 
 #' @rdname visualize
+#' @section \code{propr} Functions:
+#' \code{cytescape:}
+#'  Builds a table of indexed pairs and their proportionality.
+#'  In doing so, this function displays a preview of the
+#'  interaction network, built using \code{igraph}.
+#'  We recommend using the result as input to a
+#'  network visualization tool like Cytoscape.
+#'  Returns a \code{data.frame} of indexed pairs.
 #' @export
 cytescape <- function(object, col1, col2, prompt = TRUE, d3 = FALSE){
 
