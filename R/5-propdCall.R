@@ -5,7 +5,7 @@
 #'  slot. A numeric \code{alpha} argument will trigger
 #'  the Box-Cox transformation.
 #'
-#' @inheritParams propd
+#' @inheritParams all
 #' @param lrv A numeric vector. A vector of pre-computed
 #'  log-ratio variances. Optional parameter.
 #' @param only A character string. The name of the theta
@@ -13,7 +13,9 @@
 #'  Used to make \code{updateCutoffs} faster.
 #' @param weights A matrix. Pre-computed \code{limma}-based
 #'  weights. Optional parameter.
-#' @return A \code{data.frame} of \code{theta} values.
+#'
+#' @return A data.frame of theta values if \code{only = "all"}.
+#'  Otherwise, this function returns a numeric vector.
 #'
 #' @export
 calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
@@ -63,14 +65,8 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
   lrv1 <- lrv(ct[group1,], W[group1,], weighted, alpha, ct, W)
   lrv2 <- lrv(ct[group2,], W[group2,], weighted, alpha, ct, W)
 
-  # Calculate LRM (replacing 0s if alpha is used) -- LRM not affected by alpha
+  # Calculate LRM (using alpha-based LRM if appropriate)
   if(only == "all"){
-
-    if(any(ct == 0)){
-      if(firstpass) message("Alert: Replacing 0s to calculate LRM.")
-      ct[ct == 0] <- 1 # ct not used again in scope
-    }
-
     lrm1 <- lrm(ct[group1,], W[group1,], weighted, alpha, ct, W)
     lrm2 <- lrm(ct[group2,], W[group2,], weighted, alpha, ct, W)
   }
@@ -124,18 +120,26 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
 }
 
 #' @rdname propd
+#' @section Functions:
+#' \code{updateCutoffs:}
+#'  Use the \code{propd} object to permute theta across a
+#'  number of theta cutoffs. Since the permutations get saved
+#'  when the object is created, calling \code{updateCutoffs}
+#'  will use the same random seed each time.
 #' @export
-updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
+updateCutoffs.propd <- function(object, cutoff = seq(.05, .95, .3)){
+
+  if(identical(object@permutes, data.frame())) stop("Permutation testing is disabled.")
 
   # Let NA cutoff skip function
-  if(identical(cutoff, NA)) return(propd)
+  if(identical(cutoff, NA)) return(object)
 
   # Set up FDR cutoff table
   FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
   colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
   FDR$cutoff <- cutoff
-  p <- ncol(propd@permutes)
-  lrv <- propd@theta$lrv
+  p <- ncol(object@permutes)
+  lrv <- object@theta$lrv
 
   # Use calculateTheta to permute active theta
   for(k in 1:p){
@@ -143,25 +147,25 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
     numTicks <- progress(k, p, numTicks)
 
     # Tally k-th thetas that fall below each cutoff
-    shuffle <- propd@permutes[, k]
+    shuffle <- object@permutes[, k]
 
-    if(propd@active == "theta_mod"){
+    if(object@active == "theta_mod"){
 
-      # Calculate theta_mod with updateF (using i-th permuted propd)
-      if(is.na(propd@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+      # Calculate theta_mod with updateF (using i-th permuted object)
+      if(is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
       propdi <- suppressMessages(
-        propd(propd@counts[shuffle, ], group = propd@group, alpha = propd@alpha, p = 0,
-              weighted = propd@weighted))
+        propd(object@counts[shuffle, ], group = object@group, alpha = object@alpha, p = 0,
+              weighted = object@weighted))
       propdi <- suppressMessages(
-        updateF(propdi, moderated = TRUE, ivar = propd@Fivar))
+        updateF(propdi, moderated = TRUE, ivar = object@Fivar))
       pkt <- propdi@theta$theta_mod
 
     }else{
 
       # Calculate all other thetas directly (using calculateTheta)
       pkt <- suppressMessages(
-        calculateTheta(propd@counts[shuffle, ], propd@group, propd@alpha, lrv,
-                       only = propd@active, weighted = propd@weighted))
+        calculateTheta(object@counts[shuffle, ], object@group, object@alpha, lrv,
+                       only = object@active, weighted = object@weighted))
     }
 
     # Find number of permuted theta less than cutoff
@@ -173,17 +177,24 @@ updateCutoffs <- function(propd, cutoff = seq(.05, .95, .3)){
   # Calculate FDR based on real and permuted tallys
   FDR$randcounts <- FDR$randcounts / p # randcounts as mean
   for(cut in 1:nrow(FDR)){
-    FDR[cut, "truecounts"] <- sum(propd@theta$theta < FDR[cut, "cutoff"])
+    FDR[cut, "truecounts"] <- sum(object@theta$theta < FDR[cut, "cutoff"])
     FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
   }
 
   # Initialize @fdr
-  propd@fdr <- FDR
+  object@fdr <- FDR
 
-  return(propd)
+  return(object)
 }
 
 #' @rdname propd
+#' @section Functions:
+#' \code{updateF:}
+#'  Use the \code{propd} object to calculate the F-statistic
+#'  from theta as described in the Erb et al. 2017 manuscript
+#'  on differential proportionality. Optionally calculates a
+#'  moderated F-statistic using the limma-voom method. Supports
+#'  weighted and alpha transformed theta values.
 #' @export
 updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
