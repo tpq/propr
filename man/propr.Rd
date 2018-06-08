@@ -11,6 +11,7 @@
 \alias{phis}
 \alias{corr}
 \alias{subset,propr-method}
+\alias{[,propr,ANY,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{simplify}
 \alias{updateCutoffs.propr}
@@ -31,7 +32,7 @@ corr(counts, ...)
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr}(x, i = "all", j, tiny = FALSE)
+\S4method{[}{propr,ANY,ANY,ANY}(x, i = "all", j, tiny = FALSE)
 
 simplify(object)
 
