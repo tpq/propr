@@ -1,88 +1,40 @@
-#' The propr Package
+#' Build Index from ivar Argument
 #'
-#' @description
-#' Welcome to the \code{propr} package!
+#' This function builds an index from the \code{ivar} argument. Used by
+#'  the \code{propr} initialize method and \code{updateF}.
 #'
-#' To learn more about calculating proportionality, see
-#'  \code{\link{proportionality}}.
+#' @inheritParams all
+#' @return A numeric vector of indices for the reference set.
 #'
-#' To learn more about visualizing proportionality, see
-#'  \code{\link{visualize}}.
-#'
-#' To learn more about \code{ALDEx2} package integration, see
-#'  \code{\link{aldex2propr}}.
-#'
-#' To learn more about differential proportionality, see
-#'  \code{\link{propd}}.
-#'
-#' To learn more about compositional data analysis, and its relevance
-#'  to biological count data, see the bundled vignette.
-#'
-#' @slot counts A matrix. Stores the original "count matrix" input.
-#' @slot logratio A matrix. Stores the log-ratio transformed "count matrix".
-#' @slot matrix A matrix. Stores the proportionality matrix calculated by
-#'  \code{phiRcpp} or \code{rhoRcpp}.
-#' @slot pairs A vector. Indexes the proportionality metrics of interest.
-#'
-#' @param object,x An object of class \code{propr}.
-#' @param subset Subsets via \code{object@counts[subset, ]}.
-#'  Use this argument to rearrange subject order.
-#' @param select Subsets via \code{object@counts[, select]}.
-#'  Use this argument to rearrange feature order.
-#' @param i Operation used for the subset indexing. Select from
-#'  "==", "=", ">", ">=", "<", "<=", "!=", or "all".
-#' @param j Reference used for the subset indexing. Provide a numeric
-#'  value to which to compare the proportionality measures in the
-#'  \code{@@matrix} slot.
-#' @param tiny A logical scalar. Toggles whether to pass the indexed
-#'  result through \code{\link{simplify}}.
-#' @param y Missing. Ignore. Leftover from the generic
-#'  method definition.
-#' @inheritParams visualize
-#'
-#' @name propr
-#' @useDynLib propr, .registration = TRUE
-#' @importFrom methods show new
-#' @importFrom Rcpp sourceCpp
-NULL
-
-#' @rdname propr
 #' @export
-setClass("propr",
-         slots = c(
-           counts = "matrix",
-           logratio = "matrix",
-           matrix = "matrix",
-           pairs = "numeric"
-         )
-)
+ivar2index <- function(counts, ivar){
 
-#' @rdname propr
-#' @section Methods (by generic):
-#' \code{show:} Method to show \code{propr} object.
-#' @export
-setMethod("show", "propr",
-          function(object){
+  if(missing(ivar)) ivar <- 0
+  if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
+  `%is%` <- function(a, b) identical(a, b)
+  if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
 
-            cat("@counts summary:",
-                nrow(object@counts), "subjects by", ncol(object@counts), "features\n")
+    use <- 1:ncol(counts) # use all features for geometric mean
 
-            cat("@logratio summary:",
-                nrow(object@logratio), "subjects by", ncol(object@logratio), "features\n")
+  }else if(ivar %is% "iqlr"){
 
-            cat("@matrix summary:",
-                nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
+    counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
+    counts.var <- apply(counts.clr, 1, var)
+    quart <- stats::quantile(counts.var) # use features with unextreme variance
+    use <- which(counts.var < quart[4] & counts.var > quart[2])
 
-            if(length(object@pairs) > 0 | nrow(object@matrix) == 0){
+  }else{
 
-              cat("@pairs summary:", length(object@pairs), "feature pairs\n")
+    if(is.character(ivar)){
+      if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
+      use <- which(colnames(counts) %in% ivar) # use features given by name
+    }else{
+      use <- sort(ivar) # use features given by number
+    }
+  }
 
-            }else{
-
-              cat("@pairs summary: index with `[` method\n")
-            }
-          }
-)
+  return(use)
+}
 
 #' @rdname propr
 #' @section Methods (by generic):
@@ -108,6 +60,12 @@ setMethod("subset", signature(x = "propr"),
               message("Alert: User must repopulate @pairs slot after `subset`.")
               x@pairs <- vector("numeric")
             }
+
+            message("Alert: Using 'subset' is not compatible the @propr table.")
+            x@propr <- data.frame()
+
+            message("Alert: Using 'subset' disables permutation testing.")
+            x@permutes <- list(NULL)
 
             return(x)
           }
@@ -155,17 +113,6 @@ setMethod('[', signature(x = "propr", i = "ANY", j = "ANY"),
 )
 
 #' @rdname propr
-#' @section Methods (by generic):
-#' \code{plot:} Method to plot \code{propr} object.
-#' @export
-setMethod("plot", signature(x = "propr", y = "missing"),
-          function(x, y, prompt = TRUE, plotly = FALSE){
-
-            smear(x, prompt = prompt, plotly = plotly)
-          }
-)
-
-#' @rdname propr
 #' @section Functions:
 #' \code{simplify:}
 #'  This convenience function takes an indexed \code{propr} object
@@ -201,25 +148,14 @@ simplify <- function(object){
 
 #' @rdname propr
 #' @section Functions:
-#' \code{adjacent:}
-#'  This function uses pairs indexed in the \code{@@pairs}
-#'  slot to build a symmetric adjacency matrix.
+#' \code{updateCutoffs:}
+#'  Use the \code{propr} object to permute proportionality
+#'  across a number of cutoffs. Since the permutations get saved
+#'  when the object is created, calling \code{updateCutoffs}
+#'  will use the same random seed each time.
 #' @export
-adjacent <- function(object){
+updateCutoffs.propr <- function(object, cutoff = seq(.05, .95, .3)){
 
-  if(!class(object) == "propr" | length(object@pairs) == 0){
-
-    stop("Uh oh! This function requires an indexed 'propr' object.")
-  }
-
-  N <- nrow(object@matrix)
-  mat <- matrix(0, N, N)
-  mat[object@pairs] <- 1
-  diag(mat) <- 1
-  symRcpp(mat)
-
-  adj <- object
-  adj@matrix <- mat
-
-  return(adj)
+  if(identical(object@permutes, list(NULL))) stop("Permutation testing is disabled.")
+  stop("Uh oh! This function is not yet implemented.")
 }
