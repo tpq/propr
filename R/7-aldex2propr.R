@@ -272,7 +272,7 @@ aldex.glm <- function(clr, model.matrix, ...){
 
   packageCheck("ALDEx2")
 
-  # Keep a running sum of lr2cor instances
+  # Keep a running sum of lr2glm instances
   mc <- ALDEx2::getMonteCarloInstances(clr)
   k <- ALDEx2::numMCInstances(clr)
   r <- 0
