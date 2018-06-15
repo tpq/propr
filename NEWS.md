@@ -18,6 +18,7 @@
     * The `updateCutoffs` function is now an S4 method
 * Update `aldex2propr` method
     * Update `aldex2propr` and `[` to disable `@propr` and `@permutes`
+    * Add `lr2glm` and `aldex.glm` functions
 * Remove methods
     * Remove `differentialCheck`
     * Remove `prop2prob`

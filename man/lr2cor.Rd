@@ -2,7 +2,7 @@
 % Please edit documentation in R/7-aldex2propr.R
 \name{lr2cor}
 \alias{lr2cor}
-\title{Correlate CLR with a Continuous Measurement}
+\title{Correlate CLR Data with a Continuous Measurement}
 \usage{
 lr2cor(lr, conditions, ...)
 }
@@ -14,10 +14,10 @@ lr2cor(lr, conditions, ...)
 \item{...}{Arguments passed to \code{cor.test}.}
 }
 \value{
-Returns a data.frame of the correlation
- statistic (e.g., \code{r}) and p-value (\code{p})
- for each log-ratio transformed feature.
- FDR provided by \code{BH} column.
+Returns a data.frame of the estimated
+ correlation statistic (e.g., \code{r}) and p-value
+ (\code{p}) for each log-ratio transformed feature,
+ with FDR appended as the \code{BH} column.
 }
 \description{
 This function correlates each log-ratio transformed
