@@ -49,3 +49,20 @@ test_that("lr2 functions handle ivar correctly", {
     c(Inf, 0, Inf, Inf)
   )
 })
+
+# Calculate LRV using non-alpha propr
+data(mail)
+lr <- as.matrix(propr(mail)@logratio)
+nonalpha.pr <- propr:::lltRcpp(propr:::lr2vlr(lr))
+
+# Calculate LRV using non-alpha propd
+pd <- propd(mail, group = c("A", "A", "A", "B", "B"))
+nonalpha.pd <- pd@theta$lrv
+
+test_that("lr2vlr matches propd implementation (non-alpha)", {
+
+  expect_equal(
+    nonalpha.pr,
+    nonalpha.pd
+  )
+})
