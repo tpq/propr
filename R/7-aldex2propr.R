@@ -203,12 +203,12 @@ aldex.cor <- function(clr, conditions, ...){
 #'  coefficients and their p-values for each feature,
 #'  with FDR appended as a \code{BH} column.
 #'
-#' @importFrom stats glm p.adjust
+#' @importFrom stats glm p.adjust coef
 #' @export
 lr2glm <- function(lr, model.matrix, ...){
 
   if(class(model.matrix) != "matrix" &
-     !("assign" %in% names(attributes(mm)))){
+     !("assign" %in% names(attributes(model.matrix)))){
 
     stop("Please use the 'model.matrix' function to prepare 'model.matrix'.")
   }
