@@ -47,6 +47,8 @@
 #'
 #' @slot counts A data.frame. Stores the original "count matrix" input.
 #' @slot alpha A double. Stores the alpha value used for transformation.
+#' @slot metric A character string. The metric used to calculate proportionality.
+#' @slot ivar A vector. The reference used to calculate proportionality.
 #' @slot logratio A data.frame. Stores the transformed "count matrix".
 #' @slot matrix A matrix. Stores the proportionality matrix.
 #' @slot pairs A vector. Indexes the proportional pairs of interest.
@@ -70,6 +72,8 @@ setClass("propr",
          slots = c(
            counts = "data.frame",
            alpha = "numeric",
+           metric = "character",
+           ivar = "ANY",
            logratio = "data.frame",
            matrix = "matrix",
            pairs = "numeric",
@@ -199,6 +203,8 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
   result@counts <- as.data.frame(ct)
   if(!missing(alpha)){ result@alpha <- as.numeric(alpha)
   }else{ result@alpha <- as.numeric(NA) }
+  result@metric <- metric[1]
+  result@ivar <- ivar
   result@logratio <- as.data.frame(lr)
   result@pairs <- vector("numeric")
 

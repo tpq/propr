@@ -11,7 +11,10 @@
         * Adjusts alpha-based VLR by var[(component^alpha - reference^alpha)/alpha]
         * Saves `alpha` to `@alpha` and alpha-based counts to `@logratio`
         * Note this is not yet technically equivalent to `propd` method
-    * [Add `updateCutoffs` function to permute FDR for proportionality]
+    * Add `updateCutoffs` function to permute FDR for proportionality
+        * Add `@metric`, `@ivar` and `@alpha` slots to calculate metric exactly
+        * Count rho > cutoff and cor > cutoff as positive results
+        * Count phi < cutoff and phs < cutoff as positive results
 * Update `propd` object backend and API
     * Heavily revise documentation to harmonize `propd` with `propr`
     * Fix bug where zeros still get replaced for `lrm` calculation
