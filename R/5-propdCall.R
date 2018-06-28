@@ -1,7 +1,7 @@
 #' Calculate Theta
 #'
 #' Calculate differential proportionality measure, theta.
-#'  Used by \code{\link{propd}} to build the \code{@@theta}
+#'  Used by \code{\link{propd}} to build the \code{@@results}
 #'  slot. A numeric \code{alpha} argument will trigger
 #'  the Box-Cox transformation.
 #'
@@ -139,7 +139,7 @@ updateCutoffs.propd <- function(object, cutoff = seq(.05, .95, .3)){
   colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
   FDR$cutoff <- cutoff
   p <- ncol(object@permutes)
-  lrv <- object@theta$lrv
+  lrv <- object@results$lrv
 
   # Use calculateTheta to permute active theta
   for(k in 1:p){
@@ -158,7 +158,7 @@ updateCutoffs.propd <- function(object, cutoff = seq(.05, .95, .3)){
               weighted = object@weighted))
       propdi <- suppressMessages(
         updateF(propdi, moderated = TRUE, ivar = object@Fivar))
-      pkt <- propdi@theta$theta_mod
+      pkt <- propdi@results$theta_mod
 
     }else{
 
@@ -177,7 +177,7 @@ updateCutoffs.propd <- function(object, cutoff = seq(.05, .95, .3)){
   # Calculate FDR based on real and permuted tallys
   FDR$randcounts <- FDR$randcounts / p # randcounts as mean
   for(cut in 1:nrow(FDR)){
-    FDR[cut, "truecounts"] <- sum(object@theta$theta < FDR[cut, "cutoff"])
+    FDR[cut, "truecounts"] <- sum(object@results$theta < FDR[cut, "cutoff"])
     FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
   }
 
@@ -245,29 +245,29 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     z.s2 <- param$s2.prior
 
     # Calculate simple moderation term based only on LRV
-    mod <- z.df * z.s2 / propd@theta$lrv
+    mod <- z.df * z.s2 / propd@results$lrv
 
     # Moderate F-statistic
     propd@Fivar <- ivar # used by updateCutoffs
-    Fprime <- (1 - propd@theta$theta) * (n1 + n2 + z.df) /
-      ((n1 + n2) * propd@theta$theta + mod)
+    Fprime <- (1 - propd@results$theta) * (n1 + n2 + z.df) /
+      ((n1 + n2) * propd@results$theta + mod)
     Fstat <- (n1 + n2 + z.df - 2) * Fprime
     theta_mod <- 1 / (1 + Fprime)
 
   }else{
 
     propd@Fivar <- NA # used by updateCutoffs
-    Fstat <- (n1 + n2 - 2) * (1 - propd@theta$theta) / propd@theta$theta
+    Fstat <- (n1 + n2 - 2) * (1 - propd@results$theta) / propd@results$theta
     theta_mod <- 0
   }
 
-  propd@theta$theta_mod <- theta_mod
-  propd@theta$Fstat <- Fstat
+  propd@results$theta_mod <- theta_mod
+  propd@results$Fstat <- Fstat
 
   # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
   K <- length(unique(propd@group))
   N <- n1 + n2 + propd@dfz
-  propd@theta$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
+  propd@results$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
 
   return(propd)
 }

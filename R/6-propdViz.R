@@ -1,7 +1,7 @@
 #' Calculate PALs for Pairs
 #'
 #' This function finds the Popular Adjacent Ligand or Self (PALs)
-#'  for each feature in the \code{@@theta} slot of a \code{propd}
+#'  for each feature in the \code{@@results} slot of a \code{propd}
 #'  object. Specifically, we define PALs as the adjacent node with
 #'  the highest amount of connectivity. If node itself has more
 #'  connectivity than any of its neighbors, it is its own PAL.
@@ -56,7 +56,7 @@ pals <- function(object, k){
 propd2propr <- function(object, ivar){
 
   prop <- new("propr")
-  prop@matrix <- 1 - half2mat(object@theta$theta)
+  prop@matrix <- 1 - half2mat(object@results$theta)
   return(prop)
 }
 
@@ -82,10 +82,10 @@ setMethod("plot", signature(x = "propd", y = "missing"),
             group <- unique(x@group)
 
             # Apply cutoff of [0, 1] or a large integer for top theta
-            if(cutoff > nrow(x@theta)) cutoff <- nrow(x@theta)
-            if(cutoff > 1) cutoff <- sort(x@theta$theta)[cutoff]
+            if(cutoff > nrow(x@results)) cutoff <- nrow(x@results)
+            if(cutoff > 1) cutoff <- sort(x@results$theta)[cutoff]
             type <- x@active
-            x <- x@theta[x@theta$theta <= cutoff, ]
+            x <- x@results[x@results$theta <= cutoff, ]
             if(nrow(x) == 0) stop("No theta remain after cutoff.")
             if(prompt) promptCheck(nrow(x))
 
@@ -177,14 +177,14 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
 
   if(class(object) != "propd") stop("This function requires a 'propd' object.")
-  if(!"lrm1" %in% colnames(object@theta)) stop("This function requires an 'lrm1' column!")
-  if(!"lrm2" %in% colnames(object@theta)) stop("This function requires an 'lrm2' column!")
+  if(!"lrm1" %in% colnames(object@results)) stop("This function requires an 'lrm1' column!")
+  if(!"lrm2" %in% colnames(object@results)) stop("This function requires an 'lrm2' column!")
 
   # Apply cutoff of [0, 1] or a large integer for top theta
-  if(cutoff > nrow(object@theta)) cutoff <- nrow(object@theta)
-  if(cutoff > 1) cutoff <- sort(object@theta$theta)[cutoff]
-  object@theta <- object@theta[object@theta$theta <= cutoff, ]
-  df <- object@theta
+  if(cutoff > nrow(object@results)) cutoff <- nrow(object@results)
+  if(cutoff > 1) cutoff <- sort(object@results$theta)[cutoff]
+  object@results <- object@results[object@results$theta <= cutoff, ]
+  df <- object@results
   if(nrow(df) == 0) stop("No theta remain after cutoff.")
   if(prompt) promptCheck(nrow(df))
 

@@ -27,7 +27,7 @@
 #' @slot active A character. Stores the name of the active theta type.
 #' @slot Fivar ANY. Stores the reference used to moderate theta.
 #' @slot dfz A double. Stores the prior df used to moderate theta.
-#' @slot theta A data.frame. Stores the pairwise \code{propd} measurements.
+#' @slot results A data.frame. Stores the pairwise \code{propd} measurements.
 #' @slot permutes A data.frame. Stores the shuffled group labels,
 #'  used to reproduce permutations of \code{propd}.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for \code{propd}.
@@ -52,7 +52,7 @@ setClass("propd",
            active = "character",
            Fivar = "ANY",
            dfz = "numeric",
-           theta = "data.frame",
+           results = "data.frame",
            permutes = "data.frame",
            fdr = "data.frame"
          )
@@ -74,8 +74,8 @@ setMethod("show", "propd",
             cat("@group summary:", length(unique(object@group)), "unique groups (",
                 paste(table(object@group), collapse = " x "), ")\n")
 
-            cat("@theta summary:",
-                nrow(object@theta), "feature pairs (", object@active, ")\n")
+            cat("@results summary:",
+                nrow(object@results), "feature pairs (", object@active, ")\n")
 
             cat("@fdr summary:",
                 ncol(object@permutes), "iterations\n")
@@ -143,24 +143,24 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
     result@permutes <- permutes
   }
 
-  # Initialize @theta
-  result@theta <-
+  # Initialize @results
+  result@results <-
     calculateTheta(result@counts, result@group, result@alpha,
                    weighted = result@weighted,
                    weights = result@weights)
 
-  # Initialize @theta -- Tally frequency of 0 counts
+  # Initialize @results -- Tally frequency of 0 counts
   if(any(as.matrix(counts) == 0)){
     message("Alert: Tabulating the presence of 0 counts.")
-    result@theta$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
+    result@results$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
   }
 
-  # Initialize @theta -- Round data to 14 digits
-  if(any(result@theta$theta > 1)){
+  # Initialize @results -- Round data to 14 digits
+  if(any(result@results$theta > 1)){
     message("Alert: Theta rounded to 14 decimal digits.")
-    result@theta$theta <- round(result@theta$theta, 14)
-    result@theta$theta_e <- round(result@theta$theta_e, 14)
-    result@theta$theta_f <- round(result@theta$theta_f, 14)
+    result@results$theta <- round(result@results$theta, 14)
+    result@results$theta_e <- round(result@results$theta_e, 14)
+    result@results$theta_f <- round(result@results$theta_f, 14)
   }
 
   message("Alert: Use 'setActive' to select a theta type.")
@@ -181,17 +181,17 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 setActive <- function(propd, what = "theta_d"){
 
   if(class(propd) != "propd") stop("Please provide a 'propd' object.")
-  if(!any(what == colnames(propd@theta)) & what != propd@active){
+  if(!any(what == colnames(propd@results)) & what != propd@active){
     stop("Provided theta type not recognized.")
   }
 
   # Rename old active theta type
-  i <- which(colnames(propd@theta) == "theta")
-  colnames(propd@theta)[i] <- propd@active
+  i <- which(colnames(propd@results) == "theta")
+  colnames(propd@results)[i] <- propd@active
 
   # Name new active theta type
-  i <- which(colnames(propd@theta) == what)
-  colnames(propd@theta)[i] <- "theta"
+  i <- which(colnames(propd@results) == what)
+  colnames(propd@results)[i] <- "theta"
 
   propd@active <- what
   message("Alert: Update FDR or F-stat manually.")
