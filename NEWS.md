@@ -1,11 +1,11 @@
-## propr 3.5.1.9000
+## propr 3.9.9.9000
 ---------------------
 * Update `propr` object backend and API
     * Heavily revise documentation to harmonize `propd` with `propr`
     * Create `propr` function to replace `perb`, `phit`, and `phis`
-    * Add `@propr` slot for storing proportionality half-matrix
+    * Add `@results` slot for storing proportionality half-matrix
     * Add `@permutes` slot for storing reproducible permutations
-    * Update `subset` and `[` to disable `@propr` and `@permutes`
+    * Update `subset` and `[` to disable `@results` and `@permutes`
     * Add `@fdr` slot for storing FDR results
     * Add `alpha` argument
         * Adjusts alpha-based VLR by var[(component^alpha - reference^alpha)/alpha]
@@ -19,8 +19,10 @@
     * Heavily revise documentation to harmonize `propd` with `propr`
     * Fix bug where zeros still get replaced for `lrm` calculation
     * The `updateCutoffs` function is now an S4 method
+    * Turn `@theta` slot into `@results` slot
+    * Rebuild `pd.d` and `pd.e` objects
 * Update `aldex2propr` method
-    * Update `aldex2propr` and `[` to disable `@propr` and `@permutes`
+    * Update `aldex2propr` and `[` to disable `@results` and `@permutes`
     * Add `lr2glm` and `aldex.glm` functions
 * Remove methods
     * Remove `differentialCheck`
@@ -198,7 +200,7 @@
 ---------------------
 * Modified `propd` Class
     * Added `@weighted` slot now used by `updateCutoffs`
-* Implement # Initialize @theta for "weighted theta" calculation
+* Implement @theta for "weighted theta" calculation
     * Added `wtmRcpp` for weighted mean calculation
     * Added `wtvRcpp` for weighted variance calculation
     * Added `lrm` function with optional weighted calculations

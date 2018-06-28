@@ -106,8 +106,8 @@ aldex2propr <- function(aldex.clr, how = "rho", select){
   propr@logratio <- as.data.frame(logratio) / k
   propr@matrix <- prop / k
 
-  message("Alert: Using 'aldex2propr' is not compatible the @propr table.")
-  propr@propr <- data.frame()
+  message("Alert: Using 'aldex2propr' is not compatible the @results table.")
+  propr@results <- data.frame()
 
   message("Alert: Using 'aldex2propr' disables permutation testing.")
   propr@permutes <- list(NULL)
