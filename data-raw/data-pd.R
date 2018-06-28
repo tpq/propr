@@ -11,19 +11,19 @@ pd.dd <- setDisjointed(pd)
 pd.ee <- setEmergent(pd)
 
 # Subset top 1000 theta values only
-pd.dd@theta <- pd.dd@theta[pd.dd@theta$theta < sort(pd.dd@theta$theta)[1001], ]
-pd.ee@theta <- pd.ee@theta[pd.ee@theta$theta < sort(pd.ee@theta$theta)[1001], ]
+pd.dd@results <- pd.dd@results[pd.dd@results$theta < sort(pd.dd@results$theta)[1001], ]
+pd.ee@results <- pd.ee@results[pd.ee@results$theta < sort(pd.ee@results$theta)[1001], ]
 
 # Rebuild pd.d with fewer counts
-counts.d <- pd.dd@counts[, sort(union(pd.dd@theta$Partner, pd.dd@theta$Pair))]
+counts.d <- pd.dd@counts[, sort(union(pd.dd@results$Partner, pd.dd@results$Pair))]
 pd.d <- setDisjointed(propd(counts.d, caneToad.groups))
-pd.d@theta <- pd.d@theta[pd.d@theta$theta < sort(pd.d@theta$theta)[1001], ]#.
-identical(round(pd.d@theta$theta, 14), round(pd.dd@theta$theta, 14)) # check subset
+pd.d@results <- pd.d@results[pd.d@results$theta < sort(pd.d@results$theta)[1001], ]#.
+identical(round(pd.d@results$theta, 14), round(pd.dd@results$theta, 14)) # check subset
 
 # Rebuild pd.e with fewer counts
-counts.e <- pd.ee@counts[, sort(union(pd.ee@theta$Partner, pd.ee@theta$Pair))]
+counts.e <- pd.ee@counts[, sort(union(pd.ee@results$Partner, pd.ee@results$Pair))]
 pd.e <- setEmergent(propd(counts.e, caneToad.groups))
-pd.e@theta <- pd.e@theta[pd.e@theta$theta < sort(pd.e@theta$theta)[1001], ]#.
-identical(round(pd.e@theta$theta, 14), round(pd.ee@theta$theta, 14)) # check subset
+pd.e@results <- pd.e@results[pd.e@results$theta < sort(pd.e@results$theta)[1001], ]#.
+identical(round(pd.e@results$theta, 14), round(pd.ee@results$theta, 14)) # check subset
 
 devtools::use_data(pd.d, pd.e)

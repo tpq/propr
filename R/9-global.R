@@ -388,7 +388,7 @@ packageCheck <- function(package){
 #'  cane toad transcripts with at least 40 counts in at least
 #'  20 samples (after removing any transcripts with 0 counts).
 #'  The resultant object is filtered to include only the top
-#'  1000 theta_d values in the \code{@@theta} slot.
+#'  1000 theta_d values in the \code{@@results} slot.
 #'
 #' @source <DOI:10.1111/mec.13184>
 #' @usage data(pd.d)
@@ -400,7 +400,7 @@ packageCheck <- function(package){
 #'  cane toad transcripts with at least 40 counts in at least
 #'  20 samples (after removing any transcripts with 0 counts).
 #'  The resultant object is filtered to include only the top
-#'  1000 theta_e values in the \code{@@theta} slot.
+#'  1000 theta_e values in the \code{@@results} slot.
 #'
 #' @source <DOI:10.1111/mec.13184>
 #' @usage data(pd.e)
