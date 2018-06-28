@@ -21,23 +21,23 @@ if(requireNamespace("limma", quietly = TRUE)){
 
     expect_equal(
       propr:::calculateTheta_old(counts, group)$theta,
-      propd(counts, group, p = 3)@theta$theta
+      propd(counts, group, p = 3)@results$theta
     )
 
     expect_equal(
       propr:::calculateThetaW_old(counts, group)$theta,
-      propd(counts, group, p = 3, weighted = TRUE)@theta$theta
+      propd(counts, group, p = 3, weighted = TRUE)@results$theta
     )
 
     expect_equal(
       propr:::alphaTheta_old(counts, group, alpha = .1)$atheta,
-      propd(counts, group, p = 3, alpha = .1)@theta$theta
+      propd(counts, group, p = 3, alpha = .1)@results$theta
     )
 
     pdaw <- propd(counts, group, p = 3, weighted = TRUE, alpha = .1)
     expect_equal(
       propr:::alphaThetaW_old(counts, group, alpha = .1, pdaw@weights)$theta,
-      pdaw@theta$theta
+      pdaw@results$theta
     )
   })
 
@@ -45,23 +45,23 @@ if(requireNamespace("limma", quietly = TRUE)){
 
     expect_equal(
       propr:::calculateTheta_old(counts, group)$lrm1,
-      propd(counts, group, p = 3)@theta$lrm1
+      propd(counts, group, p = 3)@results$lrm1
     )
 
     expect_equal(
       propr:::calculateThetaW_old(counts, group)$lrm1,
-      propd(counts, group, p = 3, weighted = TRUE)@theta$lrm1
+      propd(counts, group, p = 3, weighted = TRUE)@results$lrm1
     )
 
     expect_equal(
       propr:::alphaTheta_old(counts, group, alpha = .1)$alrm1,
-      propd(counts, group, p = 3, alpha = .1)@theta$lrm1
+      propd(counts, group, p = 3, alpha = .1)@results$lrm1
     )
 
     pdaw <- propd(counts, group, p = 3, weighted = TRUE, alpha = .1)
     expect_equal(
       propr:::alphaThetaW_old(counts, group, alpha = .1, pdaw@weights)$awlrm1,
-      pdaw@theta$lrm1
+      pdaw@results$lrm1
     )
   })
 }
@@ -102,15 +102,15 @@ n2 <- 50
 test_that("active theta_e matches calculation using theta_d", {
 
   expect_equal(
-    setActive(pd, what = "theta_e")@theta$theta,
-    1 - pd@theta$theta + pmin((n1-1) * pd@theta$lrv1, (n2-1) * pd@theta$lrv2) / ((n1+n2-1) * pd@theta$lrv)
+    setActive(pd, what = "theta_e")@results$theta,
+    1 - pd@results$theta + pmin((n1-1) * pd@results$lrv1, (n2-1) * pd@results$lrv2) / ((n1+n2-1) * pd@results$lrv)
   )
 })
 
 test_that("active theta_f matches calculation using theta_e", {
 
   expect_equal(
-    setActive(pd, what = "theta_f")@theta$theta,
-    1 - setActive(pd, what = "theta_e")@theta$theta
+    setActive(pd, what = "theta_f")@results$theta,
+    1 - setActive(pd, what = "theta_e")@results$theta
   )
 })

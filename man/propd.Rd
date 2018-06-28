@@ -105,7 +105,7 @@ Note that Group 1 always refers to the first element of the
 
 \item{\code{dfz}}{A double. Stores the prior df used to moderate theta.}
 
-\item{\code{theta}}{A data.frame. Stores the pairwise \code{propd} measurements.}
+\item{\code{results}}{A data.frame. Stores the pairwise \code{propd} measurements.}
 
 \item{\code{permutes}}{A data.frame. Stores the shuffled group labels,
 used to reproduce permutations of \code{propd}.}

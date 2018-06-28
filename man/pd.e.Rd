@@ -16,6 +16,6 @@ Includes results from \code{\link{propd}} as applied to
  cane toad transcripts with at least 40 counts in at least
  20 samples (after removing any transcripts with 0 counts).
  The resultant object is filtered to include only the top
- 1000 theta_e values in the \code{@theta} slot.
+ 1000 theta_e values in the \code{@results} slot.
 }
 \keyword{datasets}

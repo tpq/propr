@@ -11,7 +11,6 @@
 \alias{phis}
 \alias{corr}
 \alias{subset,propr-method}
-\alias{[,propr,ANY,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{simplify}
 \alias{updateCutoffs.propr}
@@ -32,7 +31,7 @@ corr(counts, ...)
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY,ANY}(x, i = "all", j, tiny = FALSE)
+\S4method{[}{propr}(x, i = "all", j, tiny = FALSE)
 
 simplify(object)
 
@@ -147,13 +146,17 @@ The \code{propr} method calculates proportionality. This fails in
 
 \item{\code{alpha}}{A double. Stores the alpha value used for transformation.}
 
+\item{\code{metric}}{A character string. The metric used to calculate proportionality.}
+
+\item{\code{ivar}}{A vector. The reference used to calculate proportionality.}
+
 \item{\code{logratio}}{A data.frame. Stores the transformed "count matrix".}
 
 \item{\code{matrix}}{A matrix. Stores the proportionality matrix.}
 
 \item{\code{pairs}}{A vector. Indexes the proportional pairs of interest.}
 
-\item{\code{propr}}{A data.frame. Stores the pairwise \code{propr} measurements.}
+\item{\code{results}}{A data.frame. Stores the pairwise \code{propr} measurements.}
 
 \item{\code{permutes}}{A list. Stores the shuffled transformed "count matrix"
 instances, used to reproduce permutations of \code{propr}.}

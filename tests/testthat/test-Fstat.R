@@ -52,10 +52,10 @@ if(requireNamespace("limma", quietly = TRUE) &
     Resa=propd(counts=M, group=gr, p = 1, weighted = TRUE, alpha = a)
 
     #from these results, we need only theta and LRV:
-    st=res@theta[,c("lrv","theta")]
-    stw=Res@theta[,c("lrv","theta")]
-    sta=resa@theta[,c("lrv","theta")]
-    stwa=Resa@theta[,c("lrv","theta")]
+    st=res@results[,c("lrv","theta")]
+    stw=Res@results[,c("lrv","theta")]
+    sta=resa@results[,c("lrv","theta")]
+    stwa=Resa@results[,c("lrv","theta")]
 
     #print("(1) unweighted moderated statistic")
 
@@ -111,42 +111,42 @@ if(requireNamespace("limma", quietly = TRUE) &
   test_that("updateF matches code provided by Ionas", {
 
     expect_equal(
-      pd.nn@theta$theta_mod,
+      pd.nn@results$theta_mod,
       ref[[1]]
     )
 
     expect_equal(
-      pd.nn@theta$Fstat,
+      pd.nn@results$Fstat,
       ref[[5]]
     )
 
     expect_equal(
-      pd.wn@theta$theta_mod,
+      pd.wn@results$theta_mod,
       ref[[2]]
     )
 
     expect_equal(
-      pd.wn@theta$Fstat,
+      pd.wn@results$Fstat,
       ref[[6]]
     )
 
     expect_equal(
-      pd.na@theta$theta_mod,
+      pd.na@results$theta_mod,
       ref[[3]]
     )
 
     expect_equal(
-      pd.na@theta$Fstat,
+      pd.na@results$Fstat,
       ref[[7]]
     )
 
     expect_equal(
-      pd.wa@theta$theta_mod,
+      pd.wa@results$theta_mod,
       ref[[4]]
     )
 
     expect_equal(
-      pd.wa@theta$Fstat,
+      pd.wa@results$Fstat,
       ref[[8]]
     )
   })

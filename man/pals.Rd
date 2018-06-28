@@ -22,7 +22,7 @@ A named vector of PALs, ordered by decreasing
 }
 \description{
 This function finds the Popular Adjacent Ligand or Self (PALs)
- for each feature in the \code{@theta} slot of a \code{propd}
+ for each feature in the \code{@results} slot of a \code{propd}
  object. Specifically, we define PALs as the adjacent node with
  the highest amount of connectivity. If node itself has more
  connectivity than any of its neighbors, it is its own PAL.

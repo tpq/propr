@@ -36,7 +36,7 @@ A data.frame of theta values if \code{only = "all"}.
 }
 \description{
 Calculate differential proportionality measure, theta.
- Used by \code{\link{propd}} to build the \code{@theta}
+ Used by \code{\link{propd}} to build the \code{@results}
  slot. A numeric \code{alpha} argument will trigger
  the Box-Cox transformation.
 }
