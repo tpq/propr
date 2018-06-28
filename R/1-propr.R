@@ -52,7 +52,7 @@
 #' @slot logratio A data.frame. Stores the transformed "count matrix".
 #' @slot matrix A matrix. Stores the proportionality matrix.
 #' @slot pairs A vector. Indexes the proportional pairs of interest.
-#' @slot propr A data.frame. Stores the pairwise \code{propr} measurements.
+#' @slot results A data.frame. Stores the pairwise \code{propr} measurements.
 #' @slot permutes A list. Stores the shuffled transformed "count matrix"
 #'  instances, used to reproduce permutations of \code{propr}.
 #' @slot fdr A data.frame. Stores the FDR cutoffs for \code{propr}.
@@ -77,7 +77,7 @@ setClass("propr",
            logratio = "data.frame",
            matrix = "matrix",
            pairs = "numeric",
-           propr = "data.frame",
+           results = "data.frame",
            permutes = "list",
            fdr = "data.frame"
          )
@@ -223,9 +223,9 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
     result@permutes <- permutes
   }
 
-  # Set up @propr
+  # Set up @results
   labels <- labRcpp(ncol(lr))
-  result@propr <-
+  result@results <-
     data.frame(
       "Partner" = labels[[1]],
       "Pair" = labels[[2]],
@@ -235,10 +235,10 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
       "propr" = lltRcpp(mat)
     )
 
-  # Initialize @theta -- Tally frequency of 0 counts
+  # Initialize @results -- Tally frequency of 0 counts
   if(any(as.matrix(counts) == 0)){
     message("Alert: Tabulating the presence of 0 counts.")
-    result@propr$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
+    result@results$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
   }
 
   message("Alert: Use '[' to index proportionality matrix.")

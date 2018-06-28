@@ -61,8 +61,8 @@ setMethod("subset", signature(x = "propr"),
               x@pairs <- vector("numeric")
             }
 
-            message("Alert: Using 'subset' is not compatible the @propr table.")
-            x@propr <- data.frame()
+            message("Alert: Using 'subset' is not compatible the @results table.")
+            x@results <- data.frame()
 
             message("Alert: Using 'subset' disables permutation testing.")
             x@permutes <- list(NULL)
@@ -176,7 +176,7 @@ updateCutoffs.propr <- function(object, cutoff = seq(.05, .95, .3)){
     ct.k <- object@permutes[[k]]
     pr.k <- suppressMessages(
       propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
-    pkt <- pr.k@propr$propr
+    pkt <- pr.k@results$propr
 
     # Find number of permuted theta less than cutoff
     for(cut in 1:nrow(FDR)){ # randcounts as cumsum
@@ -196,9 +196,9 @@ updateCutoffs.propr <- function(object, cutoff = seq(.05, .95, .3)){
 
     # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
     if(object@metric == "rho" | object@metric == "cor"){
-      FDR[cut, "truecounts"] <- sum(object@propr$propr > FDR[cut, "cutoff"])
+      FDR[cut, "truecounts"] <- sum(object@results$propr > FDR[cut, "cutoff"])
     }else{ # phi & phs
-      FDR[cut, "truecounts"] <- sum(object@propr$propr < FDR[cut, "cutoff"])
+      FDR[cut, "truecounts"] <- sum(object@results$propr < FDR[cut, "cutoff"])
     }
 
     FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
