@@ -12,11 +12,17 @@ ivar2index <- function(counts, ivar){
   if(missing(ivar)) ivar <- 0
   if(!is.vector(ivar)) stop("Provide 'ivar' as vector.")
   `%is%` <- function(a, b) identical(a, b)
+
   if(ivar %is% 0 | ivar %is% NA | ivar %is% NULL | ivar %is% "all" | ivar %is% "clr"){
 
     use <- 1:ncol(counts) # use all features for geometric mean
 
   }else if(ivar %is% "iqlr"){
+
+    if(any(counts == 0)){
+      message("Alert: Replacing 0s in \"count matrix\" with 1 to calculate IQR.")
+      counts[counts == 0] <- 1
+    }
 
     counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })
     counts.var <- apply(counts.clr, 1, var)
@@ -26,9 +32,12 @@ ivar2index <- function(counts, ivar){
   }else{
 
     if(is.character(ivar)){
+
       if(!all(ivar %in% colnames(counts))) stop("Some 'ivar' not in data.")
       use <- which(colnames(counts) %in% ivar) # use features given by name
+
     }else{
+
       use <- sort(ivar) # use features given by number
     }
   }
