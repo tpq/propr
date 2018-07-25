@@ -13,15 +13,19 @@ vignette: >
 
 We use the term sub-compositional coherence to describe a method in which the results do not change when features (e.g., genes) are added or removed. The numerator portion of $\rho$ (i.e., the VLR) is sub-compositionally coherent. However, $\rho$ itself is not sub-compositionally coherent because the denominator portion of $\rho$ (and $\phi$ and $\phi_s$) scales the VLR by the variance of the centered log-ratio (clr) transformed features. The clr-transformation is not sub-compositionally coherent because the removal of a feature will change geometric mean reference for each composition (i.e., each sample) and therefore its transformation; consequently, the variance of each transformed feature vector changes too. An exception to this is when using the additive log-ratio (alr) transformation instead of clr.
 
-## Isn't the centered log-ratio bad then?
+## Does the centered log-ratio have any limitations?
 
-The centered log-ratio is not perfect, but it is maybe *good enough*. Still, this is the major limitation of proportionality analysis: it inherits all the limitations of the choice in log-ratio transformation. However, as long as the majority of genes remain unchanged across the conditions, the clr is appropriate. Excerpted from Erb et al. 2016:
+The major limitation of proportionality analysis is that its interpretation depends on the log-ratio transformation. If the majority of genes remain unchanged across all conditions, the clr approximates an unchanged reference and one can interpret results in absolute terms.
+
+Excerpted from Erb et al. 2016:
 
 > This is known as the centered log-ratio transformation with g(x) the geometric mean over the genes for the given condition. The problem with this transformation is that it is sub-compositionally incoherent Aitchison (2003), so results will change to some extent when using subsets of genes for the analysis. In some cases, g(x) can approximate an unchanged reference. This applies whenever the majority of genes remains unchanged across conditions, so the unchanged genes will dominate the behaviour of the reference. Note that this is also the condition needed for a normalization by effective library size Robinson and Oshlack (2012).
     
 ## What if the centered log-ratio isn't for me?
 
-One option is to use a house-keeping gene or RNA spike-in that has an *a priori* known fixed abundance. If this is available, you can use the additive log-ratio (alr) transformation to effectively "back-calculate" absolute abundances. In practice, this is sometimes infeasible. Another option is to use a novel transformation introduced in Fernandes et al. 2013 called the inter-quartile log-ratio (iqlr) transformation. Excerpted from the `ALDEx2` vignette:
+One option is to use a house-keeping gene or RNA spike-in that has an *a priori* known fixed abundance. If this is available, you can use the additive log-ratio (alr) transformation to effectively "back-calculate" absolute abundances. In practice, this is sometimes infeasible. Another option is to use a novel transformation introduced in Fernandes et al. 2013 called the inter-quartile log-ratio (iqlr) transformation.
+
+Excerpted from the `ALDEx2` vignette:
 
 > The [approach] is to include as the denominator for the geometric mean those features that are relatively invariant across all samples. This is termed the ‘iqlr’ method, and takes as the denominator the geometric mean of those features with variance calculated from the clr that are between the first and third quartile. This approach can be used until the asymmetry becomes so severe that more than 25% of the features are asymmetric between the groups. The iqlr approach has the advantage that it gives essentially the same answer as using the entire set of features in symmetric datasets.
 
@@ -38,7 +42,7 @@ rho <- propr::aldex2propr(x, how = "rho")
 Note that this will average $\rho$ (or $\phi$ or $\phi_s$) across many MC instances which may or may not be desired. In theory, using MC instances should lessen the impact of zero or low counts on your final result. In practice, proportionality analysis will take a lot longer to run. Note, however, that you can also use the iqlr transformation without any MC instances:
 
 ```{r, eval = FALSE}
-rho <- perb(caneToad.counts, ivar = "iqlr")
+rho <- propr(caneToad.counts, metric = "rho", ivar = "iqlr")
 ```
 
 When using `aldex2propr` (or the iqlr transformation), please make sure to cite the appropriate `ALDEx2` paper(s) to thank Greg for his generous contribution!
