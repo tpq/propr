@@ -43,10 +43,10 @@ In some circumstances, it is simply infeasible to calculate a proportionality ma
 
 ```{r, dpi = 66, eval = FALSE}
 keep <- apply(caneToad.counts, 2, function(x) sum(x >= 10) >= 10)
-rho <- perb(caneToad.counts, select = keep)
+rho <- propr(caneToad.counts, metric = "rho", select = keep)
 ```
 
-Next, we index the most highly proportional pairs based on an arbitrary threshold. In the absence of any statistical testing framework, we might set this threshold at $\rho>0.95$ to include only "very proportional" transcript pairs. Alternatively, we could set this threshold at $\rho<-0.95$ to include only "very unproportional" pairs. Take note that we use a more stringent threshold here so that the vignette renders more quickly. For more information on selecting a proportionality cutoff, we refer the reader to the "How Proportional Is Proportional Enough?" vignette.
+Next, we index the most highly proportional pairs based on a cutoff (preferably chosen with `updateCutoffs` to minimize false discovery). Here, we use an arbitrarily high threshold so that the vignette renders quickly.
 
 ```{r, dpi = 66, eval = FALSE}
 best <- rho[">", .995]
@@ -54,7 +54,7 @@ best <- rho[">", .995]
 
 ## Index-aware plots
 
-After indexing, it is helpful to check the pairwise distribution of proportional pairs using the `plot` (or, equivalently, `smear`) function. As an "index-aware" function, `plot` only plots feature pairs indexed with `[`. When interpreting this figure, a smear of straight diagonal lines confirms that the pairs are proportional. Intuitively, this means that as one transcript increases in log-ratio transformed abundance, so does the other. If you see lines deviating considerably from the $y=x$ diagonal, you likely set your index threshold too low.
+After indexing, it is helpful to check the pairwise distribution of proportional pairs using the `plot` (or, equivalently, `smear`) function. As an "index-aware" function, `plot` only plots feature pairs indexed with `[`. When interpreting this figure, a smear of straight diagonal lines confirms that the pairs are proportional. Intuitively, this means that as one transcript increases in log-ratio transformed abundance, so does the other.
 
 ```{r, dpi = 66, results = "hide", fig.show = "hold", fig.keep = "last"}
 plot(best)
@@ -68,7 +68,7 @@ dendrogram(best)
 
 ## Index-naive plots
 
-The remaining visualization methods do not restrict plotting to indexed pairs, but instead incorporate all features in the `propr` object. To exclude features that do not belong to an indexed feature pair, we `simplify` the indexed `propr` object.
+The remaining visualization methods do not restrict plotting to indexed pairs, but instead incorporate all features in the `propr` object. To exclude features that do not comprise at least one indexed pair, we `simplify` the indexed `propr` object.
 
 ```{r, dpi = 66, eval = FALSE}
 best <- simplify(best)
