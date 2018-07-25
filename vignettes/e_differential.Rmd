@@ -4,7 +4,7 @@ author: "Thomas Quinn & Ionas Erb"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{5. An Introduction to Differential Proportionality}
+  %\VignetteIndexEntry{4. An Introduction to Differential Proportionality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -33,15 +33,15 @@ $$\theta_e(\textrm{X}, \textrm{Y}) = 1 - \frac{\mathrm{max}[(k-1)\textrm{VLR}_1,
 
 ## Handling of zero values
 
-Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. By default, `propd` takes the simplest approach of replacing all zero values with 1. Analysts should carefully evaluate the effect that this has on their results.
+Note that as a consequence of using the logarithm, we cannot compute VLR in the setting of zero counts. How to best handle zeros in compositional data analysis remains an area of active research. Analysts should carefully evaluate the effect that this has on their results.
 
-Alternatively, the `propd` method offers the option to use a transformation to approximate VLR based on a parameter $\alpha$ that is usually close to zero. We define aVLR as an approximation of VLR, used in place of VLR in any $\theta$ equation:
+By default, `propd` takes the simplest approach of replacing all zero values with 1. Alternatively, the `propd` method offers the option to use a transformation to approximate VLR based on a parameter $\alpha$ that is usually close to zero. We define aVLR as an approximation of VLR, used in place of VLR in any $\theta$ equation:
 
 $$\textrm{aVLR(X, Y)} = \frac{\sum\left(\frac{\textrm{X}^{\alpha}}{\textrm{mean}(\textrm{X}^{\alpha})} - \frac{\textrm{Y}^{\alpha}}{\textrm{mean}(\textrm{Y}^{\alpha})}\right)^2}{(n-1)\alpha^2}$$
 
 ## False discovery rate
 
-The `propd` method does not return a vector of p-values like most statistical tests. Instead, the user may choose to estimate the false discovery rate (FDR) using permutations of the group assignments to generate an empiric distribution of $\theta$ values (specific to the supplied data). With this, for each arbitrary cutoff of $\theta$, the FDR is calculated as the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$.
+The `propd` method does not return a vector of p-values like most statistical tests. Instead, the user may choose to estimate the false discovery rate (FDR) using permutations of the group assignments to generate an empiric distribution of $\theta$ values (specific to the supplied data). With this, for each arbitrary cutoff of $\theta$, the FDR is calculated as the average random number of pairs with $\theta<\textrm{cutoff}$ divided by the observed number of pairs with $\theta<\textrm{cutoff}$. This uses the `updateCutoffs` method, like `propr`.
 
 Alternatively, it is possible to calculate an F-statistic, as discussed in the next vignette:
 
@@ -58,7 +58,7 @@ The `propd` function estimates differential proportionality by calculating $\the
 
 Below, we run `propd` using the `iris` dataset.
 
-```{r, dpi = 66}
+```{r, dpi = 66, message = FALSE}
 library(propr)
 data(iris)
 keep <- iris$Species %in% c("setosa", "versicolor")
@@ -188,7 +188,7 @@ slice(pd.e, reference = "c27054_g5_i1")
 
 ## Integrating propd with propr
 
-This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through the union of a `propr` network and a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "How Proportional Is Proportional Enough?" for selecting an appropriate proportionality cutoff. Note that, because CRAN imposes limits on the size of bundled data, as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
+This package also allows users to integrate the results of proportionality analysis with those from differential proportionality analysis through the union of a `propr` network and a `propd` network. We do this with the `plot` method by passing an indexed `propr` object to the `propr` argument. We recommend the companion vignette, "An Introduction to Proportionality" for selecting an appropriate proportionality cutoff. Note that, because CRAN imposes limits on the size of bundled data, as well as the run-time of vignette assembly, we cannot render this figure here. Instead, we provide the code only.
 
 ```{r, dpi = 66, eval = FALSE}
 data(caneToad.counts)
