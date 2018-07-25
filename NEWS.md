@@ -1,5 +1,7 @@
-## propr 3.9.9.9000
+## propr 4.0.0
 ---------------------
+* Update `ivar2index` method
+    * Now replaces zeros with 1 to calculate IQR (fixes "iqlr" bug for alpha > 0)
 * Update `propr` object backend and API
     * Heavily revise documentation to harmonize `propd` with `propr`
     * Create `propr` function to replace `perb`, `phit`, and `phis`
@@ -24,13 +26,15 @@
 * Update `aldex2propr` method
     * Update `aldex2propr` and `[` to disable `@results` and `@permutes`
     * Add `lr2glm` and `aldex.glm` functions
+* Add methods
+    * Add `qtheta` to calculate a cutoff of theta for a given p-value
 * Remove methods
     * Remove `differentialCheck`
     * Remove `prop2prob`
     * Remove `abstract`
     * Remove `initialize`
     * Remove `adjacent`
-* [Revise vignettes]
+* Revise vignettes
 
 ## propr 3.5.1
 ---------------------

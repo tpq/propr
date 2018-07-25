@@ -3,7 +3,7 @@
 #' Visualize proportionality and differential proportionality.
 #'
 #' @inheritParams all
-#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test pf
+#' @importFrom stats var as.dist as.formula lm aov cutree prcomp dist kruskal.test pf qf
 #' @name visualize
 NULL
 
