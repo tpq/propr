@@ -219,7 +219,7 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
     # Sample compositions so that the clr does not change
     message("Alert: Fixing permutations to active random seed.")
     permutes <- vector("list", p)
-    for(ins in 1:length(permutes)) permutes[[ins]] <- apply(ct, 1, sample)
+    for(ins in 1:length(permutes)) permutes[[ins]] <- t(apply(ct, 1, sample))
     result@permutes <- permutes
   }
 
