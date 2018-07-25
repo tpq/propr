@@ -35,6 +35,7 @@ Imports:
     utils
 Suggests:
     ALDEx2,
+    Biobase,
     cccrm,
     compositions,
     data.table,
