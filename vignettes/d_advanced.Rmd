@@ -4,7 +4,7 @@ author: "Thomas Quinn"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{4. A Brief Critique of Proportionality}
+  %\VignetteIndexEntry{3. A Brief Critique of Proportionality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -84,12 +84,12 @@ pairs(propr:::proprCLR(X)) # absolute clr-transformation
 
 Proportionality is a compromise between the advantages of VLR and the disadvantages of clr to establish a measure of dependence that is robust yet interpretable. Note, however, that because of the division of VLR by the variance of the clr-transformed data, proportionality is not sub-compositionally coherent. As such, spurious proportionality is possible when the clr does not adequately approximate the absolute data.
 
-```{r, dpi = 66, fig.show = "hold"}
-perb(Y[, 1:4])@matrix # relative proportionality with clr
+```{r, dpi = 66, fig.show = "hold", message = FALSE}
+propr(Y[, 1:4])@matrix # relative proportionality with clr
 ```
 
-```{r, dpi = 66, fig.show = "hold"}
-perb(X)@matrix # absolute proportionality with clr
+```{r, dpi = 66, fig.show = "hold", message = FALSE}
+propr(X)@matrix # absolute proportionality with clr
 ```
 
 ## An in-depth look at alr
@@ -108,8 +108,8 @@ pairs(X[, 1:4]) # absolute data
 
 Again, this gets reflected in the results of `perb` when we select "e" as the reference.
 
-```{r, dpi = 66}
-perb(Y, ivar = 5)@matrix # relative proportionality with alr
+```{r, dpi = 66, message = FALSE}
+propr(Y, ivar = 5)@matrix # relative proportionality with alr
 ```
 
 Now, let us assume these same data, $X$, actually measure relative counts. In other words, $X$ is already relative and we do not know the real quantities which correspond to $X$ absolutely. Well, if we knew that "a" represented a known fixed quantity, we could use alr-transformation again to "back-calculate" the absolute abundances. In this case, we will see that "c", "d", and "e" actually do have proportional expression under these conditions. Although the measured quantity of "c", "d", and "e" do not change considerably across subjects, the measured quantity of the known fixed feature does change. As such. whenever "a" increases while "c", "d", and "e" remains the same, the latter three features have actually decreased. Since they all decreased together, they act as a highly proportional *module*.
@@ -120,11 +120,11 @@ pairs(propr:::proprALR(X, ivar = 1)) # new relative alr
 
 Again, this gets reflected in the results of `perb` when we select "a" as the reference.
 
-```{r, dpi = 66}
-perb(X, ivar = 1)@matrix # new relative proportionality with alr
+```{r, dpi = 66, message = FALSE}
+propr(X, ivar = 1)@matrix # new relative proportionality with alr
 ```
 
-We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ is sub-compositionally coherent and yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects. Although, if a reference were known, one might consider "back-calculating" the absolute abundances directly and measuring dependence through more conventional means.
+We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ is sub-compositionally coherent and yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects.
 
 ## Further reading
 
