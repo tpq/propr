@@ -2,7 +2,7 @@
 ---------------------
 * Add methods
     * Add `getResults` to retrieve results from a `propr` or `propd` object
-    * Add `getNetwork` to build networks from `propr` or `propd` objects
+    * Add `getNetwork` to build networks from `propr` and `propd` objects
 
 ## propr 4.0.0
 ---------------------

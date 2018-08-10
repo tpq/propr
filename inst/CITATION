@@ -48,12 +48,14 @@ citEntry(entry = "Article",
                                    as.person("Tamsyn Crowley")),
          journal      = "Bioinformatics",
          year         = "2018",
+         volume       = "34",
+         number       = "16",
 
          textVersion  =
            paste("Quinn T, Erb I, Richardson MF, Crowley T (2018)",
                  "Understanding sequencing data as compositions:",
-                 "an outlook and review. Bioinformatics.",
-                 "Advanced Access Publication: doi:10.1093/bioinformatics/bty175")
+                 "an outlook and review. Bioinformatics 34(16):",
+                 "doi:10.1093/bioinformatics/bty175")
 )
 
 citEntry(entry = "Article",
