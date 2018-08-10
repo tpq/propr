@@ -1,3 +1,9 @@
+## propr 4.0.1
+---------------------
+* Add methods
+    * Add `getResults` to retrieve results from a `propr` or `propd` object
+    * Add `getNetwork` to build networks from `propr` or `propd` objects
+
 ## propr 4.0.0
 ---------------------
 * Update `ivar2index` method
