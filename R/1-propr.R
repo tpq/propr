@@ -164,7 +164,7 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
     message("Alert: Saving alpha transformed counts to @logratio.")
     aX <- (ct^alpha - 1) / alpha
     aSet <- aX[, use, drop = FALSE]
-    ref <- rowMeans(aX)
+    ref <- rowMeans(aSet)
     lr <- sweep(aX, 1, ref, "-")
   }
 
