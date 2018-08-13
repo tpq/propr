@@ -1,3 +1,17 @@
+## propr 4.0.2
+---------------------
+* Update `propr` method
+    * Fix bug where alpha-based method always used `ivar = "clr"`
+* Update `ratios` method
+    * Add `alpha` argument to set LR = (partner^alpha - pair^alpha) / alpha
+    * Now returns log-ratios instead of ratios
+* Add methods
+    * Add `wide2long` to melt counts and log-ratios for visualization
+    * Add `getRatios` function to retrieve melted log-ratios
+* Add tests
+    * Add test for `getNetwork`
+    * Add test for `getRatios`
+
 ## propr 4.0.1
 ---------------------
 * Add methods
