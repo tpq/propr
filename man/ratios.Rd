@@ -2,17 +2,24 @@
 % Please edit documentation in R/9-global.R
 \name{ratios}
 \alias{ratios}
-\title{Recast Matrix as Feature Ratios}
+\title{Recast Matrix as Feature (Log-)Ratios}
 \usage{
-ratios(matrix)
+ratios(matrix, alpha = NA)
 }
 \arguments{
 \item{matrix}{A matrix. The data to recast.}
+
+\item{alpha}{A double. See vignette for details. Leave missing
+to skip Box-Cox transformation.}
 }
 \value{
-A matrix.
+A matrix of (log-)ratios.
 }
 \description{
 The \code{ratios} function recasts a matrix with N feature columns
- as a new matrix with N * (N - 1) / 2 feature ratio columns.
+ as a new matrix with N * (N - 1) / 2 feature (log-)ratio columns.
+}
+\details{
+When the \code{alpha} argument is provided, this function returns
+ the (log-)ratios as \code{(partner^alpha - pair^alpha) / alpha}.
 }

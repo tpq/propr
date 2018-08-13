@@ -50,18 +50,37 @@ wide2long <- function(wide){
   return(df)
 }
 
-#' Recast Matrix as Feature Ratios
+#' Recast Matrix as Feature (Log-)Ratios
 #'
 #' The \code{ratios} function recasts a matrix with N feature columns
-#'  as a new matrix with N * (N - 1) / 2 feature ratio columns.
+#'  as a new matrix with N * (N - 1) / 2 feature (log-)ratio columns.
+#'
+#' When the \code{alpha} argument is provided, this function returns
+#'  the (log-)ratios as \code{(partner^alpha - pair^alpha) / alpha}.
 #'
 #' @param matrix A matrix. The data to recast.
-#' @return A matrix.
+#' @param alpha A double. See vignette for details. Leave missing
+#'  to skip Box-Cox transformation.
+#' @return A matrix of (log-)ratios.
 #' @export
-ratios <- function(matrix){
+ratios <- function(matrix, alpha = NA){
 
   lab <- labRcpp(ncol(matrix))
-  ratios <- matrix[, lab$Partner] / matrix[, lab$Pair]
+
+  # Replace count zeros with 1 if appropriate
+  if(any(as.matrix(matrix) == 0) & is.na(alpha)){
+    message("Alert: Replacing 0s in \"count matrix\" with 1.")
+    matrix[matrix == 0] <- 1
+  }
+
+  # Get (log-)ratios [based on alpha]
+  if(is.na(alpha)){
+    ratios <- log(matrix[, lab$Partner] / matrix[, lab$Pair])
+  }else{
+    ratios <- (matrix[, lab$Partner]^alpha - matrix[, lab$Pair]^alpha) / alpha
+  }
+
+  # Name columns
   if(!is.null(colnames(matrix))){
     colnames(ratios) <-
       paste0(colnames(matrix)[lab$Partner],

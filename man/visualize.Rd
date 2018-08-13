@@ -56,7 +56,8 @@ bowtie(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
 gemini(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
-slice(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALSE)
+slice(object, cutoff = 1000, reference, prompt = TRUE,
+  plotly = FALSE)
 
 decomposed(object, cutoff = 1000, prompt = TRUE)
 }
