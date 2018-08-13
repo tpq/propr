@@ -164,3 +164,38 @@ getNetwork <- function(propr.object, propr.cutoff = NA, thetad.object, thetad.cu
 
   return(g)
 }
+
+#' Get (Log-)ratios from Object
+#'
+#' This function provides a unified wrapper to retrieve (log-)ratios
+#'  from \code{propr} and \code{propd} objects.
+#'
+#' When the \code{alpha} argument is provided, this function returns
+#'  the (log-)ratios as \code{(partner^alpha - pair^alpha) / alpha}.
+#'
+#' @inheritParams getResults
+#' @param melt A boolean. Toggles whether to melt the results for
+#'  visualization with \code{ggplot2}.
+#'
+#' @return A \code{data.frame} of (log-)ratios.
+#'
+#' @export
+getRatios <- function(object, cutoff = NA, melt = FALSE){
+
+  # Get results based on cutoff
+  df <- getResults(object, cutoff)
+
+  index <- colnames(object@counts) %in% union(df$Partner, df$Pair)
+  ct <- object@counts[, index]
+  alpha <- object@alpha
+
+  # Get (log-)ratios [based on alpha]
+  lr <- ratios(ct, alpha)
+
+  # Melt data if appropriate
+  if(melt){
+    return(wide2long(lr))
+  }else{
+    return(lr)
+  }
+}
