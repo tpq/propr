@@ -11,9 +11,13 @@
 
 I have reviewed the DESCRIPTION and attest it does not contain any mis-spellings.
 
+* Found the following (possibly) invalid URLs:
+
+I have reviewed the URLs and attest that all are valid.
+
 ## Reverse dependencies
 
-No reverse dependencies.
+I checked all reverse dependencies.
 <!--
 ---
 
