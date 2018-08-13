@@ -5,7 +5,6 @@
 \alias{propd}
 \alias{propd-class}
 \alias{show,propd-method}
-\alias{propd}
 \alias{setActive}
 \alias{setDisjointed}
 \alias{setEmergent}

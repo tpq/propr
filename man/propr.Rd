@@ -5,13 +5,11 @@
 \alias{propr}
 \alias{propr-class}
 \alias{show,propr-method}
-\alias{propr}
 \alias{phit}
 \alias{perb}
 \alias{phis}
 \alias{corr}
 \alias{subset,propr-method}
-\alias{[,propr,ANY,ANY-method}
 \alias{[,propr-method}
 \alias{simplify}
 \alias{updateCutoffs.propr}
@@ -19,8 +17,8 @@
 \usage{
 \S4method{show}{propr}(object)
 
-propr(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", select,
-  symmetrize = FALSE, alpha, p = 100)
+propr(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr",
+  select, symmetrize = FALSE, alpha, p = 100)
 
 phit(counts, ...)
 
@@ -32,7 +30,7 @@ corr(counts, ...)
 
 \S4method{subset}{propr}(x, subset, select)
 
-\S4method{[}{propr,ANY,ANY}(x, i = "all", j, tiny = FALSE)
+\S4method{[}{propr}(x, i = "all", j, tiny = FALSE)
 
 simplify(object)
 
