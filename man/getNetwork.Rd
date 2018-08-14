@@ -4,11 +4,16 @@
 \alias{getNetwork}
 \title{Get Network from Object}
 \usage{
-getNetwork(propr.object, propr.cutoff = NA, thetad.object,
-  thetad.cutoff = NA, thetae.object, thetae.cutoff = NA, col1, col2,
-  d3 = FALSE)
+getNetwork(object, cutoff = NA, propr.object, propr.cutoff = NA,
+  thetad.object, thetad.cutoff = NA, thetae.object, thetae.cutoff = NA,
+  col1, col2, d3 = FALSE)
 }
 \arguments{
+\item{object}{Any \code{propr} or \code{propd} object.}
+
+\item{cutoff}{A cutoff argument for \code{object}, passed
+to \code{\link{getResults}}.}
+
 \item{propr.object, thetad.object, thetae.object}{A \code{propr}
 object or an appropriate \code{propd} object.}
 

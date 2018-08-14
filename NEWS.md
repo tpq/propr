@@ -1,3 +1,8 @@
+## propr 4.0.3
+---------------------
+* Update `getNetwork` method
+    * Simplify use by guessing network type based on first argument
+    
 ## propr 4.0.2
 ---------------------
 * Update `propr` method

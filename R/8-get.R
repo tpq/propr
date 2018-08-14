@@ -68,6 +68,9 @@ getResults <- function(object, cutoff = NA){
 #' This function provides a unified wrapper to build networks
 #'  from \code{propr} and \code{propd} objects.
 #'
+#' @param object Any \code{propr} or \code{propd} object.
+#' @param cutoff A cutoff argument for \code{object}, passed
+#'  to \code{\link{getResults}}.
 #' @param propr.object,thetad.object,thetae.object A \code{propr}
 #'  object or an appropriate \code{propd} object.
 #' @param propr.cutoff,thetad.cutoff,thetae.cutoff A cutoff
@@ -77,8 +80,28 @@ getResults <- function(object, cutoff = NA){
 #' @return A network object.
 #'
 #' @export
-getNetwork <- function(propr.object, propr.cutoff = NA, thetad.object, thetad.cutoff = NA,
-                       thetae.object, thetae.cutoff = NA, col1, col2, d3 = FALSE){
+getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
+                       thetad.object, thetad.cutoff = NA,
+                       thetae.object, thetae.cutoff = NA,
+                       col1, col2, d3 = FALSE){
+
+  if(!missing(object)){
+    if(class(object) == "propr"){
+      message("Alert: Treating 'object' as the proportionality network.")
+      propr.object <- object
+      propr.cutoff <- cutoff
+    }else if(class(object) == "propd" & object@active == "theta_d"){
+      message("Alert: Treating 'object' as the disjointed proportionality network.")
+      thetad.object <- object
+      thetad.cutoff <- cutoff
+    }else if(class(object) == "propd" & object@active == "theta_e"){
+      message("Alert: Treating 'object' as the emergent proportionality network.")
+      thetae.object <- object
+      thetae.cutoff <- cutoff
+    }else{
+      stop("Provide a valid object to the 'object' argument.")
+    }
+  }
 
   g <- igraph::make_empty_graph(directed = FALSE)
 

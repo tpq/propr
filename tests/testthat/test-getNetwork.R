@@ -24,7 +24,8 @@ test_that("getNetwork matches old network functions", {
     igraph::as_adj(g1b)
   )
 
-  g1a <- getNetwork(A, .85, B, .3)
+  g1a <- getNetwork(propr.object = A, propr.cutoff = .85,
+                    thetad.object = B, thetad.cutoff = .3)
   g1b <- plot(B, cutoff = .3, propr = A[">", .85])
   i <- sort(rownames(igraph::as_adj(g1a)))
   expect_equal(
