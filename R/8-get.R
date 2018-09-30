@@ -215,10 +215,64 @@ getRatios <- function(object, cutoff = NA, melt = FALSE){
   # Get (log-)ratios [based on alpha]
   lr <- ratios(ct, alpha)
 
+  # Subset after calling ratios() [to get only pairs in results]
+  lr <- lr[, paste0(df$Partner, "/", df$Pair)]
+
   # Melt data if appropriate
   if(melt){
     return(wide2long(lr))
   }else{
     return(lr)
+  }
+}
+
+#' Get Reference to Approximate CLR
+#'
+#' This function finds the reference that is most
+#'  proportional to the geometric mean of the samples.
+#'  Using this reference for an alr-transformation
+#'  will permit an analysis that resembles that of a
+#'  clr-transformation, but arguably with greater
+#'  interpretability.
+#'
+#' @inheritParams all
+#'
+#' @return A reference as a character or integer.
+#'
+#' @export
+getReference <- function(counts, alpha = NA){
+
+  counts <- as.matrix(counts)
+
+  # Transform data into log space
+  if(is.na(alpha)){
+
+    if(any(counts == 0)){
+
+      message("Alert: Replacing 0s with next smallest value.")
+      zeros <- counts == 0
+      counts[zeros] <- min(counts[!zeros])
+    }
+
+    logX <- log(counts)
+
+  }else{
+
+    logX <- (counts^alpha - 1)/alpha
+  }
+
+  # Sweep out g(x) center to get log(x/ref)
+  ref <- rowMeans(logX)
+  lr <- sweep(logX, 1, ref, "-")
+
+  # Calculate var of each component
+  vars <- apply(lr, 1, var)
+  if(!is.null(rownames(counts))){
+
+    rownames(counts)[which.min(vars)]
+
+  }else{
+
+    which.min(vars)
   }
 }
