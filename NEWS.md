@@ -1,3 +1,14 @@
+## propr 4.0.4
+---------------------
+* Add methods
+    * Add `getReference` to find a component proportional to center
+* Update `getRatios` method
+    * Now subsets ratios to include only pairs returned by `getResults`
+* Update zero handling
+    * Package now replaces 0s with next smallest value (instead of 1)
+* General maintenance
+    * Stop `slate` and `shale` export
+
 ## propr 4.0.3
 ---------------------
 * Update `getNetwork` method
