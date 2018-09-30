@@ -101,8 +101,7 @@ We begin now by looking at *disjointed proportionality* in more detail. Based on
 Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 66, message = FALSE, fig.keep = "last"}
-tab <- shale(pd.d)
-head(round(tab[, c("Partner", "Pair", "theta", "LRV", "LRV1", "LRV2", "LRM1", "LRM2")], 2))
+tab <- getResults(pd.d)
 plot(pd.d@counts[, 39], pd.d@counts[, 37], col = ifelse(pd.d@group == "WA", "red", "blue"))
 grp1 <- pd.d@group == "WA"
 grp2 <- pd.d@group != "WA"
@@ -126,8 +125,7 @@ In contrast, *emergent proportionality* has more in common with a test for diffe
 Below, we use the `shale` function again to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 66, fig.keep = "last"}
-tab <- shale(pd.e)
-head(round(tab[, c("Partner", "Pair", "theta", "LRV", "LRV1", "LRV2", "LRM1", "LRM2")], 2))
+tab <- getResults(pd.e)
 plot(pd.e@counts[, 106], pd.e@counts[, 2], col = ifelse(pd.d@group == "WA", "red", "blue"))
 grp1 <- pd.e@group == "WA"
 grp2 <- pd.e@group != "WA"

@@ -180,10 +180,9 @@ dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
   }
 }
 
-#' @rdname visualize
-#' @section \code{propr} Functions:
-#' \code{slate:}
-#'  Builds a table of VLR, VLS, and proportionality
+#' Build \code{propr} Results Table
+#'
+#' Builds a table of VLR, VLS, and proportionality
 #'  for each feature pair in a \code{propr} object. If the
 #'  argument \code{k} is provided, the table will also
 #'  include co-cluster membership.
@@ -191,7 +190,8 @@ dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
 #'  If the argument \code{k} is provided, returns a list of
 #'  the \code{data.frame} of pairwise relationships and the
 #'  cluster membership.
-#' @export
+#'
+#' @inheritParams all
 slate <- function(rho, k, prompt = TRUE, plotly = FALSE){
 
   rho <- plotCheck(rho, prompt = prompt, plotly = plotly, indexNaive = TRUE)

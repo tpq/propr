@@ -154,10 +154,9 @@ setMethod("plot", signature(x = "propd", y = "missing"),
           }
 )
 
-#' @rdname visualize
-#' @section \code{propd} Functions:
-#' \code{shale:}
-#'  Builds a table of within-group and total log-ratio
+#' Build \code{propd} Results Table
+#'
+#' Builds a table of within-group and total log-ratio
 #'  variances, log-ratio means, and PALs (see: \code{\link{pals}}).
 #'  If the argument \code{k} is provided, the table will
 #'  label at most \code{k} top PALs. Just as each node
@@ -173,7 +172,8 @@ setMethod("plot", signature(x = "propd", y = "missing"),
 #'  theta above which to exclude the pair. A large integer
 #'  \code{cutoff} will instead retrieve the top N pairs as
 #'  ranked by theta.
-#' @export
+#'
+#' @inheritParams all
 shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
 
   if(class(object) != "propd") stop("This function requires a 'propd' object.")
