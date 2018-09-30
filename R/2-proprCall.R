@@ -20,8 +20,9 @@ ivar2index <- function(counts, ivar){
   }else if(ivar %is% "iqlr"){
 
     if(any(counts == 0)){
-      message("Alert: Replacing 0s in \"count matrix\" with 1 to calculate IQR.")
-      counts[counts == 0] <- 1
+      message("Alert: Replacing 0s with next smallest value.")
+      zeros <- counts == 0
+      counts[zeros] <- min(counts[!zeros])
     }
 
     counts.clr <- apply(log(counts), 1, function(x){ x - mean(x) })

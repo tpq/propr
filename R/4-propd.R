@@ -106,8 +106,9 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 
   # Replace zeros unless alpha is provided
   if(any(as.matrix(counts) == 0) & is.na(alpha)){
-    message("Alert: Replacing 0s in \"count matrix\" with 1.")
-    ct[ct == 0] <- 1
+    message("Alert: Replacing 0s with next smallest value.")
+    zeros <- ct == 0
+    ct[zeros] <- min(ct[!zeros])
   }
 
   # Initialize @active, @weighted

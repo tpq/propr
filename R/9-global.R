@@ -69,8 +69,9 @@ ratios <- function(matrix, alpha = NA){
 
   # Replace count zeros with 1 if appropriate
   if(any(as.matrix(matrix) == 0) & is.na(alpha)){
-    message("Alert: Replacing 0s in \"count matrix\" with 1.")
-    matrix[matrix == 0] <- 1
+    message("Alert: Replacing 0s with next smallest value.")
+    zeros <- matrix == 0
+    matrix[zeros] <- min(matrix[!zeros])
   }
 
   # Get (log-)ratios [based on alpha]
