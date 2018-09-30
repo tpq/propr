@@ -8,7 +8,8 @@ proprPhit(counts, symmetrize = TRUE)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with
-subjects as rows and features as columns.}
+subjects as rows and features as columns. Note that this matrix
+does not necessarily have to contain counts.}
 
 \item{symmetrize}{A logical. If \code{TRUE}, forces symmetry
 by reflecting the "lower left triangle".}

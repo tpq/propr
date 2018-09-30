@@ -40,7 +40,8 @@ updateCutoffs.propr(object, cutoff = seq(0.05, 0.95, 0.3))
 \item{object}{A \code{propr} or \code{propd} object.}
 
 \item{counts}{A data.frame or matrix. A "count matrix" with
-subjects as rows and features as columns.}
+subjects as rows and features as columns. Note that this matrix
+does not necessarily have to contain counts.}
 
 \item{metric}{A character string. The proportionality metric
 to calculate. Choose from "rho", "phi", or "phs".}

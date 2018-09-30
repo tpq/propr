@@ -4,7 +4,8 @@
 #' A list of most parameters.
 #'
 #' @param counts A data.frame or matrix. A "count matrix" with
-#'  subjects as rows and features as columns.
+#'  subjects as rows and features as columns. Note that this matrix
+#'  does not necessarily have to contain counts.
 #' @param metric A character string. The proportionality metric
 #'  to calculate. Choose from "rho", "phi", or "phs".
 #' @param ivar A numeric scalar. Specifies reference feature(s)

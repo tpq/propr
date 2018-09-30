@@ -8,7 +8,8 @@ permuteTheta_prime(counts, group, p = 64)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with
-subjects as rows and features as columns.}
+subjects as rows and features as columns. Note that this matrix
+does not necessarily have to contain counts.}
 
 \item{group}{A character vector. Group or sub-group memberships,
 ordered according to the row names in \code{counts}.}
