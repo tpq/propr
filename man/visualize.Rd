@@ -19,6 +19,7 @@
 \alias{gemini}
 \alias{slice}
 \alias{decomposed}
+\alias{parallel}
 \title{Visualize Proportionality}
 \usage{
 \S4method{plot}{propr,missing}(x, y, prompt = TRUE, plotly = FALSE)
@@ -53,7 +54,9 @@ gemini(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 slice(object, cutoff = 1000, reference, prompt = TRUE,
   plotly = FALSE)
 
-decomposed(object, cutoff = 1000, prompt = TRUE)
+decomposed(object, cutoff = 1000)
+
+parallel(object, cutoff = 1000, plotly = FALSE)
 }
 \arguments{
 \item{x}{A \code{propr} or \code{propd} object.}
@@ -266,5 +269,10 @@ Visualize proportionality and differential proportionality.
  Plots the decomposition of log-ratio variance into
  (weighted) group variances and between-group variance.
  Useful for visualizing how a theta type selects pairs.
+
+
+\code{parallel:}
+ Plots the sample-wise log-ratio abundance across all
+ pairs selected by the provided cutoff.
 }
 

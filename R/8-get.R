@@ -17,34 +17,40 @@
 getResults <- function(object, cutoff = NA){
 
   # Unify @results slot subset procedure
-  if(!is.na(cutoff)){
+  if(class(object) == "propr"){
 
-    if(class(object) == "propr"){
+    if(object@metric == "rho" | object@metric == "cor"){
 
-      if(object@metric == "rho" | object@metric == "cor"){
+      outcome <- "propr"
+      keep <- object@results[,outcome] >= cutoff
 
-        outcome <- "propr"
-        keep <- object@results[,outcome] >= cutoff
+    }else if(object@metric == "phi" | object@metric == "phs"){
 
-      }else if(object@metric == "phi" | object@metric == "phs"){
-
-        outcome <- "propr"
-        keep <- object@results[,outcome] <= cutoff
-
-      }else{
-
-        stop("Provided 'propr' metric not recognized.")
-      }
-
-    }else if(class(object) == "propd"){
-
-      outcome <- "theta"
+      outcome <- "propr"
       keep <- object@results[,outcome] <= cutoff
 
     }else{
 
-      stop("Provided 'object' not recognized.")
+      stop("Provided 'propr' metric not recognized.")
     }
+
+  }else if(class(object) == "propd"){
+
+    # Handle cutoff > 1 for backwards compatibility
+    if(!is.na(cutoff)){
+      if(cutoff > nrow(object@results)) cutoff <- nrow(object@results)
+      if(cutoff > 1) cutoff <- sort(object@results$theta)[cutoff]
+    }
+
+    outcome <- "theta"
+    keep <- object@results[,outcome] <= cutoff
+
+  }else{
+
+    stop("Provided 'object' not recognized.")
+  }
+
+  if(!is.na(cutoff)){
 
     # Apply numeric cutoff
     df <- object@results[keep,]
@@ -60,6 +66,9 @@ getResults <- function(object, cutoff = NA){
   names <- colnames(object@counts)
   df$Partner <- names[df$Partner]
   df$Pair <- names[df$Pair]
+
+  # Order results by outcome
+  df <- df[order(df[,outcome]),]
   return(df)
 }
 
@@ -218,6 +227,22 @@ getRatios <- function(object, cutoff = NA, melt = FALSE){
   # Subset after calling ratios() [to get only pairs in results]
   lr <- lr[, paste0(df$Partner, "/", df$Pair)]
 
+  # For propd objects, define ratio so Group 1 is at top
+  if(class(object) == "propd"){
+
+    switchRatio <- function(x){
+      text <- unlist(strsplit(x, "/"))
+      paste0(text[2], "/", text[1])
+    }
+
+    for(i in 1:ncol(lr)){
+      if(df$lrm2[i] > df$lrm1[i]){
+        lr[,i] <- -1 * lr[,i]
+        colnames(lr)[i] <- switchRatio(colnames(lr)[i])
+      }
+    }
+  }
+
   # Melt data if appropriate
   if(melt){
     return(wide2long(lr))
@@ -268,11 +293,8 @@ getReference <- function(counts, alpha = NA){
   # Calculate var of each component
   vars <- apply(lr, 1, var)
   if(!is.null(rownames(counts))){
-
     rownames(counts)[which.min(vars)]
-
   }else{
-
     which.min(vars)
   }
 }
