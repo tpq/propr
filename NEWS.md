@@ -1,3 +1,13 @@
+## propr 4.0.5
+---------------------
+* Add methods
+    * New `parallel` method visualizes sample-wise log-ratios
+* Update `getResults` method
+    * For `propd` objects, any cutoff > 1 will return top N pairs
+    * Now always return data sorted according to outcome
+* Update `getRatios` method
+    * For `propd` objects, define ratio so Group 1 is at top
+
 ## propr 4.0.4
 ---------------------
 * Add methods
