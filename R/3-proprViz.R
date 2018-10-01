@@ -78,7 +78,9 @@ smear <- function(rho, prompt = TRUE, plotly = FALSE){
                   y = "*lr-transformed Abundance[2]") +
     ggplot2::coord_equal(ratio = 1) + ggplot2::theme_bw() +
     ggplot2::ggtitle("Distribution of *lr-transformed Abundance") +
-    ggplot2::theme(legend.position = "none")
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -162,7 +164,9 @@ dendrogram <- function(rho, prompt = TRUE, plotly = FALSE){
     ggplot2::xlab("Features") + ggplot2::ylab("Features") +
     ggplot2::geom_tile(ggplot2::aes_string(fill = "rho")) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
-    ggplot2::theme(axis.text = ggplot2::element_blank())
+    ggplot2::theme(axis.text = ggplot2::element_blank()) +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -316,7 +320,9 @@ bucket <- function(rho, group, k, prompt = TRUE, plotly = FALSE){ # pronounced b
     ggplot2::xlim(-1, 1) +
     ggplot2::ylim(0, max(df$Score)) +
     ggplot2::geom_hline(yintercept = -log(.05 / nrow(df)), color = "lightgrey") +
-    ggplot2::geom_hline(yintercept = -log(.05^2 / nrow(df)), color = "black")
+    ggplot2::geom_hline(yintercept = -log(.05^2 / nrow(df)), color = "black") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -378,7 +384,9 @@ prism <- function(rho, k, prompt = TRUE, plotly = FALSE){
     ggplot2::geom_abline(slope = 1.00, intercept = 0, color = "green") +
     ggplot2::geom_abline(slope = 0.50, intercept = 0, color = "yellow") +
     ggplot2::geom_abline(slope = 0.05, intercept = 0, color = "orange") +
-    ggplot2::geom_abline(slope = 0.01, intercept = 0, color = "red")
+    ggplot2::geom_abline(slope = 0.01, intercept = 0, color = "red") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -440,7 +448,9 @@ bokeh <- function(rho, k, prompt = TRUE, plotly = FALSE){
     ggplot2::ggtitle("Distribution of *lr-transformed Variance") +
     ggplot2::xlim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
     ggplot2::ylim(min(c(df$logVL1, df$logVL2)), max(c(df$logVL1, df$logVL2))) +
-    ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey")
+    ggplot2::geom_abline(slope = 1, intercept = 0, color = "lightgrey") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -486,7 +496,9 @@ pca <- function(rho, group, prompt = TRUE, plotly = FALSE){
     ggplot2::theme_bw() +
     ggplot2::xlab("First Component") + ggplot2::ylab("Second Component") +
     ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
-    ggplot2::ggtitle("*lr-transformed PCA Plot")
+    ggplot2::ggtitle("*lr-transformed PCA Plot") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -539,7 +551,9 @@ snapshot <- function(rho, prompt = TRUE, plotly = FALSE){
     ggplot2::xlab("Features") + ggplot2::ylab("Samples") +
     ggplot2::geom_tile(ggplot2::aes_string(fill = "lrAbundance")) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
-    ggplot2::theme(axis.text = ggplot2::element_blank())
+    ggplot2::theme(axis.text = ggplot2::element_blank()) +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 

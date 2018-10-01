@@ -276,7 +276,9 @@ geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     ggplot2::geom_abline(slope = 4/1, intercept = 0, color = "lightgrey") +
     ggplot2::geom_abline(slope = 1/4, intercept = 0, color = "lightgrey") +
     ggplot2::geom_abline(slope = 8/1, intercept = 0, color = "lightgrey") +
-    ggplot2::geom_abline(slope = 1/8, intercept = 0, color = "lightgrey")
+    ggplot2::geom_abline(slope = 1/8, intercept = 0, color = "lightgrey") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -325,7 +327,9 @@ bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     ggplot2::geom_abline(slope = 4/1, intercept = 0, color = "lightgrey") +
     ggplot2::geom_abline(slope = 1/4, intercept = 0, color = "lightgrey") +
     ggplot2::geom_abline(slope = 8/1, intercept = 0, color = "lightgrey") +
-    ggplot2::geom_abline(slope = 1/8, intercept = 0, color = "lightgrey")
+    ggplot2::geom_abline(slope = 1/8, intercept = 0, color = "lightgrey") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -374,7 +378,9 @@ gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
     ggplot2::xlim(-1 * maxLimx, maxLimx) +
     ggplot2::ylim(-1 * maxLimy, maxLimy) +
     ggplot2::geom_abline(slope = 0, intercept = 0, color = "lightgrey") +
-    ggplot2::geom_vline(xintercept = 0, color = "lightgrey")
+    ggplot2::geom_vline(xintercept = 0, color = "lightgrey") +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -440,7 +446,9 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
     ggplot2::geom_point(ggplot2::aes_string(col = "Group")) +
     ggplot2::theme_bw() + ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
     ggplot2::xlab("Feature[i]") + ggplot2::ylab("Log-Ratio Abundance ( Feature[i] / Reference )") +
-    ggplot2::ggtitle(paste("Log-Ratio Abundances for Reference Slice:", reference))
+    ggplot2::ggtitle(paste("Log-Ratio Abundances for Reference Slice:", reference)) +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
 
   if(plotly){
 
@@ -458,20 +466,50 @@ slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALS
 #'  (weighted) group variances and between-group variance.
 #'  Useful for visualizing how a theta type selects pairs.
 #' @export
-decomposed <- function(object, cutoff = 1000, prompt = TRUE){
+decomposed <- function(object, cutoff = 1000){
 
   packageCheck("compositions")
-  df <- shale(object, cutoff = cutoff, prompt = prompt, clean = TRUE)
+  df <- getResults(object, cutoff)
 
   # Generalized decomposition of LRV for weighted theta types
   decomp <- matrix(0, nrow = nrow(df), ncol = 3)
-  decomp[, 1] <- df$p1 * df$LRV1 / (df$p * df$LRV)
-  decomp[, 2] <- df$p2 * df$LRV2 / (df$p * df$LRV)
-  decomp[, 3] <- df$p1 * df$p2 * (df$LRM2 - df$LRM1)^2 / (df$p^2 * df$LRV)
+  decomp[, 1] <- df$p1 * df$lrv1 / (df$p * df$lrv)
+  decomp[, 2] <- df$p2 * df$lrv2 / (df$p * df$lrv)
+  decomp[, 3] <- df$p1 * df$p2 * (df$lrm2 - df$lrm1)^2 / (df$p^2 * df$lrv)
 
   x <- suppressWarnings(compositions::acomp(decomp))
   suppressWarnings(
     plot(x, pch = 20, col = grDevices::rgb(0.1, 0.1, 0.1, 0.1),
          labels = c("group 1  ", "  group 2", "between-group"), axes = TRUE)
   )
+}
+
+#' @rdname visualize
+#' @section \code{propd} Functions:
+#' \code{parallel:}
+#'  Plots the sample-wise log-ratio abundance across all
+#'  pairs selected by the provided cutoff.
+#' @export
+parallel <- function(object, cutoff = 1000, plotly = FALSE){
+
+  df <- getRatios(object, cutoff, melt = TRUE)
+  df$variable <- factor(df$variable, levels = unique(df$variable))
+  df$group <- object@group
+
+  g <- ggplot2::ggplot(df, ggplot2::aes_string(x = "variable", y = "value", group = "id", col = "group")) +
+    ggplot2::geom_line() + ggplot2::theme_bw() +
+    ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
+    ggplot2::xlab("Feature Pair") + ggplot2::ylab("Log-Ratio Abundance") +
+    ggplot2::ggtitle("Sample-wise Distribution of Log-Ratios Across Pairs") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+    ggplot2::theme(text = ggplot2::element_text(size=18),
+                   plot.title = ggplot2::element_text(size=24))
+
+  if(plotly){
+
+    packageCheck("plotly")
+    return(plotly::ggplotly(g))
+  }
+
+  return(g)
 }
