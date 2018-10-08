@@ -177,11 +177,11 @@ Note that at the appropriate `cutoff`, a network will contain all pairs for a gi
 The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is not possible to tell from this figure which features have changed in absolute abundance: it is possible for a "hub" to change relative to its neighbors, for all neighbors to change relative to its "hub", or for a "hub" and its neighbors to have changed simultaneously.
 
 ```{r, dpi = 66, fig.keep = "first"}
-slice(pd.d, reference = "c19327_g2_i3")
+parallel(pd.d, cutoff = .15, reference = "c19327_g2_i3")
 ```
 
 ```{r, dpi = 66, fig.keep = "first"}
-slice(pd.e, reference = "c27054_g5_i1")
+parallel(pd.e, reference = "c27054_g5_i1")
 ```
 
 ## Integrating propd with propr
