@@ -10,8 +10,6 @@
 #' @return A named vector of PALs, ordered by decreasing
 #'  connectivity of the input nodes. The names of the result
 #'  refer to the input nodes themselves.
-#'
-#' @export
 pals <- function(object, k){
 
   # Get entire graph object
@@ -393,74 +391,6 @@ gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
 #' @rdname visualize
 #' @section \code{propd} Functions:
-#' \code{slice:}
-#'  Plots log-ratio counts relative to a \code{reference}
-#'  node for all pairs that include the reference itself.
-#'  This makes a useful adjunct function to visualize how
-#'  features vary across samples relative to a PAL.
-#' @export
-slice <- function(object, cutoff = 1000, reference, prompt = TRUE, plotly = FALSE){
-
-  if(missing(reference)) stop("Please provide a reference feature by name.")
-  if(!is.character(reference)) stop("Please provide a reference feature by name.")
-  df <- shale(object, cutoff, prompt = prompt)
-
-  # Retrieve log-ratio counts for each pair containing the reference
-  g1 <- object@group == unique(object@group)[1]
-  all <-
-    lapply(1:nrow(df),
-           function(i){
-
-             if(any(reference == df[i, c("Pair", "PartnerName")])){
-
-               if(df$PairName[i] == reference){
-
-                 bot <- df$PairName[i]
-                 top <- df$PartnerName[i]
-
-               }else if(df$PartnerName[i] == reference){
-
-                 bot <- df$PartnerName[i]
-                 top <- df$PairName[i]
-               }
-
-               lr1 <- log(object@counts[g1, top] / object@counts[g1, bot])
-               lr2 <- log(object@counts[!g1, top] / object@counts[!g1, bot])
-
-               data.frame(
-                 top, bot,
-                 "Group" = c(object@group[g1], object@group[!g1]),
-                 "lr" = c(lr1, lr2),
-                 "lrm" = c(mean(lr1), mean(lr2)),
-                 "lrv" = c(var(lr1), var(lr2))
-               )
-             }
-           })
-
-  # Clean data for ggplot2
-  final <- do.call("rbind", all)
-  final$label <- colnames(object@counts)[final$top]
-
-  g <-
-    ggplot2::ggplot(final, ggplot2::aes_string(x = "label", y = "lr", LRM = "lrm", LRV = "lrv")) +
-    ggplot2::geom_point(ggplot2::aes_string(col = "Group")) +
-    ggplot2::theme_bw() + ggplot2::scale_colour_brewer(palette = "Set2", name = "Group") +
-    ggplot2::xlab("Feature[i]") + ggplot2::ylab("Log-Ratio Abundance ( Feature[i] / Reference )") +
-    ggplot2::ggtitle(paste("Log-Ratio Abundances for Reference Slice:", reference)) +
-    ggplot2::theme(text = ggplot2::element_text(size=18),
-                   plot.title = ggplot2::element_text(size=24))
-
-  if(plotly){
-
-    packageCheck("plotly")
-    return(plotly::ggplotly(g))
-  }
-
-  return(g)
-}
-
-#' @rdname visualize
-#' @section \code{propd} Functions:
 #' \code{decomposed:}
 #'  Plots the decomposition of log-ratio variance into
 #'  (weighted) group variances and between-group variance.
@@ -488,11 +418,13 @@ decomposed <- function(object, cutoff = 1000){
 #' @section \code{propd} Functions:
 #' \code{parallel:}
 #'  Plots the sample-wise log-ratio abundance across all
-#'  pairs selected by the provided cutoff.
+#'  pairs selected by the provided cutoff. Use the
+#'  \code{reference} argument to subset the plot to only
+#'  include pairs that contain this reference.
 #' @export
-parallel <- function(object, cutoff = 1000, plotly = FALSE){
+parallel <- function(object, cutoff = 1000, reference = NA, plotly = FALSE){
 
-  df <- getRatios(object, cutoff, melt = TRUE)
+  df <- getRatios(object, cutoff, reference, melt = TRUE)
   df$variable <- factor(df$variable, levels = unique(df$variable))
   df$group <- object@group
 

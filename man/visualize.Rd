@@ -17,7 +17,6 @@
 \alias{geyser}
 \alias{bowtie}
 \alias{gemini}
-\alias{slice}
 \alias{decomposed}
 \alias{parallel}
 \title{Visualize Proportionality}
@@ -51,12 +50,9 @@ bowtie(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
 gemini(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
-slice(object, cutoff = 1000, reference, prompt = TRUE,
-  plotly = FALSE)
-
 decomposed(object, cutoff = 1000)
 
-parallel(object, cutoff = 1000, plotly = FALSE)
+parallel(object, cutoff = 1000, reference = NA, plotly = FALSE)
 }
 \arguments{
 \item{x}{A \code{propr} or \code{propd} object.}
@@ -258,13 +254,6 @@ Visualize proportionality and differential proportionality.
  (see: \code{\link{pals}}).
 
 
-\code{slice:}
- Plots log-ratio counts relative to a \code{reference}
- node for all pairs that include the reference itself.
- This makes a useful adjunct function to visualize how
- features vary across samples relative to a PAL.
-
-
 \code{decomposed:}
  Plots the decomposition of log-ratio variance into
  (weighted) group variances and between-group variance.
@@ -273,6 +262,8 @@ Visualize proportionality and differential proportionality.
 
 \code{parallel:}
  Plots the sample-wise log-ratio abundance across all
- pairs selected by the provided cutoff.
+ pairs selected by the provided cutoff. Use the
+ \code{reference} argument to subset the plot to only
+ include pairs that contain this reference.
 }
 
