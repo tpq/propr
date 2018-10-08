@@ -4,7 +4,7 @@
 \alias{getRatios}
 \title{Get (Log-)ratios from Object}
 \usage{
-getRatios(object, cutoff = NA, melt = FALSE)
+getRatios(object, cutoff = NA, include = NA, melt = FALSE)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
@@ -15,6 +15,11 @@ returns pairs with a value greater than the cutoff.
 For "theta", "phi", and "phs", the function returns pairs
 with a value less than the cutoff. Leave the argument as
 \code{NA} to return all results.}
+
+\item{include}{This argument indicates which features by
+name should belong to a pair for that pair to get included
+in the results. Subset performed by
+\code{Partner \%in\% subset | Pair \%in\% subset}.}
 
 \item{melt}{A boolean. Toggles whether to melt the results for
 visualization with \code{ggplot2}.}
