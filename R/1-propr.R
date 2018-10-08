@@ -124,7 +124,8 @@ setMethod("show", "propr",
 
 #' @rdname propr
 #' @export
-propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", select, symmetrize = FALSE, alpha, p = 100){
+propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = "clr",
+                  select, symmetrize = FALSE, alpha, p = 100){
 
   # Clean "count matrix"
   # if(any(apply(counts, 2, function(x) all(x == 0)))){
@@ -195,6 +196,8 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr", 
     mat <- lr2phs(lr)
   }else if(metric == "cor"){
     mat <- stats::cor(lr)
+  }else if(metric == "vlr"){
+    mat <- lrv
   }else{
     stop("Provided 'metric' not recognized.")
   }

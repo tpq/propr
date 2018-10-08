@@ -17,8 +17,8 @@
 \usage{
 \S4method{show}{propr}(object)
 
-propr(counts, metric = c("rho", "phi", "phs", "cor"), ivar = "clr",
-  select, symmetrize = FALSE, alpha, p = 100)
+propr(counts, metric = c("rho", "phi", "phs", "cor", "vlr"),
+  ivar = "clr", select, symmetrize = FALSE, alpha, p = 100)
 
 phit(counts, ...)
 
