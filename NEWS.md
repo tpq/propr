@@ -1,3 +1,14 @@
+## propr 4.0.6
+---------------------
+* Update `propr` methods
+    * Extend `propr` function and object to support `metric = "vlr"`
+* Update `propd` methods
+    * Add `setEmergent` warning for unequal group sizes
+    * Extend `parallel` to replace `slice`
+* Update `get` methods
+    * Now use only one color for `getNetwork` of theta_d (`cytescape` still uses two)
+    * New `include` argument for `getResults`, `getNetwork`, and `getRatios`
+
 ## propr 4.0.5
 ---------------------
 * Add methods
