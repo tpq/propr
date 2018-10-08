@@ -306,9 +306,9 @@ getReference <- function(counts, alpha = NA){
   lr <- sweep(logX, 1, ref, "-")
 
   # Calculate var of each component
-  vars <- apply(lr, 1, var)
-  if(!is.null(rownames(counts))){
-    rownames(counts)[which.min(vars)]
+  vars <- apply(lr, 2, var)
+  if(!is.null(colnames(counts))){
+    colnames(counts)[which.min(vars)]
   }else{
     which.min(vars)
   }

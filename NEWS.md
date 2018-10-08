@@ -1,3 +1,7 @@
+## propr 4.0.7
+---------------------
+* Fix `getReference` bug
+
 ## propr 4.0.6
 ---------------------
 * Update `propr` methods

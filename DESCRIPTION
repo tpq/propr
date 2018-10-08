@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 4.0.6
+Version: 4.0.7
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
