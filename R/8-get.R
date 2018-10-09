@@ -75,7 +75,7 @@ getResults <- function(object, cutoff = NA, include = NA){
   df <- df[order(df[,outcome]),]
 
   # Subset by 'include'
-  if(!is.na(include)){
+  if(!any(is.na(include))){
 
     if(class(include) != "character") stop("Provide 'include' as character.")
     index <- df$Partner %in% include | df$Pair %in% include

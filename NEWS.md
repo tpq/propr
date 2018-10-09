@@ -1,6 +1,8 @@
 ## propr 4.0.7
 ---------------------
-* Fix `getReference` bug
+* General maintenance
+    * Fix `getResults` warning
+    * Fix `getReference` bug
 
 ## propr 4.0.6
 ---------------------
