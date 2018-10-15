@@ -1,3 +1,9 @@
+## propr 4.0.8
+---------------------
+* Add methods
+    * New `pra` method for principal ratio analysis
+    * Add `vegan` to NAMESPACE
+
 ## propr 4.0.7
 ---------------------
 * General maintenance
