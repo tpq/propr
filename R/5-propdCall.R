@@ -100,6 +100,13 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     if(only == "theta_f") return(theta_f)
   }
 
+  if(only == "all" | only == "theta_g"){
+
+    theta_g <- pmin(p1 * lrv1, p2 * lrv2) / (p * lrv)
+    if(replaceNaNs) theta_g[lrv0] <- 1
+    if(only == "theta_g") return(theta_g)
+  }
+
   labels <- labRcpp(ncol(counts))
   return(
     data.frame(
@@ -108,6 +115,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       "theta" = theta,
       "theta_e" = theta_e,
       "theta_f" = theta_f,
+      "theta_g" = theta_g,
       "lrv" = lrv,
       "lrv1" = lrv1,
       "lrv2" = lrv2,

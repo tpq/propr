@@ -1,3 +1,8 @@
+## propr 4.0.9
+---------------------
+* Update `propd` methods
+    * Add theta_g routine to `calculateTheta`
+
 ## propr 4.0.8
 ---------------------
 * Add methods
