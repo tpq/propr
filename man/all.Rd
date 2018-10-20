@@ -87,8 +87,13 @@ to color \code{red} or \code{blue}, respectively.}
 
 \item{d3}{A boolean. Use \code{rgl} to plot 3D network.}
 
-\item{reference}{A character string. A feature to use as the
-denominator reference when comparing log-ratio abundances.}
+\item{include}{This argument indicates which features by
+name should belong to a pair for that pair to get included
+in the results. Subset performed by
+\code{Partner \%in\% subset | Pair \%in\% subset}.}
+
+\item{or}{A boolean. If \code{FALSE}, \code{include} subsets
+by \code{Partner \%in\% subset & Pair \%in\% subset}.}
 
 \item{clean}{A boolean. Toggles whether to remove pairs
 with "Bridged" or "Missing" PALs. Used by \code{geyser},

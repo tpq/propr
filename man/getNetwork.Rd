@@ -6,7 +6,7 @@
 \usage{
 getNetwork(object, cutoff = NA, propr.object, propr.cutoff = NA,
   thetad.object, thetad.cutoff = NA, thetae.object, thetae.cutoff = NA,
-  col1, col2, include = NA, d3 = FALSE)
+  col1, col2, include = NA, or = TRUE, d3 = FALSE)
 }
 \arguments{
 \item{object}{Any \code{propr} or \code{propd} object.}
@@ -26,8 +26,13 @@ to color \code{red} or \code{blue}, respectively.}
 \item{col2}{A character vector. Specifies which nodes
 to color \code{red} or \code{blue}, respectively.}
 
-\item{include}{A subset argument for \code{object}, passed
-to \code{\link{getResults}}.}
+\item{include}{This argument indicates which features by
+name should belong to a pair for that pair to get included
+in the results. Subset performed by
+\code{Partner \%in\% subset | Pair \%in\% subset}.}
+
+\item{or}{A boolean. If \code{FALSE}, \code{include} subsets
+by \code{Partner \%in\% subset & Pair \%in\% subset}.}
 
 \item{d3}{A boolean. Use \code{rgl} to plot 3D network.}
 }

@@ -52,7 +52,8 @@ gemini(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE)
 
 decomposed(object, cutoff = 1000)
 
-parallel(object, cutoff = 1000, reference = NA, plotly = FALSE)
+parallel(object, cutoff = 1000, include = NA, or = TRUE,
+  plotly = FALSE)
 }
 \arguments{
 \item{x}{A \code{propr} or \code{propd} object.}
@@ -106,8 +107,13 @@ retrieve the top N pairs as ranked by theta.}
 the network graph without plotting it.
 Used by \code{\link{pals}}.}
 
-\item{reference}{A character string. A feature to use as the
-denominator reference when comparing log-ratio abundances.}
+\item{include}{This argument indicates which features by
+name should belong to a pair for that pair to get included
+in the results. Subset performed by
+\code{Partner \%in\% subset | Pair \%in\% subset}.}
+
+\item{or}{A boolean. If \code{FALSE}, \code{include} subsets
+by \code{Partner \%in\% subset & Pair \%in\% subset}.}
 }
 \description{
 Visualize proportionality and differential proportionality.

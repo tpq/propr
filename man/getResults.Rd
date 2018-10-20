@@ -4,7 +4,7 @@
 \alias{getResults}
 \title{Get Results from Object}
 \usage{
-getResults(object, cutoff = NA, include = NA)
+getResults(object, cutoff = NA, include = NA, or = TRUE)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
@@ -20,6 +20,9 @@ with a value less than the cutoff. Leave the argument as
 name should belong to a pair for that pair to get included
 in the results. Subset performed by
 \code{Partner \%in\% subset | Pair \%in\% subset}.}
+
+\item{or}{A boolean. If \code{FALSE}, \code{include} subsets
+by \code{Partner \%in\% subset & Pair \%in\% subset}.}
 }
 \value{
 A \code{data.frame} of results.

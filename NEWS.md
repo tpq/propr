@@ -1,3 +1,16 @@
+## propr 4.1.0
+---------------------
+* Update `propd` methods
+    * Have `updateF` return NA theta_mod when `moderated = FALSE`
+    * Have `updateF` return BH-adjusted p-values
+* Update `get` methods
+    * Add `or` argument to `getResults`, toggles how `include` works
+    * Add `or` argument to `getNetwork`, toggles how `include` works
+    * Add `or` argument to `getRatios`, toggles how `include` works
+* Add methods
+    * New `getAdjacency` function returns adjacency matrix
+    * Uses `include` and `or` arguments
+
 ## propr 4.0.9
 ---------------------
 * Update `propd` methods

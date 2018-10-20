@@ -98,7 +98,7 @@ data(pd.e, package = "propr") # top 1000 emergent pairs
 
 We begin now by looking at *disjointed proportionality* in more detail. Based on its definition, we see that low values of $\theta_d$ select pairs where the total VLR far exceeds the weighted sum of the within-group VLRs. Often, the within-group VLRs are about the same size. However, this is not a requirement so long as the within-group VLRs are both small compared to the total VLR.
 
-Below, we use the `shale` function, analogous to the `slate` function, to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
+Below, we use the `getResults` function to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "39" and "37", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 66, message = FALSE, fig.keep = "last"}
 tab <- getResults(pd.d)
@@ -122,7 +122,7 @@ This figure shows a clear difference in the ratio abundances between the groups.
 
 In contrast, *emergent proportionality* has more in common with a test for differences in correlation coefficients. That is, emergent proportionality occurs when a pair is proportional in one group but not the other, such that the group with no proportionality contributes most of the total variance.
 
-Below, we use the `shale` function again to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
+Below, we use the `getResults` function again to tabulate important pairwise measurements. Then, we show a scatter plot of the abundance for features "106" and "2", as colored by the experimental group, with the slopes of the trend lines equal to the ratio means.
 
 ```{r, dpi = 66, fig.keep = "last"}
 tab <- getResults(pd.e)
@@ -174,14 +174,14 @@ Note that at the appropriate `cutoff`, a network will contain all pairs for a gi
 
 ## Visualizing log-ratio abundance
 
-The `slice` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `reference` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is not possible to tell from this figure which features have changed in absolute abundance: it is possible for a "hub" to change relative to its neighbors, for all neighbors to change relative to its "hub", or for a "hub" and its neighbors to have changed simultaneously.
+The `parallel` function shows the sample-wise distribution of log-ratio abundances for each pair relative to a reference feature. The `include` argument can specify any feature by name, although users would likely choose a "hub" as the reference. Note that it is not possible to tell from this figure which features have changed in absolute abundance: it is possible for a "hub" to change relative to its neighbors, for all neighbors to change relative to its "hub", or for a "hub" and its neighbors to have changed simultaneously.
 
 ```{r, dpi = 66, fig.keep = "first"}
-parallel(pd.d, cutoff = .15, reference = "c19327_g2_i3")
+parallel(pd.d, cutoff = .15, include = "c19327_g2_i3")
 ```
 
 ```{r, dpi = 66, fig.keep = "first"}
-parallel(pd.e, reference = "c27054_g5_i1")
+parallel(pd.e, include = "c27054_g5_i1")
 ```
 
 ## Integrating propd with propr
