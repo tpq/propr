@@ -266,7 +266,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
     propd@Fivar <- NA # used by updateCutoffs
     Fstat <- (n1 + n2 - 2) * (1 - propd@results$theta) / propd@results$theta
-    theta_mod <- 0
+    theta_mod <- as.numeric(NA)
   }
 
   propd@results$theta_mod <- theta_mod
@@ -276,6 +276,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
   K <- length(unique(propd@group))
   N <- n1 + n2 + propd@dfz
   propd@results$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
+  propd@results$FDR <- p.adjust(propd@results$Pval, method = "BH")
 
   return(propd)
 }
