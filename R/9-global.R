@@ -78,6 +78,7 @@ ratios <- function(matrix, alpha = NA){
   if(is.na(alpha)){
     ratios <- log(matrix[, lab$Partner] / matrix[, lab$Pair])
   }else{
+    message("Alert: Using alpha transformation to approximate log-ratios.")
     ratios <- (matrix[, lab$Partner]^alpha - matrix[, lab$Pair]^alpha) / alpha
   }
 
