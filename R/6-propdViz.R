@@ -422,9 +422,9 @@ decomposed <- function(object, cutoff = 1000){
 #'  \code{reference} argument to subset the plot to only
 #'  include pairs that contain this reference.
 #' @export
-parallel <- function(object, cutoff = 1000, reference = NA, plotly = FALSE){
+parallel <- function(object, cutoff = 1000, include = NA, or = TRUE, plotly = FALSE){
 
-  df <- getRatios(object, cutoff, reference, melt = TRUE)
+  df <- getRatios(object, cutoff, include = include, or = or, melt = TRUE)
   df$variable <- factor(df$variable, levels = unique(df$variable))
   df$group <- object@group
 
