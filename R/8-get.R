@@ -14,11 +14,13 @@
 #'  name should belong to a pair for that pair to get included
 #'  in the results. Subset performed by
 #'  \code{Partner \%in\% subset | Pair \%in\% subset}.
+#' @param or A boolean. If \code{FALSE}, \code{include} subsets
+#'  by \code{Partner \%in\% subset & Pair \%in\% subset}.
 #'
 #' @return A \code{data.frame} of results.
 #'
 #' @export
-getResults <- function(object, cutoff = NA, include = NA){
+getResults <- function(object, cutoff = NA, include = NA, or = TRUE){
 
   # Unify @results slot subset procedure
   if(class(object) == "propr"){
@@ -78,7 +80,13 @@ getResults <- function(object, cutoff = NA, include = NA){
   if(!any(is.na(include))){
 
     if(class(include) != "character") stop("Provide 'include' as character.")
-    index <- df$Partner %in% include | df$Pair %in% include
+
+    if(or){
+      index <- df$Partner %in% include | df$Pair %in% include
+    }else{
+      index <- df$Partner %in% include & df$Pair %in% include
+    }
+
     df <- df[index,]
   }
 
@@ -97,8 +105,6 @@ getResults <- function(object, cutoff = NA, include = NA){
 #'  object or an appropriate \code{propd} object.
 #' @param propr.cutoff,thetad.cutoff,thetae.cutoff A cutoff
 #'  argument passed to \code{\link{getResults}}.
-#' @param include A subset argument for \code{object}, passed
-#'  to \code{\link{getResults}}.
 #' @inheritParams all
 #'
 #' @return A network object.
@@ -107,7 +113,7 @@ getResults <- function(object, cutoff = NA, include = NA){
 getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
                        thetad.object, thetad.cutoff = NA,
                        thetae.object, thetae.cutoff = NA,
-                       col1, col2, include = NA, d3 = FALSE){
+                       col1, col2, include = NA, or = TRUE, d3 = FALSE){
 
   if(!missing(object)){
     if(class(object) == "propr"){
@@ -133,7 +139,7 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
   if(!missing(propr.object)){
 
     if(class(propr.object) != "propr") stop("Provide a valid object to the 'propr.object' argument.")
-    propr.df <- getResults(propr.object, propr.cutoff, include)
+    propr.df <- getResults(propr.object, propr.cutoff, include = include, or = or)
     g <- migraph.add(g, propr.df$Partner, propr.df$Pair)
   }
 
@@ -143,7 +149,7 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
     if(class(thetad.object) != "propd") stop("Provide a valid object to the 'thetad.object' argument.")
     if(thetad.object@active != "theta_d") stop("Provide a valid object to the 'thetad.object' argument.")
     thetad.group <- unique(thetad.object@group)
-    thetad.df <- getResults(thetad.object, thetad.cutoff, include)
+    thetad.df <- getResults(thetad.object, thetad.cutoff, include = include, or = or)
     g <- migraph.add(g, thetad.df$Partner, thetad.df$Pair)
   }
 
@@ -153,7 +159,7 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
     if(class(thetae.object) != "propd") stop("Provide a valid object to the 'thetae.object' argument.")
     if(thetae.object@active != "theta_e") stop("Provide a valid object to the 'thetae.object' argument.")
     thetae.group <- unique(thetae.object@group)
-    thetae.df <- getResults(thetae.object, thetae.cutoff, include)
+    thetae.df <- getResults(thetae.object, thetae.cutoff, include = include, or = or)
     g <- migraph.add(g, thetae.df$Partner, thetae.df$Pair)
   }
 
@@ -227,10 +233,10 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
 #' @return A \code{data.frame} of (log-)ratios.
 #'
 #' @export
-getRatios <- function(object, cutoff = NA, include = NA, melt = FALSE){
+getRatios <- function(object, cutoff = NA, include = NA, or = TRUE, melt = FALSE){
 
   # Get results based on cutoff
-  df <- getResults(object, cutoff, include)
+  df <- getResults(object, cutoff, include = include, or = or)
 
   index <- colnames(object@counts) %in% union(df$Partner, df$Pair)
   ct <- object@counts[, index]
@@ -312,4 +318,24 @@ getReference <- function(counts, alpha = NA){
   }else{
     which.min(vars)
   }
+}
+
+#' Get Object as Adjacency Matrix
+#'
+#' This function uses \code{getNetwork} to
+#'  return a \code{propr} or \code{propd}
+#'  object as an adjacency matrix.
+#'  The diagonal is set to 1.
+#'
+#' @inheritParams getResults
+#'
+#' @return An adjacency matrix.
+#'
+#' @export
+getAdjacency <- function(object, cutoff = NA, include = NA, or = TRUE){
+
+  g <- getNetwork(object, cutoff, include = include, or = or)
+  a <- as.matrix(igraph::as_adjacency_matrix(g))
+  diag(a) <- 1
+  return(a)
 }
