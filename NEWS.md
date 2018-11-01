@@ -1,3 +1,8 @@
+## propr 4.1.1
+---------------------
+* New `get` methods
+    * Add `getMatrix` to return propr or propd object as matrix
+
 ## propr 4.1.0
 ---------------------
 * Update `propd` methods

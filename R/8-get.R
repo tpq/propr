@@ -339,3 +339,40 @@ getAdjacency <- function(object, cutoff = NA, include = NA, or = TRUE){
   diag(a) <- 1
   return(a)
 }
+
+#' Get Object as Symmetric Matrix
+#'
+#' This function returns a symmetric matrix
+#'  of \code{propr} or \code{propd} values.
+#'
+#' @inheritParams getResults
+#'
+#' @return A symmetric matrix.
+#'
+#' @export
+getMatrix <- function(object){
+
+  if(class(object) == "propr"){
+
+    outcome <- "propr"
+
+  }else if(class(object) == "propd"){
+
+    outcome <- "theta"
+
+  }else{
+
+    stop("Provided 'object' not recognized.")
+  }
+
+  if(object@results$Partner[1] != 2 |
+     object@results$Pair[1] != 1){
+
+    stop("Unexpected sorting of results slot.")
+  }
+
+  mat <- half2mat(object@results[,outcome])
+  rownames(mat) <- colnames(object@counts)
+  colnames(mat) <- colnames(object@counts)
+  return(mat)
+}
