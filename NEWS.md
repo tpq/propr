@@ -1,3 +1,8 @@
+## propr 4.1.2
+---------------------
+* New tests
+    * Add `getMatrix` test
+
 ## propr 4.1.1
 ---------------------
 * New `get` methods
