@@ -338,14 +338,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // omega
-NumericVector omega(NumericMatrix& X, NumericMatrix& W);
-RcppExport SEXP _propr_omega(SEXP XSEXP, SEXP WSEXP) {
+NumericVector omega(NumericMatrix& W);
+RcppExport SEXP _propr_omega(SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(omega(X, W));
+    rcpp_result_gen = Rcpp::wrap(omega(W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Omega
+NumericVector Omega(NumericMatrix& W);
+RcppExport SEXP _propr_Omega(SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(Omega(W));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -379,7 +389,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 1},
     {"_propr_lrm", (DL_FUNC) &_propr_lrm, 6},
     {"_propr_lrv", (DL_FUNC) &_propr_lrv, 6},
-    {"_propr_omega", (DL_FUNC) &_propr_omega, 2},
+    {"_propr_omega", (DL_FUNC) &_propr_omega, 1},
+    {"_propr_Omega", (DL_FUNC) &_propr_Omega, 1},
     {NULL, NULL, 0}
 };
 
