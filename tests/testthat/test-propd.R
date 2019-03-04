@@ -69,13 +69,13 @@ if(requireNamespace("limma", quietly = TRUE)){
 test_that("shuffling group labels does not change lrv", {
 
   expect_equal(
-    calculateTheta(counts[sample(1:100), ], group)$lrv,
-    calculateTheta(counts, group)$lrv
+    propr:::calculateTheta(counts[sample(1:100), ], group)$lrv,
+    propr:::calculateTheta(counts, group)$lrv
   )
 
   expect_equal(
-    calculateTheta(counts, group[sample(1:100)])$lrv,
-    calculateTheta(counts, group)$lrv
+    propr:::calculateTheta(counts, group[sample(1:100)])$lrv,
+    propr:::calculateTheta(counts, group)$lrv
   )
 })
 
