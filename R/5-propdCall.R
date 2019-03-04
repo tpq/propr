@@ -16,16 +16,10 @@
 #'
 #' @return A data.frame of theta values if \code{only = "all"}.
 #'  Otherwise, this function returns a numeric vector.
-#'
-#' @export
-calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
+calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
                            weighted = FALSE, weights = as.matrix(NA)){
 
   ct <- as.matrix(counts)
-  if(missing(alpha)) alpha <- NA
-  if(!is.character(group)) group <- as.character(group)
-  if(length(unique(group)) != 2) stop("Please use exactly two unique groups.")
-  if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
   if(identical(lrv, NA)){ firstpass <- TRUE
   }else{ firstpass <- FALSE }
 
@@ -37,6 +31,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
   # Calculate weights and lrv modifier
   if(weighted){
 
+    # Do not delete -- this is used by updateCutoffs.propd()
     if(is.na(weights[1,1])){
       message("Alert: Calculating limma-based weights.")
       packageCheck("limma")
@@ -48,9 +43,10 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     }
 
     W <- weights
-    p1 <- omega(ct[group1,], W[group1,])
-    p2 <- omega(ct[group2,], W[group2,])
-    p <- omega(ct, W)
+    p1 <- omega(W[group1,])
+    p2 <- omega(W[group2,])
+    p <- omega(W)
+    P <- Omega(W) # population-level used by F-stat and F-mod
 
   }else{
 
@@ -58,6 +54,7 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
     p1 <- n1 - 1
     p2 <- n2 - 1
     p <- n1 + n2 - 1
+    P <- n1 + n2 # population-level used by F-stat and F-mod
   }
 
   # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
@@ -123,7 +120,8 @@ calculateTheta <- function(counts, group, alpha, lrv = NA, only = "all",
       "lrm2" = lrm2,
       "p1" = p1,
       "p2" = p2,
-      "p" = p
+      "p" = p,
+      "P" = P
     ))
 }
 
@@ -257,15 +255,17 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
     # Moderate F-statistic
     propd@Fivar <- ivar # used by updateCutoffs
-    Fprime <- (1 - propd@results$theta) * (n1 + n2 + z.df) /
-      ((n1 + n2) * propd@results$theta + mod)
-    Fstat <- (n1 + n2 + z.df - 2) * Fprime
+    N <- propd@results$P # population-level metric (i.e., N or omega)
+    Fprime <- (1 - propd@results$theta) * (N + z.df) /
+      ((N) * propd@results$theta + mod)
+    Fstat <- (N + z.df - 2) * Fprime
     theta_mod <- 1 / (1 + Fprime)
 
   }else{
 
     propd@Fivar <- NA # used by updateCutoffs
-    Fstat <- (n1 + n2 - 2) * (1 - propd@results$theta) / propd@results$theta
+    N <- propd@results$P # population-level metric (i.e., N or omega)
+    Fstat <- (N - 2) * (1 - propd@results$theta) / propd@results$theta
     theta_mod <- as.numeric(NA)
   }
 
@@ -274,7 +274,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
   K <- length(unique(propd@group))
-  N <- n1 + n2 + propd@dfz
+  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
   propd@results$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
   propd@results$FDR <- p.adjust(propd@results$Pval, method = "BH")
 
@@ -297,35 +297,17 @@ qtheta <- function(propd, moderated = FALSE, pval = 0.05){
   if(pval < 0 | pval > 1) stop("Provide a p-value cutoff from [0, 1].")
 
   K <- length(unique(propd@group))
-  N <- length(propd@group)
+  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
 
-  if(moderated){
-
-    propd <- suppressMessages(updateF(propd, moderated = TRUE))
-    z.df <- propd@dfz
-
-    Q <- qf(pval, K - 1, N + z.df - K, lower.tail = FALSE)
-    # # Fstat <- (n1 + n2 + z.df - 2) * Fprime
-    # # theta_mod <- 1 / (1 + Fprime)
-    # # Q = Fstat
-    # # Q = (n1 + n2 + z.df - 2) * Fprime
-    # # Fprime = 1/theta_mod - 1
-    R <- N - 2 + z.df
-    # # Q = R * (1/theta_mod - 1)
-    # # Q = R/theta_mod - R
-    theta_a05 <- R/(Q+R)
-
-  }else{
-
-    Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
-    # # Fstat <- (N - 2) * (1 - propd@theta$theta) / propd@theta$theta
-    # # Q = Fstat
-    # # Q = (N-2) * (1-theta) / theta
-    # # Q / (N-2) = (1/theta) - 1
-    # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
-    # # theta = (N-2)/(Q+(N-2))
-    theta_a05 <- (N-2)/(Q+(N-2))
-  }
+  propd <- suppressMessages(updateF(propd, moderated = moderated))
+  Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
+  # # Fstat <- (N - 2) * (1 - propd@theta$theta) / propd@theta$theta
+  # # Q = Fstat
+  # # Q = (N-2) * (1-theta) / theta
+  # # Q / (N-2) = (1/theta) - 1
+  # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
+  # # theta = (N-2)/(Q+(N-2))
+  theta_a05 <- (N-2)/(Q+(N-2))
 
   return(theta_a05)
 }

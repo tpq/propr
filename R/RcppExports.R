@@ -113,7 +113,11 @@ lrv <- function(Y, W, weighted = FALSE, a = NA_real_, Yfull = matrix(1, 1), Wful
     .Call(`_propr_lrv`, Y, W, weighted, a, Yfull, Wfull)
 }
 
-omega <- function(X, W) {
-    .Call(`_propr_omega`, X, W)
+omega <- function(W) {
+    .Call(`_propr_omega`, W)
+}
+
+Omega <- function(W) {
+    .Call(`_propr_Omega`, W)
 }
 

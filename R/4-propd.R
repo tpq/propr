@@ -93,18 +93,21 @@ setMethod("show", "propd",
 propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
 
   # Clean "count matrix"
-  # if(any(apply(counts, 2, function(x) all(x == 0)))){
-  #   stop("Remove components with all zeros before proceeding.")}
   if(any(counts < 0)) stop("Data may not contain negative measurements.")
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
   if(class(counts) == "data.frame") counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
-  if(missing(alpha)){ alpha <- NA
-  }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
-  ct <- counts
+
+  # Clean group
+  if(length(unique(group)) != 2) stop("Please use exactly two unique groups.")
+  if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
+  group <- as.character(group)
 
   # Replace zeros unless alpha is provided
+  if(missing(alpha)){ alpha <- as.numeric(NA)
+  }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- as.numeric(NA) }
+  ct <- counts
   if(any(as.matrix(counts) == 0) & is.na(alpha)){
     message("Alert: Replacing 0s with next smallest value.")
     zeros <- ct == 0
@@ -132,8 +135,7 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   # Initialize @counts, @group, @alpha
   result@counts <- as.data.frame(ct)
   result@group <- as.character(group)
-  if(!missing(alpha)){ result@alpha <- as.numeric(alpha)
-  }else{ result@alpha <- as.numeric(NA) }
+  result@alpha <- as.numeric(alpha)
 
   # Initialize @permutes
   result@permutes <- data.frame()
@@ -151,6 +153,7 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
                    weights = result@weights)
 
   # Initialize @results -- Tally frequency of 0 counts
+  # [note, use `counts` because `ct`` is already zero-replaced]
   if(any(as.matrix(counts) == 0)){
     message("Alert: Tabulating the presence of 0 counts.")
     result@results$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
@@ -160,8 +163,6 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   if(any(result@results$theta > 1)){
     message("Alert: Theta rounded to 14 decimal digits.")
     result@results$theta <- round(result@results$theta, 14)
-    result@results$theta_e <- round(result@results$theta_e, 14)
-    result@results$theta_f <- round(result@results$theta_f, 14)
   }
 
   message("Alert: Use 'setActive' to select a theta type.")

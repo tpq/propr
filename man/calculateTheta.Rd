@@ -4,7 +4,7 @@
 \alias{calculateTheta}
 \title{Calculate Theta}
 \usage{
-calculateTheta(counts, group, alpha, lrv = NA, only = "all",
+calculateTheta(counts, group, alpha = NA, lrv = NA, only = "all",
   weighted = FALSE, weights = as.matrix(NA))
 }
 \arguments{
