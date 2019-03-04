@@ -1,3 +1,15 @@
+## propr 4.1.3
+---------------------
+* Update `propd` methods
+    * Now compute F-stat and F-mod using omega for weighted thetas
+    * Now compute p-value from F-stat and F-mod using omega degrees-of-freedom
+    * Update `qtheta` to use omega degrees-of-freedom
+    * Remove superfluous `calculateTheta` input checks
+    * Stop export of `calculateTheta` function
+* Update C++ backend
+    * Add `Omega` function to compute population-level pre-factor
+    * Remove superfluous first argument to `omega` function
+
 ## propr 4.1.2
 ---------------------
 * New tests
