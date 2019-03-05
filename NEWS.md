@@ -1,9 +1,15 @@
+## propr 4.1.4
+---------------------
+* Update `propd` methods
+    * Return to using N-K degrees-of-freedom for `pf` and `qf` calls
+    * Have `qtheta` still used Omega (biased) to calculate theta from F-stat
+
 ## propr 4.1.3
 ---------------------
 * Update `propd` methods
-    * Now compute F-stat and F-mod using omega for weighted thetas
-    * Now compute p-value from F-stat and F-mod using omega degrees-of-freedom
-    * Update `qtheta` to use omega degrees-of-freedom
+    * Now compute F-stat and F-mod using Omega (biased) for weighted thetas
+    * Now compute p-value from F-stat and F-mod using Omega (biased) degrees-of-freedom
+    * Update `qtheta` to use Omega (biased) degrees-of-freedom
     * Remove superfluous `calculateTheta` input checks
     * Stop export of `calculateTheta` function
 * Update C++ backend

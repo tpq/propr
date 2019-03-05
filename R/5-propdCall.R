@@ -209,12 +209,9 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     stop("Make theta_d the active theta.")
   }
 
-  group1 <- propd@group == unique(propd@group)[1]
-  group2 <- propd@group == unique(propd@group)[2]
-  n1 <- sum(group1)
-  n2 <- sum(group2)
-
   if(moderated){
+
+    packageCheck("limma")
 
     # A reference is needed for moderation
     propd@counts # Zeros replaced unless alpha provided...
@@ -238,7 +235,6 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
     # Fit limma-voom to reference-based data
     message("Alert: Calculating weights with regard to reference.")
-    packageCheck("limma")
     z.sr <- t(exp(z.lr) * mean(z)) # scale counts by mean of reference
     design <- matrix(0, nrow = nrow(propd@counts), ncol = 2)
     design[propd@group == unique(propd@group)[1], 1] <- 1
@@ -274,7 +270,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
   K <- length(unique(propd@group))
-  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
+  N <- length(propd@group) + propd@dfz # use N-2 like limma
   propd@results$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
   propd@results$FDR <- p.adjust(propd@results$Pval, method = "BH")
 
@@ -297,7 +293,7 @@ qtheta <- function(propd, moderated = FALSE, pval = 0.05){
   if(pval < 0 | pval > 1) stop("Provide a p-value cutoff from [0, 1].")
 
   K <- length(unique(propd@group))
-  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
+  N <- length(propd@group) + propd@dfz # use N-2 like limma
 
   propd <- suppressMessages(updateF(propd, moderated = moderated))
   Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
@@ -307,6 +303,7 @@ qtheta <- function(propd, moderated = FALSE, pval = 0.05){
   # # Q / (N-2) = (1/theta) - 1
   # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
   # # theta = (N-2)/(Q+(N-2))
+  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
   theta_a05 <- (N-2)/(Q+(N-2))
 
   return(theta_a05)
