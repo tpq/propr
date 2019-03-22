@@ -1,8 +1,17 @@
+## propr 4.1.5
+---------------------
+* Update `qtheta` methods
+    * New `fdr` argument in `qtheta` method returns cutoff for FDR-adjusted p-value
+    * Remove `moderated` argument from `qtheta` method
+* Update `get` methods
+    * New `getAdj` offers a faster alternative to `getAdjacency`
+    * Have `getAdjacency` and `getMatrix` set diagonal to 0
+
 ## propr 4.1.4
 ---------------------
 * Update `propd` methods
     * Return to using N-K degrees-of-freedom for `pf` and `qf` calls
-    * Have `qtheta` still used Omega (biased) to calculate theta from F-stat
+    * Have `qtheta` still use Omega (biased) to calculate theta from F-stat
 
 ## propr 4.1.3
 ---------------------
