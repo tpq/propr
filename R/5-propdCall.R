@@ -306,9 +306,13 @@ qtheta <- function(propd, pval = 0.05, fdr = FALSE){
 
   if(fdr){
 
-    # Compute based on FDR slot
     message("Alert: Returning an empiric cutoff based on the $FDR slot.")
-    cutoff <- max(propd@results$theta[propd@results$FDR < .05])
+    index <- propd@results$FDR < pval
+    if(any(index)){
+      cutoff <- max(propd@results$theta[index])
+    }else{
+      stop("No pairs below p-value.")
+    }
 
   }else{
 
