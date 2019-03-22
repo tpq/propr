@@ -282,29 +282,53 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 #' This function uses the F distribution to calculate a cutoff of
 #'  theta for a p-value given by the \code{pval} argument.
 #'
+#' If the argument \code{fdr = TRUE}, this function returns the
+#'  empiric cutoff that corresponds to the FDR-adjusted p-value
+#'  stored in the \code{@@results$FDR} slot.
+#'
 #' @inheritParams all
 #' @param pval A p-value at which to calculate a theta cutoff.
+#' @param fdr A boolean. Toggles whether to calculate the theta
+#'  cutoff for an FDR-adjusted p-value.
 #'
 #' @return A cutoff of theta from [0, 1].
 #'
 #' @export
-qtheta <- function(propd, moderated = FALSE, pval = 0.05){
+qtheta <- function(propd, pval = 0.05, fdr = FALSE){
 
-  if(pval < 0 | pval > 1) stop("Provide a p-value cutoff from [0, 1].")
+  if(!"Fstat" %in% colnames(propd@results)){
+    stop("Please run updateF() on propd object before calling qtheta.")
+  }
 
-  K <- length(unique(propd@group))
-  N <- length(propd@group) + propd@dfz # use N-2 like limma
+  if(pval < 0 | pval > 1){
+    stop("Provide a p-value cutoff from [0, 1].")
+  }
 
-  propd <- suppressMessages(updateF(propd, moderated = moderated))
-  Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
-  # # Fstat <- (N - 2) * (1 - propd@theta$theta) / propd@theta$theta
-  # # Q = Fstat
-  # # Q = (N-2) * (1-theta) / theta
-  # # Q / (N-2) = (1/theta) - 1
-  # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
-  # # theta = (N-2)/(Q+(N-2))
-  N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
-  theta_a05 <- (N-2)/(Q+(N-2))
+  if(fdr){
 
-  return(theta_a05)
+    # Compute based on FDR slot
+    message("Alert: Returning an empiric cutoff based on the $FDR slot.")
+    cutoff <- max(propd@results$theta[propd@results$FDR < .05])
+
+  }else{
+
+    # Compute based on theory
+    K <- length(unique(propd@group))
+    N <- length(propd@group) + propd@dfz # use N-2 like limma
+    Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
+    # # Fstat <- (N - 2) * (1 - propd@theta$theta) / propd@theta$theta
+    # # Q = Fstat
+    # # Q = (N-2) * (1-theta) / theta
+    # # Q / (N-2) = (1/theta) - 1
+    # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
+    # # theta = (N-2)/(Q+(N-2))
+    if(propd@dfz != 0){
+      # NOTE: If moderated, this function returns a vector of theta cutoffs
+      message("Alert: Returning a unique cutoff for each moderated pair.")
+      N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
+    }
+    cutoff <- (N-2)/(Q+(N-2))
+  }
+
+  return(cutoff)
 }

@@ -4,15 +4,15 @@
 \alias{qtheta}
 \title{Calculate a theta Cutoff}
 \usage{
-qtheta(propd, moderated = FALSE, pval = 0.05)
+qtheta(propd, pval = 0.05, fdr = FALSE)
 }
 \arguments{
 \item{propd}{A \code{propr} or \code{propd} object.}
 
-\item{moderated}{For \code{updateF}, a boolean. Toggles
-whether to calculate a moderated F-statistic.}
-
 \item{pval}{A p-value at which to calculate a theta cutoff.}
+
+\item{fdr}{A boolean. Toggles whether to calculate the theta
+cutoff for an FDR-adjusted p-value.}
 }
 \value{
 A cutoff of theta from [0, 1].
@@ -20,4 +20,9 @@ A cutoff of theta from [0, 1].
 \description{
 This function uses the F distribution to calculate a cutoff of
  theta for a p-value given by the \code{pval} argument.
+}
+\details{
+If the argument \code{fdr = TRUE}, this function returns the
+ empiric cutoff that corresponds to the FDR-adjusted p-value
+ stored in the \code{@results$FDR} slot.
 }
