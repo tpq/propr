@@ -325,7 +325,7 @@ getReference <- function(counts, alpha = NA){
 #' This function uses \code{getNetwork} to
 #'  return a \code{propr} or \code{propd}
 #'  object as an adjacency matrix.
-#'  The diagonal is set to 1.
+#'  The diagonal is set to 0.
 #'
 #' @inheritParams getResults
 #'
@@ -336,7 +336,32 @@ getAdjacency <- function(object, cutoff = NA, include = NA, or = TRUE){
 
   g <- getNetwork(object, cutoff, include = include, or = or)
   a <- as.matrix(igraph::as_adjacency_matrix(g))
-  diag(a) <- 1
+  diag(a) <- 0
+  return(a)
+}
+
+#' Get Object as Adjacency Matrix
+#'
+#' This function uses \code{getMatrix} to
+#'  return a \code{propr} or \code{propd}
+#'  object as an adjacency matrix.
+#'  The diagonal is set to 0.
+#'
+#' This function is faster than
+#'  \code{getAdjacency}, but has fewer
+#'  arguments to tailor results.
+#'
+#' @inheritParams getResults
+#'
+#' @return An adjacency matrix.
+#'
+#' @export
+getAdj <- function(object, cutoff = 1){
+
+  m <- getMatrix(object)
+  a <- matrix(0, nrow(m), ncol(m))
+  a[m <= cutoff] <- 1
+  diag(a) <- 0
   return(a)
 }
 
@@ -344,6 +369,7 @@ getAdjacency <- function(object, cutoff = NA, include = NA, or = TRUE){
 #'
 #' This function returns a symmetric matrix
 #'  of \code{propr} or \code{propd} values.
+#'  The diagonal is set to 0.
 #'
 #' @inheritParams getResults
 #'
@@ -374,5 +400,6 @@ getMatrix <- function(object){
   mat <- half2mat(object@results[,outcome])
   rownames(mat) <- colnames(object@counts)
   colnames(mat) <- colnames(object@counts)
+  diag(mat) <- 0
   return(mat)
 }

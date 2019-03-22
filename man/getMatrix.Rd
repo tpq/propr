@@ -15,4 +15,5 @@ A symmetric matrix.
 \description{
 This function returns a symmetric matrix
  of \code{propr} or \code{propd} values.
+ The diagonal is set to 0.
 }
