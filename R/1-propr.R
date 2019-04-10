@@ -180,6 +180,8 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
     if(!is.vector(select)) stop("Provide 'select' as vector.")
     if(is.character(select)) select <- match(select, colnames(counts))
     if(any(is.na(select))) stop("Some 'select' not in data.")
+
+    counts <- counts[, select]
     ct <- ct[, select]
     lr <- lr[, select]
   }

@@ -46,7 +46,6 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
     p1 <- omega(W[group1,])
     p2 <- omega(W[group2,])
     p <- omega(W)
-    P <- Omega(W) # population-level used by F-stat and F-mod
 
   }else{
 
@@ -54,7 +53,6 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
     p1 <- n1 - 1
     p2 <- n2 - 1
     p <- n1 + n2 - 1
-    P <- n1 + n2 # population-level used by F-stat and F-mod
   }
 
   # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
@@ -120,8 +118,7 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
       "lrm2" = lrm2,
       "p1" = p1,
       "p2" = p2,
-      "p" = p,
-      "P" = P
+      "p" = p
     ))
 }
 
@@ -251,7 +248,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
     # Moderate F-statistic
     propd@Fivar <- ivar # used by updateCutoffs
-    N <- propd@results$P # population-level metric (i.e., N or omega)
+    N <- length(propd@group) # population-level metric (i.e., N)
     Fprime <- (1 - propd@results$theta) * (N + z.df) /
       ((N) * propd@results$theta + mod)
     Fstat <- (N + z.df - 2) * Fprime
@@ -260,7 +257,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
   }else{
 
     propd@Fivar <- NA # used by updateCutoffs
-    N <- propd@results$P # population-level metric (i.e., N or omega)
+    N <- length(propd@group) # population-level metric (i.e., N)
     Fstat <- (N - 2) * (1 - propd@results$theta) / propd@results$theta
     theta_mod <- as.numeric(NA)
   }
@@ -270,7 +267,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
 
   # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
   K <- length(unique(propd@group))
-  N <- length(propd@group) + propd@dfz # use N-2 like limma
+  N <- length(propd@group) + propd@dfz # population-level metric (i.e., N)
   propd@results$Pval <- pf(Fstat, K - 1, N - K, lower.tail = FALSE)
   propd@results$FDR <- p.adjust(propd@results$Pval, method = "BH")
 
@@ -318,7 +315,7 @@ qtheta <- function(propd, pval = 0.05, fdr = FALSE){
 
     # Compute based on theory
     K <- length(unique(propd@group))
-    N <- length(propd@group) + propd@dfz # use N-2 like limma
+    N <- length(propd@group) + propd@dfz # population-level metric (i.e., N)
     Q <- qf(pval, K - 1, N - K, lower.tail = FALSE)
     # # Fstat <- (N - 2) * (1 - propd@theta$theta) / propd@theta$theta
     # # Q = Fstat
@@ -326,11 +323,6 @@ qtheta <- function(propd, pval = 0.05, fdr = FALSE){
     # # Q / (N-2) = (1/theta) - 1
     # # 1/theta = Q / (N-2) + 1 = Q(N-2)/(N-2)
     # # theta = (N-2)/(Q+(N-2))
-    if(propd@dfz != 0){
-      # NOTE: If moderated, this function returns a vector of theta cutoffs
-      message("Alert: Returning a unique cutoff for each moderated pair.")
-      N <- propd@results$P + propd@dfz # population-level metric (i.e., N or omega)
-    }
     cutoff <- (N-2)/(Q+(N-2))
   }
 

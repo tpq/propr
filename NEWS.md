@@ -1,3 +1,12 @@
+## propr 4.1.6
+---------------------
+* Update `propr` methods
+    * Fix error where `select` is used in presence of zeros
+* Update `propd` methods
+    * All methods now use `N + propd@dfz` degrees-of-freedom
+    * Omega no longer used for F-statistic by `updateF`
+    * Omega no longer used for cutoff by `qtheta`
+
 ## propr 4.1.5
 ---------------------
 * Update `qtheta` methods
