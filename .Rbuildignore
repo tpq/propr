@@ -5,3 +5,4 @@
 ^OLDNEWS\.md$
 ^cran-comments\.md$
 ^data-raw$
+^CRAN-RELEASE$
