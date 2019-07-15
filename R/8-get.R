@@ -403,3 +403,102 @@ getMatrix <- function(object){
   diag(mat) <- 0
   return(mat)
 }
+
+#' Get Per-Feature Theta
+#'
+#' The \code{getNormTheta} function calculates the differential proportionality
+#'  between each feature and a set of normalization factors. When the
+#'  normalization factors correctly remove the compositional bias, the
+#'  resultant thetas indicate differential expression (DE). However, unlike
+#'  other DE tests, the p-value for differential proportionality is
+#'  not linked to the normalization factors. Here, normalization factors
+#'  only affect the interpretation, not the statistics.
+#'
+#' For use in conjunction with \code{\link{getColours}}.
+#'
+#' @param object Any \code{propd} object.
+#' @param norm.factors A numeric vector. The effective library size
+#'  normalization factors (e.g., from edgeR or DESeq2).
+#' @return A numeric vector. A theta for each feature.
+#' @export
+getNormTheta <- function(object, norm.factors){
+
+  if(class(object) != "propd"){
+    stop("Please provide a propd object.")
+  }
+
+  if(!object@active == "theta_d"){
+    stop("Make theta_d the active theta.")
+  }
+
+  if(!class(norm.factors) %in% c("numeric", "integer")){
+    stop("Please provide the norm factors as a numeric vector.")
+  }
+
+  if(!identical(length(norm.factors), nrow(object@counts))){
+    stop("The norm factors should have one value for each subject.")
+  }
+
+  newCounts <- cbind(norm.factors, object@counts)
+  newPD <- propd(newCounts, group = object@group, alpha = object@alpha,
+                 p = 0, weighted = object@weighted)
+
+  rawRes <- newPD@results
+  perFeature <- rawRes[rawRes$Pair == 1,]
+  if(!identical(perFeature$Partner, 2:(ncol(newCounts)))) stop("DEBUG ERROR #GET001.")
+  thetas <- perFeature$theta
+  names(thetas) <- colnames(object@counts)
+  return(thetas)
+}
+
+#' Label \code{propd} Pairs by DE Results
+#'
+#' The \code{getColours} function "colours" the pairs based on a
+#'  vector of differential expression (DE) results. If both members
+#'  in the pair are DE, the colour is "Green". If both members in the
+#'  pair are not DE, the colour is "Red". If only one is DE, the
+#'  colour is "Yellow". This allows the results of a DE analysis
+#'  to affect the interpretation of differential proportionality.
+#'  Importantly, the significance of differential proportionality is
+#'  independent of the DE method used.
+#'
+#' For use in conjunction with \code{\link{getNormTheta}}.
+#'
+#' @param object Any \code{propd} object.
+#' @param DE A logical vector. The i-th element should state
+#'  whether the i-th gene is differentially expressed.
+#' @return A \code{data.frame}. The output of \code{\link{getResults}}
+#'  with a "colour" column.
+#' @name getColours
+NULL
+
+#' @rdname getColours
+#' @export
+getColours <- function(object, DE){
+
+  if(class(object) != "propd"){
+    stop("Please provide a propd object.")
+  }
+
+  if(!identical(class(DE), "logical")){
+    stop("Please provide the DE index as a binary vector.")
+  }
+
+  if(!identical(length(DE), ncol(object@counts))){
+    stop("The DE index should have one value for each feature.")
+  }
+
+  ctDE <- DE[object@results$Partner] + DE[object@results$Pair]
+  object@results$Colour <- ifelse(ctDE == 0,
+                                  "red", ifelse(ctDE == 1,
+                                                "yellow",
+                                                "green"))
+  getResults(object)
+}
+
+#' @rdname getColours
+#' @export
+getColors <- function(object, DE){
+
+  getColours(object = object, DE = DE)
+}
