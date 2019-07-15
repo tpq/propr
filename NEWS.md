@@ -1,3 +1,9 @@
+## propr 4.1.7
+---------------------
+* New `get` methods
+    * New `getNormTheta` calculates a per-feature theta against normalization factors
+    * New `getColour` colours pairs based on differential expression results
+
 ## propr 4.1.6
 ---------------------
 * Update `propr` methods
