@@ -6,14 +6,17 @@
 #'  \code{updateCutoffs.propd}.
 #'
 #' @inheritParams all
+#'
+#' @param ncores Number of cores to use.  ncores > 1 requires the `parallel` package.
+#'
 #' @return A \code{propr} or \code{propd} object.
 #'
 #' @export
-updateCutoffs <- function(object, cutoff = seq(.05, .95, .3)){
+updateCutoffs <- function(object, cutoff = seq(.05, .95, .3), ncores = 1){
 
   if(class(object) == "propr"){
 
-    updateCutoffs.propr(object, cutoff)
+    updateCutoffs.propr(object, cutoff, ncores)
 
   }else if(class(object) == "propd"){
 

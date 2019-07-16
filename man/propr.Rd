@@ -34,7 +34,7 @@ corr(counts, ...)
 
 simplify(object)
 
-updateCutoffs.propr(object, cutoff = seq(0.05, 0.95, 0.3))
+updateCutoffs.propr(object, cutoff = seq(0.05, 0.95, 0.3), ncores = 1)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}

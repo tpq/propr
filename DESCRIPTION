@@ -45,6 +45,7 @@ Suggests:
     ggdendro,
     knitr,
     limma,
+    parallel,
     plotly,
     reshape2,
     rgl,
