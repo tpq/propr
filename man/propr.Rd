@@ -34,7 +34,7 @@ corr(counts, ...)
 
 simplify(object)
 
-updateCutoffs.propr(object, cutoff = seq(0.05, 0.95, 0.3))
+updateCutoffs.propr(object, cutoff, ncores)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
@@ -90,6 +90,8 @@ For graph functions, a numeric scalar. This argument
 indicates the maximum theta to include in the figure.
 For graph functions, a large integer will instead
 retrieve the top N pairs as ranked by theta.}
+
+\item{ncores}{An integer. The number of parallel cores to use.}
 }
 \value{
 Returns a \code{propr} object.

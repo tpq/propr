@@ -50,6 +50,7 @@
 #' @param what A character string. The theta type to set active.
 #' @param moderated For \code{updateF}, a boolean. Toggles
 #'  whether to calculate a moderated F-statistic.
+#' @param ncores An integer. The number of parallel cores to use.
 #'
 #' @param y Missing. Ignore. Leftover from the generic
 #'  method definition.

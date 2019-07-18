@@ -67,6 +67,8 @@ retrieve the top N pairs as ranked by theta.}
 \item{moderated}{For \code{updateF}, a boolean. Toggles
 whether to calculate a moderated F-statistic.}
 
+\item{ncores}{An integer. The number of parallel cores to use.}
+
 \item{y}{Missing. Ignore. Leftover from the generic
 method definition.}
 

@@ -9,13 +9,21 @@
 #' @return A \code{propr} or \code{propd} object.
 #'
 #' @export
-updateCutoffs <- function(object, cutoff = seq(.05, .95, .3)){
+updateCutoffs <- function(object, cutoff = seq(.05, .95, .3), ncores = 1){
 
   if(class(object) == "propr"){
 
-    updateCutoffs.propr(object, cutoff)
+    if(ncores == 1){
+      message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
+    }
+
+    updateCutoffs.propr(object, cutoff, ncores)
 
   }else if(class(object) == "propd"){
+
+    if(ncores > 1){
+      message("Alert: Parallel updateCutoffs not yet supported.")
+    }
 
     updateCutoffs.propd(object, cutoff)
 

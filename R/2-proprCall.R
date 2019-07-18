@@ -164,7 +164,25 @@ simplify <- function(object){
 #'  when the object is created, calling \code{updateCutoffs}
 #'  will use the same random seed each time.
 #' @export
-updateCutoffs.propr <- function(object, cutoff = seq(.05, .95, .3)){
+updateCutoffs.propr <- function(object, cutoff, ncores){
+
+  getFdrRandcounts <- function(ct.k){
+
+    pr.k <- suppressMessages(
+      propr::propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
+
+    # Vector of propr scores for each pair of taxa.
+    pkt <- pr.k@results$propr
+
+    # Find number of permuted theta less than cutoff
+    sapply(FDR$cutoff, function(cut){
+      if(object@metric == "rho" | object@metric == "cor"){
+        sum(pkt > cut)
+      }else{ # phi & phs
+        sum(pkt < cut)
+      }
+    })
+  }
 
   if(identical(object@permutes, list(NULL))) stop("Permutation testing is disabled.")
 
@@ -177,31 +195,57 @@ updateCutoffs.propr <- function(object, cutoff = seq(.05, .95, .3)){
   FDR$cutoff <- cutoff
   p <- length(object@permutes)
 
-  # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
-  for(k in 1:p){
+  if(ncores > 1){
 
-    numTicks <- progress(k, p, numTicks)
+    packageCheck("parallel")
 
-    # Calculate propr exactly based on @metric, @ivar, and @alpha
-    ct.k <- object@permutes[[k]]
-    pr.k <- suppressMessages(
-      propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
-    pkt <- pr.k@results$propr
+    # Set up the cluster and require propr
+    cl <- parallel::makeCluster(ncores)
+    # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
 
-    # Find number of permuted theta less than cutoff
-    for(cut in 1:nrow(FDR)){ # randcounts as cumsum
+    # Each element of this list will be a vector whose elements
+    # are the count of theta values less than the cutoff.
+    randcounts <- parallel::parLapply(
+      cl = cl,
+      X = object@permutes,
+      fun = getFdrRandcounts
+    )
 
-      # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-      if(object@metric == "rho" | object@metric == "cor"){
-        FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt > FDR[cut, "cutoff"])
-      }else{ # phi & phs
-        FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
+    # Sum across cutoff values
+    FDR$randcounts <- apply(as.data.frame(randcounts), 1, sum)
+
+    # Explicitly stop the cluster.
+    parallel::stopCluster(cl)
+
+  }else{
+
+    # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
+    for(k in 1:p){
+
+      numTicks <- progress(k, p, numTicks)
+
+      # Calculate propr exactly based on @metric, @ivar, and @alpha
+      ct.k <- object@permutes[[k]]
+      pr.k <- suppressMessages(
+        propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
+      pkt <- pr.k@results$propr
+
+      # Find number of permuted theta less than cutoff
+      for(cut in 1:nrow(FDR)){ # randcounts as cumsum
+
+        # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
+        if(object@metric == "rho" | object@metric == "cor"){
+          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt > FDR[cut, "cutoff"])
+        }else{ # phi & phs
+          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
+        }
       }
     }
   }
 
   # Calculate FDR based on real and permuted tallys
   FDR$randcounts <- FDR$randcounts / p # randcounts as mean
+
   for(cut in 1:nrow(FDR)){
 
     # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
