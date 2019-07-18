@@ -1,3 +1,9 @@
+## propr 4.1.8
+---------------------
+* New `updateCutoffs.propr` parallel update
+    * Add parallel check and alternate computation for ncores > 1
+    * Pass ncores argument from `updateCutoffs` wrapper
+
 ## propr 4.1.7
 ---------------------
 * New `get` methods
