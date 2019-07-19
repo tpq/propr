@@ -5,15 +5,30 @@
 \alias{getColors}
 \title{Label \code{propd} Pairs by DE Results}
 \usage{
-getColours(object, DE)
+getColours(object, DE, cutoff = NA, include = NA, or = TRUE)
 
-getColors(object, DE)
+getColors(object, DE, cutoff = NA, include = NA, or = TRUE)
 }
 \arguments{
 \item{object}{Any \code{propd} object.}
 
 \item{DE}{A logical vector. The i-th element should state
 whether the i-th gene is differentially expressed.}
+
+\item{cutoff}{For \code{updateCutoffs}, a numeric vector.
+this argument provides the FDR cutoffs to test.
+For graph functions, a numeric scalar. This argument
+indicates the maximum theta to include in the figure.
+For graph functions, a large integer will instead
+retrieve the top N pairs as ranked by theta.}
+
+\item{include}{This argument indicates which features by
+name should belong to a pair for that pair to get included
+in the results. Subset performed by
+\code{Partner \%in\% subset | Pair \%in\% subset}.}
+
+\item{or}{A boolean. If \code{FALSE}, \code{include} subsets
+by \code{Partner \%in\% subset & Pair \%in\% subset}.}
 }
 \value{
 A \code{data.frame}. The output of \code{\link{getResults}}

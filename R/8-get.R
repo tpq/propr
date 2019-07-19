@@ -464,6 +464,7 @@ getNormTheta <- function(object, norm.factors){
 #'
 #' For use in conjunction with \code{\link{getNormTheta}}.
 #'
+#' @inheritParams all
 #' @param object Any \code{propd} object.
 #' @param DE A logical vector. The i-th element should state
 #'  whether the i-th gene is differentially expressed.
@@ -474,7 +475,7 @@ NULL
 
 #' @rdname getColours
 #' @export
-getColours <- function(object, DE){
+getColours <- function(object, DE, cutoff = NA, include = NA, or = TRUE){
 
   if(class(object) != "propd"){
     stop("Please provide a propd object.")
@@ -488,17 +489,20 @@ getColours <- function(object, DE){
     stop("The DE index should have one value for each feature.")
   }
 
-  ctDE <- DE[object@results$Partner] + DE[object@results$Pair]
+  object@results$PartnerDE <- DE[object@results$Partner]
+  object@results$PairDE <- DE[object@results$Pair]
+  ctDE <- object@results$PartnerDE + object@results$PairDE
   object@results$Colour <- ifelse(ctDE == 0,
                                   "red", ifelse(ctDE == 1,
                                                 "yellow",
                                                 "green"))
-  getResults(object)
+
+  getResults(object, cutoff = cutoff, include = include, or = or)
 }
 
 #' @rdname getColours
 #' @export
-getColors <- function(object, DE){
+getColors <- function(object, DE, cutoff = NA, include = NA, or = TRUE){
 
-  getColours(object = object, DE = DE)
+  getColours(object = object, DE = DE, cutoff = cutoff, include = include, or = or)
 }

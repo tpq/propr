@@ -1,3 +1,9 @@
+## propr 4.1.9
+---------------------
+* Update `get` methods
+    * Pass `cutoff` and other arguments to `getColours`
+    * Have `getColours` show which feature is DE
+
 ## propr 4.1.8
 ---------------------
 * New `updateCutoffs.propr` parallel update

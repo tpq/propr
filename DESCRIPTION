@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 4.1.8
+Version: 4.1.9
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -8,7 +8,8 @@ Authors@R: c(
     person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut"),
     person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "aut"),
     person("Anders", "Bilgrau", email = "anders.ellern.bilgrau@gmail.com", role = "ctb"),
-    person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb")
+    person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb"),
+    person("Ryan", "Moore", email = "rmm1047@gmail.com", role = "ctb")
     )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, correlation lacks validity when
