@@ -51,8 +51,10 @@ pra <- function(counts, ndim = 3, nclust = 2*round(sqrt(ncol(counts))), nsearch 
       index <- names(cuts)[cuts == cut]
       clrOfCut <- rowMeans(data[, index, drop = FALSE])
       lr.try <- cbind(lrm, clrOfCut)
-      rs <- vegan::rda(Z, lr.try)
-      sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+      rs <- tryCatch({
+        vegan::rda(Z, lr.try)
+        sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+      }, error = function(e) return(0))
     })
 
     cuts.best <- order(l1, decreasing = TRUE)[1:nsearch]
@@ -61,8 +63,10 @@ pra <- function(counts, ndim = 3, nclust = 2*round(sqrt(ncol(counts))), nsearch 
 
       memberOfCut <- data[,id]
       lr.try <- cbind(lrm, memberOfCut)
-      rs <- vegan::rda(Z, lr.try)
-      sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+      rs <- tryCatch({
+        vegan::rda(Z, lr.try)
+        sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+      }, error = function(e) return(0))
     })
 
     l2

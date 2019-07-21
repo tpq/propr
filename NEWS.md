@@ -1,3 +1,9 @@
+## propr 4.2.0
+---------------------
+* Update `pra` method
+    * Add `tryCatch` to handle the Lapack routine 'dgesdd' error
+    * This error occurs when the SVD fails to converge
+
 ## propr 4.1.9
 ---------------------
 * Update `get` methods
