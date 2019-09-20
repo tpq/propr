@@ -55,7 +55,7 @@ Quoting Lovell et al. 2015 (quoting Friedman et al. 2012):
 
 ## Why does my `smear` plot show perfectly proportional pairs?
 
-We call this phenomena **auto-proportionality**. Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can wrongly appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. We recommend removing such pairs to avoid swamping interesting biological signals with artifactual noise. You can do this by removing the set of extremely proportional pairs (e.g., $\rho > .995$) from the set of highly proportional pairs (e.g., $\rho > .95$):
+Depending on how genes (or transcripts) get mapped, annotations with similar open reading frames (ORFs) can wrongly appear as if they have proportional abundance only because some sequences map to multiple annotations equally well. This is especially a problem when analyzing transcriptomic data: transcript isoforms tend to appear proportional with one another by virtue of their shared ORF. The discovery of proportional isoforms could reflect a real biological event (i.e., transcript isoforms under shared regulatory control) or an artifact of mapping. One could remove the set of extremely proportional pairs (e.g., $\rho > .995$) from the set of highly proportional pairs (e.g., $\rho > .95$):
 
 ```{r, eval = FALSE}
 data(caneToad.counts)
@@ -64,22 +64,6 @@ autoprop <- rho[">", .995]@pairs
 highprop <- rho[">", .95]@pairs
 rho@pairs <- setdiff(highprop, autoprop)
 ```
-
-## How can I analyze multi-omics data?
-
-This is an area of active research. At a minimum, we recommend making sure that (a) all combined multi-omics data derive from the same samples and (b) log-ratio transformations are applied to each data source individually. The functions `propr:::lr2rho`, `propr:::lr2phi`, and `propr:::lr2phs`, used in conjunction with `new("propr")`, offer a way forward. The `propr` initialization method will perform the log-ratio transformation without building a proportionality matrix:
-
-```{r, eval = FALSE}
-data(caneToad.counts)
-prop <- new("propr", counts = caneToad.counts, ivar = "iqlr")
-prop@logratio
-```
-
-You could then `cbind` any number of separate `@logratio` slots into a single `data.frame` to use as input for an "lr2" function.
-
-## How can I analyze multiple groups?
-
-This is another area of active research. At a minimum, we recommend making sure that data filtering (e.g., removal of low and zero counts) and log-ratio transformation is applied identically to all data prior to analysis. From there, the usual pipeline would likely involve separating the data into several pairwise (i.e., two-way) comparisons. Users should take care when crafting their hypotheses and consider whether one-vs-all or one-vs-one comparisons better suit their goals.
 
 ## References
 

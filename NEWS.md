@@ -1,3 +1,7 @@
+## propr 4.2.1
+---------------------
+* Revise vignettes for thesis publication
+
 ## propr 4.2.0
 ---------------------
 * Update `pra` method

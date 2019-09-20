@@ -11,7 +11,7 @@ vignette: >
 
 ## Introduction
 
-This vignette reviews the $\theta$ types and their variant definitions. It also discusses how to calculate an $F$-statistic from $\theta_d$. In presenting this, we provide details on how to moderate the $F$-statistic using `voom` from the `limma` package. To keep this vignette tractable yet reproducible, we use a subset of the `iris` data set as an example.
+This vignette reviews $\theta$ variants. It also discusses how to calculate an $F$-statistic from $\theta_d$, including a moderated $F$-statistic. To keep this vignette tractable yet reproducible, we use a subset of the `iris` data set as an example.
 
 ```{r}
 library(propr)
@@ -23,23 +23,23 @@ group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
 
 ## The three types of theta
 
-In the companion vignette, "Calculating Differential Proportionality", we introduce three types of differential proportionality: $\theta_d$, $\theta_e$, and $\theta_f$. Each of these are defined as a fraction of the within-group log-ratio variances (i.e., VLR) for two features compared with the total VLR. Although at least three types of $\theta$ exist, we focus here on $\theta_d$. Given two groups, sized $k$ and $n - k$, we define $\theta_d$, a measure of *disjointed proportionality*, as the pooled (weighted) VLR within the two groups divided by the total VLR:
+In the companion vignette, "Calculating Differential Proportionality", we introduce three types of differential proportionality: $\theta_d$, $\theta_e$, and $\theta_f$. Each of these are defined as a fraction of the within-group log-ratio variances (i.e., VLR) for two features compared with the total VLR. We focus here on $\theta_d$. Given two groups, sized $k$ and $n - k$, we define $\theta_d$, a measure of *disjointed proportionality*, as the pooled (weighted) within-group VLR divided by the total VLR:
 
 $$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(k-1)\textrm{VLR}_1 + (n-k-1)\textrm{VLR}_2}{(n-1)\textrm{VLR}}$$
 
 ## The four variant states of theta
 
-Recall from the companion vignette that we can approximate VLR using a power transformation based on a parameter $\alpha$ that is usually close to zero. There, we suggested that we could calculate any $\theta$ using the $\alpha$-transformed VLR (i.e., $\textrm{aVLR}$) in place of the VLR. Hence, we realize the first variant state of $\theta_d$:
+We can approximate VLR in the presence of zeros using a power transformation based on a parameter $\alpha$ that is usually close to zero. We can then calculate any $\theta$ using the $\alpha$-transformed VLR (i.e., $\textrm{aVLR}$) in place of the VLR. Hence, we realize the first variant state of $\theta_d$:
 
 $$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(k-1)\textrm{aVLR}_1 + (n-k-1)\textrm{aVLR}_2}{(n-1)\textrm{aVLR}}$$
 
-Meanwhile, the third and fourth variant states of $\theta$ make use of precision weights as estimated by the `voom` function of the `limma` package. The nature of sequencing count data makes it such highly abundant genes have more variance than lowly abundant genes. However, this trend gets reversed with log-transformation: highly abundant genes come to have less variance after transformation. Therefore, it follows that we would systematically see less variance around log-ratio pairs involving highly abundant genes. We can thus use precision weights to correct this, placing all VLR measurements on the same scale.
+Meanwhile, the third and fourth variant states of $\theta$ make use of precision weights as estimated by the `voom` function of the `limma` package. The nature of sequencing count data makes it such highly abundant genes have more variance than lowly abundant genes. However, this trend gets reversed with log-transformation: highly abundant genes come to have less variance after transformation. We can thus use precision weights to correct this, placing all VLR measurements on the same scale.
 
-The particulars of `voom` are established elsewhere, but we mention here that it returns a matrix, $V$, of the per-feature weights for each sample. From this, we can calculate the weights of a feature ratio, $\mathbf{V^{\textrm{X},\textrm{Y}}}$, as the element-wise product of the per-feature weights (i.e., $\mathbf{V^{\textrm{X},\textrm{Y}}} = \mathbf{V}^\textrm{X} * \mathbf{V}^\textrm{Y}$). Analogous to other formulations of $\theta$, this uses the weighted variance of the log-ratios (i.e., $\textrm{wVLR}$) in place of the VLR. In addition, we use here the modifier $\Omega=\sum \mathbf{w} - \frac{\sum \mathbf{w}^2}{\sum \mathbf{w}}$ in place of the sample sizes, where $\mathbf{w} = \mathbf{V^{\textrm{X},\textrm{Y}}}$:
+The particulars of `voom` are established elsewhere, but we mention here that it returns a matrix, $V$, of the per-feature weights for each sample. From this, we can calculate the weights of a feature ratio, $\mathbf{V^{\textrm{X},\textrm{Y}}}$, as the element-wise product of the per-feature weights (i.e., $\mathbf{w} = \mathbf{V^{\textrm{X},\textrm{Y}}} = \mathbf{V}^\textrm{X} * \mathbf{V}^\textrm{Y}$). Analogous to other formulations of $\theta$, this uses the weighted variance of the log-ratios (i.e., $\textrm{wVLR}$) in place of the VLR, along with the pre-factor $\Omega=\sum \mathbf{w} - \frac{\sum \mathbf{w}^2}{\sum \mathbf{w}}$ in place of the sample sizes:
 
 $$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(\Omega_1)\textrm{wVLR}_1 + (\Omega_2)\textrm{wVLR}_2}{(\Omega)\textrm{wVLR}}$$
 
-Likewise, we can calculate $\theta$ using both precision weights and the $\alpha$ transformation together. This requires a weighted and $\alpha$-transformed approximation of the VLR (i.e., $\textrm{waVLR}$) to use in conjunction with the $\Omega$ modifier from above:
+We can also calculate $\theta$ using the precision weights and the $\alpha$ transformation together. This requires a weighted and $\alpha$-transformed approximation of the VLR (i.e., $\textrm{waVLR}$) to use in conjunction with the $\Omega$ pre-factor from above:
 
 $$\theta_d(\textrm{X}, \textrm{Y}) = \frac{(\Omega_1)\textrm{waVLR}_1 + (\Omega_2)\textrm{waVLR}_2}{(\Omega)\textrm{waVLR}}$$
 
@@ -47,9 +47,6 @@ When using the `propd` function, it is simple to calculate any variant state of 
 
 ```{r, message = FALSE}
 pd.nn <- propd(counts, group, weighted = FALSE)
-```
-
-```{r, message = FALSE, eval = FALSE}
 pd.wn <- propd(counts, group, weighted = TRUE)
 pd.na <- propd(counts, group, weighted = FALSE, alpha = .01)
 pd.wa <- propd(counts, group, weighted = TRUE, alpha = .01)
@@ -65,13 +62,13 @@ Each $\theta$ can exist in any of the four variant states. In some contexts, the
 
 ## Calculating the F-statistic
 
-In the companion vignette, we show how it is possible to use the `updateCutoffs` function to calculate a false discovery rate (FDR) using permutations of the group assignments to generate an empiric null distribution of $\theta$ values. This method works for all $\theta$ types and variant states.
+It is possible to use the `updateCutoffs` function to calculate a false discovery rate (FDR) using permutations of the group assignments to generate an empiric null distribution of $\theta$ values. This method works for all $\theta$ types and variant states.
 
 However, analysts may find it desirable or necessary to calculate a $p$-value exactly. For this, we provide a relationship between $\theta_d$ and the $F$-statistic:
 
 $$F = (n-2)\frac{1-\theta_d}{\theta_d}$$
 
-This relationship holds true regardless of whether precision weights or a power transformation is used. The `updateF` function calculates the $F$-statistic from $\theta_d$, appending an "Fstat" column to the `@results` slot.
+The `updateF` function calculates the $F$-statistic from $\theta_d$, appending an "Fstat" column to the `@results` slot. This function works for all $\theta_d$ variants.
 
 ```{r, message = FALSE, eval = FALSE}
 pd.nn <- updateF(pd.nn, moderated = FALSE)
@@ -86,7 +83,7 @@ To calculate a moderated $F$-statistic from $\theta_d$, we fit the data to an em
 
 The `updateF` function calculates the moderated $F$-statistic if the argument `moderated` equals `TRUE`. Meanwhile, the `ivar` argument defines the arbitrary feature set to use as the reference. By default, the `updateF` function uses the geometric mean of all features as the reference (analogous to the clr transformation), although the user may specify any reference as described in `?updateF`. This function appends an "Fstat" and "theta_mod" column to the `@results` slot. Note that while per-ratio modeling is used to moderate the $F$-statistic, per-gene modeling is still used to calculate a weighted VLR. Although `limma::voom` is used in both scenarios, it remains possible to moderate the $F$-statistic without weighting VLR (and *vice versa*).
 
-```{r, message = FALSE, eval = FALSE}
+```{r, message = FALSE}
 pd.nn <- updateF(pd.nn, moderated = TRUE, ivar = "clr")
 pd.wn <- updateF(pd.wn, moderated = TRUE, ivar = "clr")
 pd.na <- updateF(pd.na, moderated = TRUE, ivar = "clr")

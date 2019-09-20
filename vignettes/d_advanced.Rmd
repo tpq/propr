@@ -17,7 +17,7 @@ We recognize that this package uses concepts that are not necessarily intuitive.
 
 To facilitate discussion, we simulate count data for 5 features (e.g., genes) labeled "a", "b", "c", "d", and "e", as measured across 100 subjects.
 
-```{r, dpi = 66}
+```{r}
 library(propr)
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)
@@ -28,108 +28,80 @@ e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 ```
 
-Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset, $Y$, by constraining and perturbing $X$:
+Let us assume that these data $X$ represent absolute abundance counts (i.e., not relative data). We can build a relative dataset, $Y$, by constraining and scaling $X$:
 
-```{r, dpi = 66}
+```{r}
 Y <- X / rowSums(X) * abs(rnorm(N))
-```
-
-We can check that the new feature vectors do in fact contain relative quantities. For example, the ratio of the second feature to the first is the same for both the absolute and relative datasets.
-
-```{r, dpi = 66}
-all(round(X[, 2] / X[, 1] - Y[, 2] / Y[, 1], 5) == 0)
 ```
 
 ## Spurious correlation
 
 Next, we compare pairwise scatterplots for the absolute count data and the corresponding relative count data. We see quickly how these relative data suggest a *spurious correlation*: although genes "c" and "d" do not correlate with one another absolutely, their relative quantities do.
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(X) # absolute data
 ```
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(Y) # relative data
 ```
 
 Spurious correlation is evident by the correlation coefficients too.
 
-```{r, dpi = 66, warning = FALSE}
+```{r, warning = FALSE}
 suppressWarnings(cor(X)) # absolute correlation
 cor(Y) # relative correlation
 ```
 
 ## An in-depth look at VLR
 
-In contrast, the **variance of the log-ratios** (VLR), defined as the variance of the logarithm of the ratio of two feature vectors, offers a measure of dependence that (a) does not change with respect to the nature of the data (i.e., absolute or relative), and (b) does not change with respect to the number of features included in the computation. As such, the VLR, constituting the numerator portion of the $\phi$ metric and a portion of the $\rho$ metric as well, is considered *sub-compositionally coherent*. Yet, while VLR yields valid results for compositional data, it lacks a meaningful scale.
+In contrast, the **variance of the log-ratios** (VLR), defined as the variance of the logarithm of the ratio of two feature vectors, offers a measure of dependence that (a) does not change with respect to the nature of the data (i.e., absolute or relative), and (b) does not change with respect to the number of features included in the computation. As such, the VLR, constituting the numerator portion of the $\phi$ metric, and a portion of the $\rho$ metric as well, is considered *sub-compositionally coherent*. Yet, while VLR yields valid results for compositional data, it lacks a meaningful scale.
 
-```{r, dpi = 66}
+```{r}
 propr:::proprVLR(Y[, 1:4]) # relative VLR
 propr:::proprVLR(X) # absolute VLR
 ```
 
 ## An in-depth look at clr
 
-In the calculation of proportionality, we adjust the arbitrarily large VLR by the variance of its individual constituents. To do this, we need to place samples on a comparable scale. Log-ratio transformation, such as the **centered log-ratio** (clr) transformation, shifts the data onto a "standardized" scale that allows us to compare differences in the VLR-matrix.
+In proportionality, we adjust the arbitrarily large VLR by the variance of its individual constituents. To do this, we need to place samples on a comparable scale. Log-ratio transformation, such as the **centered log-ratio** (clr) transformation, shifts the data onto a "standardized" scale that allows us to compare differences in the VLR-matrix.
 
 In the next figures, we compare pairwise scatterplots for the clr-transformed absolute count data and the corresponding clr-transformed relative count data. While equivalent, we see a relationship between "c" and "d" that should not exist based on what we know from the non-transformed absolute count data. This demonstrates that, although the clr-transformation helps us compare values across samples, it does not rescue information lost by making absolute data relative.
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(propr:::proprCLR(Y[, 1:4])) # relative clr-transformation
 ```
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(propr:::proprCLR(X)) # absolute clr-transformation
 ```
 
-Proportionality is a compromise between the advantages of VLR and the disadvantages of clr to establish a measure of dependence that is robust yet interpretable. Note, however, that because of the division of VLR by the variance of the clr-transformed data, proportionality is not sub-compositionally coherent. As such, spurious proportionality is possible when the clr does not adequately approximate the absolute data.
+Proportionality is a compromise between the advantages of VLR and the disadvantages of clr to establish a measure of dependence that is robust yet interpretable. As such, spurious proportionality is possible when the clr does not adequately approximate an ideal reference.
 
-```{r, dpi = 66, fig.show = "hold", message = FALSE}
+```{r, message = FALSE}
 propr(Y[, 1:4])@matrix # relative proportionality with clr
 ```
 
-```{r, dpi = 66, fig.show = "hold", message = FALSE}
+```{r, message = FALSE}
 propr(X)@matrix # absolute proportionality with clr
 ```
 
 ## An in-depth look at alr
 
-Unlike the clr which adjusts each subject vector by the geometric mean of that vector, the **additive log-ratio** (alr) adjusts each subject vector by the value of one its own components, chosen as a *reference*. If we select as a reference some feature $D$ with an *a priori* known fixed absolute count across all subjects, we can effectively "back-calculate" absolute data from relative data. When initially crafting the data $X$, we included "e" as this fixed value.
+The **additive log-ratio** (alr) adjusts each subject vector by the value of one its own components, chosen as a *reference*. If we select as a reference some feature $D$ with an *a priori* known fixed absolute count across all subjects, we can effectively "back-calculate" absolute data from relative data. When initially crafting the data $X$, we included "e" as this fixed value.
 
-The following figures compare pairwise scatterplots for alr-transformed relative count data (i.e., $alr(Y)$ with "e" as the reference) and the corresponding absolute count data. We see here how alr-transformation eliminates the *spurious correlation* between "c" and "d".
+The following figures compare pairwise scatterplots for alr-transformed relative count data (i.e., $\textrm{alr}(Y)$ with "e" as the reference) and the corresponding absolute count data. We see here how the alr-transformation can eliminate the *spurious correlation* between "c" and "d".
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(propr:::proprALR(Y, ivar = 5)) # relative alr
 ```
 
-```{r, dpi = 66, fig.show = "hold"}
+```{r, dpi = 66, fig.width = 8, fig.height = 8, fig.show = "hold"}
 pairs(X[, 1:4]) # absolute data
 ```
 
-Again, this gets reflected in the results of `perb` when we select "e" as the reference.
+Again, this gets reflected in the results of `propr` when we select "e" as the reference.
 
-```{r, dpi = 66, message = FALSE}
+```{r, message = FALSE}
 propr(Y, ivar = 5)@matrix # relative proportionality with alr
-```
-
-Now, let us assume these same data, $X$, actually measure relative counts. In other words, $X$ is already relative and we do not know the real quantities which correspond to $X$ absolutely. Well, if we knew that "a" represented a known fixed quantity, we could use alr-transformation again to "back-calculate" the absolute abundances. In this case, we will see that "c", "d", and "e" actually do have proportional expression under these conditions. Although the measured quantity of "c", "d", and "e" do not change considerably across subjects, the measured quantity of the known fixed feature does change. As such. whenever "a" increases while "c", "d", and "e" remains the same, the latter three features have actually decreased. Since they all decreased together, they act as a highly proportional *module*.
-
-```{r, dpi = 66}
-pairs(propr:::proprALR(X, ivar = 1)) # new relative alr
-```
-
-Again, this gets reflected in the results of `perb` when we select "a" as the reference.
-
-```{r, dpi = 66, message = FALSE}
-propr(X, ivar = 1)@matrix # new relative proportionality with alr
-```
-
-We see here that, unlike clr-transformed proportionality metrics, the alr-transformed metric $\rho$ is sub-compositionally coherent and yields identical results regardless of the nature of the data explored. Of course, this assumes that one knows the identity of a feature fixed across all subjects.
-
-## Further reading
-
-To learn more about proportionality, we refer the reader to the relevant literature.
-
-```{r}
-citation("propr")
 ```
