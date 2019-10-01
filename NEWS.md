@@ -1,3 +1,8 @@
+## propr 4.2.2
+---------------------
+* Update `pra` method
+    * Fix bug introduced by `tryCatch`
+
 ## propr 4.2.1
 ---------------------
 * Revise vignettes for thesis publication

@@ -52,8 +52,8 @@ pra <- function(counts, ndim = 3, nclust = 2*round(sqrt(ncol(counts))), nsearch 
       clrOfCut <- rowMeans(data[, index, drop = FALSE])
       lr.try <- cbind(lrm, clrOfCut)
       rs <- tryCatch({
-        vegan::rda(Z, lr.try)
-        sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+        v <- vegan::rda(Z, lr.try)
+        sum(v$CCA$eig)/(sum(v$CA$eig)+sum(v$CCA$eig))*100
       }, error = function(e) return(0))
     })
 
@@ -64,8 +64,8 @@ pra <- function(counts, ndim = 3, nclust = 2*round(sqrt(ncol(counts))), nsearch 
       memberOfCut <- data[,id]
       lr.try <- cbind(lrm, memberOfCut)
       rs <- tryCatch({
-        vegan::rda(Z, lr.try)
-        sum(rs$CCA$eig)/(sum(rs$CA$eig)+sum(rs$CCA$eig))*100
+        v <- vegan::rda(Z, lr.try)
+        sum(v$CCA$eig)/(sum(v$CA$eig)+sum(v$CCA$eig))*100
       }, error = function(e) return(0))
     })
 
