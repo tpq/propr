@@ -1,3 +1,12 @@
+## propr 4.2.3
+---------------------
+* Update `propd` method
+    * `calculateTheta` extended to support ANOVA with >2 groups
+    * `propd` updated to allow >2 groups
+* Modified visualization tools
+    * Add checks for methods that require 2 groups
+    * `parallel` should support 3 groups
+
 ## propr 4.2.2
 ---------------------
 * Update `pra` method

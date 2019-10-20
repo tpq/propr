@@ -76,6 +76,10 @@ propd2propr <- function(object, ivar){
 setMethod("plot", signature(x = "propd", y = "missing"),
           function(x, y, cutoff = 1000, col1, col2, propr, prompt = TRUE, d3 = FALSE, plotSkip = FALSE){
 
+            if(length(unique(x@group)) > 2){
+              stop("This method only supports the analysis of 2 groups.")
+            }
+
             names <- colnames(x@counts)
             group <- unique(x@group)
 
@@ -250,6 +254,10 @@ shale <- function(object, cutoff = 1000, k, prompt = TRUE, clean = FALSE){
 #' @export
 geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
+  if(length(unique(object@group)) > 2){
+    stop("This method only supports the analysis of 2 groups.")
+  }
+
   df <- shale(object, cutoff, k, prompt, clean = TRUE)
 
   maxLim <- max(c(df$LRV1, df$LRV2))
@@ -300,6 +308,10 @@ geyser <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 #'  See \code{gemini}.
 #' @export
 bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
+
+  if(length(unique(object@group)) > 2){
+    stop("This method only supports the analysis of 2 groups.")
+  }
 
   df <- shale(object, cutoff, k, prompt, clean = TRUE)
 
@@ -355,6 +367,10 @@ bowtie <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 #' @export
 gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 
+  if(length(unique(object@group)) > 2){
+    stop("This method only supports the analysis of 2 groups.")
+  }
+
   df <- shale(object, cutoff, k, prompt, clean = TRUE)
 
   maxLimx <- max(abs(df$DiffLRMbyPAL))
@@ -397,6 +413,10 @@ gemini <- function(object, cutoff = 1000, k = 5, prompt = TRUE, plotly = FALSE){
 #'  Useful for visualizing how a theta type selects pairs.
 #' @export
 decomposed <- function(object, cutoff = 1000){
+
+  if(length(unique(object@group)) > 2){
+    stop("This method only supports the analysis of 2 groups.")
+  }
 
   packageCheck("compositions")
   df <- getResults(object, cutoff)

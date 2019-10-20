@@ -23,10 +23,9 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
   if(identical(lrv, NA)){ firstpass <- TRUE
   }else{ firstpass <- FALSE }
 
-  group1 <- group == unique(group)[1]
-  group2 <- group == unique(group)[2]
-  n1 <- sum(group1)
-  n2 <- sum(group2)
+  # Get groups
+  groups <- lapply(unique(group), function(g) g == group)
+  ngrp <- length(unique(group))
 
   # Calculate weights and lrv modifier
   if(weighted){
@@ -35,69 +34,71 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
     if(is.na(weights[1,1])){
       message("Alert: Calculating limma-based weights.")
       packageCheck("limma")
-      design <- matrix(0, nrow = nrow(ct), ncol = 2)
-      design[group == unique(group)[1], 1] <- 1
-      design[group == unique(group)[2], 2] <- 1
+      design <- stats::model.matrix(~.+0, data = as.data.frame(group))
       v <- limma::voom(t(counts), design = design)
       weights <- t(v$weights)
     }
 
     W <- weights
-    p1 <- omega(W[group1,])
-    p2 <- omega(W[group2,])
+    ps <- lapply(groups, function(g) omega(W[g,]))
+    names(ps) <- paste0("p", 1:ngrp)
     p <- omega(W)
 
   }else{
 
     W <- ct
-    p1 <- n1 - 1
-    p2 <- n2 - 1
-    p <- n1 + n2 - 1
+    ps <- lapply(groups, function(g) sum(g)-1)
+    names(ps) <- paste0("p", 1:ngrp)
+    p <- length(group) - 1
   }
 
   # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
   if(firstpass) lrv <- lrv(ct, W, weighted, alpha, ct, W)
-  lrv1 <- lrv(ct[group1,], W[group1,], weighted, alpha, ct, W)
-  lrv2 <- lrv(ct[group2,], W[group2,], weighted, alpha, ct, W)
+  lrvs <- lapply(groups, function(g) lrv(ct[g,], W[g,], weighted, alpha, ct, W))
+  names(lrvs) <- paste0("lrv", 1:ngrp)
 
   # Calculate LRM (using alpha-based LRM if appropriate)
   if(only == "all"){
-    lrm1 <- lrm(ct[group1,], W[group1,], weighted, alpha, ct, W)
-    lrm2 <- lrm(ct[group2,], W[group2,], weighted, alpha, ct, W)
+    if(firstpass) lrm <- lrm(ct, W, weighted, alpha, ct, W)
+    lrms <- lapply(groups, function(g) lrm(ct[g,], W[g,], weighted, alpha, ct, W))
+    names(lrms) <- paste0("lrm", 1:ngrp)
   }
 
   # Replace NaN thetas (from VLR = 0 or VLR = NaN) with 1
-  lrv0 <- is.na(lrv1) | is.na(lrv2) | is.na(lrv) | (lrv == 0) # aVLR triggers NaN
+  lrv0 <- Reduce("|", lapply(lrvs, is.na)) | is.na(lrv) | (lrv == 0) # aVLR triggers NaN
   replaceNaNs <- any(lrv0)
   if(replaceNaNs){
     if(firstpass) message("Alert: Replacing NaN theta values with 1.")
   }
 
+  # Calculate within-group sums-of-squares (used to calculate theta)
+  SS <- lapply(1:ngrp, function(i) ps[[i]] * lrvs[[i]])
+
   # Build all theta types unless only != "all"
   if(only == "all" | only == "theta_d"){
 
-    theta <- (p1 * lrv1 + p2 * lrv2) / (p * lrv)
+    theta <- Reduce(`+`, SS) / (p * lrv)
     if(replaceNaNs) theta[lrv0] <- 1
     if(only == "theta_d") return(theta)
   }
 
   if(only == "all" | only == "theta_e"){
 
-    theta_e <- 1 - pmax(p1 * lrv1, p2 * lrv2) / (p * lrv)
+    theta_e <- 1 - Reduce("pmax", SS) / (p * lrv)
     if(replaceNaNs) theta_e[lrv0] <- 1
     if(only == "theta_e") return(theta_e)
   }
 
   if(only == "all" | only == "theta_f"){
 
-    theta_f <- pmax(p1 * lrv1, p2 * lrv2) / (p * lrv)
+    theta_f <- Reduce("pmax", SS) / (p * lrv)
     if(replaceNaNs) theta_f[lrv0] <- 1
     if(only == "theta_f") return(theta_f)
   }
 
   if(only == "all" | only == "theta_g"){
 
-    theta_g <- pmin(p1 * lrv1, p2 * lrv2) / (p * lrv)
+    theta_g <- Reduce("pmin", SS) / (p * lrv)
     if(replaceNaNs) theta_g[lrv0] <- 1
     if(only == "theta_g") return(theta_g)
   }
@@ -112,13 +113,11 @@ calculateTheta <- function(counts, group, alpha = NA, lrv = NA, only = "all",
       "theta_f" = theta_f,
       "theta_g" = theta_g,
       "lrv" = lrv,
-      "lrv1" = lrv1,
-      "lrv2" = lrv2,
-      "lrm1" = lrm1,
-      "lrm2" = lrm2,
-      "p1" = p1,
-      "p2" = p2,
-      "p" = p
+      lrvs,
+      "lrm" = lrm,
+      lrms,
+      "p" = p,
+      ps
     ))
 }
 
@@ -233,9 +232,7 @@ updateF <- function(propd, moderated = FALSE, ivar = "clr"){
     # Fit limma-voom to reference-based data
     message("Alert: Calculating weights with regard to reference.")
     z.sr <- t(exp(z.lr) * mean(z)) # scale counts by mean of reference
-    design <- matrix(0, nrow = nrow(propd@counts), ncol = 2)
-    design[propd@group == unique(propd@group)[1], 1] <- 1
-    design[propd@group == unique(propd@group)[2], 2] <- 1
+    design <- stats::model.matrix(~.+0, data = as.data.frame(propd@group))
     v <- limma::voom(z.sr, design = design)
     param <- limma::lmFit(v, design)
     param <- limma::eBayes(param)

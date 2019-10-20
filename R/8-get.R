@@ -180,6 +180,10 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
   # Add propd edges to network
   if(!missing(thetad.object)){
 
+    if(length(unique(thetad.object@group)) > 2){
+      stop("This method only supports the analysis of 2 groups.")
+    }
+
     g <- migraph.color(g, thetad.df[thetad.df$lrm1 > thetad.df$lrm2, "Partner"],
                        thetad.df[thetad.df$lrm1 > thetad.df$lrm2, "Pair"], "coral1") # red
     g <- migraph.color(g, thetad.df[thetad.df$lrm1 < thetad.df$lrm2, "Partner"],
@@ -192,6 +196,10 @@ getNetwork <- function(object, cutoff = NA, propr.object, propr.cutoff = NA,
 
   # Add propd edges to network
   if(!missing(thetae.object)){
+
+    if(length(unique(thetae.object@group)) > 2){
+      stop("This method only supports the analysis of 2 groups.")
+    }
 
     g <- migraph.color(g, thetae.df[thetae.df$lrv1 < thetae.df$lrv2, "Partner"],
                        thetae.df[thetae.df$lrv1 < thetae.df$lrv2, "Pair"], "gold2") # gold
@@ -250,6 +258,10 @@ getRatios <- function(object, cutoff = NA, include = NA, or = TRUE, melt = FALSE
 
   # For propd objects, define ratio so Group 1 is at top
   if(class(object) == "propd"){
+
+    # if(length(unique(object@group)) > 2){
+    #   stop("This method only supports the analysis of 2 groups.")
+    # }
 
     switchRatio <- function(x){
       text <- unlist(strsplit(x, "/"))

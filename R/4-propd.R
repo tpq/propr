@@ -100,9 +100,9 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
 
   # Clean group
-  if(length(unique(group)) != 2) stop("Please use exactly two unique groups.")
+  if(class(group) == "factor") group <- as.character(group)
+  if(class(group) != "character") stop("Provide group labels as a character vector.")
   if(length(group) != nrow(counts)) stop("Too many or too few group labels.")
-  group <- as.character(group)
 
   # Replace zeros unless alpha is provided
   if(missing(alpha)){ alpha <- as.numeric(NA)
@@ -125,9 +125,7 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   if(weighted){
     message("Alert: Calculating limma-based weights.")
     packageCheck("limma")
-    design <- matrix(0, nrow = nrow(ct), ncol = 2)
-    design[group == unique(group)[1], 1] <- 1
-    design[group == unique(group)[2], 2] <- 1
+    design <- stats::model.matrix(~.+0, data = as.data.frame(group))
     v <- limma::voom(t(counts), design = design)
     result@weights <- t(v$weights)
   }
@@ -217,7 +215,7 @@ setDisjointed <- function(propd){
 #' @export
 setEmergent <- function(propd){
 
-  if(table(propd@group)[1] != table(propd@group)[2]){
+  if(!all(table(propd@group) == table(propd@group)[1])){
 
     warning("Emergent proportionality not yet validated for unequal group sizes.")
   }
