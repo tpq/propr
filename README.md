@@ -108,7 +108,7 @@ pd <- updateF(pd,
 Getters
 -------
 
-Both functions return S4 objects. This package includes several helper functions that work for both the `propr` and `propd` output. Most of the time, you would use `getResults`. You can select pairs greater or less than a certain size with the 'cutoff' argument.
+Both functions return S4 objects. This package includes several helper functions that work for both the `propr` and `propd` output. Most of the time, you would want to use `getResults`. This method only selects pairs beyond a certain size, chosen by the 'cutoff' argument.
 
 ``` r
 ?getResults # get results in long-format
