@@ -1,22 +1,41 @@
 citHeader("To cite propr in publications use:")
 
 citEntry(entry = "Article",
-         title        = paste("propr: An R-package for Identifying Proportionally Abundant",
-                              "Features Using Compositional Data Analysis"),
-         author       = personList(as.person("Thomas Quinn"),
-                                   as.person("Mark F. Richardson"),
-                                   as.person("David Lovell"),
-                                   as.person("Tamsyn Crowley")),
-         journal      = "Scientific Reports",
-         year         = "2017",
-         volume       = "7",
-         number       = "16252",
+         title        = paste("A field guide for the compositional analysis of any-omics data"),
+         author       = personList(as.person("Thomas P Quinn"),
+                                   as.person("Ionas Erb"),
+                                   as.person("Greg Gloor"),
+                                   as.person("Cedric Notredame"),
+                                   as.person("Mark F Richardson"),
+                                   as.person("Tamsyn M Crowley")),
+         journal      = "GigaScience",
+         year         = "2019",
+         volume       = "8",
+         number       = "9",
 
          textVersion  =
-           paste("Quinn T, Richardson MF, Lovell D, Crowley T (2017)",
-                 "propr: An R-package for Identifying Proportionally",
-                 "Abundant Features Using Compositional Data Analysis.",
-                 "Scientific Reports 7(16252): doi:10.1038/s41598-017-16520-0")
+           paste("Quinn TP, Erb I, Gloor G, Notredame C, Richardson MF, Crowley TM (2019)",
+                 "A field guide for the compositional analysis of any-omics data.",
+                 "GigaScience 8(9). doi:10.1093/gigascience/giz107")
+)
+
+citEntry(entry = "Article",
+         title        = paste("Understanding sequencing data as compositions:",
+                              "an outlook and review"),
+         author       = personList(as.person("Thomas Quinn"),
+                                   as.person("Ionas Erb"),
+                                   as.person("Mark F. Richardson"),
+                                   as.person("Tamsyn Crowley")),
+         journal      = "Bioinformatics",
+         year         = "2018",
+         volume       = "34",
+         number       = "16",
+
+         textVersion  =
+           paste("Quinn T, Erb I, Richardson MF, Crowley T (2018)",
+                 "Understanding sequencing data as compositions:",
+                 "an outlook and review. Bioinformatics 34(16):",
+                 "doi:10.1093/bioinformatics/bty175")
 )
 
 citEntry(entry = "Article",
@@ -40,22 +59,37 @@ citEntry(entry = "Article",
 )
 
 citEntry(entry = "Article",
-         title        = paste("Understanding sequencing data as compositions:",
-                              "an outlook and review"),
+         title        = paste("propr: An R-package for Identifying Proportionally Abundant",
+                              "Features Using Compositional Data Analysis"),
          author       = personList(as.person("Thomas Quinn"),
-                                   as.person("Ionas Erb"),
                                    as.person("Mark F. Richardson"),
+                                   as.person("David Lovell"),
                                    as.person("Tamsyn Crowley")),
-         journal      = "Bioinformatics",
-         year         = "2018",
-         volume       = "34",
-         number       = "16",
+         journal      = "Scientific Reports",
+         year         = "2017",
+         volume       = "7",
+         number       = "16252",
 
          textVersion  =
-           paste("Quinn T, Erb I, Richardson MF, Crowley T (2018)",
-                 "Understanding sequencing data as compositions:",
-                 "an outlook and review. Bioinformatics 34(16):",
-                 "doi:10.1093/bioinformatics/bty175")
+           paste("Quinn T, Richardson MF, Lovell D, Crowley T (2017)",
+                 "propr: An R-package for Identifying Proportionally",
+                 "Abundant Features Using Compositional Data Analysis.",
+                 "Scientific Reports 7(16252): doi:10.1038/s41598-017-16520-0")
+)
+
+citEntry(entry = "Article",
+         title        = "How should we measure proportionality on relative gene expression data?",
+         author       = personList(as.person("Ionas Erb"),
+                                   as.person("Cedric Notredame")),
+         journal      = "Theory in Biosciences",
+         year         = "2016",
+         volume       = "135",
+         number       = "1",
+
+         textVersion  =
+           paste("Erb I, Notredame C (2016) How should we measure proportionality",
+                 "on relative gene expression data? Theory in Biosciences 135(1):",
+                 "doi:10.1007/s12064-015-0220-8")
 )
 
 citEntry(entry = "Article",
@@ -74,20 +108,5 @@ citEntry(entry = "Article",
            paste("Lovell D, Pawlowsky-Glahn V, Egozcue JJ,",
                  "Marguerat S, Bahler J (2015) Proportionality: A Valid",
                  "Alternative to Correlation for Relative Data. PLoS",
-                 "Comput Biol 11(3): doi:10.1371/journal.pcbi.1004075")
-)
-
-citEntry(entry = "Article",
-         title        = "How should we measure proportionality on relative gene expression data?",
-         author       = personList(as.person("Ionas Erb"),
-                                   as.person("Cedric Notredame")),
-         journal      = "Theory in Biosciences",
-         year         = "2016",
-         volume       = "135",
-         number       = "1",
-
-         textVersion  =
-           paste("Erb I, Notredame C (2016) How should we measure proportionality",
-                 "on relative gene expression data? Theory Biosci 135(1):",
-                 "doi:10.1007/s12064-015-0220-8")
+                 "Computational Biology 11(3): doi:10.1371/journal.pcbi.1004075")
 )

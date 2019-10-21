@@ -1,3 +1,7 @@
+## propr 4.2.4
+---------------------
+* Update CITATION and README
+
 ## propr 4.2.3
 ---------------------
 * Update `propd` method
