@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-The `propr` package implements two related analyses: proportionality analysis and differential proportionality analysis. Proportionality is a compositional alternative to correlation analysis. It is introduced by Lovell et al., expounded by Erb & Notredame, and implemented by Quinn et al. (2017). Differential proportionality is a compositional alternative to differential abundance analysis. It is introduced by Erb et al. (2017), and discussed further by Quinn et al. (2019). Compositional data analysis and genomics is reviewed by Quinn et al. (2018).
+The `propr` package implements two analyses: proportionality and differential proportionality. Proportionality is a compositional alternative to correlation. It is introduced by Lovell et al., expounded by Erb & Notredame, and implemented by Quinn et al. (2017). Differential proportionality is a compositional alternative to differential abundance. It is introduced by Erb et al. (2017), and discussed further by Quinn et al. (2019). Compositional data analysis and genomics is reviewed by Quinn et al. (2018).
 
 If you use this software, please cite our work. We don't get paid to make software, but your citations allow us to negotiate time allocation for software maintence and development.
 
