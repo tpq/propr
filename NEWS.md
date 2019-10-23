@@ -1,3 +1,8 @@
+## propr 4.2.5
+---------------------
+* New `posthoc` method
+    * Performs post-hoc testing for an ANOVA of >2 groups
+
 ## propr 4.2.4
 ---------------------
 * Update CITATION and README
