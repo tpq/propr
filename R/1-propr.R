@@ -132,7 +132,7 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
   #   stop("Remove components with all zeros before proceeding.")}
   if(any(counts < 0)) stop("Data may not contain negative measurements.")
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
-  if(class(counts) == "data.frame") counts <- as.matrix(counts)
+  if("data.frame" %in% class(counts)) counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
   if(missing(alpha)){ alpha <- NA

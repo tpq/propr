@@ -1,3 +1,7 @@
+## propr 4.2.6
+---------------------
+* Fix new R version `class` bug where matrix is also an array
+
 ## propr 4.2.5
 ---------------------
 * New `posthoc` method

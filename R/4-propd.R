@@ -95,7 +95,7 @@ propd <- function(counts, group, alpha, p = 100, weighted = FALSE){
   # Clean "count matrix"
   if(any(counts < 0)) stop("Data may not contain negative measurements.")
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
-  if(class(counts) == "data.frame") counts <- as.matrix(counts)
+  if("data.frame" %in% class(counts)) counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
 

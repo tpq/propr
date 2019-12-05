@@ -207,7 +207,7 @@ aldex.cor <- function(clr, conditions, ...){
 #' @export
 lr2glm <- function(lr, model.matrix, ...){
 
-  if(class(model.matrix) != "matrix" &
+  if(!"matrix" %in% class(model.matrix) &
      !("assign" %in% names(attributes(model.matrix)))){
 
     stop("Please use the 'model.matrix' function to prepare 'model.matrix'.")
