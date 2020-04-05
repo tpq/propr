@@ -4,8 +4,15 @@
 \alias{calculateTheta}
 \title{Calculate Theta}
 \usage{
-calculateTheta(counts, group, alpha = NA, lrv = NA, only = "all",
-  weighted = FALSE, weights = as.matrix(NA))
+calculateTheta(
+  counts,
+  group,
+  alpha = NA,
+  lrv = NA,
+  only = "all",
+  weighted = FALSE,
+  weights = as.matrix(NA)
+)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with

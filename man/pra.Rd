@@ -4,8 +4,13 @@
 \alias{pra}
 \title{Principal Ratio Analysis}
 \usage{
-pra(counts, ndim = 3, nclust = 2 * round(sqrt(ncol(counts))),
-  nsearch = 3, ndenom = 4)
+pra(
+  counts,
+  ndim = 3,
+  nclust = 2 * round(sqrt(ncol(counts))),
+  nsearch = 3,
+  ndenom = 4
+)
 }
 \arguments{
 \item{counts}{A data.frame or matrix. A "count matrix" with

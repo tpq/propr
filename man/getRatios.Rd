@@ -4,8 +4,7 @@
 \alias{getRatios}
 \title{Get (Log-)ratios from Object}
 \usage{
-getRatios(object, cutoff = NA, include = NA, or = TRUE,
-  melt = FALSE)
+getRatios(object, cutoff = NA, include = NA, or = TRUE, melt = FALSE)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}

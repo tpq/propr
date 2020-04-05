@@ -17,8 +17,15 @@
 \usage{
 \S4method{show}{propr}(object)
 
-propr(counts, metric = c("rho", "phi", "phs", "cor", "vlr"),
-  ivar = "clr", select, symmetrize = FALSE, alpha, p = 100)
+propr(
+  counts,
+  metric = c("rho", "phi", "phs", "cor", "vlr"),
+  ivar = "clr",
+  select,
+  symmetrize = FALSE,
+  alpha,
+  p = 100
+)
 
 phit(counts, ...)
 
@@ -50,7 +57,8 @@ to calculate. Choose from "rho", "phi", or "phs".}
 for additive log-ratio transformation. The argument will also
 accept feature name(s) instead of the index position(s).
 Set to "iqlr" to use inter-quartile log-ratio transformation.
-Ignore to use centered log-ratio transformation.}
+Ignore to use centered log-ratio transformation. If the data
+are already transformed, skip it with \code{ivar = NA}.}
 
 \item{select}{Optional. Use this to subset the final
 proportionality matrix without altering the result.

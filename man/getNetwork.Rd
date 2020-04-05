@@ -4,9 +4,21 @@
 \alias{getNetwork}
 \title{Get Network from Object}
 \usage{
-getNetwork(object, cutoff = NA, propr.object, propr.cutoff = NA,
-  thetad.object, thetad.cutoff = NA, thetae.object, thetae.cutoff = NA,
-  col1, col2, include = NA, or = TRUE, d3 = FALSE)
+getNetwork(
+  object,
+  cutoff = NA,
+  propr.object,
+  propr.cutoff = NA,
+  thetad.object,
+  thetad.cutoff = NA,
+  thetae.object,
+  thetae.cutoff = NA,
+  col1,
+  col2,
+  include = NA,
+  or = TRUE,
+  d3 = FALSE
+)
 }
 \arguments{
 \item{object}{Any \code{propr} or \code{propd} object.}

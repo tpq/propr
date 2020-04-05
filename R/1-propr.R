@@ -128,49 +128,59 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
                   select, symmetrize = FALSE, alpha, p = 100){
 
   # Clean "count matrix"
-  # if(any(apply(counts, 2, function(x) all(x == 0)))){
-  #   stop("Remove components with all zeros before proceeding.")}
-  if(any(counts < 0)) stop("Data may not contain negative measurements.")
-  if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
   if("data.frame" %in% class(counts)) counts <- as.matrix(counts)
   if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
-  if(missing(alpha)){ alpha <- NA
-  }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
-  ct <- counts
+  if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
 
-  # Replace zeros unless alpha is provided
-  if(any(as.matrix(counts) == 0) & is.na(alpha)){
-    message("Alert: Replacing 0s with next smallest value.")
-    zeros <- ct == 0
-    ct[zeros] <- min(ct[!zeros])
+  if(!is.na(ivar)){ # if a log-ratio transform is performed...
+
+    if(any(counts < 0)) stop("Data may not contain negative measurements.")
+
+    if(missing(alpha)){ alpha <- NA
+    }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
+    ct <- counts
+
+    # Replace zeros unless alpha is provided
+    if(any(as.matrix(counts) == 0) & is.na(alpha)){
+      message("Alert: Replacing 0s with next smallest value.")
+      zeros <- ct == 0
+      ct[zeros] <- min(ct[!zeros])
+    }
+
+    # Establish reference
+    use <- ivar2index(ct, ivar)
+
+    # Transform counts based on reference
+    if(is.na(alpha)){
+
+      # Use g(x) = Mean[log(x)] to log-ratio transform data
+      message("Alert: Saving log-ratio transformed counts to @logratio.")
+      logX <- log(ct)
+      logSet <- logX[, use, drop = FALSE]
+      ref <- rowMeans(logSet)
+      lr <- sweep(logX, 1, ref, "-")
+
+    }else{
+
+      # Since y = log(x) = [x^a-1]/a, ref = Mean[log(x)] = Mean[y]
+      # Calculate log(x/ref) = log(x) - log(ref) = [x^a-1]/a - [ref^a-1]/a
+      message("Alert: Saving alpha transformed counts to @logratio.")
+      aX <- (ct^alpha - 1) / alpha
+      aSet <- aX[, use, drop = FALSE]
+      ref <- rowMeans(aSet)
+      lr <- sweep(aX, 1, ref, "-")
+    }
+
+  }else{ # if skipping the log-ratio transform...
+
+    message("Alert: Skipping the log-ratio transformation.")
+    alpha <- NA
+    ct <- counts
+    lr <- ct
   }
 
-  # Establish reference
-  use <- ivar2index(ct, ivar)
-
-  # Transform counts based on reference
-  if(is.na(alpha)){
-
-    # Use g(x) = Mean[log(x)] to log-ratio transform data
-    message("Alert: Saving log-ratio transformed counts to @logratio.")
-    logX <- log(ct)
-    logSet <- logX[, use, drop = FALSE]
-    ref <- rowMeans(logSet)
-    lr <- sweep(logX, 1, ref, "-")
-
-  }else{
-
-    # Since y = log(x) = [x^a-1]/a, ref = Mean[log(x)] = Mean[y]
-    # Calculate log(x/ref) = log(x) - log(ref) = [x^a-1]/a - [ref^a-1]/a
-    message("Alert: Saving alpha transformed counts to @logratio.")
-    aX <- (ct^alpha - 1) / alpha
-    aSet <- aX[, use, drop = FALSE]
-    ref <- rowMeans(aSet)
-    lr <- sweep(aX, 1, ref, "-")
-  }
-
-  # Optionally apply select for performance gain
+  # Optionally reduce the number of features used in matrix algebra
   if(!missing(select)){
 
     message("Alert: Using 'select' disables permutation testing.")
@@ -222,7 +232,8 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
   # Set up @permutes
   result@permutes <- list(NULL)
   if(p > 0){
-    # Sample compositions so that the clr does not change
+
+    # Shuffle row-wise so that per-sample CLR does not change
     message("Alert: Fixing permutations to active random seed.")
     permutes <- vector("list", p)
     for(ins in 1:length(permutes)) permutes[[ins]] <- t(apply(ct, 1, sample))
@@ -242,7 +253,7 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
     )
 
   # Initialize @results -- Tally frequency of 0 counts
-  if(any(as.matrix(counts) == 0)){
+  if(any(as.matrix(counts) == 0) & !is.na(ivar)){
     message("Alert: Tabulating the presence of 0 counts.")
     result@results$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
   }

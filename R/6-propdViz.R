@@ -49,7 +49,6 @@ pals <- function(object, k){
 #'  where the \code{@@matrix} slot contains \eqn{1 - \theta}.
 #'  Allows the user to interrogate theta using any
 #'  visualization built for \code{propr} objects.
-#' @rdname propd
 #' @export
 propd2propr <- function(object, ivar){
 

@@ -1,3 +1,7 @@
+## propr 4.2.7
+---------------------
+* Allow user to skip log-ratio transformation with `ivar = NA`
+
 ## propr 4.2.6
 ---------------------
 * Fix new R version `class` bug where matrix is also an array

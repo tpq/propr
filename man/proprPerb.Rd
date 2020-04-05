@@ -15,7 +15,8 @@ does not necessarily have to contain counts.}
 for additive log-ratio transformation. The argument will also
 accept feature name(s) instead of the index position(s).
 Set to "iqlr" to use inter-quartile log-ratio transformation.
-Ignore to use centered log-ratio transformation.}
+Ignore to use centered log-ratio transformation. If the data
+are already transformed, skip it with \code{ivar = NA}.}
 }
 \value{
 Returns proportionality matrix.
