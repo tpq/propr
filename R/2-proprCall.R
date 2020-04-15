@@ -184,6 +184,16 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
     })
   }
 
+  if(object@metric == "rho"){
+
+    message("Alert: Estimating FDR for largely positive proportional pairs only.")
+  }
+
+  if(object@metric == "phi"){
+
+    warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
+  }
+
   if(identical(object@permutes, list(NULL))) stop("Permutation testing is disabled.")
 
   # Let NA cutoff skip function

@@ -1,3 +1,7 @@
+## propr 4.2.8
+---------------------
+* Add `updateCutoffs` warning for asymmetric phi FDR call
+
 ## propr 4.2.7
 ---------------------
 * Allow user to skip log-ratio transformation with `ivar = NA`
