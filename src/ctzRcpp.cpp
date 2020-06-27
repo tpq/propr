@@ -8,7 +8,7 @@ NumericVector ctzRcpp(NumericMatrix & X){
 
   int32_t nfeats = X.ncol();
   int32_t nsubjs = X.nrow();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
 
   // Count zero frequency per feature
   Rcpp::NumericVector zeroes(nfeats);

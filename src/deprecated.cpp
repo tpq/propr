@@ -35,7 +35,7 @@ List pairmutate(NumericMatrix counts,
   // Stores log-ratio variance for each group
   int32_t nfeats = counts.ncol();
   int32_t nsubjs = counts.nrow();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   NumericVector lrv1(llt);
   NumericVector lrv2(llt);
   int32_t counter = 0;

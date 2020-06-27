@@ -7,7 +7,7 @@ using namespace Rcpp;
 NumericVector omega(NumericMatrix & W){
 
   int32_t nfeats = W.ncol();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::NumericVector result(llt);
   Rcpp::NumericVector Wij(nfeats);
   int32_t counter = 0;
@@ -30,7 +30,7 @@ NumericVector omega(NumericMatrix & W){
 NumericVector Omega(NumericMatrix & W){
 
   int32_t nfeats = W.ncol();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::NumericVector result(llt);
   Rcpp::NumericVector Wij(nfeats);
   int32_t counter = 0;

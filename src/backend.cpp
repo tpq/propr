@@ -353,7 +353,7 @@ NumericMatrix linRcpp(NumericMatrix & rho,
 NumericVector lltRcpp(NumericMatrix & X){
 
   int32_t nfeats = X.nrow();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::NumericVector result(llt);
   int32_t counter = 0;
 
@@ -372,7 +372,7 @@ NumericVector lltRcpp(NumericMatrix & X){
 NumericVector urtRcpp(NumericMatrix & X){
 
   int32_t nfeats = X.nrow();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::NumericVector result(llt);
   int32_t counter = 0;
 
@@ -390,7 +390,7 @@ NumericVector urtRcpp(NumericMatrix & X){
 // [[Rcpp::export]]
 List labRcpp(int32_t nfeats){
 
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::IntegerVector partner(llt);
   Rcpp::IntegerVector pair(llt);
   int32_t counter = 0;
@@ -434,7 +434,7 @@ NumericMatrix ratiosRcpp(NumericMatrix & X){
 
   int32_t nfeats = X.ncol();
   int32_t nsamps = X.nrow();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   Rcpp::NumericMatrix result(nsamps, llt);
   int32_t counter = 0;
 

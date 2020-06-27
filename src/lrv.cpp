@@ -16,7 +16,7 @@ NumericVector lrv(NumericMatrix & Y,
   // Output a half-matrix
   NumericMatrix X = clone(Y);
   int32_t nfeats = X.ncol();
-  int32_t llt = nfeats * (nfeats - 1) / 2;
+  int32_t llt = (nfeats / 2) * (nfeats - 1);
   NumericVector result(llt);
   int32_t counter = 0;
 
