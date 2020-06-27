@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <math.h>
+#include <stdint.h>
 #include "backend.h"
 using namespace Rcpp;
 
@@ -14,10 +15,10 @@ NumericVector lrm(NumericMatrix & Y,
 
   // Output a half-matrix
   NumericMatrix X = clone(Y);
-  int nfeats = X.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
+  int32_t nfeats = X.ncol();
+  int32_t llt = nfeats * (nfeats - 1) / 2;
   NumericVector result(llt);
-  int counter = 0;
+  int32_t counter = 0;
 
   if(!R_IsNA(a)){ // Weighted and non-weighted, alpha-transformed
 
@@ -30,17 +31,17 @@ NumericVector lrm(NumericMatrix & Y,
     }
 
     // Raise all of X to the a power
-    for(int i = 0; i < X.nrow(); i++){
-      for(int j = 0; j < X.ncol(); j++){
+    for(int32_t i = 0; i < X.nrow(); i++){
+      for(int32_t j = 0; j < X.ncol(); j++){
         X(i, j) = pow(X(i, j), a);
       }
     }
 
     // Raise all of Xfull to the a power
     NumericMatrix Xfull = clone(Yfull);
-    int fullfeats = Xfull.ncol();
-    for(int i = 0; i < Xfull.nrow(); i++){
-      for(int j = 0; j < Xfull.ncol(); j++){
+    int32_t fullfeats = Xfull.ncol();
+    for(int32_t i = 0; i < Xfull.nrow(); i++){
+      for(int32_t j = 0; j < Xfull.ncol(); j++){
         Xfull(i, j) = pow(Xfull(i, j), a);
       }
     }
@@ -64,8 +65,8 @@ NumericVector lrm(NumericMatrix & Y,
       Rcpp::NumericVector Xjscaled(nfeats);
       Rcpp::NumericVector Xz(nfeats);
       Rcpp::NumericVector Xfullz(fullfeats);
-      for(int i = 1; i < nfeats; i++){
-        for(int j = 0; j < i; j++){
+      for(int32_t i = 1; i < nfeats; i++){
+        for(int32_t j = 0; j < i; j++){
           Wij = W(_, i) * W(_, j);
           Wfullij = Wfull(_, i) * Wfull(_, j);
           Xiscaled = X(_, i) / wtmRcpp(Xfull(_, i), Wfullij);
@@ -88,8 +89,8 @@ NumericVector lrm(NumericMatrix & Y,
       Rcpp::NumericVector Xfullz(fullfeats);
       double N1 = X.nrow();
       double NT = Xfull.nrow();
-      for(int i = 1; i < nfeats; i++){
-        for(int j = 0; j < i; j++){
+      for(int32_t i = 1; i < nfeats; i++){
+        for(int32_t j = 0; j < i; j++){
           Xz = X(_, i) - X(_, j);
           Xfullz = Xfull(_, i) - Xfull(_, j);
           double Mz = mean(X(_, i) / mean(Xfull(_, i)) - mean(X(_, j) / mean(Xfull(_, j))));
@@ -107,8 +108,8 @@ NumericVector lrm(NumericMatrix & Y,
     if(weighted){
 
       Rcpp::NumericVector Wij(nfeats);
-      for(int i = 1; i < nfeats; i++){
-        for(int j = 0; j < i; j++){
+      for(int32_t i = 1; i < nfeats; i++){
+        for(int32_t j = 0; j < i; j++){
           Wij = W(_, i) * W(_, j);
           result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
           counter += 1;
@@ -117,8 +118,8 @@ NumericVector lrm(NumericMatrix & Y,
 
     }else{
 
-      for(int i = 1; i < nfeats; i++){
-        for(int j = 0; j < i; j++){
+      for(int32_t i = 1; i < nfeats; i++){
+        for(int32_t j = 0; j < i; j++){
           result(counter) = mean(log(X(_, i) / X(_, j)));
           counter += 1;
         }

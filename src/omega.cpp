@@ -1,19 +1,20 @@
 #include <Rcpp.h>
+#include <stdint.h>
 using namespace Rcpp;
 
 // Calculate lrv weight modifier
 // [[Rcpp::export]]
 NumericVector omega(NumericMatrix & W){
 
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
+  int32_t nfeats = W.ncol();
+  int32_t llt = nfeats * (nfeats - 1) / 2;
   Rcpp::NumericVector result(llt);
   Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
+  int32_t counter = 0;
   double n = 0;
 
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
+  for(int32_t i = 1; i < nfeats; i++){
+    for(int32_t j = 0; j < i; j++){
       Wij = W(_, i) * W(_, j);
       n = sum(Wij);
       result(counter) = n - sum(pow(Wij, 2)) / n;
@@ -28,14 +29,14 @@ NumericVector omega(NumericMatrix & W){
 // [[Rcpp::export]]
 NumericVector Omega(NumericMatrix & W){
 
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
+  int32_t nfeats = W.ncol();
+  int32_t llt = nfeats * (nfeats - 1) / 2;
   Rcpp::NumericVector result(llt);
   Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
+  int32_t counter = 0;
 
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
+  for(int32_t i = 1; i < nfeats; i++){
+    for(int32_t j = 0; j < i; j++){
       Wij = W(_, i) * W(_, j);
       result(counter) = sum(Wij);
       counter += 1;

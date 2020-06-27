@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <Rcpp.h>
+#include <stdint.h>
 
 using namespace Rcpp;
 
@@ -41,13 +42,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // covRcpp
-NumericMatrix covRcpp(NumericMatrix& X, const int norm_type);
+NumericMatrix covRcpp(NumericMatrix& X, const int32_t norm_type);
 RcppExport SEXP _propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const int >::type norm_type(norm_typeSEXP);
+    Rcpp::traits::input_parameter< const int32_t >::type norm_type(norm_typeSEXP);
     rcpp_result_gen = Rcpp::wrap(covRcpp(X, norm_type));
     return rcpp_result_gen;
 END_RCPP
@@ -75,13 +76,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // alrRcpp
-NumericMatrix alrRcpp(NumericMatrix& X, const int ivar);
+NumericMatrix alrRcpp(NumericMatrix& X, const int32_t ivar);
 RcppExport SEXP _propr_alrRcpp(SEXP XSEXP, SEXP ivarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const int >::type ivar(ivarSEXP);
+    Rcpp::traits::input_parameter< const int32_t >::type ivar(ivarSEXP);
     rcpp_result_gen = Rcpp::wrap(alrRcpp(X, ivar));
     return rcpp_result_gen;
 END_RCPP
@@ -110,20 +111,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // rhoRcpp
-NumericMatrix rhoRcpp(NumericMatrix X, NumericMatrix lr, const int ivar);
+NumericMatrix rhoRcpp(NumericMatrix X, NumericMatrix lr, const int32_t ivar);
 RcppExport SEXP _propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type lr(lrSEXP);
-    Rcpp::traits::input_parameter< const int >::type ivar(ivarSEXP);
+    Rcpp::traits::input_parameter< const int32_t >::type ivar(ivarSEXP);
     rcpp_result_gen = Rcpp::wrap(rhoRcpp(X, lr, ivar));
     return rcpp_result_gen;
 END_RCPP
 }
 // indexPairs
-std::vector<int> indexPairs(NumericMatrix& X, const String op, const double ref);
+std::vector<int32_t> indexPairs(NumericMatrix& X, const String op, const double ref);
 RcppExport SEXP _propr_indexPairs(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -136,26 +137,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // indexToCoord
-List indexToCoord(IntegerVector V, const int N);
+List indexToCoord(IntegerVector V, const int32_t N);
 RcppExport SEXP _propr_indexToCoord(SEXP VSEXP, SEXP NSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type V(VSEXP);
-    Rcpp::traits::input_parameter< const int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const int32_t >::type N(NSEXP);
     rcpp_result_gen = Rcpp::wrap(indexToCoord(V, N));
     return rcpp_result_gen;
 END_RCPP
 }
 // coordToIndex
-IntegerVector coordToIndex(IntegerVector row, IntegerVector col, const int N);
+IntegerVector coordToIndex(IntegerVector row, IntegerVector col, const int32_t N);
 RcppExport SEXP _propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type row(rowSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type col(colSEXP);
-    Rcpp::traits::input_parameter< const int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const int32_t >::type N(NSEXP);
     rcpp_result_gen = Rcpp::wrap(coordToIndex(row, col, N));
     return rcpp_result_gen;
 END_RCPP
@@ -195,12 +196,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // labRcpp
-List labRcpp(int nfeats);
+List labRcpp(int32_t nfeats);
 RcppExport SEXP _propr_labRcpp(SEXP nfeatsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type nfeats(nfeatsSEXP);
+    Rcpp::traits::input_parameter<int32_t>::type nfeats(nfeatsSEXP);
     rcpp_result_gen = Rcpp::wrap(labRcpp(nfeats));
     return rcpp_result_gen;
 END_RCPP
@@ -239,7 +240,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // count_if
-int count_if(LogicalVector x);
+int32_t count_if(LogicalVector x);
 RcppExport SEXP _propr_count_if(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

@@ -1,18 +1,19 @@
 #include <Rcpp.h>
+#include <stdint.h>
 using namespace Rcpp;
 
 // Function to count joint zero frequency
 // [[Rcpp::export]]
 NumericVector ctzRcpp(NumericMatrix & X){
 
-  int nfeats = X.ncol();
-  int nsubjs = X.nrow();
-  int llt = nfeats * (nfeats - 1) / 2;
+  int32_t nfeats = X.ncol();
+  int32_t nsubjs = X.nrow();
+  int32_t llt = nfeats * (nfeats - 1) / 2;
 
   // Count zero frequency per feature
   Rcpp::NumericVector zeroes(nfeats);
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nsubjs; j++){
+  for(int32_t i = 0; i < nfeats; i++){
+    for(int32_t j = 0; j < nsubjs; j++){
       if(X(j, i) == 0){
         zeroes(i) += 1;
       }
@@ -21,9 +22,9 @@ NumericVector ctzRcpp(NumericMatrix & X){
 
   // Count joint zero frequency
   Rcpp::NumericVector result(llt);
-  int counter = 0;
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
+  int32_t counter = 0;
+  for(int32_t i = 1; i < nfeats; i++){
+    for(int32_t j = 0; j < i; j++){
       result(counter) = zeroes(i) + zeroes(j);
       counter += 1;
     }
