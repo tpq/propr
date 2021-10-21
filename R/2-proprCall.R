@@ -177,9 +177,9 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
     # Find number of permuted theta less than cutoff
     sapply(FDR$cutoff, function(cut){
       if(object@metric == "rho" | object@metric == "cor"){
-        sum(pkt > cut)
+        count_greater_than(pkt, cut)
       }else{ # phi & phs
-        sum(pkt < cut)
+        count_less_than(pkt, cut)
       }
     })
   }
@@ -245,9 +245,9 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
 
         # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
         if(object@metric == "rho" | object@metric == "cor"){
-          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt > FDR[cut, "cutoff"])
+          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + count_greater_than(pkt, FDR[cut, "cutoff"])
         }else{ # phi & phs
-          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
+          FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + count_less_than(pkt, FDR[cut, "cutoff"])
         }
       }
     }
