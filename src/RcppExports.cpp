@@ -227,6 +227,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// count_less_than
+int count_less_than(NumericVector x, double cutoff);
+RcppExport SEXP _propr_count_less_than(SEXP xSEXP, SEXP cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_less_than(x, cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_greater_than
+int count_greater_than(NumericVector x, double cutoff);
+RcppExport SEXP _propr_count_greater_than(SEXP xSEXP, SEXP cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_greater_than(x, cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ctzRcpp
 NumericVector ctzRcpp(NumericMatrix& X);
 RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
@@ -380,6 +404,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
     {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
     {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
+    {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},
+    {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 2},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
     {"_propr_count_if", (DL_FUNC) &_propr_count_if, 1},
     {"_propr_pairmutate", (DL_FUNC) &_propr_pairmutate, 2},
