@@ -169,7 +169,7 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
   getFdrRandcounts <- function(ct.k){
 
     pr.k <- suppressMessages(
-      propr::propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
+      propr::propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha, p = 0))
 
     # Vector of propr scores for each pair of taxa.
     pkt <- pr.k@results$propr
@@ -237,7 +237,7 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
       # Calculate propr exactly based on @metric, @ivar, and @alpha
       ct.k <- object@permutes[[k]]
       pr.k <- suppressMessages(
-        propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha))
+        propr(ct.k, object@metric, ivar = object@ivar, alpha = object@alpha, p = 0))
       pkt <- pr.k@results$propr
 
       # Find number of permuted theta less than cutoff
