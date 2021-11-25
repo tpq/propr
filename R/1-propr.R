@@ -217,6 +217,7 @@ propr <- function(counts,
   }else if(metric == "pcor.shrink"){
     packageCheck("corpcor")
     mat <- corpcor::pcor.shrink(lr, ...)
+    class(mat) <- "matrix"
   }else{
     stop("Provided 'metric' not recognized.")
   }
