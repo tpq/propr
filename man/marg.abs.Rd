@@ -4,7 +4,9 @@
 \name{marg.abs}
 \alias{marg.abs}
 \title{Example Absolute mRNA}
-\format{An object of class \code{data.frame} with 16 rows and 3031 columns.}
+\format{
+An object of class \code{data.frame} with 16 rows and 3031 columns.
+}
 \usage{
 data(marg.abs)
 }

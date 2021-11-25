@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // wtmRcpp
 double wtmRcpp(NumericVector x, NumericVector w);
 RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {

@@ -19,12 +19,13 @@
 
 propr(
   counts,
-  metric = c("rho", "phi", "phs", "cor", "vlr"),
+  metric = c("rho", "phi", "phs", "cor", "vlr", "pcor", "pcor.shrink"),
   ivar = "clr",
   select,
   symmetrize = FALSE,
   alpha,
-  p = 100
+  p = 100,
+  ...
 )
 
 phit(counts, ...)

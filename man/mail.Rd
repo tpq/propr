@@ -4,7 +4,9 @@
 \name{mail}
 \alias{mail}
 \title{Mock Mail Count Data}
-\format{An object of class \code{matrix} with 5 rows and 4 columns.}
+\format{
+An object of class \code{matrix} with 5 rows and 4 columns.
+}
 \usage{
 data(mail)
 }

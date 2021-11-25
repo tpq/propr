@@ -4,7 +4,9 @@
 \name{top.lr}
 \alias{top.lr}
 \title{Example propr Object}
-\format{An object of class \code{matrix} with 20 rows and 409 columns.}
+\format{
+An object of class \code{matrix} with 20 rows and 409 columns.
+}
 \source{
 <DOI:10.1111/mec.13184>
 }

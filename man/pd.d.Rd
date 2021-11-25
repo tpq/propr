@@ -4,7 +4,9 @@
 \name{pd.d}
 \alias{pd.d}
 \title{Example propd Object}
-\format{An object of class \code{propd} of length 1.}
+\format{
+An object of class \code{propd} of length 1.
+}
 \source{
 <DOI:10.1111/mec.13184>
 }
