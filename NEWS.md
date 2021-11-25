@@ -1,3 +1,10 @@
+## propr 4.2.9
+---------------------
+* Accept speed-up pull requests from Ryan Moore
+* Add support for partial correlations
+    * `ppcor` package called by `propr(x, metric = "pcor")`
+    * `corpcor` package called by `propr(x, metric = "pcor.shrink")`
+
 ## propr 4.2.8
 ---------------------
 * Add `updateCutoffs` warning for asymmetric phi FDR call

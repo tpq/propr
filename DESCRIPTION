@@ -1,6 +1,6 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 4.2.8
+Version: 4.2.9
 URL: http://github.com/tpq/propr
 BugReports: http://github.com/tpq/propr/issues
 Authors@R: c(
@@ -9,7 +9,8 @@ Authors@R: c(
     person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "aut"),
     person("Anders", "Bilgrau", email = "anders.ellern.bilgrau@gmail.com", role = "ctb"),
     person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb"),
-    person("Ryan", "Moore", email = "rmm1047@gmail.com", role = "ctb")
+    person("Ryan", "Moore", email = "rmm1047@gmail.com", role = "ctb"),
+    person("Suzanne", "Jin", email = "suzanne.jin.yao@gmail.com", role = "ctb")
     )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, correlation lacks validity when
@@ -22,7 +23,7 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.2
 Encoding: UTF-8
 Depends:
     methods,
@@ -40,6 +41,7 @@ Suggests:
     Biobase,
     cccrm,
     compositions,
+    corpcor,
     data.table,
     datasets,
     grid,
@@ -48,6 +50,7 @@ Suggests:
     limma,
     parallel,
     plotly,
+    ppcor,
     reshape2,
     rgl,
     rmarkdown,

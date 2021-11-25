@@ -124,8 +124,9 @@ setMethod("show", "propr",
 
 #' @rdname propr
 #' @export
-propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = "clr",
-                  select, symmetrize = FALSE, alpha, p = 100){
+propr <- function(counts,
+                  metric = c("rho", "phi", "phs", "cor", "vlr", "pcor", "pcor.shrink"),
+                  ivar = "clr", select, symmetrize = FALSE, alpha, p = 100, ...){
 
   # Clean "count matrix"
   if("data.frame" %in% class(counts)) counts <- as.matrix(counts)
@@ -210,6 +211,12 @@ propr <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"), ivar = 
     mat <- stats::cor(lr)
   }else if(metric == "vlr"){
     mat <- lrv
+  }else if(metric == "pcor"){
+    packageCheck("ppcor")
+    mat <- ppcor::pcor(lr)$estimate
+  }else if(metric == "pcor.shrink"){
+    packageCheck("corpcor")
+    mat <- corpcor::pcor.shrink(lr, ...)
   }else{
     stop("Provided 'metric' not recognized.")
   }
