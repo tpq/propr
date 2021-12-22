@@ -166,6 +166,11 @@ simplify <- function(object){
 #' @export
 updateCutoffs.propr <- function(object, cutoff, ncores){
 
+  metric_is_up <- function(metric){
+    metrics <- c("rho", "cor", "pcor", "pcor.shrink")
+    return(metric %in% metrics)
+  }
+
   getFdrRandcounts <- function(ct.k){
 
     pr.k <- suppressMessages(
@@ -272,9 +277,4 @@ updateCutoffs.propr <- function(object, cutoff, ncores){
   object@fdr <- FDR
 
   return(object)
-}
-
-metric_is_up <- function(metric){
-  metrics <- c("rho", "cor", "pcor", "pcor.shrink")
-  return(metric %in% metrics)
 }

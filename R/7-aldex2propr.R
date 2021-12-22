@@ -147,7 +147,7 @@ lr2cor <- function(lr, conditions, ...){
     cor.test(x, conditions, ...)
   })
 
-  r <- sapply(cors, getElement, "statistic")
+  r <- sapply(cors, getElement, "estimate")
   p <- sapply(cors, getElement, "p.value")
   BH <- p.adjust(p, method = "BH")
 

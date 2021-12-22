@@ -1,3 +1,8 @@
+## propr 4.3.0
+---------------------
+* Fix bug: partial correlation FDR cutoff checks wrong direction
+* Fix bug: `lr2cor` saves t-statistic, not r-statistic
+
 ## propr 4.2.9
 ---------------------
 * Accept speed-up pull requests from Ryan Moore
