@@ -14,6 +14,7 @@
 #'  Set to "iqlr" to use inter-quartile log-ratio transformation.
 #'  Ignore to use centered log-ratio transformation. If the data
 #'  are already transformed, skip it with \code{ivar = NA}.
+#'  Set to "clr" or "alr" if you want to compute "pcor.bshrink"
 #' @param select Optional. Use this to subset the final
 #'  proportionality matrix without altering the result.
 #'  Use this argument to rearrange feature order.

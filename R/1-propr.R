@@ -125,7 +125,7 @@ setMethod("show", "propr",
 #' @rdname propr
 #' @export
 propr <- function(counts,
-                  metric = c("rho", "phi", "phs", "cor", "vlr", "pcor", "pcor.shrink"),
+                  metric = c("rho", "phi", "phs", "cor", "vlr", "pcor", "pcor.shrink", "pcor.bshrink"),
                   ivar = "clr", select, symmetrize = FALSE, alpha, p = 100, ...){
 
   # Clean "count matrix"
@@ -134,7 +134,7 @@ propr <- function(counts,
   if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
   if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
 
-  if(!is.na(ivar)){ # if a log-ratio transform is performed...
+  if(!is.na(ivar) & metric!="pcor.bshrink"){ # if a log-ratio transform is performed...
 
     if(any(counts < 0)) stop("Data may not contain negative measurements.")
 
@@ -218,6 +218,10 @@ propr <- function(counts,
     packageCheck("corpcor")
     mat <- corpcor::pcor.shrink(lr, ...)
     class(mat) <- "matrix"
+  }else if(metric == "pcor.bshrink"){
+    if (!ivar %in% c("clr","alr")) {stop("please provide a valid ivar {clr, alr}")}
+    if (any(as.matrix(counts) == 0)) {stop("please handle the zeros before")}
+    mat <- bShrink(ct, outtype=ivar)
   }else{
     stop("Provided 'metric' not recognized.")
   }
@@ -259,6 +263,7 @@ propr <- function(counts,
       "alpha" = factor(alpha),
       "propr" = lltRcpp(mat)
     )
+  if (metric == "pcor.bshrink") {result@results$lrv = NA}
 
   # Initialize @results -- Tally frequency of 0 counts
   if(any(as.matrix(counts) == 0) & !is.na(ivar)){
@@ -306,4 +311,47 @@ phis <- function(counts, ...){
 #' @export
 corr <- function(counts, ...){
   propr(counts, metric = "cor", ...)
+}
+
+#' Basis Shrinkage Partial Correlations
+#'
+#' This function computes the partial correlation matrix with basis shrinkage
+#'
+#' @param object Count \code{matrix}. It should not contain zeros.
+#' @param outtype To compute the partial correlations on regularized CLR or ALR covariance matrix. Set to "clr" or "alr"
+#'
+#' @return A \code{matrix} of partial correlations, with as many columns and rows as number of genes.
+#'
+#' @export
+bShrink <- function(M, outtype=c("clr","alr")){
+
+  packageCheck(corpcor)
+  outtype <- match.arg(outtype)
+  
+  # transform counts to log proportions
+  P <- M / rowSums(M)
+  B <- log(P)
+
+  # covariance shrinkage
+  D  <- ncol(M)
+  Cb <- cov.shrink(B,verbose=FALSE)  
+  if (outtype == "alr"){
+    F   <- cbind(diag(rep(1,D-1)),rep(-1,D-1))
+    Cov <- F%*%Cb%*%t(F)
+  } else if (outtype == "clr"){
+    G   <- diag(rep(1,D))-matrix(1/D,D,D)
+    Cov <- G%*%Cb%*%G
+  }
+
+  # partial correlation
+  PC <- cor2pcor(Cov)
+    
+  # make output to have same dimensions as input
+  if (outtype == "alr"){
+      PC <- cbind(PC, replicate(nrow(PC), NA))
+      PC <- rbind(PC, replicate(ncol(PC), NA))
+      PC[nrow(PC), ncol(PC)] <- 1
+  }
+    
+  return(PC)
 }
