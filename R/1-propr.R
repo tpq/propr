@@ -334,7 +334,7 @@ bShrink <- function(M, outtype=c("clr","alr")){
 
   # covariance shrinkage
   D  <- ncol(M)
-  Cb <- cov.shrink(B,verbose=FALSE)  
+  Cb <- corpcor::cov.shrink(B,verbose=FALSE)  
   if (outtype == "alr"){
     F   <- cbind(diag(rep(1,D-1)),rep(-1,D-1))
     Cov <- F%*%Cb%*%t(F)
@@ -344,7 +344,7 @@ bShrink <- function(M, outtype=c("clr","alr")){
   }
 
   # partial correlation
-  PC <- cor2pcor(Cov)
+  PC <- corpcor::cor2pcor(Cov)
     
   # make output to have same dimensions as input
   if (outtype == "alr"){
