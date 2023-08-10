@@ -167,7 +167,7 @@ simplify <- function(object){
 updateCutoffs.propr <- function(object, cutoff, ncores){
 
   metric_is_up <- function(metric){
-    metrics <- c("rho", "cor", "pcor", "pcor.shrink")
+    metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
     return(metric %in% metrics)
   }
 
