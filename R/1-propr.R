@@ -325,7 +325,7 @@ corr <- function(counts, ...){
 #' @export
 bShrink <- function(M, outtype=c("clr","alr")){
 
-  packageCheck(corpcor)
+  packageCheck('corpcor')
   outtype <- match.arg(outtype)
   
   # transform counts to log proportions
