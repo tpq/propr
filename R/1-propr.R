@@ -355,7 +355,6 @@ bShrink <- function(M, outtype=c("clr","alr")){
   if (outtype == "alr"){
       PC <- cbind(PC, replicate(nrow(PC), NA))
       PC <- rbind(PC, replicate(ncol(PC), NA))
-      PC[nrow(PC), ncol(PC)] <- 1
   }
     
   return(PC)
