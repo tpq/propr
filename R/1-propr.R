@@ -219,8 +219,13 @@ propr <- function(counts,
     mat <- corpcor::pcor.shrink(lr, ...)
     class(mat) <- "matrix"
   }else if(metric == "pcor.bshrink"){
-    if (!ivar %in% c("clr","alr")) {stop("please provide a valid ivar {clr, alr}")}
-    if (any(as.matrix(counts) == 0)) {stop("please handle the zeros before")}
+    if (!ivar %in% c("clr","alr")) {stop("Please provide a valid ivar {clr, alr}. You may want to convert your logratio matrix into compositions first.")}
+    if (!is.na(alpha)) {stop("pcor.bshrink not supported for alpha yet")}
+    if (any(as.matrix(counts) == 0)) {
+         message("Alert: Replacing 0s with next smallest value.")
+         zeros <- counts == 0
+         counts[zeros] <- min(counts[!zeros])
+    }
     mat <- bShrink(ct, outtype=ivar)
   }else{
     stop("Provided 'metric' not recognized.")
