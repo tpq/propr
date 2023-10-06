@@ -25,5 +25,5 @@ RUN R -e "devtools::install_github('suzannejin/propr@6f1a7fdd477cd4e6d61fee1ab58
 
 
 # install graflex & dependencies
-RUN R -e "install.packages('AnnotationDbi')"
+RUN R -e "BiocManager::install('AnnotationDbi')"
 RUN R -e "devtools::install_github('tpq/graflex')"
