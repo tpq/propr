@@ -51,29 +51,6 @@ if(requireNamespace("ALDEx2", quietly = TRUE) &
       )
     })
 
-    test_that("aldex2propr works with select", {
-
-      include <- c("3220", "3230", "3232")
-      mat1 <- aldex2propr(x)
-      mat1 <- subset(mat1, select = include)
-      mat2 <- aldex2propr(x, select = include)
-
-      expect_equal(
-        as.vector(mat1@counts),
-        as.vector(mat2@counts)
-      )
-
-      expect_equal(
-        as.vector(mat1@logratio),
-        as.vector(mat2@logratio)
-      )
-
-      expect_equal(
-        as.vector(mat1@matrix),
-        as.vector(mat2@matrix)
-      )
-    })
-
     test_that("aldex2propr handles ivar correctly", {
 
       expect_equal(

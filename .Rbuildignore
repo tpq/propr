@@ -5,4 +5,6 @@
 ^OLDNEWS\.md$
 ^cran-comments\.md$
 ^data-raw$
+^old_tests$
+^old_vignettes$
 ^CRAN-RELEASE$
