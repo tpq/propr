@@ -1,256 +1,160 @@
-#' The propr Package
+#' @param counts A data matrix representing counts.
+#'   It is assumed that the matrix contains numerical values only.
+#' @param metric A character vector indicating the metric used for computing
+#'  the association matrix. It can take the following values:
+#'   - "rho": Propr matrix based on the rho coefficient.
+#'   - "phi": Propr matrix based on the phi coefficient.
+#'   - "phs": Propr matrix based on the symmetric phi coefficient.
+#'   - "cor": Propr matrix based on the simple Pearson correlation coefficient.
+#'   - "vlr": Propr matrix based on the variance of log-ratio (VLR).
+#'   - "pcor": Propr matrix based on the partial correlation coefficient
+#'    (using ppcor package).
+#'   - "pcor.shrink": Propr matrix based on the shrinkage-estimated partial
+#'    correlation coefficient (using corpcor package).
+#'   - "pcor.bshrink": Propr matrix based on the partial correlation
+#'    coefficient with basis shrinkage (ivar argument must be 'clr' or 'alr').
+#' @param ivar An indicator specifying the method for log-ratio transformation.
+#'  It can take the following values:
+#'   - "clr" (default): Centered log-ratio transformation.
+#'   - "alr": Additive log-ratio transformation ("pcor.bshrink" metric only).
+#'   - "iqlr": Inter-quartile log-ratio transformation from ALDEx2.
+#'   - The explicit name(s) of variable(s) to use as a reference.
+#'  Use NA to skip log-ratio transformation.
+#' @param select A numeric vector representing the indices of features to be
+#'  used for computing the Propr matrix. This argument is optional. If
+#'  provided, it reduces the data size by using only the selected features.
+#' @param symmetrize A logical value indicating whether to force symmetry in
+#'  the output Propr matrix when the metric is "phi". If `TRUE`, the function
+#'  will symmetrize the matrix; otherwise, it will return the original matrix.
+#' @param alpha The alpha parameter used in the alpha log-ratio transformation.
+#'  It controls the strength of the transformation.
+#'  Use NA to skip alpha transformation.
+#' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
+#'  if "pcor.shrink" metric is selected.
 #'
-#' @description
-#' Welcome to the \code{propr} package!
+#' @return A propr object containing the Propr matrix, associated log-ratio
+#'  transformation, and other calculated statistics.
 #'
-#' To learn more about calculating proportionality, see
-#'  Details.
+#' @details The function performs log-ratio transformation and computes a
+#'  Propr matrix using different measures of association.
 #'
-#' To learn more about visualizing proportionality, see
-#'  \code{\link{visualize}}.
+#' @examples
+#' # Sample input count data
+#' data <- matrix(c(10, 5, 15, 20, 30, 25), nrow = 2, byrow = TRUE)
 #'
-#' To learn more about \code{ALDEx2} package integration, see
-#'  \code{\link{aldex2propr}}.
+#' # Calculate Propr matrix using correlation coefficient
+#' result_cor <- propr(data, metric = "cor", ivar = "clr")
 #'
-#' To learn more about differential proportionality, see
-#'  \code{\link{propd}}.
+#' # Calculate Propr matrix using variance of log-ratio (VLR)
+#' result_vlr <- propr(data, metric = "vlr", ivar = "clr")
 #'
-#' To learn more about compositional data analysis, and its relevance
-#'  to biological count data, see the bundled vignette.
+#' # Calculate Propr matrix using partial correlation coefficient
+#' result_pcor <- propr(data, metric = "pcor", ivar = "clr")
 #'
-#' @details
-#' Let D represent a number of features measured across N samples.
-#' 	This function calculates proportionality from
-#' 	a data set with N rows and D columns.
-#'  One can think of phi as
-#' 	analogous to a distance matrix, except that it has no symmetry unless forced.
-#' 	One can think of rho as
-#' 	analogous to a correlation matrix.
-#' 	One can think of phs as
-#' 	either a naturally symmetric variant of phi or a monotonic variant of rho.
-#' 	Also, one can use \code{corr}
-#' 	to calculate correlation from log-ratio transformed data.
-#'
-#' This function depends on a reference and uses the centered log-ratio
-#'  transformation by default. The user may also specify any number of
-#'  features (by index or name) to use as a reference instead.
-#'  Alternatively, \code{ivar = "iqlr"} will transform data using the
-#'  geometric mean of features with variances that fall in the
-#'  inter-quartile range of all per-feature variances (based on
-#'  the \code{ALDEx2} package).
-#'
-#' The \code{propr} method calculates proportionality. This fails in
-#'  the setting of zero counts. The \code{propr} method
-#'  will use a Box-Cox transformation to approximate VLR based on
-#'  the parameter \eqn{\alpha}, if provided. We refer the user to
-#'  the vignette for more details.
-#'
-#' @slot counts A data.frame. Stores the original "count matrix" input.
-#' @slot alpha A double. Stores the alpha value used for transformation.
-#' @slot metric A character string. The metric used to calculate proportionality.
-#' @slot ivar A vector. The reference used to calculate proportionality.
-#' @slot logratio A data.frame. Stores the transformed "count matrix".
-#' @slot matrix A matrix. Stores the proportionality matrix.
-#' @slot pairs A vector. Indexes the proportional pairs of interest.
-#' @slot results A data.frame. Stores the pairwise \code{propr} measurements.
-#' @slot permutes A list. Stores the shuffled transformed "count matrix"
-#'  instances, used to reproduce permutations of \code{propr}.
-#' @slot fdr A data.frame. Stores the FDR cutoffs for \code{propr}.
-#'
-#' @inheritParams all
-#' @return Returns a \code{propr} object.
-#'
-#' @name propr
-#' @useDynLib propr, .registration = TRUE
-#' @importFrom methods show new
-#' @importFrom Rcpp sourceCpp
-NULL
-
-#' @rdname propr
-#' @export
-setClass("propr",
-         slots = c(
-           counts = "data.frame",
-           alpha = "numeric",
-           metric = "character",
-           ivar = "ANY",
-           logratio = "data.frame",
-           matrix = "matrix",
-           pairs = "numeric",
-           results = "data.frame",
-           permutes = "list",
-           fdr = "data.frame"
-         )
-)
-
-#' @rdname propr
-#' @section Methods (by generic):
-#' \code{show:} Method to show \code{propr} object.
-#' @export
-setMethod("show", "propr",
-          function(object){
-
-            cat("Not weighted", "and",
-                ifelse(is.na(object@alpha), "not alpha-transformed", "alpha-transformed"), "\n")
-
-            cat("@counts summary:",
-                nrow(object@counts), "subjects by", ncol(object@counts), "features\n")
-
-            cat("@logratio summary:",
-                nrow(object@logratio), "subjects by", ncol(object@logratio), "features\n")
-
-            cat("@matrix summary:",
-                nrow(object@matrix), "features by", ncol(object@matrix), "features\n")
-
-            if(length(object@pairs) > 0 | nrow(object@matrix) == 0){
-
-              cat("@pairs summary:", length(object@pairs), "feature pairs\n")
-
-            }else{
-
-              cat("@pairs summary: index with `[` method\n")
-            }
-
-            cat("@fdr summary:",
-                ncol(object@permutes), "iterations\n")
-
-            if(nrow(object@fdr) > 0){
-              print(object@fdr)
-            }
-
-            cat("See ?propr for object methods\n")
-          }
-)
-
 #' @rdname propr
 #' @export
 propr <- function(counts,
-                  metric = c("rho", "phi", "phs", "cor", "vlr", "pcor", "pcor.shrink", "pcor.bshrink"),
-                  ivar = "clr", select, symmetrize = FALSE, alpha, p = 100, ...){
+                  metric = c("rho",
+                             "phi",
+                             "phs",
+                             "cor",
+                             "vlr",
+                             "pcor",
+                             "pcor.shrink",
+                             "pcor.bshrink"),
+                  ivar = "clr",
+                  select = NA,
+                  symmetrize = FALSE,
+                  alpha = NA,
+                  ...) {
+  ##############################################################################
+  ### CLEAN UP ARGS
+  ##############################################################################
 
-  # Clean "count matrix"
-  if("data.frame" %in% class(counts)) counts <- as.matrix(counts)
-  if(is.null(colnames(counts))) colnames(counts) <- as.character(1:ncol(counts))
-  if(is.null(rownames(counts))) rownames(counts) <- as.character(1:nrow(counts))
-  if(any(is.na(counts))) stop("Remove NAs from 'counts' before proceeding.")
-
-  if(!is.na(ivar) & metric!="pcor.bshrink"){ # if a log-ratio transform is performed...
-
-    if(any(counts < 0)) stop("Data may not contain negative measurements.")
-
-    if(missing(alpha)){ alpha <- NA
-    }else{ if(!is.na(alpha)) if(alpha == 0) alpha <- NA }
-    ct <- counts
-
-    # Replace zeros unless alpha is provided
-    if(any(as.matrix(counts) == 0) & is.na(alpha)){
-      message("Alert: Replacing 0s with next smallest value.")
-      zeros <- ct == 0
-      ct[zeros] <- min(ct[!zeros])
-    }
-
-    # Establish reference
-    use <- ivar2index(ct, ivar)
-
-    # Transform counts based on reference
-    if(is.na(alpha)){
-
-      # Use g(x) = Mean[log(x)] to log-ratio transform data
-      message("Alert: Saving log-ratio transformed counts to @logratio.")
-      logX <- log(ct)
-      logSet <- logX[, use, drop = FALSE]
-      ref <- rowMeans(logSet)
-      lr <- sweep(logX, 1, ref, "-")
-
-    }else{
-
-      # Since y = log(x) = [x^a-1]/a, ref = Mean[log(x)] = Mean[y]
-      # Calculate log(x/ref) = log(x) - log(ref) = [x^a-1]/a - [ref^a-1]/a
-      message("Alert: Saving alpha transformed counts to @logratio.")
-      aX <- (ct^alpha - 1) / alpha
-      aSet <- aX[, use, drop = FALSE]
-      ref <- rowMeans(aSet)
-      lr <- sweep(aX, 1, ref, "-")
-    }
-
-  }else{ # if skipping the log-ratio transform...
-
-    message("Alert: Skipping the log-ratio transformation.")
+  # Special handling for equivalent args
+  if (identical(alpha, 0))
     alpha <- NA
-    ct <- counts
-    lr <- ct
+
+  # Special handling for 'metric'
+  metric <- metric[1]
+  if (metric == "pcor.bshrink") {
+    if (!ivar %in% c("clr", "alr")) {
+      stop("For 'pcor.bshrink', the 'ivar' argument must be 'clr' or 'alr'.")
+    }
+    message("Alert: Log-ratio transform will be handled by 'bShrink'.")
+    ivar_pcor <- ivar
+    ivar <-
+      NA # skips log-ratio transform as performed for all other metrics
   }
 
-  # Optionally reduce the number of features used in matrix algebra
-  if(!missing(select)){
+  ##############################################################################
+  ### PERFORM ZERO REPLACEMENT AND LOG-RATIO TRANSFORM
+  ##############################################################################
 
-    message("Alert: Using 'select' disables permutation testing.")
-    p <- 0
+  # NOTE: ct will never have zeros; counts may or may not have zeros!
+  counts <- as_safe_matrix(counts)
+  ct <- simple_zero_replacement(counts)
+  lr <- logratio(counts, ivar, alpha)
 
-    # Make select boolean (it's OK if it's integer)
-    if(!is.vector(select)) stop("Provide 'select' as vector.")
-    if(is.character(select)) select <- match(select, colnames(counts))
-    if(any(is.na(select))) stop("Some 'select' not in data.")
+  ##############################################################################
+  ### OPTIONALLY REDUCE DATA SIZE BEFORE COMPUTING MATRIX
+  ##############################################################################
 
+  if (!is.na(select)) {
+    message("Alert: Using 'select' may make permutation testing unreliable.")
     counts <- counts[, select]
     ct <- ct[, select]
     lr <- lr[, select]
   }
 
-  # Calculate proportionality
+  ##############################################################################
+  ### COMPUTE THE ASSOCIATION MATRIX TO RETURN
+  ##############################################################################
+
   lrv <- lr2vlr(lr)
-  metric <- metric[1]
-  if(metric == "rho"){
+  if (metric == "rho") {
     mat <- lr2rho(lr)
-  }else if(metric == "phi"){
+  } else if (metric == "phi") {
     mat <- lr2phi(lr)
-    if(symmetrize) symRcpp(mat) # optionally force symmetry
-  }else if(metric == "phs"){
+    if (symmetrize)
+      symRcpp(mat) # optionally force symmetry
+  } else if (metric == "phs") {
     mat <- lr2phs(lr)
-  }else if(metric == "cor"){
+  } else if (metric == "cor") {
     mat <- stats::cor(lr)
-  }else if(metric == "vlr"){
+  } else if (metric == "vlr") {
     mat <- lrv
-  }else if(metric == "pcor"){
+  } else if (metric == "pcor") {
     packageCheck("ppcor")
     mat <- ppcor::pcor(lr)$estimate
-  }else if(metric == "pcor.shrink"){
+  } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
     mat <- corpcor::pcor.shrink(lr, ...)
     class(mat) <- "matrix"
-  }else if(metric == "pcor.bshrink"){
-    if (!ivar %in% c("clr","alr")) {stop("please provide a valid ivar {clr, alr}")}
-    if (any(as.matrix(counts) == 0)) {stop("please handle the zeros before")}
-    mat <- bShrink(ct, outtype=ivar)
-  }else{
+  } else if (metric == "pcor.bshrink") {
+    mat <- basis_shrinkage(ct, outtype = ivar_pcor)
+  } else{
     stop("Provided 'metric' not recognized.")
   }
+
+  ##############################################################################
+  ### BUILD propr OBJECT TO RETURN TO USER
+  ##############################################################################
 
   # Build propr object
   result <- new("propr")
   result@counts <- as.data.frame(ct)
-  if(!missing(alpha)){ result@alpha <- as.numeric(alpha)
-  }else{ result@alpha <- as.numeric(NA) }
+  result@alpha <- as.numeric(alpha)
   result@metric <- metric[1]
   result@ivar <- ivar
   result@logratio <- as.data.frame(lr)
   result@pairs <- vector("numeric")
+  result@permutes <- list(NULL)
 
   # Clean row and column names
   result@matrix <- mat
   colnames(result@matrix) <- colnames(result@logratio)
   rownames(result@matrix) <- colnames(result@logratio)
-
-  # Set up @permutes
-  result@permutes <- list(NULL)
-  if(p > 0){
-
-    # Shuffle row-wise so that per-sample CLR does not change
-    message("Alert: Fixing permutations to active random seed.")
-    permutes <- vector("list", p)
-    for(ins in 1:length(permutes)) permutes[[ins]] <- t(apply(ct, 1, sample))
-    result@permutes <- permutes
-  }
 
   # Set up @results
   labels <- labRcpp(ncol(lr))
@@ -259,99 +163,18 @@ propr <- function(counts,
       "Partner" = labels[[1]],
       "Pair" = labels[[2]],
       "lrv" = lltRcpp(lrv),
-      "metric" = factor(metric),
-      "alpha" = factor(alpha),
-      "propr" = lltRcpp(mat)
+      "metric" = metric,
+      "alpha" = alpha,
+      "propr" = lltRcpp(mat),
+      "Zeros" = ctzRcpp(counts)
     )
-  if (metric == "pcor.bshrink") {result@results$lrv = NA}
 
-  # Initialize @results -- Tally frequency of 0 counts
-  if(any(as.matrix(counts) == 0) & !is.na(ivar)){
-    message("Alert: Tabulating the presence of 0 counts.")
-    result@results$Zeros <- ctzRcpp(as.matrix(counts)) # count 0s
-  }
+  ##############################################################################
+  ### GIVE HELPFUL MESSAGES TO USER
+  ##############################################################################
 
-  message("Alert: Use '[' to index proportionality matrix.")
+  message("Alert: Use 'updatePermutes' to set seed for FDR.")
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
 
   return(result)
-}
-
-#' @rdname propr
-#' @section Functions:
-#' \code{phit:}
-#'  A wrapper for \code{propr(counts, metric = "phi", ...)}.
-#' @export
-phit <- function(counts, ...){
-  propr(counts, metric = "phi", ...)
-}
-
-#' @rdname propr
-#' @section Functions:
-#' \code{perb:}
-#'  A wrapper for \code{propr(counts, metric = "rho", ...)}.
-#' @export
-perb <- function(counts, ...){
-  propr(counts, metric = "rho", ...)
-}
-
-#' @rdname propr
-#' @section Functions:
-#' \code{phis:}
-#'  A wrapper for \code{propr(counts, metric = "phs", ...)}.
-#' @export
-phis <- function(counts, ...){
-  propr(counts, metric = "phs", ...)
-}
-
-#' @rdname propr
-#' @section Functions:
-#' \code{corr:}
-#'  A wrapper for \code{propr(counts, metric = "cor", ...)}.
-#' @export
-corr <- function(counts, ...){
-  propr(counts, metric = "cor", ...)
-}
-
-#' Basis Shrinkage Partial Correlations
-#'
-#' This function computes the partial correlation matrix with basis shrinkage
-#'
-#' @param object Count \code{matrix}. It should not contain zeros.
-#' @param outtype To compute the partial correlations on regularized CLR or ALR covariance matrix. Set to "clr" or "alr"
-#'
-#' @return A \code{matrix} of partial correlations, with as many columns and rows as number of genes.
-#'
-#' @export
-bShrink <- function(M, outtype=c("clr","alr")){
-
-  packageCheck(corpcor)
-  outtype <- match.arg(outtype)
-  
-  # transform counts to log proportions
-  P <- M / rowSums(M)
-  B <- log(P)
-
-  # covariance shrinkage
-  D  <- ncol(M)
-  Cb <- cov.shrink(B,verbose=FALSE)  
-  if (outtype == "alr"){
-    F   <- cbind(diag(rep(1,D-1)),rep(-1,D-1))
-    Cov <- F%*%Cb%*%t(F)
-  } else if (outtype == "clr"){
-    G   <- diag(rep(1,D))-matrix(1/D,D,D)
-    Cov <- G%*%Cb%*%G
-  }
-
-  # partial correlation
-  PC <- cor2pcor(Cov)
-    
-  # make output to have same dimensions as input
-  if (outtype == "alr"){
-      PC <- cbind(PC, replicate(nrow(PC), NA))
-      PC <- rbind(PC, replicate(ncol(PC), NA))
-      PC[nrow(PC), ncol(PC)] <- 1
-  }
-    
-  return(PC)
 }
