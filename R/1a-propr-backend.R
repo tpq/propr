@@ -7,21 +7,8 @@
 #'  name, using the "clr" transformation, or computing the IQLR
 #'  (Interquartile Range Log Ratio) features.
 #'
-#' @param counts A data matrix representing counts.
-#'   It is assumed that the matrix contains numerical values only.
-#' @param ivar An indicator specifying the method for selecting features.
-#'  It can take the following values:
-#'   - If \code{ivar} is \code{NULL}, \code{0}, \code{"all"}, or \code{"clr"},
-#'   all features will be used for the geometric mean.
-#'   - If \code{ivar} is \code{"iqlr"}, the IQLR features will be computed and
-#'   selected using the \code{compute_iqlr} function.
-#'   - If \code{ivar} is a character vector, it will be interpreted as feature
-#'   names, and the function will use the features specified by name.
-#'   - If \code{ivar} is a numeric vector, it will be interpreted as the
-#'   indices of features to be used.
-#'
+#' @inheritParams propr
 #' @return A numeric vector representing the indices of features selected.
-#'
 #' @examples
 #' # Sample input count data
 #' data <- matrix(c(1, 2, 3, 4, 0, 6), nrow = 2, byrow = TRUE)
@@ -67,11 +54,8 @@ index_reference <- function(counts, ivar) {
 #'  it selects features with variance values falling within the
 #'  interquartile range.
 #'
-#' @param counts A data matrix representing counts.
-#'   It is assumed that the matrix contains numerical values only.
-#'
+#' @inheritParams propr
 #' @return A numeric vector representing the indices of features selected by IQLR.
-#'
 #' @examples
 #' # Sample input count data
 #' data <- matrix(c(1, 2, 3, 4, 0, 6), nrow = 2, byrow = TRUE)
@@ -98,11 +82,8 @@ compute_iqlr <- function(counts) {
 #'  input count matrix. If the matrix contains no zeros, it produces an
 #'  informational message indicating that no replacements were made.
 #'
-#' @param ct A data matrix for which the log-ratio transformation will be
-#'  performed. It is assumed that the matrix contains numerical values only.
-#'
+#' @inheritParams logratio_with_alpha
 #' @return A matrix with zero values replaced by the next smallest non-zero value.
-#'
 #' @examples
 #' # Sample input count data with zeros
 #' data <- matrix(c(0, 2, 3, 4, 5, 0), nrow = 2, byrow = TRUE)
@@ -125,13 +106,8 @@ simple_zero_replacement <- function(ct) {
 #'  without using an alpha parameter. The log-ratio transformation is based
 #'  on a selected subset of columns specified by the `use` argument.
 #'
-#' @param ct A data matrix for which the log-ratio transformation will be
-#'  performed. It is assumed that the matrix contains numerical values only.
-#' @param use An integer vector specifying the subset of columns to be used
-#'  for the log-ratio transformation.
-#'
+#' @inheritParams logratio_with_alpha
 #' @return A matrix containing the log-ratio transformed data.
-#'
 #' @examples
 #' # Sample input data
 #' data <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE)
@@ -190,12 +166,8 @@ logratio_with_alpha <- function(ct, use, alpha) {
 #' This function applies a log-ratio transformation to a given data matrix
 #'  with or without using an alpha parameter.
 #'
-#' @param counts A data matrix representing counts.
-#'   It is assumed that the matrix contains numerical values only.
-#' @inheritParams logratio_with_alpha
-#'
+#' @inheritParams propr
 #' @return A matrix with log-ratio transformed values.
-#'
 #' @examples
 #' # Sample counts matrix
 #' counts_matrix <- matrix(c(10, 20, 30, 40, 0, 50, 60, 70, 0), nrow = 3, byrow = TRUE)

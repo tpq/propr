@@ -27,8 +27,6 @@
 #'  the output Propr matrix when the metric is "phi". If `TRUE`, the function
 #'  will symmetrize the matrix; otherwise, it will return the original matrix.
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
-#'  It controls the strength of the transformation.
-#'  Use NA to skip alpha transformation.
 #' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
 #'  if "pcor.shrink" metric is selected.
 #'
