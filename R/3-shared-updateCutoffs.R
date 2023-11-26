@@ -206,7 +206,7 @@ updateCutoffs.propd <-
           stop("Please re-run 'updateF' with 'moderation = TRUE'.")
         propdi <- suppressMessages(
           propd(
-            object@counts[shuffle, ],
+            object@counts[shuffle,],
             group = object@group,
             alpha = object@alpha,
             p = 0,
@@ -221,7 +221,7 @@ updateCutoffs.propd <-
         # Calculate all other thetas directly (using calculateTheta)
         pkt <- suppressMessages(
           calculate_theta(
-            object@counts[shuffle, ],
+            object@counts[shuffle,],
             object@group,
             object@alpha,
             lrv,
