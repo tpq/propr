@@ -1,6 +1,7 @@
+library(testthat)
 library(propr)
-data(iris)
 
+# RDA with 3 groups
 x <- iris[,1:4]
 y <- iris[,5]
 v <- vegan::rda(log(x[,1]/x[,2]) ~ y)
@@ -14,6 +15,7 @@ test_that("3-group RDA agrees with theta", {
   )
 })
 
+# RDA with 2 groups
 x <- iris[1:100,1:4]
 y <- iris[1:100,5]
 v <- vegan::rda(log(x[,1]/x[,2]) ~ y)
