@@ -1,3 +1,15 @@
+## propr 5.0.0
+---------------------
+* Merge pull request for new shrinkage method
+* Remove any function that exists only to produce plots
+* Rename functions:
+    * Rename `pra` to `selectRatios`
+    * Rename `getReference` to `selectReference`
+    * Rename `qtheta` to `runCutoff`
+    * Rename `getNormTheta` to `runNormalization`
+    * Rename `posthoc` to `runPostHoc`
+    * Rename back-end functions
+
 ## propr 4.3.0
 ---------------------
 * Fix bug: partial correlation FDR cutoff checks wrong direction

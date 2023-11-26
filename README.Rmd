@@ -10,11 +10,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-The `propr` package implements two analyses: proportionality and differential proportionality.
+## Attention!!
 
-Proportionality is a compositional alternative to correlation. It is introduced by Lovell et al., expounded by Erb & Notredame, and implemented by Quinn et al. (2017). Differential proportionality is a compositional alternative to differential abundance. It is introduced by Erb et al. (2017), and discussed further by Quinn et al. (2019). Compositional data analysis for genomics is reviewed by Quinn et al. (2018).
+If you have used `propr` previously, you will notice some changes. In version 5.0.0, I have completed a major revision of the code base to simplify the maintenance of `propr` going forward, including a restructure of back-end and front-end functionality. From the user's perspective, you will notice a few changes. First, all supporting visualization functions are gone. They were poorly implemented and not backwards compatible. Instead, you can use the unified `getResults` wrapper to pull data from `propr` and `propd` objects to pipe to `ggplot2` for visualization. Second, many experimental functions have been removed, with the remaining ones all sharing the prefix `run`. The core routines called by the `propr` and `propd` functions remain unchanged.
 
-If you use this software, please cite our work. We don't get paid to make software, but your citations allow us to negotiate time allocation for software maintence and development.
+## Introduction
+
+The `propr` package provides an interface for 4 distinct approaches to compositional data analysis (CoDA): proportionality, differential proportionality, partial correlation, and ratio analysis.
+
+If you use this software, please cite our work. We don't get paid to make software, but your citations help us to negotiate support for software maintenance and development.
 
 ```{r}
 citation("propr")
@@ -83,12 +87,20 @@ pd <- updateF(pd,
 
 ## Getters
 
-Both functions return S4 objects. This package includes several helper functions that work for both the `propr` and `propd` output. Most of the time, you would want to use `getResults`. This method only selects pairs beyond a certain size, chosen by the 'cutoff' argument.
+Both functions return S4 objects. This package includes several helper functions that work for both the `propr` and `propd` output.
 
 ```{r, eval = FALSE}
-?getResults # get results in long-format
 ?getMatrix # get results as a square matrix
-?getAdj # get an adjacency matrix
+?getResults # get propr or propd results in long-format
+?getRatios # get samples by ratios matrix
 ```
 
-The vignettes describe some custom visualization methods.
+Use `getResults` to pipe to `ggplot2` for visualization.
+
+## Partial Correlation
+
+COMING SOON!!
+
+## Ratio Methods
+
+COMING SOON!!

@@ -1,16 +1,16 @@
 Package: propr
 Title: Calculating Proportionality Between Vectors of Compositional Data
-Version: 4.3.0
-URL: http://github.com/tpq/propr
-BugReports: http://github.com/tpq/propr/issues
+Version: 5.0.0
+URL: https://github.com/tpq/propr
+BugReports: https://github.com/tpq/propr/issues
 Authors@R: c(
     person("Thomas", "Quinn", email = "contacttomquinn@gmail.com", role = c("aut", "cre")),
-    person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut"),
+    person("Suzanne", "Jin", email = "suzanne.jin.yao@gmail.com", role = "aut"),
     person("Ionas", "Erb", email = "ionas.erb@crg.eu", role = "aut"),
+    person("David", "Lovell", email = "david.lovell@qut.edu.au", role = "aut"),
     person("Anders", "Bilgrau", email = "anders.ellern.bilgrau@gmail.com", role = "ctb"),
     person("Greg", "Gloor", email = "ggloor@uwo.ca", role = "ctb"),
-    person("Ryan", "Moore", email = "rmm1047@gmail.com", role = "ctb"),
-    person("Suzanne", "Jin", email = "suzanne.jin.yao@gmail.com", role = "ctb")
+    person("Ryan", "Moore", email = "rmm1047@gmail.com", role = "ctb")
     )
 Description: The bioinformatic evaluation of gene co-expression often begins with
     correlation-based analyses. However, correlation lacks validity when
@@ -23,39 +23,25 @@ Description: The bioinformatic evaluation of gene co-expression often begins wit
 License: GPL-2
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Encoding: UTF-8
 Depends:
     methods,
     R (>= 3.2.2)
 Imports:
-    fastcluster,
-    ggplot2,
-    grDevices,
-    igraph,
     Rcpp,
-    stats,
-    utils
+    stats
 Suggests:
     ALDEx2,
-    Biobase,
-    cccrm,
-    compositions,
     corpcor,
-    data.table,
-    datasets,
-    grid,
-    ggdendro,
+    fastcluster,
     knitr,
     limma,
     parallel,
-    plotly,
     ppcor,
-    reshape2,
-    rgl,
     rmarkdown,
-    SDMTools,
-    testthat,
+    testthat (>= 3.0.0),
     vegan
 LinkingTo:
     Rcpp
+Config/testthat/edition: 3

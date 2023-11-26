@@ -1,9 +1,29 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-The `propr` package implements two analyses: proportionality and differential proportionality.
 
-Proportionality is a compositional alternative to correlation. It is introduced by Lovell et al., expounded by Erb & Notredame, and implemented by Quinn et al. (2017). Differential proportionality is a compositional alternative to differential abundance. It is introduced by Erb et al. (2017), and discussed further by Quinn et al. (2019). Compositional data analysis for genomics is reviewed by Quinn et al. (2018).
+## Attention!!
 
-If you use this software, please cite our work. We don't get paid to make software, but your citations allow us to negotiate time allocation for software maintence and development.
+If you have used `propr` previously, you will notice some changes. In
+version 5.0.0, I have completed a major revision of the code base to
+simplify the maintenance of `propr` going forward, including a
+restructure of back-end and front-end functionality. From the user’s
+perspective, you will notice a few changes. First, all supporting
+visualization functions are gone. They were poorly implemented and not
+backwards compatible. Instead, you can use the unified `getResults`
+wrapper to pull data from `propr` and `propd` objects to pipe to
+`ggplot2` for visualization. Second, many experimental functions have
+been removed, with the remaining ones all sharing the prefix `run`. The
+core routines called by the `propr` and `propd` functions remain
+unchanged.
+
+## Introduction
+
+The `propr` package provides an interface for 4 distinct approaches to
+compositional data analysis (CoDA): proportionality, differential
+proportionality, partial correlation, and ratio analysis.
+
+If you use this software, please cite our work. We don’t get paid to
+make software, but your citations help us to negotiate support for
+software maintenance and development.
 
 ``` r
 citation("propr")
@@ -21,30 +41,29 @@ citation("propr")
     ##   Bioinformatics 34(16): doi:10.1093/bioinformatics/bty175
     ## 
     ##   Erb I, Quinn T, Lovell D, Notredame C (2017) Differential
-    ##   Proportionality - A Normalization-Free Approach To Differential
-    ##   Gene Expression. Proceedings of CoDaWork 2017, The 7th
-    ##   Compositional Data Analysis Workshop; available under bioRxiv
-    ##   134536: doi:10.1101/134536
+    ##   Proportionality - A Normalization-Free Approach To Differential Gene
+    ##   Expression. Proceedings of CoDaWork 2017, The 7th Compositional Data
+    ##   Analysis Workshop; available under bioRxiv 134536: doi:10.1101/134536
     ## 
     ##   Quinn T, Richardson MF, Lovell D, Crowley T (2017) propr: An
     ##   R-package for Identifying Proportionally Abundant Features Using
     ##   Compositional Data Analysis. Scientific Reports 7(16252):
     ##   doi:10.1038/s41598-017-16520-0
     ## 
-    ##   Erb I, Notredame C (2016) How should we measure proportionality
-    ##   on relative gene expression data? Theory in Biosciences 135(1):
+    ##   Erb I, Notredame C (2016) How should we measure proportionality on
+    ##   relative gene expression data? Theory in Biosciences 135(1):
     ##   doi:10.1007/s12064-015-0220-8
     ## 
-    ##   Lovell D, Pawlowsky-Glahn V, Egozcue JJ, Marguerat S, Bahler J
-    ##   (2015) Proportionality: A Valid Alternative to Correlation for
-    ##   Relative Data. PLoS Computational Biology 11(3):
+    ##   Lovell D, Pawlowsky-Glahn V, Egozcue JJ, Marguerat S, Bahler J (2015)
+    ##   Proportionality: A Valid Alternative to Correlation for Relative
+    ##   Data. PLoS Computational Biology 11(3):
     ##   doi:10.1371/journal.pcbi.1004075
     ## 
     ## To see these entries in BibTeX format, use 'print(<citation>,
     ## bibtex=TRUE)', 'toBibtex(.)', or set
     ## 'options(citation.bibtex.max=999)'.
 
-OK, now let's get started.
+OK, now let’s get started.
 
 ``` r
 counts <- matrix(rpois(20*50, 100), 20, 50)
@@ -53,10 +72,10 @@ devtools::install_github("tpq/propr")
 library(propr)
 ```
 
-Proportionality
----------------
+## Proportionality
 
-There are a few proportionality statistics available. Select one with the 'metric' argument.
+There are a few proportionality statistics available. Select one with
+the ‘metric’ argument.
 
 ``` r
 pr <- propr(counts, # rows as samples, like it should be
@@ -66,7 +85,10 @@ pr <- propr(counts, # rows as samples, like it should be
             p = 100) # used by updateCutoffs
 ```
 
-You can determine the "signficance" of proportionality using a built-in permutation procedure. It tells estimates the false discovery rate (FDR) for any cutoff. This method can take a while to run, but is parallelizable.
+You can determine the “signficance” of proportionality using a built-in
+permutation procedure. It tells estimates the false discovery rate (FDR)
+for any cutoff. This method can take a while to run, but is
+parallelizable.
 
 ``` r
 updateCutoffs(pr,
@@ -76,10 +98,10 @@ updateCutoffs(pr,
 
 Choose the largest cutoff with an acceptable FDR.
 
-Differential Proportionality
-----------------------------
+## Differential Proportionality
 
-There are also a few differential proportionality statistics, but they all get calculated at once.
+There are also a few differential proportionality statistics, but they
+all get calculated at once.
 
 ``` r
 pd <- propd(counts,
@@ -89,7 +111,7 @@ pd <- propd(counts,
             p = 100) # used by updateCutoffs
 ```
 
-You can switch between the "disjointed" and "emergent" statistics.
+You can switch between the “disjointed” and “emergent” statistics.
 
 ``` r
 setDisjointed(pd)
@@ -99,7 +121,9 @@ setDisjointed(pd)
 setEmergent(pd)
 ```
 
-You can again permute an FDR with the `updateCutoffs` method. Alternatively, you can calculate an exact p-value for *θ* based on a F-test. This is handled by the `updateF` method.
+You can again permute an FDR with the `updateCutoffs` method.
+Alternatively, you can calculate an exact p-value for *θ* based on a
+F-test. This is handled by the `updateF` method.
 
 ``` r
 pd <- updateF(pd,
@@ -107,15 +131,23 @@ pd <- updateF(pd,
               ivar = "clr") # used for moderation
 ```
 
-Getters
--------
+## Getters
 
-Both functions return S4 objects. This package includes several helper functions that work for both the `propr` and `propd` output. Most of the time, you would want to use `getResults`. This method only selects pairs beyond a certain size, chosen by the 'cutoff' argument.
+Both functions return S4 objects. This package includes several helper
+functions that work for both the `propr` and `propd` output.
 
 ``` r
-?getResults # get results in long-format
 ?getMatrix # get results as a square matrix
-?getAdj # get an adjacency matrix
+?getResults # get propr or propd results in long-format
+?getRatios # get samples by ratios matrix
 ```
 
-The vignettes describe some custom visualization methods.
+Use `getResults` to pipe to `ggplot2` for visualization.
+
+## Partial Correlation
+
+COMING SOON!!
+
+## Ratio Methods
+
+COMING SOON!!
