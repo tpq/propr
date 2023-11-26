@@ -267,29 +267,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// count_if
-int count_if(LogicalVector x);
-RcppExport SEXP _propr_count_if(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< LogicalVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(count_if(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pairmutate
-List pairmutate(NumericMatrix counts, LogicalVector group);
-RcppExport SEXP _propr_pairmutate(SEXP countsSEXP, SEXP groupSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type counts(countsSEXP);
-    Rcpp::traits::input_parameter< LogicalVector >::type group(groupSEXP);
-    rcpp_result_gen = Rcpp::wrap(pairmutate(counts, group));
-    return rcpp_result_gen;
-END_RCPP
-}
 // lr2vlr
 NumericMatrix lr2vlr(NumericMatrix lr);
 RcppExport SEXP _propr_lr2vlr(SEXP lrSEXP) {
@@ -412,8 +389,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},
     {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 2},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
-    {"_propr_count_if", (DL_FUNC) &_propr_count_if, 1},
-    {"_propr_pairmutate", (DL_FUNC) &_propr_pairmutate, 2},
     {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
     {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
     {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},

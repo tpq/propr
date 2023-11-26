@@ -89,14 +89,6 @@ ctzRcpp <- function(X) {
     .Call(`_propr_ctzRcpp`, X)
 }
 
-count_if <- function(x) {
-    .Call(`_propr_count_if`, x)
-}
-
-pairmutate <- function(counts, group) {
-    .Call(`_propr_pairmutate`, counts, group)
-}
-
 lr2vlr <- function(lr) {
     .Call(`_propr_lr2vlr`, lr)
 }

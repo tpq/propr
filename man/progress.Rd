@@ -17,5 +17,5 @@ progress(i, k, numTicks)
 The next \code{numTicks} argument.
 }
 \description{
-Make Progress Bar
+Makes a progress bar. For back-end use only.
 }
