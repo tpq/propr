@@ -1,6 +1,22 @@
 citHeader("To cite propr in publications use:")
 
 citEntry(entry = "Article",
+         title        = "Compositional covariance shrinkage and regularised partial correlations",
+         author       = personList(as.person("Suzanne Jin"),
+                                   as.person("Cedric Notredame"),
+                                   as.person("Ionas Erb"))
+         journal      = "Statistics and Operations Research Transactions",
+         year         = "2023",
+         volume       = "47",
+         number       = "2",
+
+         textVersion  =
+           paste("Jin S, Notredame C, Erb I (2023)",
+                 "Compositional covariance shrinkage and regularised partial correlations.",
+                 "Statistics and Operations Research Transactions 47(2). doi:10.57645/20.8080.02.8")
+)
+
+citEntry(entry = "Article",
          title        = paste("A field guide for the compositional analysis of any-omics data"),
          author       = personList(as.person("Thomas P Quinn"),
                                    as.person("Ionas Erb"),
