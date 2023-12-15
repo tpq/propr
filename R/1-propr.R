@@ -149,6 +149,9 @@ propr <- function(counts,
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
 
+  # ivar should not be NA, otherwise updateCutoffs does not work
+  if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor
+
   # Clean row and column names
   result@matrix <- mat
   colnames(result@matrix) <- colnames(result@logratio)

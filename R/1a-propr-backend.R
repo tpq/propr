@@ -251,8 +251,8 @@ basis_shrinkage <- function(M, outtype = c("clr", "alr")) {
 
   # make output to have same dimensions as input
   if (outtype == "alr") {
-    PC <- cbind(PC, replicate(nrow(PC), NA))
-    PC <- rbind(PC, replicate(ncol(PC), NA))
+    PC <- cbind(PC, replicate(nrow(PC), 0))
+    PC <- rbind(PC, replicate(ncol(PC), 0))
     PC[nrow(PC), ncol(PC)] <- 1
   }
 
