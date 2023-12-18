@@ -4,7 +4,7 @@
 #'  assignment of each count to different groups.
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
-#'  discovery rate (FDR). The default is 100.
+#'  discovery rate (FDR). The default is 0.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. If \code{TRUE}, the function will use limma-based
 #'  weights for the calculations.
@@ -32,7 +32,7 @@
 propd <- function(counts,
                   group,
                   alpha = NA,
-                  p = 100,
+                  p = 0,
                   weighted = FALSE) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -103,12 +103,14 @@ propd <- function(counts,
   result@results$theta <-
     round(result@results$theta, 14) # round floats to 1
 
+  # permute data
+  if (p > 0) result <- updatePermutes(result, p)
+
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
   ##############################################################################
 
   message("Alert: Use 'setActive' to select a theta type.")
-  message("Alert: Use 'updatePermutes' to set seed for FDR.")
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
   message("Alert: Use 'updateF' to calculate F-stat.")
 

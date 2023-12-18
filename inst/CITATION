@@ -4,7 +4,7 @@ citEntry(entry = "Article",
          title        = "Compositional covariance shrinkage and regularised partial correlations",
          author       = personList(as.person("Suzanne Jin"),
                                    as.person("Cedric Notredame"),
-                                   as.person("Ionas Erb"))
+                                   as.person("Ionas Erb")),
          journal      = "Statistics and Operations Research Transactions",
          year         = "2023",
          volume       = "47",

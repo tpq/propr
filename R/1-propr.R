@@ -27,6 +27,8 @@
 #'  the output Propr matrix when the metric is "phi". If `TRUE`, the function
 #'  will symmetrize the matrix; otherwise, it will return the original matrix.
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
+#' @param p The number of permutations to perform for calculating the false
+#'  discovery rate (FDR). The default is 0.
 #' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
 #'  if "pcor.shrink" metric is selected.
 #'
@@ -64,6 +66,7 @@ propr <- function(counts,
                   select = NA,
                   symmetrize = FALSE,
                   alpha = NA,
+                  p = 0,
                   ...) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -170,11 +173,13 @@ propr <- function(counts,
       "Zeros" = ctzRcpp(counts)
     )
 
+  # permute data
+  if (p > 0) result <- updatePermutes(result, p)
+
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
   ##############################################################################
 
-  message("Alert: Use 'updatePermutes' to set seed for FDR.")
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
 
   return(result)

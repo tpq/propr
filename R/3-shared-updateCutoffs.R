@@ -44,6 +44,7 @@ updateCutoffs <-
 #' @export
 updateCutoffs.propr <-
   function(object, cutoff, ncores) {
+
     metric_is_up <- function(metric) {
       metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
       return(metric %in% metrics)
@@ -66,7 +67,6 @@ updateCutoffs.propr <-
         if (metric_is_up(object@metric)) {
           count_greater_than(pkt, cut)
         } else{
-          # phi & phs
           count_less_than(pkt, cut)
         }
       })

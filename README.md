@@ -19,7 +19,8 @@ unchanged.
 
 The `propr` package provides an interface for 4 distinct approaches to
 compositional data analysis (CoDA): proportionality, differential
-proportionality, partial correlation, and ratio analysis.
+proportionality, logratio partial correlation with basis shrinkage, and
+ratio analysis.
 
 If you use this software, please cite our work. We don’t get paid to
 make software, but your citations help us to negotiate support for
@@ -31,6 +32,10 @@ citation("propr")
 
     ## 
     ## To cite propr in publications use:
+    ## 
+    ##   Jin S, Notredame C, Erb I (2023) Compositional covariance shrinkage
+    ##   and regularised partial correlations. Statistics and Operations
+    ##   Research Transactions 47(2). doi:10.57645/20.8080.02.8
     ## 
     ##   Quinn TP, Erb I, Gloor G, Notredame C, Richardson MF, Crowley TM
     ##   (2019) A field guide for the compositional analysis of any-omics
@@ -78,11 +83,13 @@ There are a few proportionality statistics available. Select one with
 the ‘metric’ argument.
 
 ``` r
-pr <- propr(counts, # rows as samples, like it should be
-            metric = "rho", # or "phi", "phs", "cor", "vlr"
-            ivar = "clr", # or can use "iqlr" instead
-            alpha = NA, # use to handle zeros
-            p = 100) # used by updateCutoffs
+pr <- propr(
+        counts,  # rows as samples, like it should be
+        metric = "rho",  # or "phi", "phs", "cor", "vlr"
+        ivar = "clr",  # or can use "iqlr" instead
+        alpha = NA,  # use to handle zeros
+        p = 100  # used for updateCutoffs
+      ) 
 ```
 
 You can determine the “signficance” of proportionality using a built-in
@@ -91,12 +98,39 @@ for any cutoff. This method can take a while to run, but is
 parallelizable.
 
 ``` r
-updateCutoffs(pr,
-              cutoff = seq(0, 1, .05), # cutoffs at which to estimate FDR
-              ncores = 1) # parallelize here
+pr <- updateCutoffs(
+        pr,
+        cutoff = seq(0, 1, .05),  # cutoffs at which to estimate FDR
+        ncores = 1  # parallelize here
+      ) 
 ```
 
 Choose the largest cutoff with an acceptable FDR.
+
+## Logratio partial correlation with basis shrinkage
+
+There are many ways to calculate partial correlations, with or without
+shrinkage. The recommended one for datasets with p\>\>n and influenced
+by compositional bias is “pcor.bshrink”.
+
+``` r
+pr <- propr(
+        counts,  # rows as samples, like it should be
+        metric = "pcor.bshrink",  # partial correlation without shrinkage "pcor" is also available
+        p = 100  # used for updateCutoffs
+      ) 
+```
+
+You can also determine the “significance” of logratio partial
+correlations with the built-in permutation approach.
+
+``` r
+pr <- updateCutoffs(
+        pr,
+        cutoff = seq(0, 1, .05),  # cutoffs at which to estimate FDR
+        ncores = 1  # parallelize here
+      )
+```
 
 ## Differential Proportionality
 
@@ -104,11 +138,13 @@ There are also a few differential proportionality statistics, but they
 all get calculated at once.
 
 ``` r
-pd <- propd(counts,
-            group, # a vector of 2 or more groups
-            alpha = NA, # whether to handle zeros
-            weighted = TRUE, # whether to weigh log-ratios
-            p = 100) # used by updateCutoffs
+pd <- propd(
+        counts,
+        group,  # a vector of 2 or more groups
+        alpha = NA,  # whether to handle zeros
+        p = 100,  # used for updateCutoffs
+        weighted = TRUE  # whether to weight log-ratios
+      )
 ```
 
 You can switch between the “disjointed” and “emergent” statistics.
@@ -126,9 +162,11 @@ Alternatively, you can calculate an exact p-value for *θ* based on a
 F-test. This is handled by the `updateF` method.
 
 ``` r
-pd <- updateF(pd,
-              moderated = FALSE, # moderate stats with limma-voom
-              ivar = "clr") # used for moderation
+pd <- updateF(
+        pd,
+        moderated = FALSE,  # moderate stats with limma-voom
+        ivar = "clr"  # used for moderation
+      ) 
 ```
 
 ## Getters
@@ -143,10 +181,6 @@ functions that work for both the `propr` and `propd` output.
 ```
 
 Use `getResults` to pipe to `ggplot2` for visualization.
-
-## Partial Correlation
-
-COMING SOON!!
 
 ## Ratio Methods
 

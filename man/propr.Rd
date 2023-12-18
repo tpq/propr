@@ -16,6 +16,7 @@ propr(
   select = NA,
   symmetrize = FALSE,
   alpha = NA,
+  p = 0,
   ...
 )
 }
@@ -56,6 +57,9 @@ the output Propr matrix when the metric is "phi". If `TRUE`, the function
 will symmetrize the matrix; otherwise, it will return the original matrix.}
 
 \item{alpha}{The alpha parameter used in the alpha log-ratio transformation.}
+
+\item{p}{The number of permutations to perform for calculating the false
+discovery rate (FDR). The default is 0.}
 
 \item{...}{Additional arguments passed to \code{corpcor::pcor.shrink},
 if "pcor.shrink" metric is selected.}
