@@ -1,3 +1,5 @@
+# propr 5.0.1
+
 ## propr 5.0.0
 ---------------------
 * Merge pull request for new shrinkage method
