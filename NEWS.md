@@ -1,3 +1,10 @@
+## propr 5.0.1
+---------------------
+* Fix bug: change NA in alr partial correlation to 0 so that FDR can be computed
+* Fix bug: implemented updatePermutes inside propr() and propd()
+* Update README and CITATION
+
+
 ## propr 5.0.0
 ---------------------
 * Merge pull request for new shrinkage method

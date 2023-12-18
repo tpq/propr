@@ -1,3 +1,14 @@
+#' Create permuted data
+#'
+#' This function creates p permuted data matrices
+#'
+#' This function wraps \code{updatePermutes.propr} and
+#'  \code{updatePermutes.propd}.
+#'
+#' @param object A \code{propr} or \code{propd} object.
+#' @param p The number of permutations to perform.
+#' @return A \code{propr} or \code{propd} object with the permutes slot updated.
+#' @export
 updatePermutes <-
   function(object, p) {
     if (inherits(object, "propr")) {

@@ -14,7 +14,7 @@
 \usage{
 \S4method{show}{propd}(object)
 
-propd(counts, group, alpha = NA, p = 100, weighted = FALSE)
+propd(counts, group, alpha = NA, p = 0, weighted = FALSE)
 
 setDisjointed(propd)
 
@@ -36,7 +36,7 @@ assignment of each count to different groups.}
 \item{alpha}{The alpha parameter used in the alpha log-ratio transformation.}
 
 \item{p}{The number of permutations to perform for calculating the false
-discovery rate (FDR). The default is 100.}
+discovery rate (FDR). The default is 0.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed. If \code{TRUE}, the function will use limma-based
