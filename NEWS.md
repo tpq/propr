@@ -1,3 +1,7 @@
+## propr 5.0.2
+---------------------
+* Added 'corpcor' and 'ppcor' in imports
+
 ## propr 5.0.1
 ---------------------
 * Fix bug: change NA in alr partial correlation to 0 so that FDR can be computed
