@@ -1,11 +1,8 @@
-## propr 5.0.2
----------------------
-* Added 'corpcor' and 'ppcor' in imports
-
 ## propr 5.0.1
 ---------------------
 * Fix bug: change NA in alr partial correlation to 0 so that FDR can be computed
 * Fix bug: implemented updatePermutes inside propr() and propd()
+* Added 'corpcor' and 'ppcor' in imports
 * Update README and CITATION
 
 
