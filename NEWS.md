@@ -1,10 +1,13 @@
+## propr 5.0.2
+---------------------
+* Merge parts of `graflex` package into `propr`
+
 ## propr 5.0.1
 ---------------------
 * Fix bug: change NA in alr partial correlation to 0 so that FDR can be computed
 * Fix bug: implemented updatePermutes inside propr() and propd()
-* Added 'corpcor' and 'ppcor' in imports
+* Added `corpcor` and `ppcor` in imports
 * Update README and CITATION
-
 
 ## propr 5.0.0
 ---------------------
