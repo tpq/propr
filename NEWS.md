@@ -1,3 +1,7 @@
+## propr 5.0.3
+---------------------
+* Added fixseed option for updatePermutes
+
 ## propr 5.0.2
 ---------------------
 * Merge parts of `graflex` package into `propr`

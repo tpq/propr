@@ -14,7 +14,7 @@
 \usage{
 \S4method{show}{propd}(object)
 
-propd(counts, group, alpha = NA, p = 0, weighted = FALSE)
+propd(counts, group, alpha = NA, p = 0, fixseed = FALSE, weighted = FALSE)
 
 setDisjointed(propd)
 
@@ -37,6 +37,10 @@ assignment of each count to different groups.}
 
 \item{p}{The number of permutations to perform for calculating the false
 discovery rate (FDR). The default is 0.}
+
+\item{fixseed}{A logical value indicating whether to fix the random seed 
+for generating the pemurations. If `TRUE`, the function will fix the random
+The default is `FALSE`.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed. If \code{TRUE}, the function will use limma-based

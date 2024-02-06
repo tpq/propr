@@ -29,6 +29,9 @@
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
+#' @param fixseed A logical value indicating whether to fix the random seed 
+#' for generating the pemurations. If `TRUE`, the function will fix the random
+#' The default is `FALSE`.
 #' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
 #'  if "pcor.shrink" metric is selected.
 #'
@@ -67,6 +70,7 @@ propr <- function(counts,
                   symmetrize = FALSE,
                   alpha = NA,
                   p = 0,
+                  fixseed = FALSE,
                   ...) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -174,7 +178,7 @@ propr <- function(counts,
     )
 
   # permute data
-  if (p > 0) result <- updatePermutes(result, p)
+  if (p > 0) result <- updatePermutes(result, p, fixseed)
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
