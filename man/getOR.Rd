@@ -6,9 +6,6 @@
 \usage{
 getOR(A, G)
 }
-\arguments{
-\item{A, G}{A vector or adjacency matrix.}
-}
 \value{
 A \code{data.frame} of results.
 }

@@ -53,7 +53,6 @@ binTab <- function(A, G) {
 #' This function calculates the overlap between
 #'  two vectors or two adjacency matrices.
 #'  It returns the OR as well as other metrics.
-#' @inheritParams binTab
 #' @return A \code{data.frame} of results.
 getOR <- function(A, G) {
   tab <- binTab(A, G)
@@ -75,7 +74,6 @@ getOR <- function(A, G) {
 #'
 #' Note that this function calculates overlap for the
 #'  lower-left triangle of the input matrices.
-#' @inheritParams permuteOR
 calculateOR <- function(A, G) {
   Astar <- A[lower.tri(A)]
   Gstar <- G[lower.tri(G)]
@@ -109,7 +107,6 @@ getFDR <- function(actual, permuted) {
 #'  false discovery rate (FDR) by counting the number of
 #'  times the actual OR was greater than
 #'  (or less than) a permuted OR.
-#' @inheritParams permuteOR
 #' @param A An adjacency matrix.
 #' @param K A knowledge database where each row is a graph node
 #'  and each column is a concept.

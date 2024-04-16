@@ -4,7 +4,7 @@
 \alias{runGraflex}
 \title{Permute FDR for Multiple Concepts}
 \usage{
-runGraflex(A, K, p = 500)
+runGraflex(A, K, p = 500, fixseed = FALSE)
 }
 \arguments{
 \item{A}{An adjacency matrix.}
@@ -13,6 +13,9 @@ runGraflex(A, K, p = 500)
 and each column is a concept.}
 
 \item{p}{An integer. The number of overlaps to permute.}
+
+\item{fixseed}{A logical. If \code{TRUE}, the seed is fixed
+for reproducibility.}
 }
 \description{
 This function calls \code{\link{permuteOR}} for each

@@ -1,3 +1,8 @@
+## propr 5.0.4
+---------------------
+* Added fixseed option for runGraflex
+* Fix bug: NAs produced by integer overflow in getOR
+
 ## propr 5.0.3
 ---------------------
 * Added fixseed option for updatePermutes

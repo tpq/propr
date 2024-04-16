@@ -6,9 +6,6 @@
 \usage{
 calculateOR(A, G)
 }
-\arguments{
-\item{A, G}{An adjacency matrix.}
-}
 \description{
 This function calculates an odds ratio for the
  edge overlap between two non-random graphs.

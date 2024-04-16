@@ -4,12 +4,15 @@
 \alias{permuteOR}
 \title{Permute Odds Ratio}
 \usage{
-permuteOR(A, G, p = 500)
+permuteOR(A, G, p = 500, fixseed = FALSE)
 }
 \arguments{
 \item{A, G}{An adjacency matrix.}
 
 \item{p}{An integer. The number of overlaps to permute.}
+
+\item{fixseed}{A logical. If \code{TRUE}, the seed is fixed
+for reproducibility.}
 }
 \description{
 This function permutes \code{p} odds ratios for the
