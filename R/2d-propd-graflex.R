@@ -10,10 +10,13 @@
 #'  lower-left triangle of the input matrices.
 #' @param A,G An adjacency matrix.
 #' @param p An integer. The number of overlaps to permute.
-permuteOR <- function(A, G, p = 500) {
+#' @param fixseed A logical. If \code{TRUE}, the seed is fixed
+#' for reproducibility.
+permuteOR <- function(A, G, p = 500, fixseed=FALSE) {
   Gstar <- G[lower.tri(G)]
   res <- lapply(1:p, function(i) {
     # Shuffle the adjacency matrix
+    if (fixseed) set.seed(i)
     index <- sample(1:ncol(A))
     A <- A[index, index]
     Astar <- A[lower.tri(A)]
@@ -34,13 +37,13 @@ permuteOR <- function(A, G, p = 500) {
 binTab <- function(A, G) {
   diff <- A != G
   only1 <- A[diff]
-  b <- sum(only1)
-  c <- length(only1) - b
+  b <- as.numeric(sum(only1))
+  c <- as.numeric(length(only1) - b)
 
   same <- !diff
   double1 <- A[same]
-  a <- sum(double1)
-  d <- length(double1) - a
+  a <- as.numeric(sum(double1))
+  d <- as.numeric(length(double1) - a)
 
   matrix(c(d, b, c, a), 2, 2)
 }
@@ -110,8 +113,11 @@ getFDR <- function(actual, permuted) {
 #' @param A An adjacency matrix.
 #' @param K A knowledge database where each row is a graph node
 #'  and each column is a concept.
+#' @param p An integer. The number of overlaps to permute.
+#' @param fixseed A logical. If \code{TRUE}, the seed is fixed
+#' for reproducibility.
 #' @export
-runGraflex <- function(A, K, p = 500) {
+runGraflex <- function(A, K, p = 500, fixseed=FALSE) {
   if (nrow(A) != nrow(K))
     stop("'A' and 'K' must have identical rows.")
 
@@ -120,7 +126,7 @@ runGraflex <- function(A, K, p = 500) {
     numTicks <<- progress(k, ncol(K), numTicks)
     Gk <- K[, k] %*% t(K[, k])
     actual <- calculateOR(A, Gk)
-    permuted <- permuteOR(A, Gk, p = p)
+    permuted <- permuteOR(A, Gk, p = p, fixseed=fixseed)
     actual <- getFDR(actual, permuted)
     actual$Permutes <- p
     actual$Concept <- colnames(K)[k]
