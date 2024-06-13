@@ -45,11 +45,6 @@ updateCutoffs <-
 updateCutoffs.propr <-
   function(object, cutoff, ncores) {
 
-    metric_is_up <- function(metric) {
-      metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
-      return(metric %in% metrics)
-    }
-
     getFdrRandcounts <- function(ct.k) {
       pr.k <- suppressMessages(propr::propr(
         ct.k,
@@ -64,7 +59,7 @@ updateCutoffs.propr <-
 
       # Find number of permuted theta less than cutoff
       sapply(FDR$cutoff, function(cut) {
-        if (metric_is_up(object@metric)) {
+        if (metric_is_direct(object@metric)) {
           count_greater_than(pkt, cut)
         } else{
           count_less_than(pkt, cut)
@@ -133,7 +128,7 @@ updateCutoffs.propr <-
           # randcounts as cumsum
 
           # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-          if (metric_is_up(object@metric)) {
+          if (metric_is_direct(object@metric)) {
             FDR[cut, "randcounts"] <-
               FDR[cut, "randcounts"] + count_greater_than(pkt, FDR[cut, "cutoff"])
           } else{
@@ -150,7 +145,7 @@ updateCutoffs.propr <-
 
     for (cut in 1:nrow(FDR)) {
       # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-      if (metric_is_up(object@metric)) {
+      if (metric_is_direct(object@metric)) {
         FDR[cut, "truecounts"] <-
           sum(object@results$propr > FDR[cut, "cutoff"])
       } else{

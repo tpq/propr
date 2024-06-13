@@ -1,3 +1,17 @@
+#' Wrapper to check if a metric is 'direct' or 'positive'
+#' 
+#' If a metric is better when increased, it is considered 'direct'.
+#' This function checks if a propr metric is direct.
+#' 
+#' @param metric A character vector specifying the metric to check.
+#' @return A logical value indicating whether the metric is direct.
+#' 
+#' @export
+metric_is_direct <- function(metric) {
+    metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
+    return(metric %in% metrics)
+  }
+
 #' Index Reference for Selecting Features
 #'
 #' This function computes an index reference for selecting features from the
