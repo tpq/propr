@@ -186,9 +186,7 @@ get_theta_matrix <- function(propd){
   rownames(mat) <- colnames(propd@counts)
   colnames(mat) <- colnames(propd@counts)
 
-  # TODO check if this is the correct way to handle this
-  # and why before is 0
-  diag(mat) <- NA
+  diag(mat) <- 0
 
   return(mat)
 }

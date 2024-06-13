@@ -18,6 +18,6 @@ getAdj <- function(object, cutoff = 1, above = FALSE){
   } else {
     a[m <= cutoff] <- 1
   }
-  diag(a) <- 0   # TODO decide if we should avoid self loops
+  diag(a) <- 0
   return(a)
 }
