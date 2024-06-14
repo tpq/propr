@@ -19,14 +19,12 @@ updateCutoffs <-
       if (ncores == 1) {
         message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
       }
-
       updateCutoffs.propr(object, cutoff, ncores)
 
     } else if (inherits(object, "propd")) {
       if (ncores > 1) {
         message("Alert: Parallel updateCutoffs not yet supported.")
       }
-
       updateCutoffs.propd(object, cutoff)
 
     } else{
@@ -45,6 +43,8 @@ updateCutoffs <-
 updateCutoffs.propr <-
   function(object, cutoff, ncores) {
 
+    countFunc <- if (metric_is_direct(object@metric)) count_greater_than else count_less_than
+
     getFdrRandcounts <- function(ct.k) {
       pr.k <- suppressMessages(propr::propr(
         ct.k,
@@ -58,13 +58,7 @@ updateCutoffs.propr <-
       pkt <- pr.k@results$propr
 
       # Find number of permuted theta less than cutoff
-      sapply(FDR$cutoff, function(cut) {
-        if (metric_is_direct(object@metric)) {
-          count_greater_than(pkt, cut)
-        } else{
-          count_less_than(pkt, cut)
-        }
-      })
+      sapply(FDR$cutoff, function(cut) countFunc(pkt, cut))
     }
 
     if (object@metric == "rho") {
@@ -124,39 +118,22 @@ updateCutoffs.propr <-
         pkt <- pr.k@results$propr
 
         # Find number of permuted theta less than cutoff
-        for (cut in 1:nrow(FDR)) {
-          # randcounts as cumsum
-
-          # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-          if (metric_is_direct(object@metric)) {
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_greater_than(pkt, FDR[cut, "cutoff"])
-          } else{
-            # phi & phs
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_less_than(pkt, FDR[cut, "cutoff"])
-          }
-        }
+        FDR$randcounts <- sapply(
+          1:nrow(FDR), 
+          function(cut) FDR$randcounts[cut] + countFunc(pkt, FDR[cut, "cutoff"]),
+          simplify = TRUE
+        )
       }
     }
 
     # Calculate FDR based on real and permuted tallys
     FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-
-    for (cut in 1:nrow(FDR)) {
-      # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-      if (metric_is_direct(object@metric)) {
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr > FDR[cut, "cutoff"])
-      } else{
-        # phi & phs
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr < FDR[cut, "cutoff"])
-      }
-
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
-    }
+    FDR$truecounts <- sapply(
+        1:nrow(FDR), 
+        function(cut) countFunc(object@results$propr, FDR[cut, "cutoff"]), 
+        simplify = TRUE
+      )
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
 
     # Initialize @fdr
     object@fdr <- FDR
@@ -227,21 +204,21 @@ updateCutoffs.propd <-
       }
 
       # Find number of permuted theta less than cutoff
-      for (cut in 1:nrow(FDR)) {
-        # randcounts as cumsum
-        FDR[cut, "randcounts"] <-
-          FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
-      }
+      FDR$randcounts <- sapply(
+        1:nrow(FDR), 
+        function(cut) FDR$randcounts[cut] + count_less_than(pkt, FDR[cut, "cutoff"]),
+        simplify = TRUE
+      )
     }
 
     # Calculate FDR based on real and permuted tallys
     FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-    for (cut in 1:nrow(FDR)) {
-      FDR[cut, "truecounts"] <-
-        sum(object@results$theta < FDR[cut, "cutoff"])
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
-    }
+    FDR$truecounts <- sapply(
+      1:nrow(FDR), 
+      function(cut) count_less_than(object@results$theta, FDR[cut, "cutoff"]), 
+      simplify = TRUE
+    )
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
 
     # Initialize @fdr
     object@fdr <- FDR
