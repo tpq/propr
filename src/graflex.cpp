@@ -71,23 +71,16 @@ NumericMatrix binTab(IntegerVector& A, IntegerVector& G) {
   NumericMatrix mat(2, 2);
   int n = A.size();
 
-  for (int i = 0; i < n; ++i) {
-    if (A[i] == 1 && G[i] == 1){
-      mat(1,1)++;
-    } else if (A[i] == 1 && G[i] == 0){
-      mat(1,0)++;
-    } else if (A[i] == 0 && G[i] == 0){
-      mat(0,0)++;
-    } else if (A[i] == 0 && G[i] == 1){
-      mat(0,1)++;
-    }
-  }
+  mat(1, 1) = sum(A * G);              // in A and G
+  mat(1, 0) = sum(A * (1 - G));        // in A but not G
+  mat(0, 0) = sum((1 - A) * (1 - G));  // not in A and not in G
+  mat(0, 1) = sum((1 - A) * G);        // not in A but in G
 
   return mat;
 }
 
 // [[Rcpp::export]]
-NumericMatrix calculateOR(IntegerVector& A, IntegerVector& G) {
+NumericMatrix getOR(IntegerVector& A, IntegerVector& G) {
   NumericMatrix tab = binTab(A, G);
 
   double odds_ratio = (tab(0, 0) * tab(1, 1)) / (tab(0, 1) * tab(1, 0));
@@ -125,7 +118,7 @@ NumericMatrix permuteOR(IntegerMatrix A, IntegerMatrix G, int p = 100, Nullable<
   for (int i = 0; i < p; ++i) {
     IntegerMatrix Ashuffled = shuffle_square_integer_matrix(A);
     IntegerVector Astar = get_square_integer_matrix_triangle(Ashuffled);
-    or_table(i, _) = calculateOR(Astar, Gstar);
+    or_table(i, _) = getOR(Astar, Gstar);
   }
 
   return(or_table);
