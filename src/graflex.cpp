@@ -1,15 +1,6 @@
-// #include <RcppArmadillo.h>
 #include <Rcpp.h>
 #include <numeric>
-
 using namespace Rcpp;
-
-// // Function to extract the lower triangle of a matrix
-// // [[Rcpp::depends(RcppArmadillo)]]
-// // [[Rcpp::export]]
-// arma::mat getLowerTriangle(const arma::mat& mat) {
-//     return arma::trimatl(mat);
-// }
 
 // Function to set the seed for reproducibility
 void set_seed(int seed) {
@@ -18,16 +9,17 @@ void set_seed(int seed) {
   set_seed_r(seed);
 }
 
-// Function to extract the lower triangle of a square IntegerMatrix
-IntegerVector get_square_integer_matrix_triangle(const IntegerMatrix& mat) {
+// Function to extract the lower triangle of a square and symmetric IntegerMatrix
+IntegerVector get_lower_triangle(const IntegerMatrix& mat) {
   int nrow = mat.nrow();
   int ncol = mat.ncol();
   int n = ncol * (ncol - 1) / 2;
-  IntegerVector triangle(n);
 
   if (nrow != ncol) {
     stop("Input matrix must be square");
   }
+
+  IntegerVector triangle(n);
 
   int k = 0;
   for (int i = 0; i < ncol; ++i) {
@@ -39,30 +31,28 @@ IntegerVector get_square_integer_matrix_triangle(const IntegerMatrix& mat) {
   return triangle;
 }
 
-// Function to shuffle a square IntegerMatrix by column and row
+// Function to shuffle a square and symmetric IntegerMatrix, and get the lower triangle
 // [[Rcpp::export]]
-IntegerMatrix shuffle_square_integer_matrix(const IntegerMatrix& mat) {
+IntegerVector shuffle_and_get_lower_triangle(const IntegerMatrix& mat) {
   int nrow = mat.nrow();
   int ncol = mat.ncol();
-  IntegerMatrix shuffled(nrow, ncol);
+  int n = ncol * (ncol - 1) / 2;
 
   if (nrow != ncol) {
     stop("Input matrix must be square");
   }
 
-  // shuffle by index
+  IntegerVector shuffled_triangle(n);
   IntegerVector index = sample(ncol, ncol, false) - 1;
 
-  // fill in the shuffled matrix
-  // NOTE that the diagonal stays 0
+  int k = 0;
   for (int i = 0; i < ncol; ++i) {
     for (int j = 0; j < i; ++j) {
-      shuffled(i, j) = mat(index[i], index[j]);
-      shuffled(j, i) = mat(index[j], index[i]);
+      shuffled_triangle[k++] = mat(index[i], index[j]);
     }
   }
 
-  return shuffled;
+  return shuffled_triangle;
 }
 
 // Function to calculate the odds ratio table
@@ -112,12 +102,11 @@ NumericMatrix permuteOR(IntegerMatrix A, IntegerMatrix G, int p = 100, Nullable<
 
   if (seed.isNotNull()) set_seed(Rcpp::as<int>(seed));
 
-  IntegerVector Gstar = get_square_integer_matrix_triangle(G);
+  IntegerVector Gstar = get_lower_triangle(G);
 
   // calculate odds ratio for each permutation
   for (int i = 0; i < p; ++i) {
-    IntegerMatrix Ashuffled = shuffle_square_integer_matrix(A);
-    IntegerVector Astar = get_square_integer_matrix_triangle(Ashuffled);
+    IntegerVector Astar = shuffle_and_get_lower_triangle(A);
     or_table(i, _) = getOR(Astar, Gstar);
   }
 
