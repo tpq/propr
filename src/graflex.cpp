@@ -136,8 +136,8 @@ NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100, Nullable<
   NumericMatrix permuted = permuteOR(A, Gstar, p, seed);
 
   // calculate the FDR
-  actual(0, 6) = getFDR_over(actual(0, 4), permuted(_, 4));
-  actual(0, 7) = getFDR_under(actual(0, 4), permuted(_, 4));
+  actual(0, 6) = getFDR_under(actual(0, 4), permuted(_, 4));
+  actual(0, 7) = getFDR_over(actual(0, 4), permuted(_, 4));
 
   return actual;
 }
