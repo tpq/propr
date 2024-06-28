@@ -15,17 +15,29 @@
 #' @param seed The seed for reproducibility. Default = NULL
 #' 
 #' @export
-runGraflex <- function(A, K, p=100, seed=NULL) {
+runGraflex <- function(A, K, p=100, seed=NULL, ncores=1) {
   if (nrow(A) != nrow(K))
     stop("'A' and 'K' must have identical rows.")
   if (nrow(A) != ncol(A))
     stop("'A' must be a square matrix.")
 
-  # for each knowledge network, calculate odds ratio and FDR
-  res <- lapply(1:ncol(K), function(k) {
-    Gk <- K[, k] %*% t(K[, k])      # converts the k column into an adjacency matrix (genes x genes)
-    graflex(A, Gk, p=p, seed=seed)  # this calls the graflex function implemented in Rcpp C++
-  })
+  if (ncores == 1){
+
+    # for each knowledge network, calculate odds ratio and FDR
+    res <- lapply(1:ncol(K), function(k) {
+      Gk <- K[, k] %*% t(K[, k])      # converts the k column into an adjacency matrix (genes x genes)
+      graflex(A, Gk, p=p, seed=seed)  # this calls the graflex function implemented in Rcpp C++
+    })
+
+  }else{
+    packageCheck("parallel")
+    cl <- parallel::makeCluster(ncores)
+    res <- parallel::parLapply(cl, 1:ncol(K), function(k) {
+      Gk <- K[, k] %*% t(K[, k])
+      graflex(A, Gk, p = 100, seed = 0)
+    })
+    parallel::stopCluster(cl)
+  }
 
   # parse resulting data frame
   res <- do.call("rbind", res)
