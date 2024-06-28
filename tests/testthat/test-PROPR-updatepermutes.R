@@ -16,15 +16,19 @@ pcorbshrink1 <- updateCutoffs(pcorbshrink1)
 pcorbshrink2 <- propr(X, metric = "pcor.bshrink", p=10)
 pcorbshrink2 <- updateCutoffs(pcorbshrink2)
 
+set.seed(0)
+
 # compute pcor.bshrink with fixed seed
-pcorbshrink1_ <- propr(X, metric = "pcor.bshrink", p=10, fixseed=TRUE)
+pcorbshrink1_ <- propr(X, metric = "pcor.bshrink", p=10)
 pcorbshrink1_ <- updateCutoffs(pcorbshrink1_)
 
-pcorbshrink2_ <- propr(X, metric = "pcor.bshrink", p=10, fixseed=TRUE)
+set.seed(0)
+
+pcorbshrink2_ <- propr(X, metric = "pcor.bshrink", p=10)
 pcorbshrink2_ <- updateCutoffs(pcorbshrink2_)
 
 # test that the results are as expected
-test_that("test that fdr will stay the same only if fixseed=TRUE", {
+test_that("test that fdr will stay the same when seed is given", {
 
   expect_false(
     isTRUE(all.equal(
