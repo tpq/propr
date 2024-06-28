@@ -105,8 +105,8 @@ getOR <- function(A, G) {
     .Call(`_propr_getOR`, A, G)
 }
 
-permuteOR <- function(A, Gstar, p = 100L, seed = NULL) {
-    .Call(`_propr_permuteOR`, A, Gstar, p, seed)
+permuteOR <- function(A, Gstar, p = 100L) {
+    .Call(`_propr_permuteOR`, A, Gstar, p)
 }
 
 getFDR_over <- function(actual, permuted) {
@@ -117,8 +117,8 @@ getFDR_under <- function(actual, permuted) {
     .Call(`_propr_getFDR_under`, actual, permuted)
 }
 
-graflex <- function(A, G, p = 100L, seed = NULL) {
-    .Call(`_propr_graflex`, A, G, p, seed)
+graflex <- function(A, G, p = 100L) {
+    .Call(`_propr_graflex`, A, G, p)
 }
 
 lr2vlr <- function(lr) {

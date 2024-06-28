@@ -314,16 +314,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // permuteOR
-NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p, Nullable<int> seed);
-RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GstarSEXP, SEXP pSEXP, SEXP seedSEXP) {
+NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p);
+RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GstarSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< IntegerVector& >::type Gstar(GstarSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    Rcpp::traits::input_parameter< Nullable<int> >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(permuteOR(A, Gstar, p, seed));
+    rcpp_result_gen = Rcpp::wrap(permuteOR(A, Gstar, p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -352,16 +351,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // graflex
-NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p, Nullable<int> seed);
-RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP, SEXP seedSEXP) {
+NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p);
+RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< IntegerMatrix& >::type G(GSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    Rcpp::traits::input_parameter< Nullable<int> >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(graflex(A, G, p, seed));
+    rcpp_result_gen = Rcpp::wrap(graflex(A, G, p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -491,10 +489,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_shuffle_and_get_lower_triangle", (DL_FUNC) &_propr_shuffle_and_get_lower_triangle, 1},
     {"_propr_binTab", (DL_FUNC) &_propr_binTab, 2},
     {"_propr_getOR", (DL_FUNC) &_propr_getOR, 2},
-    {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 4},
+    {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 3},
     {"_propr_getFDR_over", (DL_FUNC) &_propr_getFDR_over, 2},
     {"_propr_getFDR_under", (DL_FUNC) &_propr_getFDR_under, 2},
-    {"_propr_graflex", (DL_FUNC) &_propr_graflex, 4},
+    {"_propr_graflex", (DL_FUNC) &_propr_graflex, 3},
     {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
     {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
     {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},

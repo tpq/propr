@@ -4,7 +4,7 @@
 \alias{runGraflex}
 \title{Calculate odds ratio and FDR}
 \usage{
-runGraflex(A, K, p = 100, seed = NULL, ncores = 1)
+runGraflex(A, K, p = 100, ncores = 1)
 }
 \arguments{
 \item{A}{An adjacency matrix.}
@@ -13,12 +13,6 @@ runGraflex(A, K, p = 100, seed = NULL, ncores = 1)
 and each column is a concept.}
 
 \item{p}{An integer. The number of permutation.}
-
-\item{seed}{The seed for reproducibility. Default = NULL
-Note that for reproducibility, this seed should be explicitly 
-set. This is because the C++ function uses a different random
-number generator than in R. This means, that set.seed() before
-running this function will not guarantee reproducibility.}
 }
 \description{
 This function calls \code{\link{graflex}} for each

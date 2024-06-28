@@ -2,13 +2,6 @@
 #include <numeric>
 using namespace Rcpp;
 
-// Function to set the seed for reproducibility
-void set_seed(int seed) {
-  Rcpp::Environment base_env("package:base");
-  Rcpp::Function set_seed_r = base_env["set.seed"];
-  set_seed_r(seed);
-}
-
 // Function to extract the lower triangle of a square and symmetric IntegerMatrix
 // [[Rcpp::export]]
 IntegerVector get_lower_triangle(IntegerMatrix& mat) {
@@ -82,9 +75,7 @@ NumericMatrix getOR(IntegerVector& A, IntegerVector& G) {
 
 // Function to calculate the odds ratio and other relevant info for each permutation
 // [[Rcpp::export]]
-NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100, Nullable<int> seed = R_NilValue) {
-
-  if (seed.isNotNull()) set_seed(Rcpp::as<int>(seed));
+NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100) {
 
   NumericMatrix or_table(p, 8);
 
@@ -125,7 +116,7 @@ float getFDR_under(float actual, NumericVector permuted) {
 
 // Function to calculate the odds ratio and FDR, given the adjacency matrix A and the knowledge graph G
 // [[Rcpp::export]]
-NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100, Nullable<int> seed = R_NilValue) {
+NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100) {
 
   // get the actual odds ratio
   IntegerVector Astar = get_lower_triangle(A);
@@ -133,7 +124,7 @@ NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100, Nullable<
   NumericMatrix actual = getOR(Astar, Gstar);
 
   // get distribution of odds ratios on permuted data
-  NumericMatrix permuted = permuteOR(A, Gstar, p, seed);
+  NumericMatrix permuted = permuteOR(A, Gstar, p);
 
   // calculate the FDR
   actual(0, 6) = getFDR_under(actual(0, 4), permuted(_, 4));
