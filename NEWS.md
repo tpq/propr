@@ -1,3 +1,12 @@
+## propr 5.0.5
+---------------------
+* Allowed `updateCutoffs` function to compute FDR on negative values, when asked
+* Changed `runCutoff` into `getCutoffFstat`
+* Added `getCutoffFDR` to get a significant cutoff based on the permuted FDR
+* Added `getAdj` function to get the adjacency matrix given cutoff
+* Optimized `graflex` related functions to Rcpp C++
+* Removed fixseed, since setting set.seed() before calling any function is enough to ensure reproducibility
+
 ## propr 5.0.4
 ---------------------
 * Added fixseed option for runGraflex

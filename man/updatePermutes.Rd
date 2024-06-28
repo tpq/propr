@@ -4,7 +4,7 @@
 \alias{updatePermutes}
 \title{Create permuted data}
 \usage{
-updatePermutes(object, p, fixseed = FALSE)
+updatePermutes(object, p)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}

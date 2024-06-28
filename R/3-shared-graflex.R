@@ -13,6 +13,10 @@
 #'  and each column is a concept.
 #' @param p An integer. The number of permutation.
 #' @param seed The seed for reproducibility. Default = NULL
+#' Note that for reproducibility, this seed should be explicitly 
+#' set. This is because the C++ function uses a different random
+#' number generator than in R. This means, that set.seed() before
+#' running this function will not guarantee reproducibility.
 #' 
 #' @export
 runGraflex <- function(A, K, p=100, seed=NULL, ncores=1) {
