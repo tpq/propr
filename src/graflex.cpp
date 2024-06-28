@@ -10,14 +10,11 @@ void set_seed(int seed) {
 }
 
 // Function to extract the lower triangle of a square and symmetric IntegerMatrix
-IntegerVector get_lower_triangle(const IntegerMatrix& mat) {
+// [[Rcpp::export]]
+IntegerVector get_lower_triangle(IntegerMatrix& mat) {
   int nrow = mat.nrow();
   int ncol = mat.ncol();
   int n = ncol * (ncol - 1) / 2;
-
-  if (nrow != ncol) {
-    stop("Input matrix must be square");
-  }
 
   IntegerVector triangle(n);
 
@@ -33,14 +30,10 @@ IntegerVector get_lower_triangle(const IntegerMatrix& mat) {
 
 // Function to shuffle a square and symmetric IntegerMatrix, and get the lower triangle
 // [[Rcpp::export]]
-IntegerVector shuffle_and_get_lower_triangle(const IntegerMatrix& mat) {
+IntegerVector shuffle_and_get_lower_triangle(IntegerMatrix& mat) {
   int nrow = mat.nrow();
   int ncol = mat.ncol();
   int n = ncol * (ncol - 1) / 2;
-
-  if (nrow != ncol) {
-    stop("Input matrix must be square");
-  }
 
   IntegerVector shuffled_triangle(n);
   IntegerVector index = sample(ncol, ncol, false) - 1;
@@ -55,54 +48,45 @@ IntegerVector shuffle_and_get_lower_triangle(const IntegerMatrix& mat) {
   return shuffled_triangle;
 }
 
-// Function to calculate the odds ratio table
+// Function to calculate the contingency table
 // [[Rcpp::export]]
 NumericMatrix binTab(IntegerVector& A, IntegerVector& G) {
-  NumericMatrix mat(2, 2);
+  NumericMatrix tab(2, 2);
   int n = A.size();
 
-  mat(1, 1) = sum(A * G);              // in A and G
-  mat(1, 0) = sum(A * (1 - G));        // in A but not G
-  mat(0, 0) = sum((1 - A) * (1 - G));  // not in A and not in G
-  mat(0, 1) = sum((1 - A) * G);        // not in A but in G
+  tab(1, 1) = sum(A * G);              // in A and G
+  tab(1, 0) = sum(A * (1 - G));        // in A but not G
+  tab(0, 0) = sum((1 - A) * (1 - G));  // not in A and not in G
+  tab(0, 1) = sum((1 - A) * G);        // not in A but in G
 
-  return mat;
+  return tab;
 }
 
+// Function to calculate the odds ratio, and parse all information into a matrix
 // [[Rcpp::export]]
 NumericMatrix getOR(IntegerVector& A, IntegerVector& G) {
-  NumericMatrix tab = binTab(A, G);
 
+  NumericMatrix tab = binTab(A, G);
   double odds_ratio = (tab(0, 0) * tab(1, 1)) / (tab(0, 1) * tab(1, 0));
 
-  NumericMatrix res(1, 6);
-  res(0, 0) = tab(0, 0);
-  res(0, 1) = tab(0, 1);
-  res(0, 2) = tab(1, 0);
-  res(0, 3) = tab(1, 1);
-  res(0, 4) = odds_ratio;
-  res(0, 5) = log(odds_ratio);
+  NumericMatrix or_table(1, 8);
+  or_table(0, 0) = tab(0, 0);
+  or_table(0, 1) = tab(0, 1);
+  or_table(0, 2) = tab(1, 0);
+  or_table(0, 3) = tab(1, 1);
+  or_table(0, 4) = odds_ratio;
+  or_table(0, 5) = log(odds_ratio);
 
-  return res;
+  return or_table;
 }
 
 // Function to calculate the odds ratio and other relevant info for each permutation
 // [[Rcpp::export]]
-NumericMatrix permuteOR(IntegerMatrix A, IntegerMatrix G, int p = 100, Nullable<int> seed = R_NilValue) {
-  NumericMatrix or_table(p, 6);
-  int nrow = A.nrow();
-  int ncol = A.ncol();
-
-  if (nrow != ncol) {
-    stop("Input matrix must be square");
-  }
-  if (nrow != G.nrow() || ncol != G.ncol()) {
-    stop("Input matrices must have the same dimensions");
-  }
+NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100, Nullable<int> seed = R_NilValue) {
 
   if (seed.isNotNull()) set_seed(Rcpp::as<int>(seed));
 
-  IntegerVector Gstar = get_lower_triangle(G);
+  NumericMatrix or_table(p, 8);
 
   // calculate odds ratio for each permutation
   for (int i = 0; i < p; ++i) {
@@ -113,3 +97,47 @@ NumericMatrix permuteOR(IntegerMatrix A, IntegerMatrix G, int p = 100, Nullable<
   return(or_table);
 }
 
+// [[Rcpp::export]]
+float getFDR_over(float actual, NumericVector permuted) {
+  float n = permuted.size();
+  float fdr = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (permuted[i] >= actual) {
+      fdr += 1.0;
+    }
+  }
+  fdr /= n;
+  return fdr;
+}
+
+// [[Rcpp::export]]
+float getFDR_under(float actual, NumericVector permuted) {
+  float n = permuted.size();
+  float fdr = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (permuted[i] <= actual) {
+      fdr += 1.0;
+    }
+  }
+  fdr /= n;
+  return fdr;
+}
+
+// Function to calculate the odds ratio and FDR, given the adjacency matrix A and the knowledge graph G
+// [[Rcpp::export]]
+NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100, Nullable<int> seed = R_NilValue) {
+
+  // get the actual odds ratio
+  IntegerVector Astar = get_lower_triangle(A);
+  IntegerVector Gstar = get_lower_triangle(G);
+  NumericMatrix actual = getOR(Astar, Gstar);
+
+  // get distribution of odds ratios on permuted data
+  NumericMatrix permuted = permuteOR(A, Gstar, p, seed);
+
+  // calculate the FDR
+  actual(0, 6) = getFDR_over(actual(0, 4), permuted(_, 4));
+  actual(0, 7) = getFDR_under(actual(0, 4), permuted(_, 4));
+
+  return actual;
+}
