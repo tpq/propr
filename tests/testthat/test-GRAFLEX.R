@@ -72,3 +72,33 @@ test_that("check if runGraflex produce the expected results", {
   expect_equal(d2, as.numeric(res[2,4]))
   expect_equal(expected_odds_ratio2, as.numeric(res[2,5]))
 })
+
+test_that("check reproducibility seed works", {
+  
+    # Create a matrix of 0 and 1
+    A <- matrix(c(1, 1, 0, 1, 0, 
+                  1, 1, 1, 0, 1, 
+                  0, 1, 1, 0, 1, 
+                  1, 0, 0, 1, 1, 
+                  0, 1, 1, 1, 1), 
+                nrow = 5, byrow = TRUE)
+    K <- matrix(c(1, 0, 
+                  0, 1, 
+                  1, 0, 
+                  0, 1, 
+                  1, 1
+                ), nrow = 5, byrow = TRUE)
+    colnames(K) <- c("C1", "C2")
+    
+    # compute graflex
+    set.seed(0)
+    res1 <- propr:::runGraflex(A, K, p=100)
+    set.seed(0)
+    res2 <- propr:::runGraflex(A, K, p=100)
+    set.seed(123)
+    res3 <- propr:::runGraflex(A, K, p=100)
+  
+    # check
+    expect_equal(res1, res2)
+    expect_false(isTRUE(all.equal(res1, res3)))
+})
