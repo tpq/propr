@@ -47,10 +47,10 @@ NumericMatrix binTab(IntegerVector& A, IntegerVector& G) {
   NumericMatrix tab(2, 2);
   int n = A.size();
 
-  tab(1, 1) = sum(A * G);              // in A and G
-  tab(1, 0) = sum(A * (1 - G));        // in A but not G
   tab(0, 0) = sum((1 - A) * (1 - G));  // not in A and not in G
   tab(0, 1) = sum((1 - A) * G);        // not in A but in G
+  tab(1, 0) = sum(A * (1 - G));        // in A but not G
+  tab(1, 1) = sum(A * G);              // in A and G
 
   return tab;
 }
