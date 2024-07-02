@@ -6,26 +6,38 @@
 #'  \code{updateCutoffs.propd}.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param cutoff For \code{updateCutoffs}, a numeric vector.
-#'  this argument provides the FDR cutoffs to test.
+#' @param cutoff_vector For \code{updateCutoffs}, a numeric vector.
+#'  this argument provides the FDR cutoffs to test. When NULL (default),
+#' the function will calculate the cutoffs based on quantile.
+#' @param cutoff_nbins An integer. The number of bins for quantile-based
+#' FDR cutoffs.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' @export
 updateCutoffs <-
   function(object,
-           cutoff = seq(.05, .95, .3),
+           cutoff_vector = NULL,
+           cutoff_nbins = 1000,
            ncores = 1) {
     if (inherits(object, "propr")) {
       if (ncores == 1) {
         message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
       }
-      updateCutoffs.propr(object, cutoff, ncores)
+      if (is.null(cutoff_vector)) {
+        values <- object@matrix[lower.tri(object@matrix)]
+        cutoff_vector <- quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1))
+      }
+      updateCutoffs.propr(object, cutoff_vector, ncores)
 
     } else if (inherits(object, "propd")) {
       if (ncores > 1) {
         message("Alert: Parallel updateCutoffs not yet supported.")
       }
-      updateCutoffs.propd(object, cutoff)
+      if (is.null(cutoff_vector)) {
+        values <- object@results$theta
+        cutoff_vector <- quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1))
+      }
+      updateCutoffs.propd(object, cutoff_vector)
 
     } else{
       stop("Provided 'object' not recognized.")
@@ -150,7 +162,7 @@ updateCutoffs.propr <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, cutoff = seq(.05, .95, .3)) {
+  function(object, cutoff) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
