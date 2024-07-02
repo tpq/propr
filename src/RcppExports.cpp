@@ -232,6 +232,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// results2matRcpp
+NumericMatrix results2matRcpp(DataFrame& results, int n, double diagonal);
+RcppExport SEXP _propr_results2matRcpp(SEXP resultsSEXP, SEXP nSEXP, SEXP diagonalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DataFrame& >::type results(resultsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type diagonal(diagonalSEXP);
+    rcpp_result_gen = Rcpp::wrap(results2matRcpp(results, n, diagonal));
+    return rcpp_result_gen;
+END_RCPP
+}
 // count_less_than
 int count_less_than(NumericVector x, double cutoff);
 RcppExport SEXP _propr_count_less_than(SEXP xSEXP, SEXP cutoffSEXP) {
@@ -482,6 +495,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
     {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
     {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
+    {"_propr_results2matRcpp", (DL_FUNC) &_propr_results2matRcpp, 3},
     {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},
     {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 2},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},

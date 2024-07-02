@@ -77,6 +77,10 @@ ratiosRcpp <- function(X) {
     .Call(`_propr_ratiosRcpp`, X)
 }
 
+results2matRcpp <- function(results, n, diagonal = 0.0) {
+    .Call(`_propr_results2matRcpp`, results, n, diagonal)
+}
+
 count_less_than <- function(x, cutoff) {
     .Call(`_propr_count_less_than`, x, cutoff)
 }
