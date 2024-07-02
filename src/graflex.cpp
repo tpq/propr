@@ -33,8 +33,10 @@ IntegerVector shuffle_and_get_lower_triangle(IntegerMatrix& mat) {
 
   int k = 0;
   for (int i = 0; i < ncol; ++i) {
+    int index_i = index[i];
     for (int j = 0; j < i; ++j) {
-      shuffled_triangle[k++] = mat(index[i], index[j]);
+      int index_j = index[j];
+      shuffled_triangle[k++] = mat(index_i, index_j);
     }
   }
 

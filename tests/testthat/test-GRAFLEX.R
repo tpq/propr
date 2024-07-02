@@ -39,8 +39,8 @@ test_that("check if runGraflex produce the expected results", {
                 0, 1, 
                 1, 0, 
                 0, 1, 
-                1, 1
-              ), nrow = 5, byrow = TRUE)
+                1, 1), 
+              nrow = 5, byrow = TRUE)
   colnames(K) <- c("C1", "C2")
   
   # Expected values for C1
@@ -86,8 +86,8 @@ test_that("check reproducibility seed works", {
                   0, 1, 
                   1, 0, 
                   0, 1, 
-                  1, 1
-                ), nrow = 5, byrow = TRUE)
+                  1, 1), 
+                nrow = 5, byrow = TRUE)
     colnames(K) <- c("C1", "C2")
     
     # compute graflex
