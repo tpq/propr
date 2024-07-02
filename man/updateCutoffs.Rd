@@ -6,17 +6,21 @@
 \alias{updateCutoffs.propd}
 \title{Update FDR by Permutation}
 \usage{
-updateCutoffs(object, cutoff = seq(0.05, 0.95, 0.3), ncores = 1)
+updateCutoffs(object, cutoff_vector = NULL, cutoff_nbins = 1000, ncores = 1)
 
 updateCutoffs.propr(object, cutoff, ncores)
 
-updateCutoffs.propd(object, cutoff = seq(0.05, 0.95, 0.3))
+updateCutoffs.propd(object, cutoff)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
 
-\item{cutoff}{For \code{updateCutoffs}, a numeric vector.
-this argument provides the FDR cutoffs to test.}
+\item{cutoff_vector}{For \code{updateCutoffs}, a numeric vector.
+ this argument provides the FDR cutoffs to test. When NULL (default),
+the function will calculate the cutoffs based on quantile.}
+
+\item{cutoff_nbins}{An integer. The number of bins for quantile-based
+FDR cutoffs.}
 
 \item{ncores}{An integer. The number of parallel cores to use.}
 }

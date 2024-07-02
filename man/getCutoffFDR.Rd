@@ -12,8 +12,9 @@ getCutoffFDR(object, fdr = 0.05, positive = TRUE)
 \item{fdr}{A float value for the false discovery rate.
 Default is 0.05.}
 
-\item{positive}{A boolean. Toggles whether to return the cutoff with
-positive value. Otherwise, return cutoff with negative value.}
+\item{positive}{A boolean. In the case of \code{propr} object, 
+toggles whether to return the cutoff for positive values (>=0). 
+Otherwise, return cutoff for negative values (<0).}
 }
 \value{
 A cutoff value.
