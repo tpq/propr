@@ -171,8 +171,6 @@ calculate_theta <-
 #' @inheritParams getResults
 #'
 #' @return A symmetric matrix.
-#'
-#' @export
 get_theta_matrix <- function(propd){
 
   if (!inherits(propd, "propd"))

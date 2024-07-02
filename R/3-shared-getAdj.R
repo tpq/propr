@@ -9,23 +9,14 @@
 #' @return An adjacency matrix.
 #'
 #' @export
-getAdj <- function(object, cutoff = 1, above = FALSE){
+getAdjFDR <- function(object, fdr = 0.05, positive = TRUE, negative = FALSE){
+  results <- getSignificantResultsFDR(object, fdr = fdr, positive = positive, negative = negative)
+  adj <- results2matRcpp(results, n = ncol(object@counts), diagonal = 0)
+  return(adj)
+}
 
-  # get gene-gene matrix
-  m <- getMatrix(object)
-
-  # create adjacency matrix
-  a <- matrix(0, nrow(m), ncol(m))
-  rownames(a) <- rownames(m)
-  colnames(a) <- colnames(m)
-
-  # fill in values
-  if (above) {
-    a[m >= cutoff] <- 1
-  } else {
-    a[m <= cutoff] <- 1
-  }
-  diag(a) <- 0
-  
-  return(a)
+getAdjFstat <- function(object, pval = 0.05, fdr = TRUE){
+  results <- getSignificantResultsFstat(object, pval = pval, fdr = fdr)
+  adj <- results2matRcpp(results, n = ncol(object@counts), diagonal = 0)
+  return(adj)
 }

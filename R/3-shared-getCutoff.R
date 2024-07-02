@@ -3,26 +3,44 @@
 #' @param object A \code{propd} or \code{propr} object.
 #' @param fdr A float value for the false discovery rate.
 #' Default is 0.05.
-#' @param positive A boolean. Toggles whether to return the cutoff with
-#' positive value. Otherwise, return cutoff with negative value.
+#' @param positive A boolean. In the case of \code{propr} object, 
+#' toggles whether to return the cutoff for positive values (>=0). 
+#' Otherwise, return cutoff for negative values (<0).
 #' @return A cutoff value.
 #' @export
 getCutoffFDR <- function(object, fdr = 0.05, positive = TRUE) {
   if (!"fdr" %in% slotNames(object)) {
     stop("Please run updateCutoffs() before calling this function.")
   }
-  
+
   if (fdr < 0 | fdr > 1) {
     stop("Provide a FDR cutoff from [0, 1].")
   }
 
-  # subset data frame depending if considering positive or negative values
-  df <- object@fdr
-  if (positive) {
-    df <- df[df$cutoff >= 0, ]
-  } else {
-    df <- df[df$cutoff < 0, ]
+  if (inherits(object, "propr")) {
+    return(getCutoffFDR.propr(object, fdr = fdr, positive = positive))
+
+  } else if (inherits(object, "propd")) {
+    return(getCutoffFDR.propd(object, fdr = fdr))
+    
+  } else{
+    stop("Provided 'object' not recognized.")
   }
+}
+
+getCutoffFDR.propr <- function(object, fdr = 0.05, positive = TRUE) {
+  if (positive) {
+    return(getCutoffFDR.propr.positive(object, fdr = fdr))
+  } else{
+    return(getCutoffFDR.propr.negative(object, fdr = fdr))
+  }
+}
+
+getCutoffFDR.propr.positive <- function(object, fdr = 0.05) {
+
+  # get FDR data frame
+  df <- object@fdr
+  df <- df[df$cutoff >= 0, ]
 
   # get index of FDR values below the threshold
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
@@ -31,12 +49,48 @@ getCutoffFDR <- function(object, fdr = 0.05, positive = TRUE) {
   }
 
   # get cutoff
-  if ( (class(object) == 'propr') && (metric_is_direct(object@metric)) ) {
+  if (metric_is_direct(object@metric)) {
     cutoff <- min(df$cutoff[index])
   } else{
     cutoff <- max(df$cutoff[index])
   }
 
+  return(cutoff)
+}
+
+getCutoffFDR.propr.negative <- function(object, fdr = 0.05) {
+
+  # get FDR data frame
+  df <- object@fdr
+  df <- df[df$cutoff < 0, ]
+
+  # get index of FDR values below the threshold
+  index <- (df$FDR <= fdr) & (is.finite(df$FDR))
+  if (!any(index)) {
+    stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
+  }
+
+  # get cutoff
+  if (metric_is_direct(object@metric)) {
+    cutoff <- max(df$cutoff[index])
+  } else{
+    cutoff <- min(df$cutoff[index])
+  }
+
+  return(cutoff)
+}
+
+getCutoffFDR.propd <- function(object, fdr = 0.05) {
+  
+  # get index of FDR values below the threshold
+  df <- object@fdr
+  index <- (df$FDR <= fdr) & (is.finite(df$FDR))
+  if (!any(index)) {
+    stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
+  }
+
+  # get cutoff
+  cutoff <- max(df$cutoff[index])
   return(cutoff)
 }
 
@@ -52,12 +106,12 @@ getCutoffFDR <- function(object, fdr = 0.05, positive = TRUE) {
 #' @param object A \code{\link{propd}} object.
 #' @param pval A p-value at which to calculate a theta cutoff.
 #' @param fdr A boolean. Toggles whether to calculate the theta
-#'  cutoff for an FDR-adjusted p-value.
+#' cutoff for an FDR-adjusted p-value.
 #' @return A cutoff of theta from [0, 1].
 #' @export
 getCutoffFstat <- function(object, pval = 0.05, fdr = FALSE) {
   if (!"Fstat" %in% colnames(object@results)) {
-    stop("Please run updateF() on propd object before calling qtheta.")
+    stop("Please run updateF() on propd object before.")
   }
 
   if (pval < 0 | pval > 1) {
@@ -77,8 +131,7 @@ getCutoffFstat <- function(object, pval = 0.05, fdr = FALSE) {
     message("Alert: Returning an cutoff based on the F-statistic.")
     # Compute based on theory
     K <- length(unique(object@group))
-    N <-
-      length(object@group) + object@dfz # population-level metric (i.e., N)
+    N <- length(object@group) + object@dfz # population-level metric (i.e., N)
     Q <- stats::qf(pval, K - 1, N - K, lower.tail = FALSE)
     # # Fstat <- (N - 2) * (1 - object@theta$theta) / object@theta$theta
     # # Q = Fstat
