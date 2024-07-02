@@ -6,28 +6,38 @@
 #'  \code{updateCutoffs.propd}.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param cutoff For \code{updateCutoffs}, a numeric vector.
-#'  this argument provides the FDR cutoffs to test.
+#' @param cutoff_vector For \code{updateCutoffs}, a numeric vector.
+#'  this argument provides the FDR cutoffs to test. When NULL (default),
+#' the function will calculate the cutoffs based on quantile.
+#' @param cutoff_nbins An integer. The number of bins for quantile-based
+#' FDR cutoffs.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' @export
 updateCutoffs <-
   function(object,
-           cutoff = seq(.05, .95, .3),
+           cutoff_vector = NULL,
+           cutoff_nbins = 1000,
            ncores = 1) {
     if (inherits(object, "propr")) {
       if (ncores == 1) {
         message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
       }
-
-      updateCutoffs.propr(object, cutoff, ncores)
+      if (is.null(cutoff_vector)) {
+        values <- object@matrix[lower.tri(object@matrix)]
+        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
+      }
+      updateCutoffs.propr(object, cutoff_vector, ncores)
 
     } else if (inherits(object, "propd")) {
       if (ncores > 1) {
         message("Alert: Parallel updateCutoffs not yet supported.")
       }
-
-      updateCutoffs.propd(object, cutoff)
+      if (is.null(cutoff_vector)) {
+        values <- object@results$theta
+        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
+      }
+      updateCutoffs.propd(object, cutoff_vector)
 
     } else{
       stop("Provided 'object' not recognized.")
@@ -45,10 +55,9 @@ updateCutoffs <-
 updateCutoffs.propr <-
   function(object, cutoff, ncores) {
 
-    metric_is_up <- function(metric) {
-      metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
-      return(metric %in% metrics)
-    }
+    # define the functions to count the number of values greater than or less than a cutoff
+    countFunc <- if (metric_is_direct(object@metric)) count_greater_than else count_less_than
+    countFunNegative <- if (metric_is_direct(object@metric)) count_less_than else count_greater_than
 
     getFdrRandcounts <- function(ct.k) {
       pr.k <- suppressMessages(propr::propr(
@@ -63,13 +72,7 @@ updateCutoffs.propr <-
       pkt <- pr.k@results$propr
 
       # Find number of permuted theta less than cutoff
-      sapply(FDR$cutoff, function(cut) {
-        if (metric_is_up(object@metric)) {
-          count_greater_than(pkt, cut)
-        } else{
-          count_less_than(pkt, cut)
-        }
-      })
+      sapply(FDR$cutoff, function(cut) if (cut > 0) countFunc(pkt, cut) else countFunNegative(pkt, cut))
     }
 
     if (object@metric == "rho") {
@@ -129,39 +132,20 @@ updateCutoffs.propr <-
         pkt <- pr.k@results$propr
 
         # Find number of permuted theta less than cutoff
-        for (cut in 1:nrow(FDR)) {
-          # randcounts as cumsum
-
-          # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-          if (metric_is_up(object@metric)) {
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_greater_than(pkt, FDR[cut, "cutoff"])
-          } else{
-            # phi & phs
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_less_than(pkt, FDR[cut, "cutoff"])
-          }
+        for (cut in 1:nrow(FDR)){
+          if (FDR[cut, "cutoff"] > 0) currentFunc = countFunc else currentFunc = countFunNegative
+          FDR$randcounts[cut] <- FDR$randcounts[cut] + currentFunc(pkt, FDR[cut, "cutoff"])
         }
       }
     }
 
     # Calculate FDR based on real and permuted tallys
     FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-
-    for (cut in 1:nrow(FDR)) {
-      # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-      if (metric_is_up(object@metric)) {
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr > FDR[cut, "cutoff"])
-      } else{
-        # phi & phs
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr < FDR[cut, "cutoff"])
-      }
-
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
+    for (cut in 1:nrow(FDR)){
+      if (FDR[cut, "cutoff"] > 0) currentFunc = countFunc else currentFunc = countFunNegative
+      FDR[cut, "truecounts"] <- currentFunc(object@results$propr, FDR[cut, "cutoff"])
     }
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
 
     # Initialize @fdr
     object@fdr <- FDR
@@ -178,7 +162,7 @@ updateCutoffs.propr <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, cutoff = seq(.05, .95, .3)) {
+  function(object, cutoff) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
@@ -232,21 +216,21 @@ updateCutoffs.propd <-
       }
 
       # Find number of permuted theta less than cutoff
-      for (cut in 1:nrow(FDR)) {
-        # randcounts as cumsum
-        FDR[cut, "randcounts"] <-
-          FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
-      }
+      FDR$randcounts <- sapply(
+        1:nrow(FDR), 
+        function(cut) FDR$randcounts[cut] + count_less_than(pkt, FDR[cut, "cutoff"]),
+        simplify = TRUE
+      )
     }
 
     # Calculate FDR based on real and permuted tallys
     FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-    for (cut in 1:nrow(FDR)) {
-      FDR[cut, "truecounts"] <-
-        sum(object@results$theta < FDR[cut, "cutoff"])
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
-    }
+    FDR$truecounts <- sapply(
+      1:nrow(FDR), 
+      function(cut) count_less_than(object@results$theta, FDR[cut, "cutoff"]), 
+      simplify = TRUE
+    )
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
 
     # Initialize @fdr
     object@fdr <- FDR

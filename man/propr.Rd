@@ -17,7 +17,6 @@ propr(
   symmetrize = FALSE,
   alpha = NA,
   p = 0,
-  fixseed = FALSE,
   ...
 )
 }
@@ -61,10 +60,6 @@ will symmetrize the matrix; otherwise, it will return the original matrix.}
 
 \item{p}{The number of permutations to perform for calculating the false
 discovery rate (FDR). The default is 0.}
-
-\item{fixseed}{A logical value indicating whether to fix the random seed 
-for generating the pemurations. If `TRUE`, the function will fix the random
-The default is `FALSE`.}
 
 \item{...}{Additional arguments passed to \code{corpcor::pcor.shrink},
 if "pcor.shrink" metric is selected.}

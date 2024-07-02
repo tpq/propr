@@ -5,9 +5,6 @@
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
-#' @param fixseed A logical value indicating whether to fix the random seed 
-#' for generating the pemurations. If `TRUE`, the function will fix the random
-#' The default is `FALSE`.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. If \code{TRUE}, the function will use limma-based
 #'  weights for the calculations.
@@ -36,7 +33,6 @@ propd <- function(counts,
                   group,
                   alpha = NA,
                   p = 0,
-                  fixseed = FALSE,
                   weighted = FALSE) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -108,7 +104,7 @@ propd <- function(counts,
     round(result@results$theta, 14) # round floats to 1
 
   # permute data
-  if (p > 0) result <- updatePermutes(result, p, fixseed)
+  if (p > 0) result <- updatePermutes(result, p)
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
