@@ -450,13 +450,13 @@ NumericMatrix ratiosRcpp(NumericMatrix & X){
 // Function to recast results data frame as gene-gene matrix
 // [[Rcpp::export]]
 NumericMatrix results2matRcpp(DataFrame& results, int n, double diagonal = 0.0){
-  Rcpp::NumericMatrix mat(n, n);
+  NumericMatrix mat(n, n);
 
   // fill in the values for each pair
   int npairs = results.nrows();
   for (int i = 0; i < npairs; i++){
-    int row = results(i, 0) - 1;
-    int col = results(i, 1) - 1;
+    int row = int(results(i, 0)) - 1;
+    int col = int(results(i, 1)) - 1;
     mat(row, col) = results(i, 2);
     mat(col, row) = results(i, 2);
   }
@@ -466,5 +466,5 @@ NumericMatrix results2matRcpp(DataFrame& results, int n, double diagonal = 0.0){
     mat(i, i) = diagonal;
   }
   
-  return result;
+  return mat;
 }
