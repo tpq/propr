@@ -25,7 +25,7 @@ updateCutoffs <-
       }
       if (is.null(cutoff_vector)) {
         values <- object@matrix[lower.tri(object@matrix)]
-        cutoff_vector <- quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1))
+        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
       }
       updateCutoffs.propr(object, cutoff_vector, ncores)
 
@@ -35,7 +35,7 @@ updateCutoffs <-
       }
       if (is.null(cutoff_vector)) {
         values <- object@results$theta
-        cutoff_vector <- quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1))
+        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
       }
       updateCutoffs.propd(object, cutoff_vector)
 
