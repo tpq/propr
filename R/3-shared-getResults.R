@@ -25,19 +25,13 @@ getResults <-
 #'
 #' @param object A \code{propr} or \code{propd} object.
 #' @param fdr A numeric. The false discovery rate to use.
-#' @param positive A boolean. In the case of \code{propr} object,
-#' toggles whether to return the significant positive values (>=0).
-#' @param negative A boolean. In the case of \code{propr} object,
-#' toggles whether to return the significant negative values (<0).
 #' @return A \code{data.frame} of results.
 #'
 #' @export
 getSignificantResultsFDR <-
-  function(object, fdr = 0.05, positive = TRUE, negative = FALSE) {
-
+  function(object, fdr = 0.05) {
     if(inherits(object, "propr")){
-      if (!positive & !negative) stop("Please provide either positive or negative.")
-      results <- getSignificantResultsFDR.propr(object, fdr = fdr, positive = positive, negative = negative)
+      results <- getSignificantResultsFDR.propr(object, fdr = fdr)
     }else if(inherits(object, "propd")){
       results <- getSignificantResultsFDR.propd(object, fdr = fdr)
     }else{
@@ -55,15 +49,20 @@ getSignificantResultsFDR.propd <-
 }
 
 getSignificantResultsFDR.propr <- 
-  function(object, fdr = 0.05, positive = TRUE, negative = FALSE) {
-
-    # get metric
-    metric <- object@metric
+  function(object, fdr = 0.05) {
 
     # define results data frame
     df <- getResults(object)
     results <- data.frame(matrix(ncol = ncol(df), nrow = 0))
     colnames(results) <- colnames(df)
+
+    # get metric
+    metric <- object@metric
+    
+    # focus on the positive values or also the negative ones
+    positive <- TRUE
+    negative <- FALSE
+    if (metric %in% c('pcor', 'pcor.shrink', 'pcor.bshrink', 'cor')) negative <- TRUE
 
     # get the significant positive values
     if (positive) {

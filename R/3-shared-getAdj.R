@@ -5,16 +5,12 @@
 #' The diagonal is set to 0.
 #' @param object A \code{propd} or \code{propr} object.
 #' @param fdr A float value for the false discovery rate. Default is 0.05.
-#' @param positive A boolean. In the case of \code{propr} object,
-#' toggles where to retain the significant pairs with positive values (>=0).
-#' @param negative A boolean. In the case of \code{propr} object,
-#' toggles where to retain the significant pairs with negative values (<0).
 #'
 #' @return An adjacency matrix.
 #'
 #' @export
-getAdjFDR <- function(object, fdr = 0.05, positive = TRUE, negative = FALSE){
-  results <- getSignificantResultsFDR(object, fdr = fdr, positive = positive, negative = negative)
+getAdjFDR <- function(object, fdr = 0.05){
+  results <- getSignificantResultsFDR(object, fdr = fdr)
   adj <- results2matRcpp(results, n = ncol(object@counts), diagonal = 0)
   return(adj)
 }
