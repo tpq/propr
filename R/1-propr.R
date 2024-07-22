@@ -94,7 +94,11 @@ propr <- function(counts,
 
   # NOTE: ct will never have zeros; counts may or may not have zeros!
   counts <- as_safe_matrix(counts)
-  ct <- simple_zero_replacement(counts)
+  if (!is.na(ivar)) {
+    ct <- simple_zero_replacement(counts)
+  }else{
+    ct <- counts
+  }
   lr <- logratio(counts, ivar, alpha)
 
   ##############################################################################

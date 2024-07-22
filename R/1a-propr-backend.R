@@ -93,6 +93,7 @@ simple_zero_replacement <- function(ct) {
   if (any(ct == 0)) {
     zeros <- ct == 0
     ct[zeros] <- min(ct[!zeros])
+    message("Alert: replacing zeros with minimun value.")
   } else{
     message("Alert: No 0s found that need replacement.")
   }
