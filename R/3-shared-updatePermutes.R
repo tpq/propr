@@ -6,11 +6,11 @@
 #'  \code{updatePermutes.propd}.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param p The number of permutations to perform.
+#' @param p The number of permutations to perform. Default is 100.
 #' @return A \code{propr} or \code{propd} object with the permutes slot updated.
 #' @export
 updatePermutes <-
-  function(object, p) {
+  function(object, p=100) {
     if (inherits(object, "propr")) {
       updatePermutes.propr(object, p)
 
@@ -23,7 +23,7 @@ updatePermutes <-
   }
 
 updatePermutes.propr <-
-  function(object, p = 100) {
+  function(object, p) {
     # Shuffle row-wise so that per-sample CLR does not change
     message("Alert: Fixing permutations to active random seed.")
     ct <- object@counts
@@ -36,7 +36,7 @@ updatePermutes.propr <-
   }
 
 updatePermutes.propd <-
-  function(object, p = 100) {
+  function(object, p) {
     message("Alert: Fixing permutations to active random seed.")
     ct <- object@counts
     permutes <- as.data.frame(matrix(0, nrow = nrow(ct), ncol = p))

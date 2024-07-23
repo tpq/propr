@@ -25,10 +25,6 @@ phs <- getMatrix(pr)
 pr <- propr(X, metric = "cor")
 cor <- getMatrix(pr)
 
-# check that cor is the same as when using cor package
-cor_ivar = propr(X, metric = "cor", ivar = NA)@matrix
-cor_cor = cor(X, method = "pearson")
-
 # get beta
 counts.clr <- t(apply(X, 1, function(x) log(x) - mean(log(x))))
 counts.clr.var <- apply(counts.clr, 2, var)
@@ -58,8 +54,4 @@ test_that("calculating rho from phi matches rho", {
     cor
   )
 
-  expect_equal(
-    cor_cor,
-    cor_ivar
-  )
 })

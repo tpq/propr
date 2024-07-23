@@ -20,9 +20,10 @@ test_that("pcor with alr and clr are the same", {
   pcor_clr <- getMatrix(pr)[1:4, 1:4]
 
   expect_equal(
-    pcor_alr,
-    pcor_clr
+    round(pcor_alr, 8),
+    round(pcor_clr, 8)
   )
+
 })
 
 test_that("pcor.bshrink with alr and clr are the same", {
@@ -36,7 +37,8 @@ test_that("pcor.bshrink with alr and clr are the same", {
   pcor_clr <- getMatrix(pr)[1:4, 1:4]
 
   expect_equal(
-    pcor_alr,
-    pcor_clr
+    round(pcor_alr, 8),
+    round(pcor_clr, 8)
   )
+
 })

@@ -76,31 +76,6 @@ compute_iqlr <- function(counts) {
   return(use)
 }
 
-#' Simple Zero Replacement in a Count Matrix
-#'
-#' This function replaces zeros with the next smallest non-zero value in the
-#'  input count matrix. If the matrix contains no zeros, it produces an
-#'  informational message indicating that no replacements were made.
-#'
-#' @inheritParams logratio_with_alpha
-#' @return A matrix with zero values replaced by the next smallest non-zero value.
-#' @examples
-#' # Sample input count data with zeros
-#' data <- matrix(c(0, 2, 3, 4, 5, 0), nrow = 2, byrow = TRUE)
-#'
-#' @export
-simple_zero_replacement <- function(ct) {
-  if (any(ct == 0)) {
-    zeros <- ct == 0
-    ct[zeros] <- min(ct[!zeros])
-    message("Alert: replacing zeros with minimun value.")
-  } else{
-    message("Alert: No 0s found that need replacement.")
-  }
-
-  return(ct)
-}
-
 #' Perform log-ratio transformation without alpha parameter
 #'
 #' This function applies a log-ratio transformation to a given data matrix
@@ -113,7 +88,7 @@ simple_zero_replacement <- function(ct) {
 #' # Sample input data
 #' data <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE)
 #'
-#' # Applying log-ratio transformation to rows using columns 2 and 3
+#' # Applying log-ratio transformation to rows using columns 2 and 3 as reference
 #' result <- logratio_without_alpha(data, use = c(2, 3))
 #'
 #' @export
@@ -166,6 +141,9 @@ logratio_with_alpha <- function(ct, use, alpha) {
 #'
 #' This function applies a log-ratio transformation to a given data matrix
 #'  with or without using an alpha parameter.
+#'  Also, the zeros in the matrix are replaced with the next smallest non-zero,
+#'  except when ivar is NA in which case it is assumed the count data has been
+#'  preprocessed.
 #'
 #' @inheritParams propr
 #' @return A matrix with log-ratio transformed values.
@@ -188,9 +166,8 @@ logratio_with_alpha <- function(ct, use, alpha) {
 logratio <- function(counts, ivar, alpha) {
   counts <- as_safe_matrix(counts)
   if (is.na(ivar)) {
-    message("Alert: Skipping built-in log-ratio transformation.")
-    ct <- simple_zero_replacement(counts)
-    lr <- ct
+    message("Alert: Skipping built-in log-ratio transformation and zero replacement.")
+    lr <- counts
   } else {
     use <- index_reference(counts, ivar) # Index reference
     if (is.na(alpha)) {
@@ -210,10 +187,13 @@ logratio <- function(counts, ivar, alpha) {
 #'  output the results in two formats: centered log-ratio (clr) or
 #'  additive log-ratio (alr).
 #'
-#' @param M A data matrix representing the counts. Each row should represent
+#' @param ct A data matrix representing the counts. Each row should represent
 #'  observations, and each column should represent different variables.
 #' @param outtype A character vector specifying the output type. It can take
-#'  either "clr" (centered log-ratio) or "alr" (additive log-ratio).
+#'  either "clr" (centered log-ratio) or "alr" (additive log-ratio). Since
+#'  the reference does not affect the logratio partial correlation coefficients,
+#'  the index of the reference is not needed for "alr". Also, "clr" is recommended
+#'  because of the same reason, at the same time avoiding losing one dimension.
 #'
 #' @return A matrix representing the partial correlation matrix.
 #'
@@ -228,36 +208,39 @@ logratio <- function(counts, ivar, alpha) {
 #' result_alr <- basis_shrinkage(data, outtype = "alr")
 #'
 #' @export
-basis_shrinkage <- function(M, outtype = c("clr", "alr")) {
+basis_shrinkage <- function(ct, outtype = c("clr", "alr")) {
   packageCheck("corpcor")
   outtype <- match.arg(outtype)
 
   # transform counts to log proportions
-  P <- M / rowSums(M)
-  B <- log(P)
+  logP <- log( ct / rowSums(ct) )
 
   # covariance shrinkage
-  D  <- ncol(M)
-  Cb <- corpcor::cov.shrink(B, verbose = FALSE)
+  covB <- corpcor::cov.shrink(logP, verbose = FALSE)
+
+  # convert basis covariance matrix to clr/alr covariance matrix
+  D  <- ncol(ct)
   if (outtype == "alr") {
     F   <- cbind(diag(rep(1, D - 1)), rep(-1, D - 1))
-    Cov <- F %*% Cb %*% t(F)
+    cov <- F %*% covB %*% t(F)
   } else if (outtype == "clr") {
     G   <- diag(rep(1, D)) - matrix(1 / D, D, D)
-    Cov <- G %*% Cb %*% G
+    cov <- G %*% covB %*% G
   }
 
   # partial correlation
-  PC <- corpcor::cor2pcor(Cov)
+  pcor <- corpcor::cor2pcor(cov)
 
   # make output to have same dimensions as input
+  # alr partial correlation has one less dimension,
+  # so here we add a row and a column of zeros
   if (outtype == "alr") {
-    PC <- cbind(PC, replicate(nrow(PC), 0))
-    PC <- rbind(PC, replicate(ncol(PC), 0))
-    PC[nrow(PC), ncol(PC)] <- 1
+    pcor <- cbind(pcor, replicate(nrow(pcor), 0))
+    pcor <- rbind(pcor, replicate(ncol(pcor), 0))
+    pcor[nrow(pcor), ncol(pcor)] <- 1
   }
 
-  return(PC)
+  return(pcor)
 }
 
 #' Wrapper to check if a metric is 'direct' or 'positive'

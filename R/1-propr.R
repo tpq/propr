@@ -18,8 +18,9 @@
 #'   - "clr" (default): Centered log-ratio transformation.
 #'   - "alr": Additive log-ratio transformation ("pcor.bshrink" metric only).
 #'   - "iqlr": Inter-quartile log-ratio transformation from ALDEx2.
-#'   - The explicit name(s) of variable(s) to use as a reference.
-#'  Use NA to skip log-ratio transformation.
+#'   - The explicit name(s) or index(es) of variable(s) to use as a reference.
+#'   - Use NA to skip log-ratio transformation and any other pre-processing, like
+#'  zero replacement. This is useful when the input data is already pre-processed.
 #' @param select A numeric vector representing the indices of features to be
 #'  used for computing the Propr matrix. This argument is optional. If
 #'  provided, it reduces the data size by using only the selected features.
@@ -84,20 +85,19 @@ propr <- function(counts,
     }
     message("Alert: Log-ratio transform will be handled by 'bShrink'.")
     ivar_pcor <- ivar
-    ivar <-
-      NA # skips log-ratio transform as performed for all other metrics
+    ivar <- NA # skips log-ratio transform as performed for all other metrics
   }
 
   ##############################################################################
   ### PERFORM ZERO REPLACEMENT AND LOG-RATIO TRANSFORM
   ##############################################################################
 
-  # NOTE: ct will never have zeros; counts may or may not have zeros!
+  # NOTE: counts are the original counts, while ct may have zeros replaced
   counts <- as_safe_matrix(counts)
-  if (!is.na(ivar)) {
-    ct <- simple_zero_replacement(counts)
-  }else{
+  if (is.na(ivar)) {
     ct <- counts
+  } else {
+    ct <- simple_zero_replacement(counts)
   }
   lr <- logratio(counts, ivar, alpha)
 
@@ -130,11 +130,13 @@ propr <- function(counts,
   } else if (metric == "vlr") {
     mat <- lrv
   } else if (metric == "pcor") {
-    packageCheck("ppcor")
-    mat <- ppcor::pcor(lr)$estimate
+    packageCheck("corpcor")
+    cov <- cov(lr)
+    mat <- corpcor::cor2pcor(cov)
+    class(mat) <- "matrix"
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
-    mat <- corpcor::pcor.shrink(lr, ...)
+    mat <- corpcor::pcor.shrink(lr)
     class(mat) <- "matrix"
   } else if (metric == "pcor.bshrink") {
     mat <- basis_shrinkage(ct, outtype = ivar_pcor)
@@ -156,7 +158,7 @@ propr <- function(counts,
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
 
-  # ivar should not be NA, otherwise updateCutoffs does not work
+  # ivar should not be NA for pcor.bshrink, otherwise updateCutoffs does not work
   if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor
 
   # Clean row and column names
