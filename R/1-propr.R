@@ -137,6 +137,8 @@ propr <- function(counts,
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
     mat <- corpcor::pcor.shrink(lr)
+    attributes(mat) = NULL
+    mat <- matrix(mat, ncol=ncol(lr), nrow=ncol(lr))
     class(mat) <- "matrix"
   } else if (metric == "pcor.bshrink") {
     mat <- basis_shrinkage(ct, outtype = ivar_pcor)
