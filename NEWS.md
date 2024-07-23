@@ -6,6 +6,8 @@
 * Added `getAdj` function to get the adjacency matrix given cutoff
 * Optimized `graflex` related functions to Rcpp C++
 * Removed fixseed, since setting set.seed() before calling any function is enough to ensure reproducibility
+* Fix bug: when ivar=NA, the already preprocessed data given by the user are replaced when there are zeros, which should not
+* Replaced ppcor::pcor by corpcor::cor2pcor for coherence with the shrunk partial correlations
 
 ## propr 5.0.4
 ---------------------
