@@ -60,6 +60,7 @@ propr <- function(counts,
                              "phs",
                              "cor",
                              "vlr",
+                             "ppcor",
                              "pcor",
                              "pcor.shrink",
                              "pcor.bshrink"),
@@ -86,6 +87,11 @@ propr <- function(counts,
     message("Alert: Log-ratio transform will be handled by 'bShrink'.")
     ivar_pcor <- ivar
     ivar <- NA # skips log-ratio transform as performed for all other metrics
+    
+  }else{
+    if (ivar == "alr") {
+      stop("Please give the index or name of the reference gene instead of 'alr'.")
+    }
   }
 
   ##############################################################################
@@ -129,6 +135,9 @@ propr <- function(counts,
     mat <- stats::cor(lr)
   } else if (metric == "vlr") {
     mat <- lrv
+  } else if (metric == "ppcor") {
+    packageCheck("ppcor")
+    mat <- ppcor::pcor(lr)$estimate
   } else if (metric == "pcor") {
     packageCheck("corpcor")
     cov <- cov(lr)
