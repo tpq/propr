@@ -44,6 +44,8 @@ runGraflex <- function(A, K, p=100, ncores=1) {
   res <- cbind(res, colnames(K))
   res <- as.data.frame(res)
   colnames(res) <- c("Neither", "G.only", "A.only", "Both", "Odds", "LogOR", "FDR.under", "FDR.over", "Permutes", "Concept")
+  # change the values to numeric, except for the concept column
+  res[,1:9] <- lapply(res[,1:9], as.numeric)
 
   return(res)
 }
