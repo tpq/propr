@@ -6,42 +6,42 @@
 #'  \code{updateCutoffs.propd}.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param cutoff_vector For \code{updateCutoffs}, a numeric vector.
-#'  this argument provides the FDR cutoffs to test. When NULL (default),
-#' the function will calculate the cutoffs based on quantile.
-#' @param cutoff_nbins An integer. The number of bins for quantile-based
-#' FDR cutoffs.
+#' @param number_of_cutoffs An integer. The number of cutoffs to test.
+#' Given this number, the cutoffs will be determined based on the quantile of the data.
+#' In this way, the cutoffs will be evenly spaced across the data.
+#' @param custom_cutoffs A numeric vector. When provided, this vector is used
+#' as the FDR cutoffs to test, and number_of_cutoffs is ignored.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' @export
 updateCutoffs <-
   function(object,
-           cutoff_vector = NULL,
-           cutoff_nbins = 1000,
+           number_of_cutoffs = 100,
+           custom_cutoffs = NULL,
            ncores = 1) {
+
+    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs) {
+      if (!is.null(custom_cutoffs)) {
+        return(custom_cutoffs)
+      }else{
+        return(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs + 1)))
+      }
+    }
+
     if (inherits(object, "propr")) {
-      if (ncores == 1) {
-        message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
-      }
-      if (is.null(cutoff_vector)) {
-        values <- object@matrix[lower.tri(object@matrix)]
-        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
-      }
-      updateCutoffs.propr(object, cutoff_vector, ncores)
+      values <- object@matrix[lower.tri(object@matrix)]
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs)
+      updateCutoffs.propr(object, cutoffs, ncores)
 
     } else if (inherits(object, "propd")) {
-      if (ncores > 1) {
-        message("Alert: Parallel updateCutoffs not yet supported.")
-      }
-      if (is.null(cutoff_vector)) {
-        values <- object@results$theta
-        cutoff_vector <- as.vector( quantile(values, probs = seq(0, 1, length.out = cutoff_nbins + 1)) )
-      }
-      updateCutoffs.propd(object, cutoff_vector)
+      values <- object@results$theta
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs)
+      updateCutoffs.propd(object, cutoffs)
 
     } else{
       stop("Provided 'object' not recognized.")
     }
+
   }
 
 #' @rdname updateCutoffs
