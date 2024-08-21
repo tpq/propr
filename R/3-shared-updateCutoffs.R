@@ -55,9 +55,20 @@ updateCutoffs <-
 updateCutoffs.propr <-
   function(object, cutoff, ncores) {
 
-    # define the functions to count the number of values greater than or less than a cutoff
-    countFunc <- if (metric_is_direct(object@metric)) count_greater_than else count_less_than
-    countFunNegative <- if (metric_is_direct(object@metric)) count_less_than else count_greater_than
+    if (identical(object@permutes, list(NULL))) {
+      stop("Permutation testing is disabled.")
+    }
+    if (object@metric == "rho") {
+      message("Alert: Estimating FDR for largely positive proportional pairs only.")
+    }
+    if (object@metric == "phi") {
+      warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
+    }
+
+    # define the counting functions (greater or less than a threshold)
+    # countFunc for counting positive values, and countFunNegative for negative values
+    countFunc <- if (object@direct) count_greater_than else count_less_than
+    countFunNegative <- if (object@direct) count_less_than else count_greater_than
 
     getFdrRandcounts <- function(ct.k) {
       pr.k <- suppressMessages(propr::propr(
@@ -71,24 +82,9 @@ updateCutoffs.propr <-
       # Vector of propr scores for each pair of taxa.
       pkt <- pr.k@results$propr
 
-      # Find number of permuted theta less than cutoff
+      # Find number of permuted theta more or less than cutoff
       sapply(FDR$cutoff, function(cut) if (cut > 0) countFunc(pkt, cut) else countFunNegative(pkt, cut))
     }
-
-    if (object@metric == "rho") {
-      message("Alert: Estimating FDR for largely positive proportional pairs only.")
-    }
-
-    if (object@metric == "phi") {
-      warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
-    }
-
-    if (identical(object@permutes, list(NULL)))
-      stop("Permutation testing is disabled.")
-
-    # Let NA cutoff skip function
-    if (identical(cutoff, NA))
-      return(object)
 
     # Set up FDR cutoff table
     FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
@@ -165,10 +161,6 @@ updateCutoffs.propd <-
   function(object, cutoff) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
-
-    # Let NA cutoff skip function
-    if (identical(cutoff, NA))
-      return(object)
 
     # Set up FDR cutoff table
     FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))

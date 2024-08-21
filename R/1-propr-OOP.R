@@ -6,6 +6,7 @@ setClass(
     counts = "data.frame",
     alpha = "numeric",
     metric = "character",
+    direct = "logical",
     ivar = "ANY",
     logratio = "data.frame",
     matrix = "matrix",

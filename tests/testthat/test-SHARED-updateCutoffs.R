@@ -16,10 +16,10 @@ test_that("test that updateCutoff work for propr",{
   # test when seed is given
   set.seed(0)
   pr1 <- propr(X, metric = "pcor.bshrink", p=10)
-  pr1 <- updateCutoffs(pr1, cutoff_nbins=10)
+  pr1 <- updateCutoffs(pr1, number_of_cutoffs=10)
   set.seed(0)
   pr2 <- propr(X, metric = "pcor.bshrink", p=10)
-  pr2 <- updateCutoffs(pr2, cutoff_nbins=10)
+  pr2 <- updateCutoffs(pr2, number_of_cutoffs=10)
   expect_equal(
     pr1@fdr,
     pr2@fdr
@@ -27,9 +27,9 @@ test_that("test that updateCutoff work for propr",{
 
   # test when seed is not given
   pr1 <- propr(X, metric = "pcor.bshrink", p=10)
-  pr1 <- updateCutoffs(pr1, cutoff_nbins=10)
+  pr1 <- updateCutoffs(pr1, number_of_cutoffs=10)
   pr2 <- propr(X, metric = "pcor.bshrink", p=10)
-  pr2 <- updateCutoffs(pr2, cutoff_nbins=10)
+  pr2 <- updateCutoffs(pr2, number_of_cutoffs=10)
   expect_false(
     isTRUE(all.equal(
         pr1@fdr,
@@ -58,10 +58,10 @@ test_that("test that updateCutoff work for propd",{
   # test when seed is given
   set.seed(0)
   pd1 <- propd(x, as.character(y), p=10)
-  pd1 <- updateCutoffs(pd1, cutoff_nbins=10)
+  pd1 <- updateCutoffs(pd1, number_of_cutoffs=10)
   set.seed(0)
   pd2 <- propd(x, as.character(y), p=10)
-  pd2 <- updateCutoffs(pd2, cutoff_nbins=10)
+  pd2 <- updateCutoffs(pd2, number_of_cutoffs=10)
   expect_equal(
     pd1@fdr,
     pd2@fdr
@@ -72,9 +72,9 @@ test_that("test that updateCutoff work for propd",{
   # because it is extremely difficult to get 
   # some high theta values by change with this iris data
   # pd1 <- propd(x, as.character(y), p=10)
-  # pd1 <- updateCutoffs(pd1, cutoff_nbins=10)
+  # pd1 <- updateCutoffs(pd1, number_of_cutoffs=10)
   # pd2 <- propd(x, as.character(y), p=10)
-  # pd2 <- updateCutoffs(pd2, cutoff_nbins=10)
+  # pd2 <- updateCutoffs(pd2, number_of_cutoffs=10)
   # expect_false(
   #   isTRUE(all.equal(
   #       pd1@fdr,

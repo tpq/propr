@@ -168,6 +168,7 @@ propr <- function(counts,
   result@logratio <- as.data.frame(lr)
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
+  result@direct <- ifelse(metric[1] %in% c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)
 
   # ivar should not be NA for pcor.bshrink, otherwise updateCutoffs does not work
   if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor
