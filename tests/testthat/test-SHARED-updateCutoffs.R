@@ -44,7 +44,7 @@ test_that("test that updateCutoff work for propr",{
   )
   expect_equal(
     pr1@fdr$cutoff,
-    as.vector( quantile(pr1@matrix[lower.tri(pr1@matrix)], probs = seq(0, 1, length.out = 11)) )
+    as.vector( quantile(pr1@matrix[lower.tri(pr1@matrix)], probs = seq(0, 1, length.out = 10)) )
   )
 })
 
@@ -89,7 +89,7 @@ test_that("test that updateCutoff work for propd",{
   )
   expect_equal(
     pd1@fdr$cutoff,
-    as.vector( quantile(pd1@results$theta, probs = seq(0, 1, length.out = 11)) )
+    as.vector( quantile(pd1@results$theta, probs = seq(0, 1, length.out = 10)) )
   )
 })
 
