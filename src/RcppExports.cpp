@@ -340,24 +340,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // getFDR_over
-float getFDR_over(float actual, NumericVector permuted);
+double getFDR_over(double actual, NumericVector permuted);
 RcppExport SEXP _propr_getFDR_over(SEXP actualSEXP, SEXP permutedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< float >::type actual(actualSEXP);
+    Rcpp::traits::input_parameter< double >::type actual(actualSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type permuted(permutedSEXP);
     rcpp_result_gen = Rcpp::wrap(getFDR_over(actual, permuted));
     return rcpp_result_gen;
 END_RCPP
 }
 // getFDR_under
-float getFDR_under(float actual, NumericVector permuted);
+double getFDR_under(double actual, NumericVector permuted);
 RcppExport SEXP _propr_getFDR_under(SEXP actualSEXP, SEXP permutedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< float >::type actual(actualSEXP);
+    Rcpp::traits::input_parameter< double >::type actual(actualSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type permuted(permutedSEXP);
     rcpp_result_gen = Rcpp::wrap(getFDR_under(actual, permuted));
     return rcpp_result_gen;

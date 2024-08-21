@@ -2,7 +2,8 @@
 #include <numeric>
 using namespace Rcpp;
 
-// Function to extract the lower triangle of a square and symmetric IntegerMatrix
+
+// Function to extract the triangle of a square and symmetric IntegerMatrix
 // [[Rcpp::export]]
 IntegerVector get_lower_triangle(IntegerMatrix& mat) {
   int nrow = mat.nrow();
@@ -12,8 +13,8 @@ IntegerVector get_lower_triangle(IntegerMatrix& mat) {
   IntegerVector triangle(n);
 
   int k = 0;
-  for (int i = 0; i < ncol; ++i) {
-    for (int j = 0; j < i; ++j) {
+  for (int j = 0; j < ncol; ++j) {
+      for (int i = j+1; i < nrow; ++i) {
       triangle[k++] = mat(i, j);
     }
   }
@@ -91,9 +92,9 @@ NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100) {
 }
 
 // [[Rcpp::export]]
-float getFDR_over(float actual, NumericVector permuted) {
-  float n = permuted.size();
-  float fdr = 0.0;
+double getFDR_over(double actual, NumericVector permuted) {
+  double n = permuted.size();
+  double fdr = 0.0;
   for (int i = 0; i < n; ++i) {
     if (permuted[i] >= actual) {
       fdr += 1.0;
@@ -104,9 +105,9 @@ float getFDR_over(float actual, NumericVector permuted) {
 }
 
 // [[Rcpp::export]]
-float getFDR_under(float actual, NumericVector permuted) {
-  float n = permuted.size();
-  float fdr = 0.0;
+double getFDR_under(double actual, NumericVector permuted) {
+  double n = permuted.size();
+  double fdr = 0.0;
   for (int i = 0; i < n; ++i) {
     if (permuted[i] <= actual) {
       fdr += 1.0;
