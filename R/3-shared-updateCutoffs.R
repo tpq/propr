@@ -202,45 +202,19 @@ updateCutoffs.propd <-
 
 # count the permuted values greater or less than each cutoff,
 # using a single core, for a propd object
-getFdrRandcounts.propd.run <- function(object, cutoffs) {
+getFdrRandcounts.propd.run <- 
+  function(object, cutoffs) {
 
     # Use calculateTheta to permute active theta
     p <- ncol(object@permutes)
     for (k in 1:p) {
       numTicks <- progress(k, p, numTicks)
 
-      # Tally k-th thetas that fall below each cutoff
-      shuffle <- object@permutes[, k]
-
+      # calculate permuted theta values
       if (object@active == "theta_mod") {
-        # Calculate theta_mod with updateF (using i-th permuted object)
-        if (is.na(object@Fivar))
-          stop("Please re-run 'updateF' with 'moderation = TRUE'.")
-        propdi <- suppressMessages(
-          propd(
-            object@counts[shuffle,],
-            group = object@group,
-            alpha = object@alpha,
-            p = 0,
-            weighted = object@weighted
-          )
-        )
-        propdi <-
-          suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
-        pkt <- propdi@results$theta_mod
-
+        pkt <- suppressMessages(getPermutedThetaMod(object, k))
       } else{
-        # Calculate all other thetas directly (using calculateTheta)
-        pkt <- suppressMessages(
-          calculate_theta(
-            object@counts[shuffle,],
-            object@group,
-            object@alpha,
-            object@results$lrv,
-            only = object@active,
-            weighted = object@weighted
-          )
-        )
+        pkt <- suppressMessages(getPermutedTheta(object, k))
       }
 
       # Find number of permuted theta less than cutoff
@@ -253,6 +227,50 @@ getFdrRandcounts.propd.run <- function(object, cutoffs) {
     randcounts <- randcounts / p
     return(randcounts)
 }
+
+getPermutedThetaMod <- 
+  function(object, k) {
+
+    if (is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- object@permutes[, k]
+
+    # Calculate theta_mod with updateF (using k-th permuted object)
+    propdi <- suppressMessages(
+      propd(
+        object@counts[shuffle,],
+        group = object@group,
+        alpha = object@alpha,
+        p = 0,
+        weighted = object@weighted
+      )
+    )
+    propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = Fivar))
+
+    return(propdi@results$theta_mod)
+}
+
+getPermutedTheta <- 
+  function(object, k) {
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- object@permutes[, k]
+
+    # Calculate all other thetas directly (using calculateTheta)
+    pkt <- suppressMessages(
+      calculate_theta(
+        object@counts[shuffle,],
+        object@group,
+        object@alpha,
+        object@results$lrv,
+        only = object@active,
+        weighted = object@weighted
+      )
+    )
+
+    return(pkt)
+  }
 
 #' Count Values Greater or Less Than a Threshold
 #'
