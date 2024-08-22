@@ -47,13 +47,14 @@ updateCutoffs <-
 #' @rdname updateCutoffs
 #' @section Methods:
 #' \code{updateCutoffs.propr:}
-#'  Use the \code{propr} object to permute proportionality
+#'  Use the \code{propr} object to permute correlation-like metrics
+#'  (ie. rho, phi, phs, cor, pcor, pcor.shrink, pcor.bshrink),
 #'  across a number of cutoffs. Since the permutations get saved
 #'  when the object is created, calling \code{updateCutoffs}
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propr <-
-  function(object, cutoff, ncores) {
+  function(object, cutoffs, ncores) {
 
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
@@ -66,27 +67,21 @@ updateCutoffs.propr <-
     }
 
     # Set up FDR cutoff table
-    FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
+    FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
     colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
-    FDR$cutoff <- cutoff
-
-    # define the counting functions (greater or less than a threshold)
-    # countFunc for counting positive values, and countFunNegative for negative values
-    countFunc <- if (object@direct) count_greater_than else count_less_than
-    countFunNegative <- if (object@direct) count_less_than else count_greater_than
+    FDR$cutoff <- cutoffs
 
     # count the permuted values greater or less than each cutoff
     if (ncores > 1) {
-      FDR$randcounts <- updateCutoffs.propr.parallel(object, FDR$cutoff, ncores, countFunc, countFunNegative)
+      FDR$randcounts <- updateCutoffs.propr.parallel(object, cutoffs, ncores)
     } else{
-      FDR$randcounts <- updateCutoffs.propr.run(object, FDR$cutoff, countFunc, countFunNegative)
+      FDR$randcounts <- updateCutoffs.propr.run(object, cutoffs)
     }
 
     # count actual values greater or less than each cutoff
-    for (cut in 1:nrow(FDR)){
-      if (FDR[cut, "cutoff"] > 0) currentFunc = countFunc else currentFunc = countFunNegative
-      FDR[cut, "truecounts"] <- currentFunc(object@results$propr, FDR[cut, "cutoff"])
-    }
+    FDR$truecounts <- sapply(FDR$cutoff, function(cutoff) {
+      countValuesBeyondThreshold(object@results$propr, cutoff, object@direct)
+    })
 
     # calculate FDR
     FDR$FDR <- FDR$randcounts / FDR$truecounts
@@ -99,7 +94,7 @@ updateCutoffs.propr <-
 
 # run updateCutoffs.propr in parallel
 updateCutoffs.propr.parallel <- 
-  function(object, cutoffs, ncores, countFunc, countFunNegative) {
+  function(object, cutoffs, ncores) {
 
     # Set up the cluster
     packageCheck("parallel")
@@ -118,7 +113,7 @@ updateCutoffs.propr.parallel <-
       # Vector of propr scores for each pair of taxa.
       pkt <- pr.k@results$propr
       # Find number of permuted theta more or less than cutoff
-      sapply(cutoffs, function(cut) if (cut > 0) countFunc(pkt, cut) else countFunNegative(pkt, cut))
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, object@direct))
     }
 
     # Each element of this list will be a vector whose elements
@@ -139,7 +134,7 @@ updateCutoffs.propr.parallel <-
 
 # run updateCutoffs.propr not in parallel
 updateCutoffs.propr.run <-
-  function(object, cutoffs, countFunc, countFunNegative) {
+  function(object, cutoffs) {
 
     # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
     p <- length(object@permutes)
@@ -160,8 +155,7 @@ updateCutoffs.propr.run <-
       # Find number of permuted theta more or less than cutoff
       randcounts <- rep(0, length(cutoffs))
       for (cut in 1:length(cutoffs)){
-        if (cutoffs[cut] > 0) currentFunc = countFunc else currentFunc = countFunNegative
-        randcounts[cut] <- randcounts[cut] + currentFunc(pkt, cutoffs[cut])
+        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], object@direct)
       }
     }
 
@@ -249,3 +243,22 @@ updateCutoffs.propd <-
 
     return(object)
   }
+
+#' Count Values Greater or Less Than a Threshold
+#'
+#' This function counts the number of values greater or less than a threshold.
+#' The direction depends on if a direct or inverse relationship is asked,
+#' as well as the sign of the threshold.
+#'
+#' @param values A numeric vector.
+#' @param cutoff A numeric value.
+#' @direct A logical value. If \code{TRUE}, direct relationship is considered.
+#' @return The number of values greater or less than the threshold.
+countValuesBeyondThreshold <- function(values, cutoff, direct){
+  if (cutoff >= 0){
+    func <- ifelse(direct, count_greater_than, count_less_than)
+  }else{
+    func <- ifelse(direct, count_less_than, count_greater_than)
+  }
+  return(func(values, cutoff))
+}
