@@ -3,14 +3,22 @@
 #' @param object A \code{propd} or \code{propr} object.
 #' @param fdr A float value for the false discovery rate.
 #' Default is 0.05.
+#' @param window_size An integer. Default is 1. When it is greater than 1,
+#' the function will return a meaningful cutoff based on the moving
+#' average of the FDR values. This is useful when the FDR values are
+#' noisy and the user wants to smooth them out.
 #' @param positive A boolean. In the case of \code{propr} object, 
 #' toggles whether to return the cutoff for positive values (>=0). 
-#' Otherwise, return cutoff for negative values (<0).
+#' Otherwise, return cutoff for negative values (<0). Default is TRUE.
+#' This argument is ignored for \code{propd} objects.
 #' @return A cutoff value.
 #' @export
-getCutoffFDR <- function(object, fdr = 0.05, positive = TRUE) {
+getCutoffFDR <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
   if (!"fdr" %in% slotNames(object)) {
     stop("Please run updateCutoffs() before calling this function.")
+  }
+  if (nrow(object@fdr) == 0) {
+    stop("No FDR values found. Please run updateCutoffs() before calling this function.")
   }
 
   if (fdr < 0 | fdr > 1) {
@@ -18,29 +26,30 @@ getCutoffFDR <- function(object, fdr = 0.05, positive = TRUE) {
   }
 
   if (inherits(object, "propr")) {
-    return(getCutoffFDR.propr(object, fdr = fdr, positive = positive))
+    return(getCutoffFDR.propr(object, fdr, window_size, positive))
 
   } else if (inherits(object, "propd")) {
-    return(getCutoffFDR.propd(object, fdr = fdr))
+    return(getCutoffFDR.propd(object, fdr, window_size))
     
   } else{
     stop("Provided 'object' not recognized.")
   }
 }
 
-getCutoffFDR.propr <- function(object, fdr = 0.05, positive = TRUE) {
-  if (positive) {
-    return(getCutoffFDR.propr.positive(object, fdr = fdr))
-  } else{
-    return(getCutoffFDR.propr.negative(object, fdr = fdr))
-  }
-}
+#' @rdname getCutoffFDR
+#' Same as \code{getCutoffFDR}, but for \code{propr} objects.
+#' @export
+getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
 
-getCutoffFDR.propr.positive <- function(object, fdr = 0.05) {
-
-  # get FDR data frame
+  # subset FDR data frame, to only include positive cutoffs
   df <- object@fdr
-  df <- df[df$cutoff >= 0, ]
+  if (positive) { df <- df[df$cutoff >= 0,] } else { df <- df[df$cutoff < 0,] }
+
+  # apply moving average to FDR values
+  if (window_size > 1) {
+    message("Applying moving average to FDR values.")
+    df$FDR <- getMovingAverage(df$FDR, window_size)
+  }
 
   # get index of FDR values below the threshold
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
@@ -49,41 +58,32 @@ getCutoffFDR.propr.positive <- function(object, fdr = 0.05) {
   }
 
   # get cutoff
-  if (metric_is_direct(object@metric)) {
-    cutoff <- min(df$cutoff[index])
+  if (object@direct) {
+    cutoff <- min(abs(df$cutoff[index]))
   } else{
-    cutoff <- max(df$cutoff[index])
+    cutoff <- max(abs(df$cutoff[index]))
   }
+  if (!positive) cutoff <- -cutoff
 
   return(cutoff)
 }
 
-getCutoffFDR.propr.negative <- function(object, fdr = 0.05) {
+#' @rdname getCutoffFDR
+#' Same as \code{getCutoffFDR}, but for \code{propd} objects.
+#' @export
+getCutoffFDR.propd <- function(object, fdr = 0.05, window_size = 1) {
 
-  # get FDR data frame
+  # get df
   df <- object@fdr
-  df <- df[df$cutoff < 0, ]
+  if (any(df$cutoff < 0)) stop("Negative cutoffs were found for theta values. Please check")
 
-  # get index of FDR values below the threshold
-  index <- (df$FDR <= fdr) & (is.finite(df$FDR))
-  if (!any(index)) {
-    stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
+  # apply moving average to FDR values
+  if (window_size > 1) {
+    message("Applying moving average to FDR values.")
+    df$FDR <- getMovingAverage(df$FDR, window_size)
   }
-
-  # get cutoff
-  if (metric_is_direct(object@metric)) {
-    cutoff <- max(df$cutoff[index])
-  } else{
-    cutoff <- min(df$cutoff[index])
-  }
-
-  return(cutoff)
-}
-
-getCutoffFDR.propd <- function(object, fdr = 0.05) {
   
   # get index of FDR values below the threshold
-  df <- object@fdr
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
   if (!any(index)) {
     stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
@@ -143,4 +143,31 @@ getCutoffFstat <- function(object, pval = 0.05, fdr = FALSE) {
   }
 
   return(cutoff)
+}
+
+#' Caclulate the moving average of a vector.
+#' @param values A numeric vector.
+#' @param window_size An integer. The size of the window to calculate the
+#' moving average. Default is 1.
+getMovingAverage <- function(values, window_size = 1) {
+  # Length of the vector
+  n <- length(values)
+  
+  # Initialize the result vector
+  result <- numeric(n)
+  
+  for (i in 1:n) {
+    # Determine the window indices
+    start_idx <- max(1, i - (window_size - 1) / 2)
+    end_idx <- min(n, i + (window_size - 1) / 2)
+    
+    # Calculate the average for the current window
+    if (is.finite(values[i])){
+      result[i] <- mean(values[start_idx:end_idx], na.rm=TRUE)  # NA values are removed, to avoid propagation of NAs
+    }else{
+      result[i] <- values[i]  # this keeps the NA values corresponding to that position
+    }
+  }
+  
+  return(result)
 }
