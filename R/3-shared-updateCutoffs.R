@@ -73,9 +73,9 @@ updateCutoffs.propr <-
 
     # count the permuted values greater or less than each cutoff
     if (ncores > 1) {
-      FDR$randcounts <- updateCutoffs.propr.parallel(object, cutoffs, ncores)
+      FDR$randcounts <- getFdrRandcounts.propr.parallel(object, cutoffs, ncores)
     } else{
-      FDR$randcounts <- updateCutoffs.propr.run(object, cutoffs)
+      FDR$randcounts <- getFdrRandcounts.propr.run(object, cutoffs)
     }
 
     # count actual values greater or less than each cutoff
@@ -92,8 +92,9 @@ updateCutoffs.propr <-
     return(object)
   }
 
-# run updateCutoffs.propr in parallel
-updateCutoffs.propr.parallel <- 
+# count the permuted values greater or less than each cutoff,
+# using parallel processing, for a propr object
+getFdrRandcounts.propr.parallel <- 
   function(object, cutoffs, ncores) {
 
     # Set up the cluster
@@ -132,8 +133,9 @@ updateCutoffs.propr.parallel <-
     return(randcounts)
   }
 
-# run updateCutoffs.propr not in parallel
-updateCutoffs.propr.run <-
+# count the permuted values greater or less than each cutoff,
+# using a single core, for a propr object
+getFdrRandcounts.propr.run <-
   function(object, cutoffs) {
 
     # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
@@ -172,18 +174,38 @@ updateCutoffs.propr.run <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, cutoff) {
+  function(object, cutoffs) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
     # Set up FDR cutoff table
-    FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
+    FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
     colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
-    FDR$cutoff <- cutoff
-    p <- ncol(object@permutes)
-    lrv <- object@results$lrv
+    FDR$cutoff <- cutoffs
+
+    # Count the permuted values greater or less than each cutoff
+    FDR$randcounts <- getFdrRandcounts.propd.run(object, cutoffs)
+
+    # count actual values greater or less than each cutoff
+    FDR$truecounts <- sapply(1:nrow(FDR), function(cut) {
+        countValuesBeyondThreshold(object@results$theta, FDR[cut, "cutoff"], direct=FALSE)
+    })
+
+    # Calculate FDR
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
+
+    # Initialize @fdr
+    object@fdr <- FDR
+
+    return(object)
+  }
+
+# count the permuted values greater or less than each cutoff,
+# using a single core, for a propd object
+getFdrRandcounts.propd.run <- function(object, cutoffs) {
 
     # Use calculateTheta to permute active theta
+    p <- ncol(object@permutes)
     for (k in 1:p) {
       numTicks <- progress(k, p, numTicks)
 
@@ -214,7 +236,7 @@ updateCutoffs.propd <-
             object@counts[shuffle,],
             object@group,
             object@alpha,
-            lrv,
+            object@results$lrv,
             only = object@active,
             weighted = object@weighted
           )
@@ -222,27 +244,15 @@ updateCutoffs.propd <-
       }
 
       # Find number of permuted theta less than cutoff
-      FDR$randcounts <- sapply(
-        1:nrow(FDR), 
-        function(cut) FDR$randcounts[cut] + count_less_than(pkt, FDR[cut, "cutoff"]),
-        simplify = TRUE
-      )
+      randcounts <- rep(0, length(cutoffs))
+      for (cut in 1:length(cutoffs)){
+        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], direct=FALSE)
+      }
     }
 
-    # Calculate FDR based on real and permuted tallys
-    FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-    FDR$truecounts <- sapply(
-      1:nrow(FDR), 
-      function(cut) count_less_than(object@results$theta, FDR[cut, "cutoff"]), 
-      simplify = TRUE
-    )
-    FDR$FDR <- FDR$randcounts / FDR$truecounts
-
-    # Initialize @fdr
-    object@fdr <- FDR
-
-    return(object)
-  }
+    randcounts <- randcounts / p
+    return(randcounts)
+}
 
 #' Count Values Greater or Less Than a Threshold
 #'
