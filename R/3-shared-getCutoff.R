@@ -150,16 +150,24 @@ getCutoffFstat <- function(object, pval = 0.05, fdr = FALSE) {
 #' @param window_size An integer. The size of the window to calculate the
 #' moving average. Default is 1.
 getMovingAverage <- function(values, window_size = 1) {
-  # Length of the vector
-  n <- length(values)
-  
+
+  if (any(is.na(values))) {
+    message("Moving averages are calculated for a vector containing NAs.")
+  }
+
   # Initialize the result vector
+  n <- length(values)
   result <- numeric(n)
   
   for (i in 1:n) {
     # Determine the window indices
-    start_idx <- max(1, i - (window_size - 1) / 2)
-    end_idx <- min(n, i + (window_size - 1) / 2)
+    if (window_size %% 2 == 0) {
+      start_idx <- max(1, i - (window_size / 2 - 1))
+      end_idx <- min(n, i + window_size / 2)
+    }else{
+      start_idx <- max(1, i - floor(window_size / 2))
+      end_idx <- min(n, i + floor(window_size / 2))
+    }
     
     # Calculate the average for the current window
     if (is.finite(values[i])){
