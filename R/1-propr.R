@@ -169,6 +169,7 @@ propr <- function(counts,
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
   result@direct <- ifelse(metric[1] %in% c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)
+  result@has_meaningful_negative_values <- ifelse(metric[1] %in% c("cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)  # metrics like proportionality has negative values that are difficult to interpret, whereas correlation metrics have a clear interpretation
 
   # ivar should not be NA for pcor.bshrink, otherwise updateCutoffs does not work
   if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor

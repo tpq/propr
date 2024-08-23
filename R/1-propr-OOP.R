@@ -7,6 +7,7 @@ setClass(
     alpha = "numeric",
     metric = "character",
     direct = "logical",
+    has_meaningful_negative_values = "logical",
     ivar = "ANY",
     logratio = "data.frame",
     matrix = "matrix",
