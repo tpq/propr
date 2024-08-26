@@ -44,6 +44,12 @@ index_reference <- function(counts, ivar) {
     use <- sort(ivar) # use features given by number
   }
 
+  if (length(use) == 0) {
+      stop("No reference detected. Please provide a valid 'ivar' argument.")
+  } else if(length(use) > ncol(counts)) {
+    stop("Detected more reference variables than existing in the data. Please provide a valid 'ivar' argument.")
+  }
+
   return(use)
 }
 
@@ -165,7 +171,7 @@ logratio_with_alpha <- function(ct, use, alpha) {
 #' @export
 logratio <- function(counts, ivar, alpha) {
   counts <- as_safe_matrix(counts)
-  if (is.na(ivar)) {
+  if (length(ivar) == 1 && is.na(ivar)) {
     message("Alert: Skipping built-in log-ratio transformation and zero replacement.")
     lr <- counts
   } else {
@@ -217,6 +223,7 @@ basis_shrinkage <- function(ct, outtype = c("clr", "alr")) {
 
   # covariance shrinkage
   covB <- corpcor::cov.shrink(logP, verbose = FALSE)
+  lambda <- attr(covB, "lambda")
 
   # convert basis covariance matrix to clr/alr covariance matrix
   D  <- ncol(ct)
@@ -235,10 +242,14 @@ basis_shrinkage <- function(ct, outtype = c("clr", "alr")) {
   # alr partial correlation has one less dimension,
   # so here we add a row and a column of zeros
   if (outtype == "alr") {
-    pcor <- cbind(pcor, replicate(nrow(pcor), 0))
-    pcor <- rbind(pcor, replicate(ncol(pcor), 0))
-    pcor[nrow(pcor), ncol(pcor)] <- 1
+    pcor <- cbind(pcor, NA)
+    pcor <- rbind(pcor, NA)
   }
 
-  return(pcor)
+  # create output elements
+  out <- list()
+  out$pcor <- pcor
+  out$lambda <- lambda
+
+  return(out)
 }

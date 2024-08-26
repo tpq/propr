@@ -81,16 +81,20 @@ propr <- function(counts,
   # Special handling for 'metric'
   metric <- metric[1]
   if (metric == "pcor.bshrink") {
+    if (length(ivar) != 1) {
+      stop("For 'pcor.bshrink', the 'ivar' argument must be a single value.")
+    }
     if (!ivar %in% c("clr", "alr")) {
       stop("For 'pcor.bshrink', the 'ivar' argument must be 'clr' or 'alr'.")
     }
     message("Alert: Log-ratio transform will be handled by 'bShrink'.")
     ivar_pcor <- ivar
-    ivar <- NA # skips log-ratio transform as performed for all other metrics
-    
-  }else{
-    if (ivar == "alr") {
+    ivar <- NA # skips log-ratio transform
+  } else {
+    if (length(ivar) == 1 && !is.na(ivar) && ivar == "alr") {
       stop("Please give the index or name of the reference gene instead of 'alr'.")
+    } else if (length(ivar) > 1 && any(c("alr","clr","iqlr") %in% ivar)) {
+      stop("Please check the ivar argument is correct.")
     }
   }
 
@@ -100,7 +104,7 @@ propr <- function(counts,
 
   # NOTE: counts are the original counts, while ct may have zeros replaced
   counts <- as_safe_matrix(counts)
-  if (is.na(ivar)) {
+  if (length(ivar) == 1 && is.na(ivar)) {
     ct <- counts
   } else {
     ct <- simple_zero_replacement(counts)
@@ -123,35 +127,49 @@ propr <- function(counts,
   ##############################################################################
 
   lrv <- lr2vlr(lr)
+  lambda <- NULL
+
   if (metric == "rho") {
     mat <- lr2rho(lr)
+
   } else if (metric == "phi") {
     mat <- lr2phi(lr)
     if (symmetrize)
       symRcpp(mat) # optionally force symmetry
+
   } else if (metric == "phs") {
     mat <- lr2phs(lr)
+
   } else if (metric == "cor") {
     mat <- stats::cor(lr)
+
   } else if (metric == "vlr") {
     mat <- lrv
+
   } else if (metric == "ppcor") {
     packageCheck("ppcor")
     mat <- ppcor::pcor(lr)$estimate
+
   } else if (metric == "pcor") {
     packageCheck("corpcor")
     cov <- cov(lr)
     mat <- corpcor::cor2pcor(cov)
     class(mat) <- "matrix"
+
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
     mat <- corpcor::pcor.shrink(lr)
+    lambda <- attr(mat, "lambda")
     attributes(mat) = NULL
     mat <- matrix(mat, ncol=ncol(lr), nrow=ncol(lr))
     class(mat) <- "matrix"
+
   } else if (metric == "pcor.bshrink") {
-    mat <- basis_shrinkage(ct, outtype = ivar_pcor)
-  } else{
+    tmp <- basis_shrinkage(ct, outtype = ivar_pcor)
+    mat <- tmp$pcor
+    lambda <- tmp$lambda
+
+  } else {
     stop("Provided 'metric' not recognized.")
   }
 
@@ -168,6 +186,7 @@ propr <- function(counts,
   result@logratio <- as.data.frame(lr)
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
+  result@lambda <- lambda
   result@direct <- ifelse(metric[1] %in% c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)
   result@has_meaningful_negative_values <- ifelse(metric[1] %in% c("cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)  # metrics like proportionality has negative values that are difficult to interpret, whereas correlation metrics have a clear interpretation
 

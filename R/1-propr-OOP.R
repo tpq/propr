@@ -9,6 +9,7 @@ setClass(
     direct = "logical",
     has_meaningful_negative_values = "logical",
     ivar = "ANY",
+    lambda = "ANY",
     logratio = "data.frame",
     matrix = "matrix",
     pairs = "numeric",
