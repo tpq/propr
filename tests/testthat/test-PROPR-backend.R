@@ -49,3 +49,27 @@ test_that("logratio_without_alpha performs log-ratio transformation correctly", 
   )
 
 })
+
+test_that("index_reference works properly", {
+
+  message_test("index_reference works properly")
+
+  # Example data
+  example_data <- matrix(c(1, 2, 3, 4, 5, 6), ncol = 3, byrow = TRUE)
+  colnames(example_data) <- c("A", "B", "C")
+
+  # Compare the output with the expected output
+  expect_identical(
+    as.integer(index_reference(example_data, 2)),
+    as.integer(2)
+  )
+  expect_identical(
+    as.integer(index_reference(example_data, c("A", "C"))),
+    as.integer(c(1, 3))
+  )
+  expect_identical(
+    as.integer(index_reference(example_data, "clr")),
+    as.integer(c(1, 2, 3))
+  )
+
+})
