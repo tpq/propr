@@ -25,6 +25,10 @@ getResults <-
 #'
 #' @param object A \code{propr} or \code{propd} object.
 #' @param fdr A numeric. The false discovery rate to use.
+#' @param window_size An integer. Default is 1. When it is greater than 1,
+#' the function will use a significant cutoff based on the moving
+#' average of the FDR values. This is useful when the FDR values are
+#' noisy and the user wants to smooth them out.
 #' @param consider_negative_values A boolean. If TRUE, the function will
 #' consider also the negative values. Otherwise, it will focus only on the
 #' positive values. This is relevant only for the \code{propr} object.
@@ -32,15 +36,15 @@ getResults <-
 #'
 #' @export
 getSignificantResultsFDR <-
-  function(object, fdr = 0.05, consider_negative_values = FALSE) {
+  function(object, fdr = 0.05, window_size = 1, consider_negative_values = FALSE) {
 
     if(inherits(object, "propr")){
-      results <- getSignificantResultsFDR.propr(object, fdr, consider_negative_values)
+      results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, consider_negative_values=consider_negative_values)
 
     }else if(inherits(object, "propd")){
-      results <- getSignificantResultsFDR.propd(object, fdr)
-    }else{
+      results <- getSignificantResultsFDR.propd(object, fdr=fdr, window_size=window_size)
 
+    }else{
       stop("Please provide a 'propr' or 'propd' object.")
     }
 
@@ -54,10 +58,10 @@ getSignificantResultsFDR <-
 #' only the statistically significant pairs.
 #' @export
 getSignificantResultsFDR.propd <- 
-  function(object, fdr = 0.05) {
+  function(object, fdr = 0.05, window_size = 1) {
 
     results <- getResults(object)
-    cutoff <- getCutoffFDR(object, fdr = fdr)
+    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
     results <- results[which(results$theta <= cutoff), ]
 
     return(results)
@@ -70,7 +74,7 @@ getSignificantResultsFDR.propd <-
 #' only the statistically significant pairs.
 #' @export
 getSignificantResultsFDR.propr <- 
-  function(object, fdr = 0.05, consider_negative_values = FALSE) {
+  function(object, fdr = 0.05, window_size = 1, consider_negative_values = FALSE) {
 
     if (!object@has_meaningful_negative_values & consider_negative_values) {
       message("Alert: negative values may not be relevant for this metric.")
@@ -95,13 +99,13 @@ getSignificantResultsFDR.propr <-
     colnames(results) <- colnames(df)
 
     # get the significant positive values
-    cutoff <- getCutoffFDR(object, fdr = fdr, positive = TRUE)
+    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=TRUE)
     part <- df[which(df$propr >= 0),]
     results <- rbind(results, subsetBeyondCutoff(part, cutoff))
 
     # get the significant negative values
     if (consider_negative_values) {
-      cutoff <- getCutoffFDR(object, fdr = fdr, positive = FALSE)
+      cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=FALSE)
       part <- df[which(df$propr < 0),]
       results <- rbind(results, subsetBeyondCutoff(part, cutoff))
     }
