@@ -73,7 +73,7 @@ test_that("getSignificantResultsFstat works as expected when using theoretical F
   cutoff <- (N - 2) / (Q + (N - 2))
 
   # expect that the Fstat values are smaller or equal than the cutoff
-  expect_true(all(getSignificantResultsFstat(pr, fdr=F)$Fstat <= cutoff))
+  expect_true(all(getSignificantResultsFstat(pr, fdr=F)$theta <= cutoff))
 
 })
 

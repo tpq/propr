@@ -150,7 +150,7 @@ getSignificantResultsFstat <-
     }else{
       message("Alert: Returning the significant pairs based on the F-statistic cutoff.")
       cutoff <- getCutoffFstat(object, pval = pval, fdr = FALSE)
-      results <- results[which(results$Fstat <= cutoff), ]
+      results <- results[which(results$theta <= cutoff), ]
     }
 
     return(results)

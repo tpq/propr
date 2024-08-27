@@ -47,6 +47,8 @@ getAdjFDR.propd <-
 
     # fill in significant pairs
     adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
+    rownames(adj) <- rownames(mat)
+    colnames(adj) <- colnames(mat)
     adj[mat <= cutoff] <- 1
 
     return(adj)
@@ -70,6 +72,8 @@ getAdjFDR.propr <-
 
     # create empty matrix
     adj <- matrix(0, nrow = ncol(object@matrix), ncol = ncol(object@matrix))
+    rownames(adj) <- rownames(object@matrix)
+    colnames(adj) <- colnames(object@matrix)
 
     # for metrics with direct correlation
     if (object@direct){
@@ -125,17 +129,12 @@ getAdjFstat <-
 
   # create empty adjacency matrix
   adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
+  rownames(adj) <- rownames(mat)
+  colnames(adj) <- colnames(mat)
 
-  if (fdr) {
-    message("Alert: Returning the significant pairs based on the FDR adjusted p-values.")
-    cutoff <- getCutoffFstat(object, pval, fdr = TRUE)
-    adj[mat <= cutoff] <- 1
-  
-  } else {
-    message("Alert: Returning the significant pairs based on the F-statistic cutoff.")
-    cutoff <- getCutoffFstat(object, pval, fdr = FALSE)
-    adj[mat <= cutoff] <- 1
-  }
+  # fill in significant pairs
+  cutoff <- getCutoffFstat(object, pval, fdr = fdr)
+  adj[mat <= cutoff] <- 1
 
   return(adj)  
 }
