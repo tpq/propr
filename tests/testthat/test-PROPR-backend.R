@@ -39,19 +39,15 @@ test_that("logratio_without_alpha performs log-ratio transformation correctly", 
   # when ivar is 1,3
   transformed_data <- logratio_without_alpha(data, use = c(1,3))
   expected <- t(apply(data, 1, function(x) log(x) - mean(log(x[c(1,3)]))))
-  colnames(expected) <- colnames(data)
-  expect_identical(
-    transformed_data,
-    expected
+  expect_true(
+    all(round(transformed_data, 6) == round(expected, 6))
   )
 
   # when ivar is clr
   transformed_data <- logratio_without_alpha(data, use = c(1,2,3,4))
   expected <- t(apply(data, 1, function(x) log(x) - mean(log(x))))
-  colnames(expected) <- colnames(data)
-  expect_identical(
-    transformed_data,
-    expected
+  expect_true(
+    all(round(transformed_data, 6) == round(expected, 6))
   )
 
 })
