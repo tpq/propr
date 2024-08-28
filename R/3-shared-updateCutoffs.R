@@ -354,9 +354,9 @@ getPermutedTheta <-
 #' @return The number of values greater or less than the threshold.
 countValuesBeyondThreshold <- function(values, cutoff, direct){
   if (cutoff >= 0){
-    func <- ifelse(direct, count_greater_than, count_less_than)
+    func <- ifelse(direct, count_greater_equal_than, count_less_equal_than)
   }else{
-    func <- ifelse(direct, count_less_than, count_greater_than)
+    func <- ifelse(direct, count_less_equal_than, count_greater_equal_than)
   }
   return(func(values, cutoff))
 }

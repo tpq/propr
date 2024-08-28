@@ -8,7 +8,7 @@ x <- crabs[,4:8]  # data matrix with 5 variables
 y <- crabs[,1]    # group vector
 
 
-test_that("test that cutoffs are properly set - for propd object", {
+test_that("updateCutoffs.propd properly set up cutoffs", {
 
   # get propd object and update cutoffs
   pd <- propd(x, as.character(y), p=10)
@@ -21,7 +21,23 @@ test_that("test that cutoffs are properly set - for propd object", {
   expect_equal(pd@fdr$cutoff, cutoffs)
 })
 
-test_that("test that the permutation tests work properly - for propr object", {
+test_that("updateCutoffs.propd properly calculates truecounts", {
+
+  # get propd object and update cutoffs
+  pd <- propd(x, as.character(y), p=10)
+  pd <- updateCutoffs(pd, number_of_cutoffs=10)
+
+  # get truecounts
+  truecounts <- sapply(
+    pd@fdr$cutoff, 
+    function(cut) sum(pd@results$theta <= cut)
+  )
+
+  # check that truecounts are properly defined
+  expect_equal(pd@fdr$truecounts, truecounts)
+})
+
+test_that("updateCutoffs.propd properly calculates randcounts", {
 
   # get propd object and update cutoffs
   pd <- propd(x, as.character(y), p=10)
@@ -41,7 +57,7 @@ test_that("test that the permutation tests work properly - for propr object", {
     ))
     pkt <- pd.k@results$theta
     for (cut in 1:length(pd@fdr$cutoff)){
-        randcounts[cut] <- randcounts[cut] + propr:::countValuesBeyondThreshold(pkt, pd@fdr$cutoff[cut], direct=FALSE)
+        randcounts[cut] <- randcounts[cut] + sum(pkt <= pd@fdr$cutoff[cut])
     }
   }
   randcounts <- randcounts / 10
@@ -50,7 +66,7 @@ test_that("test that the permutation tests work properly - for propr object", {
   expect_equal(pd@fdr$randcounts, randcounts)
 })
 
-test_that("test that updateCutoffs can be reproducible when seed is set - for propr object", {
+test_that("updateCutoffs.propd is reproducible when seed is set", {
   
     # get propd object and update cutoffs
     set.seed(0)
@@ -59,27 +75,15 @@ test_that("test that updateCutoffs can be reproducible when seed is set - for pr
     set.seed(0)
     pr2 <- propd(x, as.character(y), p=10)
     pr2 <- updateCutoffs(pr2, number_of_cutoffs=10)
+    pr3 <- propd(x, as.character(y), p=10)
+    pr3 <- updateCutoffs(pr3, number_of_cutoffs=10)
   
-    # check that fdr are the same
+    # check that fdr are the same only when seed is the same
     expect_equal(pr1@fdr, pr2@fdr)
+    expect_false(isTRUE(all.equal(pr1@fdr, pr3@fdr)))
 })
 
-test_that("test that updateCutoffs will give different permutation results when seed is not set - for propd object", {
-    
-    # get propd object and update cutoffs
-    pr1 <- propd(x, as.character(y), p=10)
-    pr1 <- updateCutoffs(pr1, number_of_cutoffs=10)
-    pr2 <- propd(x, as.character(y), p=10)
-    pr2 <- updateCutoffs(pr2, number_of_cutoffs=10)
-    
-    # check that fdr are different
-    expect_false(isTRUE(all.equal(pr1@fdr, pr2@fdr)))
-
-    # check that at least the cutoffs are the same
-    expect_equal(pr1@fdr$cutoff, pr2@fdr$cutoff)
-})
-
-test_that("test that updateCutoffs works when ncores > 1 - for propd object", {
+test_that("updateCutoffs.propd works when ncores > 1", {
   
     # get propd object and update cutoffs
     set.seed(0)

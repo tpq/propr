@@ -36,3 +36,33 @@ int count_greater_than(NumericVector x, double cutoff) {
 
   return count;
 }
+
+// Count the number of elements in vector `x` that are less or equal than the
+// `cutoff`.
+//
+// [[Rcpp::export]]
+int count_less_equal_than(NumericVector x, double cutoff) {
+  int count = 0;
+  int len = x.size();
+
+  for (int i = 0; i < len; ++i) {
+    count += x[i] <= cutoff;
+  }
+
+  return count;
+}
+
+// Count the number of elements in vector `x` that are greater or equal than the
+// `cutoff`.
+//
+// [[Rcpp::export]]
+int count_greater_equal_than(NumericVector x, double cutoff) {
+  int count = 0;
+  int len = x.size();
+
+  for (int i = 0; i < len; ++i) {
+    count += x[i] >= cutoff;
+  }
+
+  return count;
+}

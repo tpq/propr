@@ -89,6 +89,14 @@ count_greater_than <- function(x, cutoff) {
     .Call(`_propr_count_greater_than`, x, cutoff)
 }
 
+count_less_equal_than <- function(x, cutoff) {
+    .Call(`_propr_count_less_equal_than`, x, cutoff)
+}
+
+count_greater_equal_than <- function(x, cutoff) {
+    .Call(`_propr_count_greater_equal_than`, x, cutoff)
+}
+
 ctzRcpp <- function(X) {
     .Call(`_propr_ctzRcpp`, X)
 }
