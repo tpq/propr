@@ -47,7 +47,7 @@ test_that("test that getSignificantResultsFDR works as expected", {
   expected_negative <- pr@results$propr[which(pr@results$propr <= cutoff_negative)]
 
   # get significant results
-  results <- getSignificantResultsFDR(pr, fdr = 0.05, consider_negative_values = TRUE)
+  results <- getSignificantResultsFDR(pr, fdr = 0.05)
 
   # check that the values are correct
   expect_equal(results$propr[results$propr>=0], expected_positive)

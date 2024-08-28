@@ -2,20 +2,12 @@ library(testthat)
 library(propr)
 library(MASS)
 
-message_test <- function(title) {
-    message(
-        "==========================================================\n", 
-        "....Running test: ", title, "\n")
-}
-
 # define data
 data(crabs)
 x <- crabs[,4:8]  # data matrix with 5 variables
 y <- crabs[,1]    # group vector
 
 test_that("getCutoffFDR gets the correct cutoff", {
-
-    message_test("getCutoffFDR gets the correct cutoff")
 
     # get propr object and update cutoffs
     set.seed(0)
@@ -31,8 +23,6 @@ test_that("getCutoffFDR gets the correct cutoff", {
 
 test_that("getCutoffFstat gets the correct cutoff when FDR correction is considered", {
 
-    message_test("getCutoffFstat gets the correct cutoff when FDR correction is considered")
-
     # get propr object and update cutoffs
     set.seed(0)
     pr <- propd(x, as.character(y), p=10)
@@ -47,8 +37,6 @@ test_that("getCutoffFstat gets the correct cutoff when FDR correction is conside
 })
 
 test_that("getCutoffFstat gets the correct cutoff when FDR correction is not considered", {
-
-    message_test("getCutoffFstat gets the correct cutoff when FDR correction is not considered")
 
     # get propr object and update cutoffs
     set.seed(0)

@@ -2,12 +2,6 @@ library(testthat)
 library(propr)
 library(MASS)
 
-message_test <- function(title) {
-    message(
-        "==========================================================\n", 
-        "....Running test: ", title, "\n")
-}
-
 # define data
 data(crabs)
 x <- crabs[,4:8]  # data matrix with 5 variables
@@ -15,8 +9,6 @@ y <- crabs[,1]    # group vector
 
 test_that("getResults works as expected", {
 
-  message_test("getResults works as expected")
-  
   # get propd object
   pr <- propd(x, as.character(y), p=10)
   
@@ -40,8 +32,6 @@ test_that("getResults works as expected", {
 
 test_that("getSignificantResultsFDR works as expected", {
 
-  message_test("getSignificantResultsFDR works as expected")
-  
   # get propd object
   pr <- propd(x, as.character(y), p=10)
   pr <- updateCutoffs(pr, number_of_cutoffs=10)
@@ -57,34 +47,14 @@ test_that("getSignificantResultsFDR works as expected", {
   expect_equal(results$theta, expected$theta)
 })
 
-test_that("getSignificantResultsFstat works as expected when using theoretical Fstat cutoff", {
-
-  message_test("getSignificantResultsFstat works as expected when using theoretical Fstat cutoff")
+test_that("getSignificantResultsFstat works as expected", {
 
   # get propd object
   pr <- propd(x, as.character(y), p=10)
   pr <- updateF(pr)
-
-  # get Fstat cutoff
-  pval <- 0.05
-  K <- length(unique(pr@group))
-  N <- length(pr@group) + pr@dfz # population-level metric (i.e., N)
-  Q <- stats::qf(pval, K - 1, N - K, lower.tail = FALSE)
-  cutoff <- (N - 2) / (Q + (N - 2))
 
   # expect that the Fstat values are smaller or equal than the cutoff
-  expect_true(all(getSignificantResultsFstat(pr, fdr=F)$theta <= cutoff))
-
-})
-
-test_that("getSignificantResultsFstat works as expected when using FDR corrected values", {
-
-  message_test("getSignificantResultsFstat works as expected when using FDR corrected values")
-
-  # get propd object
-  pr <- propd(x, as.character(y), p=10)
-  pr <- updateF(pr)
-
+  expect_true(all(getSignificantResultsFstat(pr, fdr=F)$theta <= getCutoffFstat(pr, fdr=F)))
   expect_true(all(getSignificantResultsFstat(pr, fdr=T)$fdr <= 0.05))
-  
+
 })
