@@ -1,13 +1,15 @@
-## propr 5.0.5
+## propr 5.1.0
 ---------------------
 * Allowed `updateCutoffs` function to compute FDR on negative values, when asked
-* Changed `runCutoff` into `getCutoffFstat`
 * Added `getCutoffFDR` to get a significant cutoff based on the permuted FDR
-* Added `getAdj` function to get the adjacency matrix given cutoff
+* Changed `runCutoff` into `getCutoffFstat`
+* Added `getSignificantResultsFDR` and `getSignificantResultsFstat` to get the significant pairs
+* Added `getAdjFDR` and `getAdjFstat` functions to get the adjacency matrix with the significant pairs
 * Optimized `graflex` related functions to Rcpp C++
 * Removed fixseed, since setting `set.seed()` before calling any function is enough to ensure reproducibility
 * Fix bug: when `ivar=NA`, the already preprocessed data given by the user are replaced when there are zeros, which should not
 * Replaced `ppcor::pcor` by `corpcor::cor2pcor` for coherence with the shrunk partial correlations
+* Parallelized `propd` when ncores > 1
 
 ## propr 5.0.4
 ---------------------
