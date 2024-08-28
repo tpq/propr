@@ -158,16 +158,17 @@ propr <- function(counts,
 
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
-    mat <- corpcor::pcor.shrink(lr)
-    lambda <- attr(mat, "lambda")
-    attributes(mat) = NULL
+    cov <- corpcor::cov.shrink(lr)
+    mat <- corpcor::cor2pcor(cov)
     mat <- matrix(mat, ncol=ncol(lr), nrow=ncol(lr))
     class(mat) <- "matrix"
+    lambda <- attr(cov, "lambda")
 
   } else if (metric == "pcor.bshrink") {
-    tmp <- basis_shrinkage(ct, outtype = ivar_pcor)
-    mat <- tmp$pcor
-    lambda <- tmp$lambda
+    with(pcor.bshrink(ct, outtype = ivar_pcor), {
+      mat <<- matrix
+      lambda <<- lambda
+    })
 
   } else {
     stop("Provided 'metric' not recognized.")

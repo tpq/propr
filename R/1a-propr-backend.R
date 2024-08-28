@@ -186,10 +186,10 @@ logratio <- function(counts, ivar, alpha) {
   return(lr)
 }
 
-#' Covariance Shrinkage and Partial Correlation Calculation
+#' Basis Covariance Shrinkage and Partial Correlation Calculation
 #'
-#' This function performs covariance shrinkage and calculates the partial
-#'  correlation matrix based on the input count data matrix. The function can
+#' This function performs covariance shrinkage on the basis matrix
+#'  and calculates the partial correlation matrix. The function can
 #'  output the results in two formats: centered log-ratio (clr) or
 #'  additive log-ratio (alr).
 #'
@@ -201,20 +201,20 @@ logratio <- function(counts, ivar, alpha) {
 #'  the index of the reference is not needed for "alr". Also, "clr" is recommended
 #'  because of the same reason, at the same time avoiding losing one dimension.
 #'
-#' @return A matrix representing the partial correlation matrix.
+#' @return A matrix representing the shrunk partial correlation matrix.
 #'
 #' @examples
 #' # Sample input count data
 #' data <- iris[,1:4]
 #'
 #' # Calculate partial correlation matrix using clr transformation
-#' result_clr <- basis_shrinkage(data, outtype = "clr")
+#' result_clr <- pcor.bshrink(data, outtype = "clr")
 #'
 #' # Calculate partial correlation matrix using alr transformation
-#' result_alr <- basis_shrinkage(data, outtype = "alr")
+#' result_alr <- pcor.bshrink(data, outtype = "alr")
 #'
 #' @export
-basis_shrinkage <- function(ct, outtype = c("clr", "alr")) {
+pcor.bshrink <- function(ct, outtype = c("clr", "alr")) {
   packageCheck("corpcor")
   outtype <- match.arg(outtype)
 
@@ -240,16 +240,12 @@ basis_shrinkage <- function(ct, outtype = c("clr", "alr")) {
 
   # make output to have same dimensions as input
   # alr partial correlation has one less dimension,
-  # so here we add a row and a column of zeros
+  # so here we add a row and a column of 0s
   if (outtype == "alr") {
-    pcor <- cbind(pcor, NA)
-    pcor <- rbind(pcor, NA)
+    pcor <- cbind(pcor, 0)
+    pcor <- rbind(pcor, 0)
+    pcor[ncol(pcor), ncol(pcor)] <- 1
   }
 
-  # create output elements
-  out <- list()
-  out$pcor <- pcor
-  out$lambda <- lambda
-
-  return(out)
+  return(list(matrix = pcor, lambda = lambda))
 }

@@ -1,11 +1,6 @@
 library(testthat)
 library(propr)
-
-message_test <- function(title) {
-    message(
-        "==========================================================\n", 
-        "....Running test: ", title, "\n")
-}
+library(corpcor)
 
 # define data
 N <- 100
@@ -16,43 +11,34 @@ d <- rnorm(N, mean = 10)
 e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 
-test_that("pcor.bshrink is correct when ivar is clr",{
+test_that("pcor.bshrink is correct when ivar is clr or alr",{
 
-    message_test("pcor.bshrink is correct when ivar is clr")
-  
+  for (ivar in c("clr", "alr")){
+
     # compute pcor manually
     ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    out <- propr:::basis_shrinkage(ct)
-    mat <- out$pcor
+    out <- propr:::pcor.bshrink(ct, ivar)
+    mat <- out$matrix
     lambda <- out$lambda
-    attributes(mat) = NULL
-    mat <- matrix(mat, ncol=ncol(X), nrow=ncol(X))
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
 
     # compute pcor
-    pr <- propr(X, metric = "pcor.bshrink", ivar="clr")
+    pr <- propr(X, metric = "pcor.bshrink", ivar=ivar)
 
     # expect counts to have zeros replaced
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
+    expect_true(
+      all(as.matrix(pr@counts) == as.matrix(ct))
     )
 
     # NOTE that the data is not logratio transformed while computing pcor.bshrink
     # it is internally handled by covariance conversion.
     # so pr@logratio should be equal to pr@counts
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(pr@counts)
+    expect_true(
+      all(as.matrix(pr@logratio) == as.matrix(pr@counts))
     )
   
     # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
+    expect_true(
+      all(round(pr@matrix, 8) == round(mat, 8))
     )
 
     # expect same lambda
@@ -64,73 +50,17 @@ test_that("pcor.bshrink is correct when ivar is clr",{
     # check dimensions are correct
     expect_equal(ncol(pr@matrix), 5)
     expect_equal(nrow(pr@matrix), 5)
-  
-})
-
-
-test_that("pcor.bshrink is correct when ivar is alr",{
-
-    message_test("pcor.bshrink is correct when ivar is alr")
-  
-    # compute pcor manually
-    ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    out <- propr:::basis_shrinkage(ct, outtype='alr')
-    mat <- out$pcor
-    lambda <- out$lambda
-    attributes(mat) = NULL
-    attributes(mat) = NULL
-    mat <- matrix(mat, ncol=ncol(X), nrow=ncol(X))
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
-
-    # compute pcor
-    pr <- suppressWarnings(propr(X, metric = "pcor.bshrink", ivar='alr'))
-
-    # expect counts to have zeros replaced
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
-    )
-
-    # NOTE that the data is not logratio transformed while computing pcor.bshrink
-    # it is internally handled by covariance conversion.
-    # so pr@logratio should be equal to pr@counts
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(pr@counts)
-    )
-  
-    # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
-    )
-
-    # expect same lambda
-    expect_equal(
-      pr@lambda,
-      lambda
-    )
-
-    # check dimensions are correct
-    expect_equal(ncol(pr@matrix), 5)
-    expect_equal(nrow(pr@matrix), 5)
+  }
   
 })
 
 test_that("test that pcor.bshrink gives error when ivar is NA", {
-
-    message_test("test that pcor.bshrink gives error when ivar is NA")
     expect_error(
         propr(X, metric = "pcor.bshrink", ivar=NA)
     )
 })
 
 test_that("pcor.bshrink with alr and clr are the same", {
-
-    message_test("pcor.bshrink with alr and clr are the same")
 
     # compute pcor with alr
     pr_alr <- suppressWarnings(propr(X, metric = "pcor.bshrink", ivar='alr'))

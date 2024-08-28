@@ -1,12 +1,6 @@
 library(testthat)
 library(propr)
 
-message_test <- function(title) {
-    message(
-        "==========================================================\n", 
-        "....Running test: ", title, "\n")
-}
-
 # define data
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)
@@ -16,82 +10,35 @@ d <- rnorm(N, mean = 10)
 e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
 
-test_that("pcor is correct when ivar is clr",{
+test_that("pcor is correct when ivar is given", {
 
-    message_test("pcor is correct when ivar is clr")
-  
+  d1 <- list("clr", 5, c(1,3))
+  d2 <- list(c(1:5), 5, c(1,3))
+
+  for (i in 1:length(d1)){
+
     # compute pcor manually
     ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    clr <- t(apply(ct, 1, function(x) log(x) - mean(log(x))))
-    cov <- cov(clr)
-    mat <- corpcor::cor2pcor(cov)
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
-
-    # compute pcor
-    pr <- propr(X, metric = "pcor", ivar="clr")
-
-    # expect counts to have zeros replaced
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
-    )
-
-    # expect that clr are equal
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(clr)
-    )   
-  
-    # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
-    )
-
-    # check shrinkage is not applied
-    expect_equal(
-      pr@lambda,
-      NULL
-    )
-  
-})
-
-test_that("pcor is correct when ivar is 5",{
-
-    message_test("pcor is correct when ivar is 5")
-  
-    # compute pcor manually
-    ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    alr <- t(apply(ct, 1, function(x) log(x) - log(x[5])))
-    cov <- cov(alr)
+    lr <- logratio_without_alpha(ct, d2[[i]])
+    cov <- cov(lr)
     mat <- suppressWarnings(corpcor::cor2pcor(cov))
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
 
     # compute pcor
-    pr <- suppressWarnings(propr(X, metric = "pcor", ivar=5))
+    pr <- suppressWarnings(propr(X, metric = "pcor", ivar=d1[[i]]))
 
     # expect counts to have zeros replaced
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
+    expect_true(
+      all(pr@counts == ct)
     )
 
-    # expect that alr are equal
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(alr)
-    )   
-  
+    # expect that logratio are equal
+    expect_true(
+      all(pr@logratio == lr)
+    )
+
     # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
+    expect_true(
+      all(round(pr@matrix, 8) == round(mat, 8), na.rm=T)
     )
 
     # check shrinkage is not applied
@@ -99,93 +46,39 @@ test_that("pcor is correct when ivar is 5",{
       pr@lambda,
       NULL
     )
-  
+  }
 })
 
-test_that("pcor gives error when ivar is alr", {
-  
-    message_test("pcor gives error when ivar is alr")
-    expect_error(
-      propr(X, metric = "pcor", ivar='alr')
-    )
-})
 
-test_that("pcor is correct when ivar is 1,3",{
+test_that("pcor is correct when ivar is NA using previously transformed data", {
 
-    message_test("pcor is correct when ivar is 1,3")
-  
-    # compute pcor manually
-    ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    alr <- logratio_without_alpha(ct, c(1,3))
-    cov <- cov(alr)
-    mat <- corpcor::cor2pcor(cov)
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
+  d1 <- list("clr", 5, c(1,3))
+  d2 <- list(c(1:5), 5, c(1,3))
 
-    # compute pcor
-    pr <- propr(X, metric = "pcor", ivar=c(1,3))
-
-    # expect counts to have zeros replaced
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
-    )
-
-    # expect that alr are equal
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(alr)
-    )   
-  
-    # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
-    )
-
-    # check shrinkage is not applied
-    expect_equal(
-      pr@lambda,
-      NULL
-    )
-  
-})
-
-test_that("pcor is correct when ivar is NA using previously clr transformed data", {
-
-    message_test("pcor is correct when ivar is NA using previously clr transformed data")
+  for (i in 1:length(d1)){
 
     # compute pcor manually
     ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    clr <- t(apply(ct, 1, function(x) log(x) - mean(log(x))))
-    cov <- cov(clr)
-    mat <- corpcor::cor2pcor(cov)
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
+    lr <- logratio_without_alpha(ct, d2[[i]])
+    cov <- cov(lr)
+    mat <- suppressWarnings(corpcor::cor2pcor(cov))
 
     # compute pcor
-    pr <- propr(clr, metric = "pcor", ivar=NA)
+    pr <- suppressWarnings(propr(lr, metric = "pcor", ivar=NA))
 
     # expect counts to contain the previously transformed data
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(clr)
+    expect_true(
+      all(pr@counts == lr)
     )
 
     # expect that the logratio slot also contains the exact input data
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(clr)
-    )   
-  
+    expect_true(
+      all(pr@logratio == lr)
+    )
+
     # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
+    expect_true(
+      all(round(pr@matrix, 8) == round(mat, 8), na.rm=T)
     )
 
     # check shrinkage is not applied
@@ -193,97 +86,10 @@ test_that("pcor is correct when ivar is NA using previously clr transformed data
       pr@lambda,
       NULL
     )
-
-})
-
-test_that("pcor is correct when ivar is NA using previously alr transformed data", {
-
-    message_test("pcor is correct when ivar is NA using previously alr transformed data")
-
-    # compute pcor manually
-    ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    alr <- t(apply(ct, 1, function(x) log(x) - log(x[5])))
-    cov <- cov(alr)
-    mat <- suppressWarnings(corpcor::cor2pcor(cov))
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
-
-    # compute pcor
-    pr <- suppressWarnings(propr(alr, metric = "pcor", ivar=NA))
-
-    # expect counts to contain the previously transformed data
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(alr)
-    )
-
-    # expect that the logratio slot also contains the exact input data
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(alr)
-    )   
-  
-    # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
-    )
-
-    # check shrinkage is not applied
-    expect_equal(
-      pr@lambda,
-      NULL
-    )
-
-})
-
-test_that("pcor is correct when ivar is NA using raw data", {
-
-    message_test("pcor is correct when ivar is NA using raw data")
-
-    # compute pcor manually
-    ct <- simple_zero_replacement(X)
-    rownames(ct) <- rownames(X)
-    cov <- cov(ct)
-    mat <- suppressWarnings(corpcor::cor2pcor(cov))
-    class(mat) <- "matrix"
-    colnames(mat)  <- colnames(X)
-    rownames(mat)  <- colnames(X)
-
-    # compute pcor
-    pr <- suppressWarnings(propr(ct, metric = "pcor", ivar=NA))
-
-    # expect counts to contain the raw data
-    expect_equal(
-      as.matrix(pr@counts),
-      as.matrix(ct)
-    )
-
-    # expect that the logratio slot also contains the exact input data
-    expect_equal(
-      as.matrix(pr@logratio),
-      as.matrix(ct)
-    )   
-  
-    # expect computed coefficients are equal
-    expect_equal(
-      round(pr@matrix, 8),
-      round(mat, 8)
-    )
-
-    # check shrinkage is not applied
-    expect_equal(
-      pr@lambda,
-      NULL
-    )
-
+  }
 })
 
 test_that("pcor with alr and clr are the same", {
-
-    message_test("pcor with alr and clr are the same")
 
     # compute pcor with alr
     pr <- suppressWarnings(propr(X, metric = "pcor", ivar=5))

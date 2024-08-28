@@ -1,75 +1,57 @@
 library(testthat)
 library(propr)
 
-message_test <- function(title) {
-  message(
-    "==========================================================\n",
-    "....Running test: ", title, "\n")
-}
+# define data
+data <- matrix(c(1:12), ncol=4)
+colnames(data) <- c("A", "B", "C", "D")
 
-test_that("simple_zero_replacement replaces zeros correctly", {
 
-  message_test("simple_zero_replacement replaces zeros correctly")
+test_that("index_reference works properly", {
 
-  # Example data with zeros
-  data_with_zeros <- matrix(c(1, 2, 3, 0, 5, 6, 0, 8, 9), nrow = 3, byrow = TRUE)
-
-  # Apply the simple_zero_replacement function to the example data
-  replaced_data <- simple_zero_replacement(data_with_zeros)
-
-  # Define the expected output after zero replacement
-  expected_output <- matrix(c(1, 2, 3, 1, 5, 6, 1, 8, 9), nrow = 3, byrow = TRUE)
-
-  # Compare the output with the expected output
   expect_identical(
-    replaced_data, 
-    expected_output
+    as.integer(index_reference(data, 2)),
+    as.integer(2)
+  )
+  expect_identical(
+    as.integer(index_reference(data, c("A", "C"))),
+    as.integer(c(1, 3))
+  )
+  expect_identical(
+    as.integer(index_reference(data, "clr")),
+    as.integer(c(1, 2, 3, 4))
   )
 
 })
 
 test_that("logratio_without_alpha performs log-ratio transformation correctly", {
 
-  message_test("logratio_without_alpha performs log-ratio transformation correctly")
-
-  # Example data
-  example_data <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, byrow = TRUE)
-
-  # Apply the logratio_without_alpha function to the example data
-  transformed_data <- logratio_without_alpha(example_data, use = 2)
-
-  # Compare the output with the expected output
+  # when ivar is 2
+  transformed_data <- logratio_without_alpha(data, use = 2)
   expect_identical(
-    transformed_data[1,1], 
-    log(1/2)
+    as.numeric(round(transformed_data[1,1], 6)), 
+    round(log(1/4), 6)
   )
   expect_identical(
-    round(transformed_data[2,1], 6),
-    round(log(3/4), 6)
+    as.numeric(round(transformed_data[2,1], 6)),
+    round(log(2/5), 6)
   )
 
-})
-
-test_that("index_reference works properly", {
-
-  message_test("index_reference works properly")
-
-  # Example data
-  example_data <- matrix(c(1, 2, 3, 4, 5, 6), ncol = 3, byrow = TRUE)
-  colnames(example_data) <- c("A", "B", "C")
-
-  # Compare the output with the expected output
+  # when ivar is 1,3
+  transformed_data <- logratio_without_alpha(data, use = c(1,3))
+  expected <- t(apply(data, 1, function(x) log(x) - mean(log(x[c(1,3)]))))
+  colnames(expected) <- colnames(data)
   expect_identical(
-    as.integer(index_reference(example_data, 2)),
-    as.integer(2)
+    transformed_data,
+    expected
   )
+
+  # when ivar is clr
+  transformed_data <- logratio_without_alpha(data, use = c(1,2,3,4))
+  expected <- t(apply(data, 1, function(x) log(x) - mean(log(x))))
+  colnames(expected) <- colnames(data)
   expect_identical(
-    as.integer(index_reference(example_data, c("A", "C"))),
-    as.integer(c(1, 3))
-  )
-  expect_identical(
-    as.integer(index_reference(example_data, "clr")),
-    as.integer(c(1, 2, 3))
+    transformed_data,
+    expected
   )
 
 })
