@@ -9,13 +9,14 @@
 #' the function will use a significant cutoff based on the moving
 #' average of the FDR values. This is useful when the FDR values are
 #' noisy and the user wants to smooth them out.
-#' @param consider_negative_values A boolean. If TRUE, the function will
-#' consider also the negative values. Otherwise, it will focus only on the
-#' positive values. This is relevant only for the \code{propr} object.
+#' @param consider_negative_values A boolean or NULL. If NULL, default behaviour
+#' is set for each metric. If TRUE, the function will consider both positive and
+#' negative values. If FALSE, it will focus only on the positive values. This is 
+#' relevant only for the \code{propr} object.
 #' @return An adjacency matrix.
 #'
 #' @export
-getAdjFDR <- function(object, fdr = 0.05, window_size = 1, consider_negative_values = FALSE) {
+getAdjFDR <- function(object, fdr = 0.05, window_size = 1, consider_negative_values = NULL) {
   
   if (inherits(object, "propr")){
     adj <- getAdjFDR.propr(object, fdr=fdr, window_size=window_size, consider_negative_values=consider_negative_values)
@@ -61,7 +62,9 @@ getAdjFDR.propd <-
 #' pairs from a \code{propd} object.
 #' @export
 getAdjFDR.propr <-
-  function(object, fdr = 0.05, window_size = 1, consider_negative_values = FALSE) {
+  function(object, fdr = 0.05, window_size = 1, consider_negative_values = NULL) {
+
+    if (is.null(consider_negative_values)) consider_negative_values <- object@has_meaningful_negative_values
     
     if (!object@has_meaningful_negative_values & consider_negative_values) {
       message("Alert: negative values may not be relevant for this metric.")

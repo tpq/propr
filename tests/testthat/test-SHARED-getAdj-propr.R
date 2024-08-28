@@ -1,14 +1,7 @@
 library(testthat)
 library(propr)
 
-message_test <- function(title) {
-    message(
-        "==========================================================\n", 
-        "....Running test: ", title, "\n")
-}
-
 # define data matrix
-set.seed(123)
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)
 b <- a * rnorm(N, mean = 1, sd = 0.1)
@@ -20,14 +13,12 @@ X <- data.frame(a, b, c, d, e)
 
 test_that("getAdjFDR returns the expected values for pcor.bshrink", {
 
-    message_test("getAdjFDR returns the expected values for pcor.bshrink")
-
     # get propr object
     pr <- propr(X, metric = "pcor.bshrink", p=10)
     pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
     # get adjacency matrix
-    adj <- getAdjFDR(pr, consider_negative_values=TRUE)
+    adj <- getAdjFDR(pr)
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
@@ -42,14 +33,12 @@ test_that("getAdjFDR returns the expected values for pcor.bshrink", {
 
 test_that("getAdjFDR returns the expected values for rho", {
 
-    message_test("getAdjFDR returns the expected values for rho")
-
     # get propr object
     pr <- propr(X, metric = "rho", p=10)
     pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
     # get adjacency matrix
-    adj <- getAdjFDR(pr, consider_negative_values=FALSE)
+    adj <- getAdjFDR(pr)
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
@@ -64,14 +53,12 @@ test_that("getAdjFDR returns the expected values for rho", {
 
 test_that("getAdjFDR returns the expected values for phs", {
 
-    message_test("getAdjFDR returns the expected values for phs")
-
     # get propr object
     pr <- propr(X, metric = "phs", p=10)
     pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
     # get adjacency matrix
-    adj <- getAdjFDR(pr, consider_negative_values=FALSE)
+    adj <- getAdjFDR(pr)
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
@@ -86,18 +73,15 @@ test_that("getAdjFDR returns the expected values for phs", {
 
 test_that("getAdjFDR and getSignificantResultsFDR return coherent results", {
     
-    message_test("getAdjFDR and getSignificantResultsFDR return coherent results")
-
     # get propr object
-    set.seed(0)
     pr <- propr(X, metric = "pcor.bshrink", p=10)
     pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
     # get adjacency matrix
-    adj <- getAdjFDR(pr, consider_negative_values=TRUE)
+    adj <- getAdjFDR(pr)
 
     # get significant results
-    results <- getSignificantResultsFDR(pr, consider_negative_values=TRUE)
+    results <- getSignificantResultsFDR(pr)
 
     # check that the values are correct
     for (i in 1:nrow(results)){
