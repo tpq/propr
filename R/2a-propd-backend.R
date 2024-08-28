@@ -180,7 +180,7 @@ get_theta_matrix <- function(propd){
   }
 
   # Convert to matrix
-  mat <- half2mat(propd@results[,'theta'])
+  mat <- vector2mat(propd@results$theta, propd@results$Partner, propd@results$Pair)
   rownames(mat) <- colnames(propd@counts)
   colnames(mat) <- colnames(propd@counts)
 

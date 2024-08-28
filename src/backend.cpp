@@ -427,6 +427,27 @@ NumericMatrix half2mat(NumericVector X){
   return A;
 }
 
+// Function to recast a vector into matrix, given the positions i and j
+// [[Rcpp::export]]
+NumericMatrix vector2mat(NumericVector X, IntegerVector i, IntegerVector j){
+  
+  int nfeats = sqrt(2 * X.length() + .25) + .5;
+  NumericMatrix A(nfeats, nfeats);
+
+  int ni = i.length();
+  int nj = j.length();
+  if (ni != nj){
+    stop("i and j must be the same length.");
+  }
+
+  for (int counter = 0; counter < ni; counter++){
+    A(i[counter]-1, j[counter]-1) = X[counter];   // NOTE that R is 1-indexed whereas C is 0-indexed
+    A(j[counter]-1, i[counter]-1) = X[counter];
+  }
+
+  return A;  
+}
+
 // Function to recast matrix as feature ratios
 // [[Rcpp::export]]
 NumericMatrix ratiosRcpp(NumericMatrix & X){

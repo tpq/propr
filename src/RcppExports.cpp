@@ -221,6 +221,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// vector2mat
+NumericMatrix vector2mat(NumericVector X, IntegerVector i, IntegerVector j);
+RcppExport SEXP _propr_vector2mat(SEXP XSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type i(iSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(vector2mat(X, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ratiosRcpp
 NumericMatrix ratiosRcpp(NumericMatrix& X);
 RcppExport SEXP _propr_ratiosRcpp(SEXP XSEXP) {
@@ -518,6 +531,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_urtRcpp", (DL_FUNC) &_propr_urtRcpp, 1},
     {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
     {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
+    {"_propr_vector2mat", (DL_FUNC) &_propr_vector2mat, 3},
     {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
     {"_propr_results2matRcpp", (DL_FUNC) &_propr_results2matRcpp, 3},
     {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},

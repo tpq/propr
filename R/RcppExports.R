@@ -73,6 +73,10 @@ half2mat <- function(X) {
     .Call(`_propr_half2mat`, X)
 }
 
+vector2mat <- function(X, i, j) {
+    .Call(`_propr_vector2mat`, X, i, j)
+}
+
 ratiosRcpp <- function(X) {
     .Call(`_propr_ratiosRcpp`, X)
 }

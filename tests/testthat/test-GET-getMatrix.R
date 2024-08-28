@@ -25,8 +25,8 @@ test_that('get propd matrix work',{
     results[which(results$Partner==2 & results$Pair==1),3]
   )
   expect_equal(
-    mat[1,3], 
-    results[which(results$Partner==3 & results$Pair==1),3]
+    mat[2,3], 
+    results[which(results$Partner==3 & results$Pair==2),3]
   )
 })
 
