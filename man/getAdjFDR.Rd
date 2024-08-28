@@ -2,20 +2,35 @@
 % Please edit documentation in R/3-shared-getAdj.R
 \name{getAdjFDR}
 \alias{getAdjFDR}
+\alias{getAdjFDR.propd}
+\alias{getAdjFDR.propr}
 \title{Get Adjacency Matrix as indicated by permutation tests}
 \usage{
-getAdjFDR(object, fdr = 0.05, positive = TRUE, negative = FALSE)
+getAdjFDR(object, fdr = 0.05, window_size = 1, consider_negative_values = NULL)
+
+getAdjFDR.propd(object, fdr = 0.05, window_size = 1)
+
+getAdjFDR.propr(
+  object,
+  fdr = 0.05,
+  window_size = 1,
+  consider_negative_values = NULL
+)
 }
 \arguments{
 \item{object}{A \code{propd} or \code{propr} object.}
 
 \item{fdr}{A float value for the false discovery rate. Default is 0.05.}
 
-\item{positive}{A boolean. In the case of \code{propr} object,
-toggles where to retain the significant pairs with positive values (>=0).}
+\item{window_size}{An integer. Default is 1. When it is greater than 1,
+the function will use a significant cutoff based on the moving
+average of the FDR values. This is useful when the FDR values are
+noisy and the user wants to smooth them out.}
 
-\item{negative}{A boolean. In the case of \code{propr} object,
-toggles where to retain the significant pairs with negative values (<0).}
+\item{consider_negative_values}{A boolean or NULL. If NULL, default behaviour
+is set for each metric. If TRUE, the function will consider both positive and
+negative values. If FALSE, it will focus only on the positive values. This is 
+relevant only for the \code{propr} object.}
 }
 \value{
 An adjacency matrix.
@@ -25,3 +40,15 @@ This function gets the significant pairs, according to the permutation tests.
 Then it fills the adjacency matrix with 1 if pair is significant, otherwise 0.
 The diagonal is set to 0.
 }
+\section{Methods}{
+
+\code{getAdjFDR.propd:}
+This function creates an adjacency matrix with the significant
+pairs from a \code{propd} object.
+
+
+\code{getAdjFDR.propr:}
+This function creates an adjacency matrix with the significant
+pairs from a \code{propd} object.
+}
+

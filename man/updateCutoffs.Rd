@@ -6,21 +6,26 @@
 \alias{updateCutoffs.propd}
 \title{Update FDR by Permutation}
 \usage{
-updateCutoffs(object, cutoff_vector = NULL, cutoff_nbins = 1000, ncores = 1)
+updateCutoffs(
+  object,
+  number_of_cutoffs = 100,
+  custom_cutoffs = NULL,
+  ncores = 1
+)
 
-updateCutoffs.propr(object, cutoff, ncores)
+updateCutoffs.propr(object, cutoffs, ncores)
 
-updateCutoffs.propd(object, cutoff)
+updateCutoffs.propd(object, cutoffs, ncores)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
 
-\item{cutoff_vector}{For \code{updateCutoffs}, a numeric vector.
- this argument provides the FDR cutoffs to test. When NULL (default),
-the function will calculate the cutoffs based on quantile.}
+\item{number_of_cutoffs}{An integer. The number of cutoffs to test.
+Given this number, the cutoffs will be determined based on the quantile of the data.
+In this way, the cutoffs will be evenly spaced across the data.}
 
-\item{cutoff_nbins}{An integer. The number of bins for quantile-based
-FDR cutoffs.}
+\item{custom_cutoffs}{A numeric vector. When provided, this vector is used
+as the FDR cutoffs to test, and number_of_cutoffs is ignored.}
 
 \item{ncores}{An integer. The number of parallel cores to use.}
 }
@@ -37,7 +42,8 @@ This function wraps \code{updateCutoffs.propr} and
 \section{Methods}{
 
 \code{updateCutoffs.propr:}
- Use the \code{propr} object to permute proportionality
+ Use the \code{propr} object to permute correlation-like metrics
+ (ie. rho, phi, phs, cor, pcor, pcor.shrink, pcor.bshrink),
  across a number of cutoffs. Since the permutations get saved
  when the object is created, calling \code{updateCutoffs}
  will use the same random seed each time.

@@ -15,8 +15,9 @@ It can take the following values:
  - "clr" (default): Centered log-ratio transformation.
  - "alr": Additive log-ratio transformation ("pcor.bshrink" metric only).
  - "iqlr": Inter-quartile log-ratio transformation from ALDEx2.
- - The explicit name(s) of variable(s) to use as a reference.
-Use NA to skip log-ratio transformation.}
+ - The explicit name(s) or index(es) of variable(s) to use as a reference.
+ - Use NA to skip log-ratio transformation and any other pre-processing, like
+zero replacement. This is useful when the input data is already pre-processed.}
 }
 \value{
 A numeric vector representing the indices of features selected.

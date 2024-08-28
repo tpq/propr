@@ -2,20 +2,40 @@
 % Please edit documentation in R/3-shared-getResults.R
 \name{getSignificantResultsFDR}
 \alias{getSignificantResultsFDR}
+\alias{getSignificantResultsFDR.propd}
+\alias{getSignificantResultsFDR.propr}
 \title{Get Significant Results from Object based on the permutation tests.}
 \usage{
-getSignificantResultsFDR(object, fdr = 0.05, positive = TRUE, negative = FALSE)
+getSignificantResultsFDR(
+  object,
+  fdr = 0.05,
+  window_size = 1,
+  consider_negative_values = NULL
+)
+
+getSignificantResultsFDR.propd(object, fdr = 0.05, window_size = 1)
+
+getSignificantResultsFDR.propr(
+  object,
+  fdr = 0.05,
+  window_size = 1,
+  consider_negative_values = NULL
+)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
 
 \item{fdr}{A numeric. The false discovery rate to use.}
 
-\item{positive}{A boolean. In the case of \code{propr} object,
-toggles whether to return the significant positive values (>=0).}
+\item{window_size}{An integer. Default is 1. When it is greater than 1,
+the function will use a significant cutoff based on the moving
+average of the FDR values. This is useful when the FDR values are
+noisy and the user wants to smooth them out.}
 
-\item{negative}{A boolean. In the case of \code{propr} object,
-toggles whether to return the significant negative values (<0).}
+\item{consider_negative_values}{A boolean or NULL. If NULL, default behaviour
+is set for each metric. If TRUE, the function will consider both positive and
+negative values. If FALSE, it will focus only on the positive values. This is 
+relevant only for the \code{propr} object.}
 }
 \value{
 A \code{data.frame} of results.
@@ -25,3 +45,15 @@ This function provides a unified wrapper to retrieve results
  from a \code{propr} or \code{propd} object keeping only the
  statistically significant pairs.
 }
+\section{Methods}{
+
+\code{getSignificantResultsFDR.propd:}
+This function retrieves results from a \code{propd} object keeping 
+only the statistically significant pairs.
+
+
+\code{getSignificantResultsFDR.propr:}
+This function retrieves results from a \code{propr} object keeping 
+only the statistically significant pairs.
+}
+

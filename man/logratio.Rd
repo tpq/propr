@@ -15,8 +15,9 @@ It can take the following values:
  - "clr" (default): Centered log-ratio transformation.
  - "alr": Additive log-ratio transformation ("pcor.bshrink" metric only).
  - "iqlr": Inter-quartile log-ratio transformation from ALDEx2.
- - The explicit name(s) of variable(s) to use as a reference.
-Use NA to skip log-ratio transformation.}
+ - The explicit name(s) or index(es) of variable(s) to use as a reference.
+ - Use NA to skip log-ratio transformation and any other pre-processing, like
+zero replacement. This is useful when the input data is already pre-processed.}
 
 \item{alpha}{The alpha parameter used in the alpha log-ratio transformation.}
 }
@@ -26,6 +27,9 @@ A matrix with log-ratio transformed values.
 \description{
 This function applies a log-ratio transformation to a given data matrix
  with or without using an alpha parameter.
+ Also, the zeros in the matrix are replaced with the next smallest non-zero,
+ except when ivar is NA in which case it is assumed the count data has been
+ preprocessed.
 }
 \examples{
 # Sample counts matrix

@@ -4,7 +4,7 @@
 \alias{getCutoffFDR}
 \title{Get a meaningful cutoff based on the FDR values from permutation tests.}
 \usage{
-getCutoffFDR(object, fdr = 0.05, positive = TRUE)
+getCutoffFDR(object, fdr = 0.05, window_size = 1, positive = TRUE)
 }
 \arguments{
 \item{object}{A \code{propd} or \code{propr} object.}
@@ -12,9 +12,15 @@ getCutoffFDR(object, fdr = 0.05, positive = TRUE)
 \item{fdr}{A float value for the false discovery rate.
 Default is 0.05.}
 
+\item{window_size}{An integer. Default is 1. When it is greater than 1,
+the function will return a meaningful cutoff based on the moving
+average of the FDR values. This is useful when the FDR values are
+noisy and the user wants to smooth them out.}
+
 \item{positive}{A boolean. In the case of \code{propr} object, 
 toggles whether to return the cutoff for positive values (>=0). 
-Otherwise, return cutoff for negative values (<0).}
+Otherwise, return cutoff for negative values (<0). Default is TRUE.
+This argument is ignored for \code{propd} objects.}
 }
 \value{
 A cutoff value.
