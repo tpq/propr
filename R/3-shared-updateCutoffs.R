@@ -29,7 +29,7 @@ updateCutoffs <-
     }
 
     if (inherits(object, "propr")) {
-      values <- object@matrix[lower.tri(object@matrix)]
+      values <- object@results$propr
       cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs)
       updateCutoffs.propr(object, cutoffs, ncores)
 
