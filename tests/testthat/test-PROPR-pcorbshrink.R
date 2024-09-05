@@ -10,6 +10,9 @@ c <- rnorm(N, mean = 10)
 d <- rnorm(N, mean = 10)
 e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
+for (i in 1:4){
+  X[sample(1:N, 10),i] <- 0
+}
 
 test_that("pcor.bshrink is correct when ivar is clr or alr",{
 
@@ -26,14 +29,14 @@ test_that("pcor.bshrink is correct when ivar is clr or alr",{
 
     # expect counts to have zeros replaced
     expect_true(
-      all(as.matrix(pr@counts) == as.matrix(ct))
+      all(pr@counts == ct)
     )
 
     # NOTE that the data is not logratio transformed while computing pcor.bshrink
     # it is internally handled by covariance conversion.
     # so pr@logratio should be equal to pr@counts
     expect_true(
-      all(as.matrix(pr@logratio) == as.matrix(pr@counts))
+      all(pr@logratio == ct)
     )
   
     # expect computed coefficients are equal

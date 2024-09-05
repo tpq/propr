@@ -99,6 +99,9 @@ compute_iqlr <- function(counts) {
 #'
 #' @export
 logratio_without_alpha <- function(ct, use) {
+  if (any(ct == 0)){
+    stop("Error: please first replace the zeros before running logratio.")
+  }
   # Use g(x) = Mean[log(x)] to log-ratio transform data
   logX <- log(ct)
   logSet <- logX[, use, drop = FALSE]
@@ -147,9 +150,6 @@ logratio_with_alpha <- function(ct, use, alpha) {
 #'
 #' This function applies a log-ratio transformation to a given data matrix
 #'  with or without using an alpha parameter.
-#'  Also, the zeros in the matrix are replaced with the next smallest non-zero,
-#'  except when ivar is NA in which case it is assumed the count data has been
-#'  preprocessed.
 #'
 #' @inheritParams propr
 #' @return A matrix with log-ratio transformed values.
@@ -172,13 +172,12 @@ logratio_with_alpha <- function(ct, use, alpha) {
 logratio <- function(counts, ivar, alpha) {
   counts <- as_safe_matrix(counts)
   if (length(ivar) == 1 && is.na(ivar)) {
-    message("Alert: Skipping built-in log-ratio transformation and zero replacement.")
+    message("Alert: Skipping built-in log-ratio transformation.")
     lr <- counts
   } else {
     use <- index_reference(counts, ivar) # Index reference
     if (is.na(alpha)) {
-      ct <- simple_zero_replacement(counts)
-      lr <- logratio_without_alpha(ct, use)
+      lr <- logratio_without_alpha(counts, use)
     } else {
       lr <- logratio_with_alpha(counts, use, alpha)
     }

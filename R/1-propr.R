@@ -80,6 +80,7 @@ propr <- function(counts,
 
   # Special handling for 'metric'
   metric <- metric[1]
+  ivar_pcor <- NA
   if (metric == "pcor.bshrink") {
     if (length(ivar) != 1) {
       stop("For 'pcor.bshrink', the 'ivar' argument must be a single value.")
@@ -104,12 +105,12 @@ propr <- function(counts,
 
   # NOTE: counts are the original counts, while ct may have zeros replaced
   counts <- as_safe_matrix(counts)
-  if (length(ivar) == 1 && is.na(ivar)) {
+  if (length(ivar) == 1 && is.na(ivar) && is.na(ivar_pcor)) {
     ct <- counts
   } else {
     ct <- simple_zero_replacement(counts)
   }
-  lr <- logratio(counts, ivar, alpha)
+  lr <- logratio(ct, ivar, alpha)
 
   ##############################################################################
   ### OPTIONALLY REDUCE DATA SIZE BEFORE COMPUTING MATRIX

@@ -10,6 +10,9 @@ c <- rnorm(N, mean = 10)
 d <- rnorm(N, mean = 10)
 e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
+for (i in 1:4){
+  X[sample(1:N, 10),i] <- 0
+}
 
 test_that("pcor.shrink is the same when ivar is 5, with or without the reference column", {
 
