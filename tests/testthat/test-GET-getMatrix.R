@@ -6,7 +6,6 @@ test_that('get propd matrix work',{
   # compute differential proportionality
   x <- iris[,1:4]  # data matrix with 4 variables
   y <- iris[,5]    # group vector
-  v <- vegan::rda(log(x[,1]/x[,2]) ~ y)
   pd <- propd(x, as.character(y))
   mat <- getMatrix(pd)
 

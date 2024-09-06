@@ -11,12 +11,17 @@
 getMatrix <- function(object) {
 
   if(class(object) == "propr"){
-    df <- object@matrix
+    mat <- object@matrix
+
   }else if(class(object) == "propd"){
-    df <- get_theta_matrix(object)
+    mat <- vector2mat(object@results$theta, object@results$Partner, object@results$Pair)
+    rownames(mat) <- colnames(object@counts)
+    colnames(mat) <- colnames(object@counts)
+    diag(mat) <- 0
+
   }else{
     stop("Provided 'object' not recognized.")
   }
 
-  return(df)
+  return(mat)
   }
