@@ -161,30 +161,3 @@ calculate_theta <-
       )
     )
   }
-
-#' Parse propd theta values to a matrix
-#'
-#' This function returns a symmetric matrix of \code{propd} values.
-#' Note that the active theta values are used for the matrix. The 
-#' diagonal is set to NA.
-#'
-#' @inheritParams getResults
-#'
-#' @return A symmetric matrix.
-get_theta_matrix <- function(propd){
-
-  if (!inherits(propd, "propd"))
-      stop("Please provide a 'propd' object.")
-  if(propd@results$Partner[1] != 2 | propd@results$Pair[1] != 1){
-    stop("Unexpected sorting of results slot.")
-  }
-
-  # Convert to matrix
-  mat <- vector2mat(propd@results$theta, propd@results$Partner, propd@results$Pair)
-  rownames(mat) <- colnames(propd@counts)
-  colnames(mat) <- colnames(propd@counts)
-
-  diag(mat) <- 0
-
-  return(mat)
-}
