@@ -11,6 +11,9 @@
 #' In this way, the cutoffs will be evenly spaced across the data.
 #' @param custom_cutoffs A numeric vector. When provided, this vector is used
 #' as the FDR cutoffs to test, and number_of_cutoffs is ignored.
+#' @param tails 1 for one-sided on the right, and 2 for two-sided. When two-sided,
+#' the FDR is calculated for both positive and negative values. When NULL, use default
+#' option for the given metric. This is only relevant for \code{propr} objects.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' @export
@@ -18,24 +21,30 @@ updateCutoffs <-
   function(object,
            number_of_cutoffs = 100,
            custom_cutoffs = NULL,
+           tails = NULL,
            ncores = 1) {
 
-    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs) {
-      if (!is.null(custom_cutoffs)) {
-        return(custom_cutoffs)
-      }else{
-        return(as.numeric(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs))))
-      }
+    if (!is.null(tails)){
+      if (tails != 1 & tails != 2) stop("Tails only accept values 1 or 2, if not NULL.")
+    }
+
+    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs, tails=1) {
+      if (!is.null(custom_cutoffs)) return(custom_cutoffs)
+      if (tails == 1) values <- values[values >= 0]
+      return(as.numeric(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs))))
     }
 
     if (inherits(object, "propr")) {
+      if (is.null(tails)) tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
+      if (tails == 1 & object@has_meaningful_negative_values) warning("One-sided FDR test is performed.")
+      if (tails == 2 & !object@direct) stop("Two-sided FDR is not available for this metric.")
       values <- object@results$propr
-      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs)
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails)
       updateCutoffs.propr(object, cutoffs, ncores)
 
     } else if (inherits(object, "propd")) {
       values <- object@results$theta
-      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs)
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails=1)
       updateCutoffs.propd(object, cutoffs, ncores)
 
     } else{
@@ -58,9 +67,6 @@ updateCutoffs.propr <-
 
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
-    }
-    if (object@metric == "rho") {
-      message("Alert: Estimating FDR for largely positive proportional pairs only.")
     }
     if (object@metric == "phi") {
       warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
@@ -353,10 +359,10 @@ getPermutedTheta <-
 #' @direct A logical value. If \code{TRUE}, direct relationship is considered.
 #' @return The number of values greater or less than the threshold.
 countValuesBeyondThreshold <- function(values, cutoff, direct){
-  if (cutoff >= 0){
-    func <- ifelse(direct, count_greater_equal_than, count_less_equal_than)
-  }else{
-    func <- ifelse(direct, count_less_equal_than, count_greater_equal_than)
+  if (direct){
+    func <- ifelse(cutoff >= 0, count_greater_than, count_less_than)
+  } else {
+    func <- count_less_than
   }
   return(func(values, cutoff))
 }

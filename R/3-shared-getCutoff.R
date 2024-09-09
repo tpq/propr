@@ -20,16 +20,15 @@ getCutoffFDR <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
   if (nrow(object@fdr) == 0) {
     stop("No FDR values found. Please run updateCutoffs() before calling this function.")
   }
-
   if (fdr < 0 | fdr > 1) {
     stop("Provide a FDR cutoff from [0, 1].")
   }
 
   if (inherits(object, "propr")) {
-    return(getCutoffFDR.propr(object, fdr, window_size, positive))
+    return(getCutoffFDR.propr(object, fdr=fdr, window_size=window_size, positive=positive))
 
   } else if (inherits(object, "propd")) {
-    return(getCutoffFDR.propd(object, fdr, window_size))
+    return(getCutoffFDR.propd(object, fdr=fdr, window_size=window_size))
     
   } else{
     stop("Provided 'object' not recognized.")
@@ -40,8 +39,14 @@ getCutoffFDR <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
 #' Same as \code{getCutoffFDR}, but for \code{propr} objects.
 #' @export
 getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
+  if (!positive & !object@direct) {
+    stop("Negative cutoffs are not allowed for this metric.")
+  }
+  if (!positive & !any(object@fdr$cutoff < 0, na.rm=T)){
+    stop("There are not negative values. Please check.")
+  }
 
-  # subset FDR data frame, to only include positive cutoffs
+  # subset FDR data frame, to only include positive/negative tail
   df <- object@fdr
   if (positive) { df <- df[df$cutoff >= 0,] } else { df <- df[df$cutoff < 0,] }
 
@@ -54,16 +59,17 @@ getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = T
   # get index of FDR values below the threshold
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
   if (!any(index)) {
-    stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
+    warning("No significant cutoff found for the given FDR, when positive = ", positive)
+    return(FALSE)
   }
 
   # get cutoff
   if (object@direct) {
     cutoff <- min(abs(df$cutoff[index]))
+    if (!positive) cutoff <- -cutoff
   } else{
-    cutoff <- max(abs(df$cutoff[index]))
+    cutoff <- max(df$cutoff[index])
   }
-  if (!positive) cutoff <- -cutoff
 
   return(cutoff)
 }
@@ -86,7 +92,8 @@ getCutoffFDR.propd <- function(object, fdr = 0.05, window_size = 1) {
   # get index of FDR values below the threshold
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
   if (!any(index)) {
-    stop("No pairs below FDR.")  # TODO should we throw an error, or just return FALSE?
+    warning("No significant cutoff found for the given FDR.")
+    return(FALSE)
   }
 
   # get cutoff
@@ -105,26 +112,26 @@ getCutoffFDR.propd <- function(object, fdr = 0.05, window_size = 1) {
 #'
 #' @param object A \code{\link{propd}} object.
 #' @param pval A p-value at which to calculate a theta cutoff.
-#' @param fdr A boolean. Toggles whether to calculate the theta
+#' @param fdr_adjusted A boolean. Toggles whether to calculate the theta
 #' cutoff for an FDR-adjusted p-value.
 #' @return A cutoff of theta from [0, 1].
 #' @export
-getCutoffFstat <- function(object, pval = 0.05, fdr = FALSE) {
+getCutoffFstat <- function(object, pval = 0.05, fdr_adjusted = FALSE) {
   if (!"Fstat" %in% colnames(object@results)) {
     stop("Please run updateF() on propd object before.")
   }
-
   if (pval < 0 | pval > 1) {
     stop("Provide a p-value cutoff from [0, 1].")
   }
 
-  if (fdr) {
+  if (fdr_adjusted) {
     message("Alert: Returning an empiric cutoff based on the $FDR slot.")
     index <- (object@results$FDR < pval) & (is.finite(object@results$FDR))
     if (any(index)) {
       cutoff <- max(object@results$theta[index])
     } else{
-      stop("No pairs below p-value.")
+      warning("No significant cutoff found for the given p-value.")
+      cutoff <- FALSE
     }
 
   } else{

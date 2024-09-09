@@ -30,7 +30,7 @@ test_that("updateCutoffs.propd properly calculates truecounts", {
   # get truecounts
   truecounts <- sapply(
     pd@fdr$cutoff, 
-    function(cut) sum(pd@results$theta <= cut)
+    function(cut) sum(pd@results$theta < cut)
   )
 
   # check that truecounts are properly defined
@@ -57,7 +57,7 @@ test_that("updateCutoffs.propd properly calculates randcounts", {
     ))
     pkt <- pd.k@results$theta
     for (cut in 1:length(pd@fdr$cutoff)){
-        randcounts[cut] <- randcounts[cut] + sum(pkt <= pd@fdr$cutoff[cut])
+        randcounts[cut] <- randcounts[cut] + sum(pkt < pd@fdr$cutoff[cut])
     }
   }
   randcounts <- randcounts / 10

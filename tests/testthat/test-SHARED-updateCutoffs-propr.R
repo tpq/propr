@@ -32,11 +32,11 @@ test_that("updateCutoffs.propr properly calculates truecounts", {
   # get truecounts
   truecounts1 <- sapply(
     pr@fdr$cutoff[pr@fdr$cutoff < 0], 
-    function(cut) sum(pr@results$propr <= cut)
+    function(cut) sum(pr@results$propr < cut)
   )
   truecounts2 <- sapply(
     pr@fdr$cutoff[pr@fdr$cutoff >= 0], 
-    function(cut) sum(pr@results$propr >= cut)
+    function(cut) sum(pr@results$propr > cut)
   )
   truecounts <- c(truecounts1, truecounts2)
 
@@ -65,9 +65,9 @@ test_that("updateCutoffs.propr properly calculates randcounts", {
     for (cut in 1:length(pr@fdr$cutoff)){
       cutoff <- pr@fdr$cutoff[cut]
       if (cutoff >= 0) {
-        randcounts[cut] <- randcounts[cut] + sum(pkt >= cutoff)
+        randcounts[cut] <- randcounts[cut] + sum(pkt > cutoff)
       } else {
-        randcounts[cut] <- randcounts[cut] + sum(pkt <= cutoff)
+        randcounts[cut] <- randcounts[cut] + sum(pkt < cutoff)
       }
     }
   }

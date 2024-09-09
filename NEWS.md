@@ -1,10 +1,10 @@
 ## propr 5.1.0
 ---------------------
-* Allowed `updateCutoffs` function to compute FDR on negative values, when asked
+* Allowed `updateCutoffs` function to compute the FDR values for negative cutoffs
 * Added `getCutoffFDR` to get a significant cutoff based on the permuted FDR
 * Changed `runCutoff` into `getCutoffFstat`
-* Added `getSignificantResultsFDR` and `getSignificantResultsFstat` to get the significant pairs
-* Added `getAdjFDR` and `getAdjFstat` functions to get the adjacency matrix with the significant pairs
+* Added `getSignificantResultsFDR` and `getSignificantResultsFstat` to get the significant pairs as results table
+* Added `getAdjacencyFDR` and `getAdjacencyFstat` functions to get the adjacency matrix with the significant pairs
 * Optimized `graflex` related functions to Rcpp C++
 * Removed fixseed, since setting `set.seed()` before calling any function is enough to ensure reproducibility
 * Fix bug: when `ivar=NA`, the already preprocessed data given by the user are replaced when there are zeros, which should not

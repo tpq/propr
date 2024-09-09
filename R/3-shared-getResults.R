@@ -23,24 +23,15 @@ getResults <-
 #'  from a \code{propr} or \code{propd} object keeping only the
 #'  statistically significant pairs.
 #'
-#' @param object A \code{propr} or \code{propd} object.
-#' @param fdr A numeric. The false discovery rate to use.
-#' @param window_size An integer. Default is 1. When it is greater than 1,
-#' the function will use a significant cutoff based on the moving
-#' average of the FDR values. This is useful when the FDR values are
-#' noisy and the user wants to smooth them out.
-#' @param consider_negative_values A boolean or NULL. If NULL, default behaviour
-#' is set for each metric. If TRUE, the function will consider both positive and
-#' negative values. If FALSE, it will focus only on the positive values. This is 
-#' relevant only for the \code{propr} object.
+#' @inheritParams getAdjacencyFDR
 #' @return A \code{data.frame} of results.
 #'
 #' @export
 getSignificantResultsFDR <-
-  function(object, fdr = 0.05, window_size = 1, consider_negative_values = NULL) {
+  function(object, fdr = 0.05, window_size = 1, tails = NULL) {
 
     if(inherits(object, "propr")){
-      results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, consider_negative_values=consider_negative_values)
+      results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
 
     }else if(inherits(object, "propd")){
       results <- getSignificantResultsFDR.propd(object, fdr=fdr, window_size=window_size)
@@ -75,15 +66,19 @@ getSignificantResultsFDR.propd <-
 #' only the statistically significant pairs.
 #' @export
 getSignificantResultsFDR.propr <- 
-  function(object, fdr = 0.05, window_size = 1, consider_negative_values = NULL) {
+  function(object, fdr = 0.05, window_size = 1, tails = NULL) {
 
-    if (is.null(consider_negative_values)) consider_negative_values <- object@has_meaningful_negative_values
-    
-    if (!object@has_meaningful_negative_values & consider_negative_values) {
-      message("Alert: negative values may not be relevant for this metric.")
+    if (is.null(tails)) {
+      tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
     }
-    if (object@has_meaningful_negative_values & !consider_negative_values) {
-      message("Alert: try to set consider_negative_values to TRUE as the negative values may be relevant.")
+    if (tails != 1 & tails != 2) {
+        stop("Please provide a valid value for tails: 1 or 2.")
+    }
+    if (tails == 1 & object@has_meaningful_negative_values) {
+      warning("Significant pairs are chosen based on one-sided FDR test.")
+    }
+    if (tails == 2 & !object@direct) {
+      stop("Two-sided FDR is not available for this metric.")
     }
 
     # function to subset the results data frame based on the cutoff
@@ -91,10 +86,13 @@ getSignificantResultsFDR.propr <-
       if (object@direct) {
         data <- data[which(abs(data$propr) >= abs(cutoff)), ]
       } else {
-        data <- data[which(abs(data$propr) <= abs(cutoff)), ]
+        data <- data[which(data$propr <= cutoff), ]
       }
       return(data)
     }
+
+    # correct fdr when two-sided
+    if (tails == 2) fdr <- fdr / 2
 
     # define results data frame
     df <- getResults(object)
@@ -102,13 +100,13 @@ getSignificantResultsFDR.propr <-
     colnames(results) <- colnames(df)
 
     # get the significant positive values
-    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=TRUE)
+    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
     part <- df[which(df$propr >= 0),]
     results <- rbind(results, subsetBeyondCutoff(part, cutoff))
 
     # get the significant negative values
-    if (consider_negative_values) {
-      cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=FALSE)
+    if (tails == 2) {
+      cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=F)
       part <- df[which(df$propr < 0),]
       results <- rbind(results, subsetBeyondCutoff(part, cutoff))
     }
@@ -120,23 +118,19 @@ getSignificantResultsFDR.propr <-
 #'
 #' This function provides a unified wrapper to retrieve results
 #'  from a \code{propd} object keeping only the statistically 
-#'  significant pairs. Note that it can only be applied to theta_d.
+#'  significant pairs. Note that it can only be applied to theta_d,
+#'  as updateF only works for theta_d.
 #'
-#' @param object A \code{propr} or \code{propd} object.
-#' @param pval A numeric. The p-value to use.
-#' @param fdr A boolean. If TRUE, the function will return the
-#' significant pairs based on the FDR adjusted p-values. Otherwise,
-#' it will return the significant pairs based on the F-statistic cutoff.
+#' @inheritParams getAdjacencyFstat
 #' @return A \code{data.frame} of results.
 #'
 #' @export
 getSignificantResultsFstat <- 
-  function(object, pval = 0.05, fdr = TRUE) {
+  function(object, pval = 0.05, fdr_adjusted = TRUE) {
 
     if (!"Fstat" %in% colnames(object@results)) {
       stop("Please run updateF() on propd object before.")
     }
-
     if (pval < 0 | pval > 1) {
       stop("Provide a p-value cutoff from [0, 1].")
     }
@@ -145,14 +139,14 @@ getSignificantResultsFstat <-
     results <- getResults(object)
 
     # get significant theta based on the FDR adjusted empirical p-values
-    if (fdr) {
+    if (fdr_adjusted) {
       message("Alert: Returning the significant pairs based on the FDR adjusted p-values.")
       results <- results[which(results$FDR <= pval), ]
 
     # get siniginicant theta based on the F-statistic cutoff
     }else{
       message("Alert: Returning the significant pairs based on the F-statistic cutoff.")
-      cutoff <- getCutoffFstat(object, pval = pval, fdr = FALSE)
+      cutoff <- getCutoffFstat(object, pval = pval, fdr_adjusted = FALSE)
       results <- results[which(results$theta <= cutoff), ]
     }
 
