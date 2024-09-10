@@ -356,7 +356,7 @@ getPermutedTheta <-
 #'
 #' @param values A numeric vector.
 #' @param cutoff A numeric value.
-#' @direct A logical value. If \code{TRUE}, direct relationship is considered.
+#' @param direct A logical value. If \code{TRUE}, direct relationship is considered.
 #' @return The number of values greater or less than the threshold.
 countValuesBeyondThreshold <- function(values, cutoff, direct){
   if (direct){

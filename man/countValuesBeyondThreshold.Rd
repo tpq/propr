@@ -10,6 +10,8 @@ countValuesBeyondThreshold(values, cutoff, direct)
 \item{values}{A numeric vector.}
 
 \item{cutoff}{A numeric value.}
+
+\item{direct}{A logical value. If \code{TRUE}, direct relationship is considered.}
 }
 \value{
 The number of values greater or less than the threshold.
