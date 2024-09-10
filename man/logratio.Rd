@@ -27,9 +27,6 @@ A matrix with log-ratio transformed values.
 \description{
 This function applies a log-ratio transformation to a given data matrix
  with or without using an alpha parameter.
- Also, the zeros in the matrix are replaced with the next smallest non-zero,
- except when ivar is NA in which case it is assumed the count data has been
- preprocessed.
 }
 \examples{
 # Sample counts matrix

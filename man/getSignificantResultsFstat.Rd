@@ -4,16 +4,15 @@
 \alias{getSignificantResultsFstat}
 \title{Get Significant Results based on the F-stats.}
 \usage{
-getSignificantResultsFstat(object, pval = 0.05, fdr = TRUE)
+getSignificantResultsFstat(object, pval = 0.05, fdr_adjusted = TRUE)
 }
 \arguments{
-\item{object}{A \code{propr} or \code{propd} object.}
+\item{object}{A \code{propd} or \code{propr} object.}
 
-\item{pval}{A numeric. The p-value to use.}
+\item{pval}{A float value for the p-value. Default is 0.05.}
 
-\item{fdr}{A boolean. If TRUE, the function will return the
-significant pairs based on the FDR adjusted p-values. Otherwise,
-it will return the significant pairs based on the F-statistic cutoff.}
+\item{fdr_adjusted}{A boolean. If TRUE, use the the FDR- adjusted p-values. 
+Otherwise, get significant pairs based on the theoretical F-statistic cutoff.}
 }
 \value{
 A \code{data.frame} of results.
@@ -21,5 +20,6 @@ A \code{data.frame} of results.
 \description{
 This function provides a unified wrapper to retrieve results
  from a \code{propd} object keeping only the statistically 
- significant pairs. Note that it can only be applied to theta_d.
+ significant pairs. Note that it can only be applied to theta_d,
+ as updateF only works for theta_d.
 }

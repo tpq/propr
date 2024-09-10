@@ -2,9 +2,15 @@
 % Please edit documentation in R/3-shared-getCutoff.R
 \name{getCutoffFDR}
 \alias{getCutoffFDR}
+\alias{getCutoffFDR.propr}
+\alias{getCutoffFDR.propd}
 \title{Get a meaningful cutoff based on the FDR values from permutation tests.}
 \usage{
 getCutoffFDR(object, fdr = 0.05, window_size = 1, positive = TRUE)
+
+getCutoffFDR.propr(object, fdr = 0.05, window_size = 1, positive = TRUE)
+
+getCutoffFDR.propd(object, fdr = 0.05, window_size = 1)
 }
 \arguments{
 \item{object}{A \code{propd} or \code{propr} object.}
@@ -28,3 +34,13 @@ A cutoff value.
 \description{
 Get a meaningful cutoff based on the FDR values from permutation tests.
 }
+\section{Methods}{
+
+\code{getCutoffFDR.propr:}
+Same as \code{getCutoffFDR}, but for \code{propr} objects.
+
+
+\code{getCutoffFDR.propd:}
+Same as \code{getCutoffFDR}, but for \code{propd} objects.
+}
+

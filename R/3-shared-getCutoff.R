@@ -36,6 +36,8 @@ getCutoffFDR <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
 }
 
 #' @rdname getCutoffFDR
+#' @section Methods:
+#' \code{getCutoffFDR.propr:}
 #' Same as \code{getCutoffFDR}, but for \code{propr} objects.
 #' @export
 getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = TRUE) {
@@ -75,6 +77,8 @@ getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = T
 }
 
 #' @rdname getCutoffFDR
+#' @section Methods:
+#' \code{getCutoffFDR.propd:}
 #' Same as \code{getCutoffFDR}, but for \code{propd} objects.
 #' @export
 getCutoffFDR.propd <- function(object, fdr = 0.05, window_size = 1) {

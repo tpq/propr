@@ -6,12 +6,7 @@
 \alias{getSignificantResultsFDR.propr}
 \title{Get Significant Results from Object based on the permutation tests.}
 \usage{
-getSignificantResultsFDR(
-  object,
-  fdr = 0.05,
-  window_size = 1,
-  consider_negative_values = NULL
-)
+getSignificantResultsFDR(object, fdr = 0.05, window_size = 1, tails = NULL)
 
 getSignificantResultsFDR.propd(object, fdr = 0.05, window_size = 1)
 
@@ -19,23 +14,19 @@ getSignificantResultsFDR.propr(
   object,
   fdr = 0.05,
   window_size = 1,
-  consider_negative_values = NULL
+  tails = NULL
 )
 }
 \arguments{
-\item{object}{A \code{propr} or \code{propd} object.}
+\item{object}{A \code{propd} or \code{propr} object.}
 
-\item{fdr}{A numeric. The false discovery rate to use.}
+\item{fdr}{A float value for the false discovery rate. Default is 0.05.}
 
-\item{window_size}{An integer. Default is 1. When it is greater than 1,
-the function will use a significant cutoff based on the moving
-average of the FDR values. This is useful when the FDR values are
-noisy and the user wants to smooth them out.}
+\item{window_size}{An integer. Default is 1. When it is greater than 1, the FDR
+values would be smoothed out by a moving average of the given window size.}
 
-\item{consider_negative_values}{A boolean or NULL. If NULL, default behaviour
-is set for each metric. If TRUE, the function will consider both positive and
-negative values. If FALSE, it will focus only on the positive values. This is 
-relevant only for the \code{propr} object.}
+\item{tails}{1 for one-sided on the right, and 2 for two-sided. When NULL, use default
+test for the given metric. This is only relevant for \code{propr} objects.}
 }
 \value{
 A \code{data.frame} of results.

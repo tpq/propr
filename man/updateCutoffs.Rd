@@ -10,6 +10,7 @@ updateCutoffs(
   object,
   number_of_cutoffs = 100,
   custom_cutoffs = NULL,
+  tails = NULL,
   ncores = 1
 )
 
@@ -26,6 +27,10 @@ In this way, the cutoffs will be evenly spaced across the data.}
 
 \item{custom_cutoffs}{A numeric vector. When provided, this vector is used
 as the FDR cutoffs to test, and number_of_cutoffs is ignored.}
+
+\item{tails}{1 for one-sided on the right, and 2 for two-sided. When two-sided,
+the FDR is calculated for both positive and negative values. When NULL, use default
+option for the given metric. This is only relevant for \code{propr} objects.}
 
 \item{ncores}{An integer. The number of parallel cores to use.}
 }

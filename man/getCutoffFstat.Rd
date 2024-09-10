@@ -4,14 +4,14 @@
 \alias{getCutoffFstat}
 \title{Calculate a theta Cutoff based on the F-statistic.}
 \usage{
-getCutoffFstat(object, pval = 0.05, fdr = FALSE)
+getCutoffFstat(object, pval = 0.05, fdr_adjusted = FALSE)
 }
 \arguments{
 \item{object}{A \code{\link{propd}} object.}
 
 \item{pval}{A p-value at which to calculate a theta cutoff.}
 
-\item{fdr}{A boolean. Toggles whether to calculate the theta
+\item{fdr_adjusted}{A boolean. Toggles whether to calculate the theta
 cutoff for an FDR-adjusted p-value.}
 }
 \value{
