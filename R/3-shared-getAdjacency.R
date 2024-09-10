@@ -1,18 +1,25 @@
-#' Get Adjacency Matrix as indicated by permutation tests
+#' Get Adjacency Matrix as indicated by permutation tests.
+#' 
+#' This function gets the significant pairs according to the permutation tests. Then it fills 
+#' the adjacency matrix with 1 if pair is significant, otherwise 0. The significance is determined
+#' by the cutoff value for which the false discovery rate (FDR) is less or equal than the given 
+#' value 'fdr'. The significant pairs are those that have a value greater/less or equal than the 
+#' cutoff, depending on the metric.
 #'
-#' This function gets the significant pairs, according to the permutation tests. 
-#' Then it fills the adjacency matrix with 1 if pair is significant, otherwise 0.
 #' @param object A \code{propd} or \code{propr} object.
 #' @param fdr A float value for the false discovery rate. Default is 0.05.
 #' @param window_size An integer. Default is 1. When it is greater than 1, the FDR
 #' values would be smoothed out by a moving average of the given window size.
-#' @param tails 1 for one-sided on the right, and 2 for two-sided. When NULL, use default
-#' test for the given metric. This is only relevant for \code{propr} objects.
+#' @param tails 'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
+#' combine one-sided on the right (positive values) and left (negative values). This is only 
+#' relevant for \code{propr} objects, as \code{propd} objects are always one-sided and only 
+#' have positive values.
 #' @return An adjacency matrix.
 #'
 #' @export
-getAdjacencyFDR <- function(object, fdr = 0.05, window_size = 1, tails = NULL) {
-  
+getAdjacencyFDR <- 
+  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
+
   if (inherits(object, "propr")){
     adj <- getAdjacencyFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
 
@@ -60,23 +67,18 @@ getAdjacencyFDR.propd <-
 #' pairs from a \code{propd} object.
 #' @export
 getAdjacencyFDR.propr <-
-  function(object, fdr = 0.05, window_size = 1, tails = NULL) {
+  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
 
-    if (is.null(tails)) {
-      tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
-    }
-    if (tails != 1 & tails != 2) {
-        stop("Please provide a valid value for tails: 1 or 2.")
-    }
-    if (tails == 1 & object@has_meaningful_negative_values) {
-      warning("Significant pairs are chosen based on one-sided FDR test.")
-    }
-    if (tails == 2 & !object@direct) {
-      stop("Two-sided FDR is not available for this metric.")
+    # handle tails argument
+    tails <- match.arg(tails)
+    if (tails == 'both' & !object@direct) {
+      warning("Running tails='right' instead")  
+      tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
     }
 
-    # correct fdr when two-sided
-    if (tails == 2) fdr <- fdr / 2
+    # correct fdr when considering both tails
+    # so that the total fdr is the given value
+    if (tails == 'both') fdr <- fdr / 2
 
     # create empty matrix
     adj <- matrix(0, nrow = ncol(object@matrix), ncol = ncol(object@matrix))
@@ -90,12 +92,12 @@ getAdjacencyFDR.propr <-
       if (object@direct) {
         adj[object@matrix >= 0 & object@matrix >= cutoff] <- 1
       } else {
-        adj[object@matrix <= cutoff] <- 1
+        adj[object@matrix <= cutoff] <- 1  # don't have negative values
       }
     }
 
     # for negative tail
-    if (tails == 2){
+    if (tails == 'both'){
       cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=F)
       if (cutoff) adj[object@matrix < 0 & object@matrix <= cutoff] <- 1
     }

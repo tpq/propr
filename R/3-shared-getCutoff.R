@@ -61,7 +61,7 @@ getCutoffFDR.propr <- function(object, fdr = 0.05, window_size = 1, positive = T
   # get index of FDR values below the threshold
   index <- (df$FDR <= fdr) & (is.finite(df$FDR))
   if (!any(index)) {
-    warning("No significant cutoff found for the given FDR, when positive = ", positive)
+    warning("No significant cutoff found for the given FDR, when positive tail = ", positive)
     return(FALSE)
   }
 
@@ -130,7 +130,7 @@ getCutoffFstat <- function(object, pval = 0.05, fdr_adjusted = FALSE) {
 
   if (fdr_adjusted) {
     message("Alert: Returning an empiric cutoff based on the $FDR slot.")
-    index <- (object@results$FDR < pval) & (is.finite(object@results$FDR))
+    index <- (object@results$FDR <= pval) & (is.finite(object@results$FDR))
     if (any(index)) {
       cutoff <- max(object@results$theta[index])
     } else{

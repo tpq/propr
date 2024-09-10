@@ -1,50 +1,58 @@
 #' Update FDR by Permutation
 #'
-#' This function updates FDR for a set of cutoffs.
-#'
-#' This function wraps \code{updateCutoffs.propr} and
-#'  \code{updateCutoffs.propd}.
+#' This function updates the FDR for each cutoff. By default, the set of cutoffs are determined
+#' based on the quantile of the data, so that the cutoffs are evenly spaced across the data.
+#' The FDR is calculated as the ratio between the number of permuted values beyond the cutoff
+#' and the number of true values beyond the the cutoff. 
+#' When tails is set to 'right', the FDR is calculated only on the positive side of the data.
+#' When tails is set to 'both', the FDR is calculated on both sides of the data.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param number_of_cutoffs An integer. The number of cutoffs to test.
-#' Given this number, the cutoffs will be determined based on the quantile of the data.
-#' In this way, the cutoffs will be evenly spaced across the data.
-#' @param custom_cutoffs A numeric vector. When provided, this vector is used
-#' as the FDR cutoffs to test, and number_of_cutoffs is ignored.
-#' @param tails 1 for one-sided on the right, and 2 for two-sided. When two-sided,
-#' the FDR is calculated for both positive and negative values. When NULL, use default
-#' option for the given metric. This is only relevant for \code{propr} objects.
+#' @param number_of_cutoffs An integer. The number of cutoffs to test. Given this number, 
+#' the cutoffs will be determined based on the quantile of the data. In this way, the 
+#' cutoffs will be evenly spaced across the data.
+#' @param custom_cutoffs A numeric vector. When provided, this vector is used as the set of 
+#' cutoffs to test, and 'number_of_cutoffs' is ignored.
+#' @param tails 'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
+#' combine one-sided on the right (positive values) and left (negative values). This 
+#' is only relevant for \code{propr} objects, as \code{propd} objects are always one-sided
+#' and only have positive values.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
+#' 
 #' @export
 updateCutoffs <-
   function(object,
            number_of_cutoffs = 100,
            custom_cutoffs = NULL,
-           tails = NULL,
+           tails = c('right','both'),
            ncores = 1) {
+    tails <- match.arg(tails)
 
-    if (!is.null(tails)){
-      if (tails != 1 & tails != 2) stop("Tails only accept values 1 or 2, if not NULL.")
-    }
-
-    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs, tails=1) {
+    # function to get the set of cutoffs
+    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs, tails='right') {
       if (!is.null(custom_cutoffs)) return(custom_cutoffs)
-      if (tails == 1) values <- values[values >= 0]
+      if (tails == 'right') {
+        values <- values[values >= 0]
+        if (length(values) == 0) stop("No positive values found.")
+      }
       return(as.numeric(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs))))
     }
 
+    # update FDR values for propr object
     if (inherits(object, "propr")) {
-      if (is.null(tails)) tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
-      if (tails == 1 & object@has_meaningful_negative_values) warning("One-sided FDR test is performed.")
-      if (tails == 2 & !object@direct) stop("Two-sided FDR is not available for this metric.")
+      if (tails == 'both' & !object@direct) {
+        warning("Running tails='right' instead")  
+        tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
+      }
       values <- object@results$propr
       cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails)
       updateCutoffs.propr(object, cutoffs, ncores)
 
+    # update FDR values for propd object
     } else if (inherits(object, "propd")) {
       values <- object@results$theta
-      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails=1)
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails='right')
       updateCutoffs.propd(object, cutoffs, ncores)
 
     } else{
@@ -64,7 +72,6 @@ updateCutoffs <-
 #' @export
 updateCutoffs.propr <-
   function(object, cutoffs, ncores) {
-
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
     }

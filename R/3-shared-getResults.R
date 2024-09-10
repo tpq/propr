@@ -19,16 +19,17 @@ getResults <-
 
 #' Get Significant Results from Object based on the permutation tests.
 #'
-#' This function provides a unified wrapper to retrieve results
-#'  from a \code{propr} or \code{propd} object keeping only the
-#'  statistically significant pairs.
+#' This function retrieves results from a \code{propr} or \code{propd} object keeping only the
+#' statistically significant pairs. The significance is determined by the cutoff value for which
+#' the false discovery rate (FDR) is less or equal than the given value 'fdr'. The significant 
+#' pairs are those that have a value greater/less or equal than the cutoff, depending on the metric.
 #'
 #' @inheritParams getAdjacencyFDR
 #' @return A \code{data.frame} of results.
 #'
 #' @export
 getSignificantResultsFDR <-
-  function(object, fdr = 0.05, window_size = 1, tails = NULL) {
+  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
 
     if (inherits(object, "propr")) {
       results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
@@ -68,19 +69,13 @@ getSignificantResultsFDR.propd <-
 #' only the statistically significant pairs.
 #' @export
 getSignificantResultsFDR.propr <- 
-  function(object, fdr = 0.05, window_size = 1, tails = NULL) {
+  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
 
-    if (is.null(tails)) {
-      tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
-    }
-    if (tails != 1 & tails != 2) {
-        stop("Please provide a valid value for tails: 1 or 2.")
-    }
-    if (tails == 1 & object@has_meaningful_negative_values) {
-      warning("Significant pairs are chosen based on one-sided FDR test.")
-    }
-    if (tails == 2 & !object@direct) {
-      stop("Two-sided FDR is not available for this metric.")
+    # handle tails argument
+    tails <- match.arg(tails)
+    if (tails == 'both' & !object@direct) {
+      warning("Running tails='right' instead")  
+      tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
     }
 
     # function to subset the results data frame based on the cutoff
@@ -93,8 +88,9 @@ getSignificantResultsFDR.propr <-
       }
     }
 
-    # correct fdr when two-sided
-    if (tails == 2) fdr <- fdr / 2
+    # correct fdr when considering both tails
+    # so that the total fdr is the given value
+    if (tails == 'both') fdr <- fdr / 2
 
     # define results data frame
     df <- getResults(object)
@@ -107,7 +103,7 @@ getSignificantResultsFDR.propr <-
     results <- rbind(results, subsetBeyondCutoff(part, cutoff))
 
     # get the significant negative values
-    if (tails == 2) {
+    if (tails == 'both') {
       cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=F)
       part <- df[which(df$propr < 0),]
       results <- rbind(results, subsetBeyondCutoff(part, cutoff))

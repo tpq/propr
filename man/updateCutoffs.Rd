@@ -10,7 +10,7 @@ updateCutoffs(
   object,
   number_of_cutoffs = 100,
   custom_cutoffs = NULL,
-  tails = NULL,
+  tails = c("right", "both"),
   ncores = 1
 )
 
@@ -21,16 +21,17 @@ updateCutoffs.propd(object, cutoffs, ncores)
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
 
-\item{number_of_cutoffs}{An integer. The number of cutoffs to test.
-Given this number, the cutoffs will be determined based on the quantile of the data.
-In this way, the cutoffs will be evenly spaced across the data.}
+\item{number_of_cutoffs}{An integer. The number of cutoffs to test. Given this number, 
+the cutoffs will be determined based on the quantile of the data. In this way, the 
+cutoffs will be evenly spaced across the data.}
 
-\item{custom_cutoffs}{A numeric vector. When provided, this vector is used
-as the FDR cutoffs to test, and number_of_cutoffs is ignored.}
+\item{custom_cutoffs}{A numeric vector. When provided, this vector is used as the set of 
+cutoffs to test, and 'number_of_cutoffs' is ignored.}
 
-\item{tails}{1 for one-sided on the right, and 2 for two-sided. When two-sided,
-the FDR is calculated for both positive and negative values. When NULL, use default
-option for the given metric. This is only relevant for \code{propr} objects.}
+\item{tails}{'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
+combine one-sided on the right (positive values) and left (negative values). This 
+is only relevant for \code{propr} objects, as \code{propd} objects are always one-sided
+and only have positive values.}
 
 \item{ncores}{An integer. The number of parallel cores to use.}
 }
@@ -38,11 +39,12 @@ option for the given metric. This is only relevant for \code{propr} objects.}
 A \code{propr} or \code{propd} object with the FDR slot updated.
 }
 \description{
-This function updates FDR for a set of cutoffs.
-}
-\details{
-This function wraps \code{updateCutoffs.propr} and
- \code{updateCutoffs.propd}.
+This function updates the FDR for each cutoff. By default, the set of cutoffs are determined
+based on the quantile of the data, so that the cutoffs are evenly spaced across the data.
+The FDR is calculated as the ratio between the number of permuted values beyond the cutoff
+and the number of true values beyond the the cutoff. 
+When tails is set to 'right', the FDR is calculated only on the positive side of the data.
+When tails is set to 'both', the FDR is calculated on both sides of the data.
 }
 \section{Methods}{
 

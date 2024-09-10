@@ -16,10 +16,10 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - clr", 
 
     # get propr object
     pr <- propr(X, metric = "pcor.bshrink", ivar='clr', p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=100)
+    pr <- updateCutoffs(pr, number_of_cutoffs=100, tails='both')
 
     # get adjacency matrix
-    adj <- getAdjacencyFDR(pr)
+    adj <- getAdjacencyFDR(pr, tails='both')
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
@@ -36,10 +36,10 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - alr", 
 
     # get propr object
     pr <- propr(X, metric = "pcor.bshrink", ivar='alr', p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=100)
+    pr <- updateCutoffs(pr, number_of_cutoffs=100, tails='both')
 
     # get adjacency matrix
-    adj <- getAdjacencyFDR(pr)
+    adj <- getAdjacencyFDR(pr, tails='both')
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
@@ -139,6 +139,14 @@ test_that("getAdjacencyFDR and getSignificantResultsFDR return coherent results"
 
         # get propr object
         pr <- propr(X, metric=metric, p=10)
+
+        # expect error for pcor.shrink, since it does not produce positive values in this case
+        if (metric == 'pcor.shrink'){
+            expect_error(updateCutoffs(pr))
+            next
+        }
+
+        # update FDR values
         pr <- updateCutoffs(pr, number_of_cutoffs=100)
 
         # get adjacency matrix
