@@ -56,11 +56,9 @@ getRatios <- function(object, switch = TRUE) {
 ratios <- function(matrix, alpha = NA) {
   lab <- labRcpp(ncol(matrix))
 
-  # Replace count zeros with 1 if appropriate
+  # Replace count zeros if appropriate
   if (any(as.matrix(matrix) == 0) & is.na(alpha)) {
-    message("Alert: Replacing 0s with next smallest value.")
-    zeros <- matrix == 0
-    matrix[zeros] <- min(matrix[!zeros])
+    matrix <- simple_zero_replacement(matrix)
   }
 
   # Get (log-)ratios [based on alpha]

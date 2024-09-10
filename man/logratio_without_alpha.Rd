@@ -25,7 +25,7 @@ This function applies a log-ratio transformation to a given data matrix
 # Sample input data
 data <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 2, byrow = TRUE)
 
-# Applying log-ratio transformation to rows using columns 2 and 3
+# Applying log-ratio transformation to rows using columns 2 and 3 as reference
 result <- logratio_without_alpha(data, use = c(2, 3))
 
 }

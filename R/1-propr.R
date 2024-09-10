@@ -18,8 +18,9 @@
 #'   - "clr" (default): Centered log-ratio transformation.
 #'   - "alr": Additive log-ratio transformation ("pcor.bshrink" metric only).
 #'   - "iqlr": Inter-quartile log-ratio transformation from ALDEx2.
-#'   - The explicit name(s) of variable(s) to use as a reference.
-#'  Use NA to skip log-ratio transformation.
+#'   - The explicit name(s) or index(es) of variable(s) to use as a reference.
+#'   - Use NA to skip log-ratio transformation and any other pre-processing, like
+#'  zero replacement. This is useful when the input data is already pre-processed.
 #' @param select A numeric vector representing the indices of features to be
 #'  used for computing the Propr matrix. This argument is optional. If
 #'  provided, it reduces the data size by using only the selected features.
@@ -29,9 +30,6 @@
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
-#' @param fixseed A logical value indicating whether to fix the random seed 
-#' for generating the pemurations. If `TRUE`, the function will fix the random
-#' The default is `FALSE`.
 #' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
 #'  if "pcor.shrink" metric is selected.
 #'
@@ -62,6 +60,7 @@ propr <- function(counts,
                              "phs",
                              "cor",
                              "vlr",
+                             "ppcor",
                              "pcor",
                              "pcor.shrink",
                              "pcor.bshrink"),
@@ -70,7 +69,6 @@ propr <- function(counts,
                   symmetrize = FALSE,
                   alpha = NA,
                   p = 0,
-                  fixseed = FALSE,
                   ...) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -82,24 +80,37 @@ propr <- function(counts,
 
   # Special handling for 'metric'
   metric <- metric[1]
+  ivar_pcor <- NA
   if (metric == "pcor.bshrink") {
+    if (length(ivar) != 1) {
+      stop("For 'pcor.bshrink', the 'ivar' argument must be a single value.")
+    }
     if (!ivar %in% c("clr", "alr")) {
       stop("For 'pcor.bshrink', the 'ivar' argument must be 'clr' or 'alr'.")
     }
     message("Alert: Log-ratio transform will be handled by 'bShrink'.")
     ivar_pcor <- ivar
-    ivar <-
-      NA # skips log-ratio transform as performed for all other metrics
+    ivar <- NA # skips log-ratio transform
+  } else {
+    if (length(ivar) == 1 && !is.na(ivar) && ivar == "alr") {
+      stop("Please give the index or name of the reference gene instead of 'alr'.")
+    } else if (length(ivar) > 1 && any(c("alr","clr","iqlr") %in% ivar)) {
+      stop("Please check the ivar argument is correct.")
+    }
   }
 
   ##############################################################################
   ### PERFORM ZERO REPLACEMENT AND LOG-RATIO TRANSFORM
   ##############################################################################
 
-  # NOTE: ct will never have zeros; counts may or may not have zeros!
+  # NOTE: counts are the original counts, while ct may have zeros replaced
   counts <- as_safe_matrix(counts)
-  ct <- simple_zero_replacement(counts)
-  lr <- logratio(counts, ivar, alpha)
+  if (length(ivar) == 1 && is.na(ivar) && is.na(ivar_pcor)) {
+    ct <- counts
+  } else {
+    ct <- simple_zero_replacement(counts)
+  }
+  lr <- logratio(ct, ivar, alpha)
 
   ##############################################################################
   ### OPTIONALLY REDUCE DATA SIZE BEFORE COMPUTING MATRIX
@@ -117,28 +128,50 @@ propr <- function(counts,
   ##############################################################################
 
   lrv <- lr2vlr(lr)
+  lambda <- NULL
+
   if (metric == "rho") {
     mat <- lr2rho(lr)
+
   } else if (metric == "phi") {
     mat <- lr2phi(lr)
     if (symmetrize)
       symRcpp(mat) # optionally force symmetry
+
   } else if (metric == "phs") {
     mat <- lr2phs(lr)
+
   } else if (metric == "cor") {
     mat <- stats::cor(lr)
+
   } else if (metric == "vlr") {
     mat <- lrv
-  } else if (metric == "pcor") {
+
+  } else if (metric == "ppcor") {
     packageCheck("ppcor")
     mat <- ppcor::pcor(lr)$estimate
+
+  } else if (metric == "pcor") {
+    packageCheck("corpcor")
+    cov <- cov(lr)
+    mat <- corpcor::cor2pcor(cov)
+    class(mat) <- "matrix"
+
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
-    mat <- corpcor::pcor.shrink(lr, ...)
+    cov <- corpcor::cov.shrink(lr)
+    mat <- corpcor::cor2pcor(cov)
+    mat <- matrix(mat, ncol=ncol(lr), nrow=ncol(lr))
     class(mat) <- "matrix"
+    lambda <- attr(cov, "lambda")
+
   } else if (metric == "pcor.bshrink") {
-    mat <- basis_shrinkage(ct, outtype = ivar_pcor)
-  } else{
+    with(pcor.bshrink(ct, outtype = ivar_pcor), {
+      mat <<- matrix
+      lambda <<- lambda
+    })
+
+  } else {
     stop("Provided 'metric' not recognized.")
   }
 
@@ -155,8 +188,11 @@ propr <- function(counts,
   result@logratio <- as.data.frame(lr)
   result@pairs <- vector("numeric")
   result@permutes <- list(NULL)
+  result@lambda <- lambda
+  result@direct <- ifelse(metric[1] %in% c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)
+  result@has_meaningful_negative_values <- ifelse(metric[1] %in% c("cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)  # metrics like proportionality has negative values that are difficult to interpret, whereas correlation metrics have a clear interpretation
 
-  # ivar should not be NA, otherwise updateCutoffs does not work
+  # ivar should not be NA for pcor.bshrink, otherwise updateCutoffs does not work
   if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor
 
   # Clean row and column names
@@ -178,7 +214,7 @@ propr <- function(counts,
     )
 
   # permute data
-  if (p > 0) result <- updatePermutes(result, p, fixseed)
+  if (p > 0) result <- updatePermutes(result, p)
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER

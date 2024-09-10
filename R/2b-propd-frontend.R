@@ -84,12 +84,11 @@ updateF <- function(propd,
     # Establish data with regard to a reference Z
     if (any(propd@counts == 0)) {
       message("Alert: Building reference set with ivar and counts offset by 1.")
-      X <- as.matrix(propd@counts + 1)
+      X <- as.matrix(propd@counts + 1)  # TODO this should be checked, if we still want to do this
     } else{
       message("Alert: Building reference set with ivar and counts.")
       X <- as.matrix(propd@counts)
     }
-
     logX <- log(X)
     z.set <- logX[, use, drop = FALSE]
     z.geo <- rowMeans(z.set)

@@ -53,4 +53,5 @@ test_that("calculating rho from phi matches rho", {
     cor_,
     cor
   )
+
 })

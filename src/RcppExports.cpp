@@ -221,6 +221,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// vector2mat
+NumericMatrix vector2mat(NumericVector X, IntegerVector i, IntegerVector j);
+RcppExport SEXP _propr_vector2mat(SEXP XSEXP, SEXP iSEXP, SEXP jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type X(XSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type i(iSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type j(jSEXP);
+    rcpp_result_gen = Rcpp::wrap(vector2mat(X, i, j));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ratiosRcpp
 NumericMatrix ratiosRcpp(NumericMatrix& X);
 RcppExport SEXP _propr_ratiosRcpp(SEXP XSEXP) {
@@ -229,6 +242,19 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(ratiosRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// results2matRcpp
+NumericMatrix results2matRcpp(DataFrame& results, int n, double diagonal);
+RcppExport SEXP _propr_results2matRcpp(SEXP resultsSEXP, SEXP nSEXP, SEXP diagonalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DataFrame& >::type results(resultsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type diagonal(diagonalSEXP);
+    rcpp_result_gen = Rcpp::wrap(results2matRcpp(results, n, diagonal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -256,6 +282,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// count_less_equal_than
+int count_less_equal_than(NumericVector x, double cutoff);
+RcppExport SEXP _propr_count_less_equal_than(SEXP xSEXP, SEXP cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_less_equal_than(x, cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_greater_equal_than
+int count_greater_equal_than(NumericVector x, double cutoff);
+RcppExport SEXP _propr_count_greater_equal_than(SEXP xSEXP, SEXP cutoffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_greater_equal_than(x, cutoff));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ctzRcpp
 NumericVector ctzRcpp(NumericMatrix& X);
 RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
@@ -264,6 +314,102 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(ctzRcpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_lower_triangle
+IntegerVector get_lower_triangle(IntegerMatrix& mat);
+RcppExport SEXP _propr_get_lower_triangle(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_lower_triangle(mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// shuffle_and_get_lower_triangle
+IntegerVector shuffle_and_get_lower_triangle(IntegerMatrix& mat);
+RcppExport SEXP _propr_shuffle_and_get_lower_triangle(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(shuffle_and_get_lower_triangle(mat));
+    return rcpp_result_gen;
+END_RCPP
+}
+// binTab
+NumericMatrix binTab(IntegerVector& A, IntegerVector& G);
+RcppExport SEXP _propr_binTab(SEXP ASEXP, SEXP GSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< IntegerVector& >::type G(GSEXP);
+    rcpp_result_gen = Rcpp::wrap(binTab(A, G));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getOR
+NumericMatrix getOR(IntegerVector& A, IntegerVector& G);
+RcppExport SEXP _propr_getOR(SEXP ASEXP, SEXP GSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< IntegerVector& >::type G(GSEXP);
+    rcpp_result_gen = Rcpp::wrap(getOR(A, G));
+    return rcpp_result_gen;
+END_RCPP
+}
+// permuteOR
+NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p);
+RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GstarSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< IntegerVector& >::type Gstar(GstarSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(permuteOR(A, Gstar, p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getFDR_over
+double getFDR_over(double actual, NumericVector permuted);
+RcppExport SEXP _propr_getFDR_over(SEXP actualSEXP, SEXP permutedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type actual(actualSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type permuted(permutedSEXP);
+    rcpp_result_gen = Rcpp::wrap(getFDR_over(actual, permuted));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getFDR_under
+double getFDR_under(double actual, NumericVector permuted);
+RcppExport SEXP _propr_getFDR_under(SEXP actualSEXP, SEXP permutedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type actual(actualSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type permuted(permutedSEXP);
+    rcpp_result_gen = Rcpp::wrap(getFDR_under(actual, permuted));
+    return rcpp_result_gen;
+END_RCPP
+}
+// graflex
+NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p);
+RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(graflex(A, G, p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -385,10 +531,22 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_urtRcpp", (DL_FUNC) &_propr_urtRcpp, 1},
     {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
     {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
+    {"_propr_vector2mat", (DL_FUNC) &_propr_vector2mat, 3},
     {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
+    {"_propr_results2matRcpp", (DL_FUNC) &_propr_results2matRcpp, 3},
     {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},
     {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 2},
+    {"_propr_count_less_equal_than", (DL_FUNC) &_propr_count_less_equal_than, 2},
+    {"_propr_count_greater_equal_than", (DL_FUNC) &_propr_count_greater_equal_than, 2},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
+    {"_propr_get_lower_triangle", (DL_FUNC) &_propr_get_lower_triangle, 1},
+    {"_propr_shuffle_and_get_lower_triangle", (DL_FUNC) &_propr_shuffle_and_get_lower_triangle, 1},
+    {"_propr_binTab", (DL_FUNC) &_propr_binTab, 2},
+    {"_propr_getOR", (DL_FUNC) &_propr_getOR, 2},
+    {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 3},
+    {"_propr_getFDR_over", (DL_FUNC) &_propr_getFDR_over, 2},
+    {"_propr_getFDR_under", (DL_FUNC) &_propr_getFDR_under, 2},
+    {"_propr_graflex", (DL_FUNC) &_propr_graflex, 3},
     {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
     {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
     {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},

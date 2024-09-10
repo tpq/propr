@@ -22,6 +22,8 @@
 #'
 #' @export
 selectReference <- function(counts, ivar, alpha) {
+  # replace zeros
+  counts <- simple_zero_replacement(counts)
   # Transform data into log space
   lr <- logratio(counts, ivar, alpha)
 

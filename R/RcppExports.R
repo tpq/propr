@@ -73,8 +73,16 @@ half2mat <- function(X) {
     .Call(`_propr_half2mat`, X)
 }
 
+vector2mat <- function(X, i, j) {
+    .Call(`_propr_vector2mat`, X, i, j)
+}
+
 ratiosRcpp <- function(X) {
     .Call(`_propr_ratiosRcpp`, X)
+}
+
+results2matRcpp <- function(results, n, diagonal = 0.0) {
+    .Call(`_propr_results2matRcpp`, results, n, diagonal)
 }
 
 count_less_than <- function(x, cutoff) {
@@ -85,8 +93,48 @@ count_greater_than <- function(x, cutoff) {
     .Call(`_propr_count_greater_than`, x, cutoff)
 }
 
+count_less_equal_than <- function(x, cutoff) {
+    .Call(`_propr_count_less_equal_than`, x, cutoff)
+}
+
+count_greater_equal_than <- function(x, cutoff) {
+    .Call(`_propr_count_greater_equal_than`, x, cutoff)
+}
+
 ctzRcpp <- function(X) {
     .Call(`_propr_ctzRcpp`, X)
+}
+
+get_lower_triangle <- function(mat) {
+    .Call(`_propr_get_lower_triangle`, mat)
+}
+
+shuffle_and_get_lower_triangle <- function(mat) {
+    .Call(`_propr_shuffle_and_get_lower_triangle`, mat)
+}
+
+binTab <- function(A, G) {
+    .Call(`_propr_binTab`, A, G)
+}
+
+getOR <- function(A, G) {
+    .Call(`_propr_getOR`, A, G)
+}
+
+permuteOR <- function(A, Gstar, p = 100L) {
+    .Call(`_propr_permuteOR`, A, Gstar, p)
+}
+
+getFDR_over <- function(actual, permuted) {
+    .Call(`_propr_getFDR_over`, actual, permuted)
+}
+
+getFDR_under <- function(actual, permuted) {
+    .Call(`_propr_getFDR_under`, actual, permuted)
+}
+
+graflex <- function(A, G, p = 100L) {
+    .Call(`_propr_graflex`, A, G, p)
 }
 
 lr2vlr <- function(lr) {

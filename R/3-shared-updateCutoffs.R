@@ -6,51 +6,111 @@
 #'  \code{updateCutoffs.propd}.
 #'
 #' @param object A \code{propr} or \code{propd} object.
-#' @param cutoff For \code{updateCutoffs}, a numeric vector.
-#'  this argument provides the FDR cutoffs to test.
+#' @param number_of_cutoffs An integer. The number of cutoffs to test.
+#' Given this number, the cutoffs will be determined based on the quantile of the data.
+#' In this way, the cutoffs will be evenly spaced across the data.
+#' @param custom_cutoffs A numeric vector. When provided, this vector is used
+#' as the FDR cutoffs to test, and number_of_cutoffs is ignored.
+#' @param tails 1 for one-sided on the right, and 2 for two-sided. When two-sided,
+#' the FDR is calculated for both positive and negative values. When NULL, use default
+#' option for the given metric. This is only relevant for \code{propr} objects.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' @export
 updateCutoffs <-
   function(object,
-           cutoff = seq(.05, .95, .3),
+           number_of_cutoffs = 100,
+           custom_cutoffs = NULL,
+           tails = NULL,
            ncores = 1) {
-    if (inherits(object, "propr")) {
-      if (ncores == 1) {
-        message("Alert: Try parallelizing updateCutoffs with ncores > 1.")
-      }
 
-      updateCutoffs.propr(object, cutoff, ncores)
+    if (!is.null(tails)){
+      if (tails != 1 & tails != 2) stop("Tails only accept values 1 or 2, if not NULL.")
+    }
+
+    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs, tails=1) {
+      if (!is.null(custom_cutoffs)) return(custom_cutoffs)
+      if (tails == 1) values <- values[values >= 0]
+      return(as.numeric(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs))))
+    }
+
+    if (inherits(object, "propr")) {
+      if (is.null(tails)) tails <- ifelse(object@has_meaningful_negative_values, 2, 1)
+      if (tails == 1 & object@has_meaningful_negative_values) warning("One-sided FDR test is performed.")
+      if (tails == 2 & !object@direct) stop("Two-sided FDR is not available for this metric.")
+      values <- object@results$propr
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails)
+      updateCutoffs.propr(object, cutoffs, ncores)
 
     } else if (inherits(object, "propd")) {
-      if (ncores > 1) {
-        message("Alert: Parallel updateCutoffs not yet supported.")
-      }
-
-      updateCutoffs.propd(object, cutoff)
+      values <- object@results$theta
+      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails=1)
+      updateCutoffs.propd(object, cutoffs, ncores)
 
     } else{
       stop("Provided 'object' not recognized.")
     }
+
   }
 
 #' @rdname updateCutoffs
 #' @section Methods:
 #' \code{updateCutoffs.propr:}
-#'  Use the \code{propr} object to permute proportionality
+#'  Use the \code{propr} object to permute correlation-like metrics
+#'  (ie. rho, phi, phs, cor, pcor, pcor.shrink, pcor.bshrink),
 #'  across a number of cutoffs. Since the permutations get saved
 #'  when the object is created, calling \code{updateCutoffs}
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propr <-
-  function(object, cutoff, ncores) {
+  function(object, cutoffs, ncores) {
 
-    metric_is_up <- function(metric) {
-      metrics <- c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink")
-      return(metric %in% metrics)
+    if (identical(object@permutes, list(NULL))) {
+      stop("Permutation testing is disabled.")
+    }
+    if (object@metric == "phi") {
+      warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
     }
 
+    # Set up FDR cutoff table
+    FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
+    colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
+    FDR$cutoff <- cutoffs
+
+    # count the permuted values greater or less than each cutoff
+    if (ncores > 1) {
+      FDR$randcounts <- getFdrRandcounts.propr.parallel(object, cutoffs, ncores)
+    } else{
+      FDR$randcounts <- getFdrRandcounts.propr.run(object, cutoffs)
+    }
+
+    # count actual values greater or less than each cutoff
+    FDR$truecounts <- sapply(FDR$cutoff, function(cutoff) {
+      countValuesBeyondThreshold(object@results$propr, cutoff, object@direct)
+    })
+
+    # calculate FDR
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
+
+    # Initialize @fdr
+    object@fdr <- FDR
+
+    return(object)
+  }
+
+#' This function counts the permuted values greater or less than each cutoff,
+#' using parallel processing, for a propr object
+getFdrRandcounts.propr.parallel <- 
+  function(object, cutoffs, ncores) {
+
+    # Set up the cluster
+    packageCheck("parallel")
+    cl <- parallel::makeCluster(ncores)
+    # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
+
+    # define function to parallelize
     getFdrRandcounts <- function(ct.k) {
+      # calculate permuted propr
       pr.k <- suppressMessages(propr::propr(
         ct.k,
         object@metric,
@@ -58,115 +118,60 @@ updateCutoffs.propr <-
         alpha = object@alpha,
         p = 0
       ))
-
       # Vector of propr scores for each pair of taxa.
       pkt <- pr.k@results$propr
-
-      # Find number of permuted theta less than cutoff
-      sapply(FDR$cutoff, function(cut) {
-        if (metric_is_up(object@metric)) {
-          count_greater_than(pkt, cut)
-        } else{
-          count_less_than(pkt, cut)
-        }
-      })
+      # Find number of permuted theta more or less than cutoff
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, object@direct))
     }
 
-    if (object@metric == "rho") {
-      message("Alert: Estimating FDR for largely positive proportional pairs only.")
-    }
+    # Each element of this list will be a vector whose elements
+    # are the count of theta values less than the cutoff.
+    randcounts <- parallel::parLapply(cl = cl,
+                                      X = object@permutes,
+                                      fun = getFdrRandcounts)
 
-    if (object@metric == "phi") {
-      warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
-    }
+    # get the average randcounts across all permutations
+    randcounts <- apply(as.data.frame(randcounts), 1, sum)
+    randcounts <- randcounts / length(object@permutes)
 
-    if (identical(object@permutes, list(NULL)))
-      stop("Permutation testing is disabled.")
+    # Explicitly stop the cluster.
+    parallel::stopCluster(cl)
 
-    # Let NA cutoff skip function
-    if (identical(cutoff, NA))
-      return(object)
+    return(randcounts)
+  }
 
-    # Set up FDR cutoff table
-    FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
-    colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
-    FDR$cutoff <- cutoff
+#' This function counts the permuted values greater or less than each cutoff,
+#' using a single core, for a propr object.
+getFdrRandcounts.propr.run <-
+  function(object, cutoffs) {
+
+    # create empty randcounts
+    randcounts <- rep(0, length(cutoffs))
+
+    # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
     p <- length(object@permutes)
+    for (k in 1:p) {
+      numTicks <- progress(k, p, numTicks)
 
-    if (ncores > 1) {
-      packageCheck("parallel")
+      # Calculate propr exactly based on @metric, @ivar, and @alpha
+      ct.k <- object@permutes[[k]]
+      pr.k <- suppressMessages(propr(
+        ct.k,
+        object@metric,
+        ivar = object@ivar,
+        alpha = object@alpha,
+        p = 0
+      ))
+      pkt <- pr.k@results$propr
 
-      # Set up the cluster and require propr
-      cl <- parallel::makeCluster(ncores)
-      # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
-
-      # Each element of this list will be a vector whose elements
-      # are the count of theta values less than the cutoff.
-      randcounts <- parallel::parLapply(cl = cl,
-                                        X = object@permutes,
-                                        fun = getFdrRandcounts)
-
-      # Sum across cutoff values
-      FDR$randcounts <- apply(as.data.frame(randcounts), 1, sum)
-
-      # Explicitly stop the cluster.
-      parallel::stopCluster(cl)
-
-    } else{
-      # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
-      for (k in 1:p) {
-        numTicks <- progress(k, p, numTicks)
-
-        # Calculate propr exactly based on @metric, @ivar, and @alpha
-        ct.k <- object@permutes[[k]]
-        pr.k <- suppressMessages(propr(
-          ct.k,
-          object@metric,
-          ivar = object@ivar,
-          alpha = object@alpha,
-          p = 0
-        ))
-        pkt <- pr.k@results$propr
-
-        # Find number of permuted theta less than cutoff
-        for (cut in 1:nrow(FDR)) {
-          # randcounts as cumsum
-
-          # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-          if (metric_is_up(object@metric)) {
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_greater_than(pkt, FDR[cut, "cutoff"])
-          } else{
-            # phi & phs
-            FDR[cut, "randcounts"] <-
-              FDR[cut, "randcounts"] + count_less_than(pkt, FDR[cut, "cutoff"])
-          }
-        }
+      # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
+      for (cut in 1:length(cutoffs)){
+        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], object@direct)
       }
     }
 
-    # Calculate FDR based on real and permuted tallys
-    FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-
-    for (cut in 1:nrow(FDR)) {
-      # Count positives as rho > cutoff, cor > cutoff, phi < cutoff, phs < cutoff
-      if (metric_is_up(object@metric)) {
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr > FDR[cut, "cutoff"])
-      } else{
-        # phi & phs
-        FDR[cut, "truecounts"] <-
-          sum(object@results$propr < FDR[cut, "cutoff"])
-      }
-
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
-    }
-
-    # Initialize @fdr
-    object@fdr <- FDR
-
-    return(object)
+    randcounts <- randcounts / p  # averaged across permutations
+    return(randcounts)
   }
 
 #' @rdname updateCutoffs
@@ -178,78 +183,186 @@ updateCutoffs.propr <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, cutoff = seq(.05, .95, .3)) {
+  function(object, cutoffs, ncores) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
-    # Let NA cutoff skip function
-    if (identical(cutoff, NA))
-      return(object)
-
     # Set up FDR cutoff table
-    FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
+    FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
     colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
-    FDR$cutoff <- cutoff
-    p <- ncol(object@permutes)
-    lrv <- object@results$lrv
+    FDR$cutoff <- cutoffs
 
-    # Use calculateTheta to permute active theta
-    for (k in 1:p) {
-      numTicks <- progress(k, p, numTicks)
-
-      # Tally k-th thetas that fall below each cutoff
-      shuffle <- object@permutes[, k]
-
-      if (object@active == "theta_mod") {
-        # Calculate theta_mod with updateF (using i-th permuted object)
-        if (is.na(object@Fivar))
-          stop("Please re-run 'updateF' with 'moderation = TRUE'.")
-        propdi <- suppressMessages(
-          propd(
-            object@counts[shuffle,],
-            group = object@group,
-            alpha = object@alpha,
-            p = 0,
-            weighted = object@weighted
-          )
-        )
-        propdi <-
-          suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
-        pkt <- propdi@results$theta_mod
-
-      } else{
-        # Calculate all other thetas directly (using calculateTheta)
-        pkt <- suppressMessages(
-          calculate_theta(
-            object@counts[shuffle,],
-            object@group,
-            object@alpha,
-            lrv,
-            only = object@active,
-            weighted = object@weighted
-          )
-        )
-      }
-
-      # Find number of permuted theta less than cutoff
-      for (cut in 1:nrow(FDR)) {
-        # randcounts as cumsum
-        FDR[cut, "randcounts"] <-
-          FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
-      }
+    # Count the permuted values greater or less than each cutoff
+    if (ncores > 1) {
+      FDR$randcounts <- getFdrRandcounts.propd.parallel(object, cutoffs, ncores)
+    } else{
+      FDR$randcounts <- getFdrRandcounts.propd.run(object, cutoffs)
     }
 
-    # Calculate FDR based on real and permuted tallys
-    FDR$randcounts <- FDR$randcounts / p # randcounts as mean
-    for (cut in 1:nrow(FDR)) {
-      FDR[cut, "truecounts"] <-
-        sum(object@results$theta < FDR[cut, "cutoff"])
-      FDR[cut, "FDR"] <-
-        FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
-    }
+    # count actual values greater or less than each cutoff
+    FDR$truecounts <- sapply(1:nrow(FDR), function(cut) {
+        countValuesBeyondThreshold(object@results$theta, FDR[cut, "cutoff"], direct=FALSE)
+    })
+
+    # Calculate FDR
+    FDR$FDR <- FDR$randcounts / FDR$truecounts
 
     # Initialize @fdr
     object@fdr <- FDR
 
     return(object)
   }
+
+#' This function counts the permuted values greater or less than each cutoff,
+#' using parallel processing, for a propd object.
+getFdrRandcounts.propd.parallel <- 
+  function(object, cutoffs, ncores) {
+
+    # Set up the cluster
+    packageCheck("parallel")
+    cl <- parallel::makeCluster(ncores)
+    # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
+
+    # define functions to parallelize
+    getFdrRandcountsMod <- function(k) {
+      if (is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+      shuffle <- object@permutes[, k]
+      propdi <- suppressMessages(
+        propd(
+          object@counts[shuffle,],
+          group = object@group,
+          alpha = object@alpha,
+          p = 0,
+          weighted = object@weighted
+        )
+      )
+      propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = Fivar))
+      pkt <- propdi@results$theta_mod
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
+    }
+    getFdrRandcounts <- function(k) {
+      shuffle <- object@permutes[, k]
+      pkt <- suppressMessages(
+        calculate_theta(
+          object@counts[shuffle,],
+          object@group,
+          object@alpha,
+          object@results$lrv,
+          only = object@active,
+          weighted = object@weighted
+        )
+      )
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
+    }
+
+    # Each element of this list will be a vector whose elements
+    # are the count of theta values less than the cutoff.
+    func = ifelse(object@active == "theta_mod", getFdrRandcountsMod, getFdrRandcounts)
+    randcounts <- parallel::parLapply(cl = cl,
+                                      X = 1:ncol(object@permutes),
+                                      fun = func)
+
+    # get the average randcounts across all permutations
+    randcounts <- apply(as.data.frame(randcounts), 1, sum)
+    randcounts <- randcounts / length(object@permutes)
+
+    # Explicitly stop the cluster.
+    parallel::stopCluster(cl)
+
+    return(randcounts)
+  }
+
+#' This function counts the permuted values greater or less than each cutoff,
+#' using a single core, for a propd object.
+getFdrRandcounts.propd.run <- 
+  function(object, cutoffs) {
+
+    # create empty randcounts
+    randcounts <- rep(0, length(cutoffs))
+
+    # use calculateTheta to permute active theta
+    p <- ncol(object@permutes)
+    for (k in 1:p) {
+      numTicks <- progress(k, p, numTicks)
+
+      # calculate permuted theta values
+      if (object@active == "theta_mod") {
+        pkt <- suppressMessages(getPermutedThetaMod(object, k))
+      } else{
+        pkt <- suppressMessages(getPermutedTheta(object, k))
+      }
+
+      # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
+      for (cut in 1:length(cutoffs)){
+        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], direct=FALSE)
+      }
+    }
+
+    randcounts <- randcounts / p  # averaged across permutations
+    return(randcounts)
+}
+
+#' Get the theta mod values for a given permutation
+getPermutedThetaMod <- 
+  function(object, k) {
+
+    if (is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- object@permutes[, k]
+
+    # Calculate theta_mod with updateF (using k-th permuted object)
+    propdi <- suppressMessages(
+      propd(
+        object@counts[shuffle,],
+        group = object@group,
+        alpha = object@alpha,
+        p = 0,
+        weighted = object@weighted
+      )
+    )
+    propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = Fivar))
+
+    return(propdi@results$theta_mod)
+}
+
+#' Get the theta values for a given permutation
+getPermutedTheta <- 
+  function(object, k) {
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- object@permutes[, k]
+
+    # Calculate all other thetas directly (using calculateTheta)
+    pkt <- suppressMessages(
+      calculate_theta(
+        object@counts[shuffle,],
+        object@group,
+        object@alpha,
+        object@results$lrv,
+        only = object@active,
+        weighted = object@weighted
+      )
+    )
+
+    return(pkt)
+  }
+
+#' Count Values Greater or Less Than a Threshold
+#'
+#' This function counts the number of values greater or less than a threshold.
+#' The direction depends on if a direct or inverse relationship is asked,
+#' as well as the sign of the threshold.
+#'
+#' @param values A numeric vector.
+#' @param cutoff A numeric value.
+#' @direct A logical value. If \code{TRUE}, direct relationship is considered.
+#' @return The number of values greater or less than the threshold.
+countValuesBeyondThreshold <- function(values, cutoff, direct){
+  if (direct){
+    func <- ifelse(cutoff >= 0, count_greater_than, count_less_than)
+  } else {
+    func <- count_less_than
+  }
+  return(func(values, cutoff))
+}

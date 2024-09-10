@@ -427,6 +427,27 @@ NumericMatrix half2mat(NumericVector X){
   return A;
 }
 
+// Function to recast a vector into matrix, given the positions i and j
+// [[Rcpp::export]]
+NumericMatrix vector2mat(NumericVector X, IntegerVector i, IntegerVector j){
+  
+  int nfeats = sqrt(2 * X.length() + .25) + .5;
+  NumericMatrix A(nfeats, nfeats);
+
+  int ni = i.length();
+  int nj = j.length();
+  if (ni != nj){
+    stop("i and j must be the same length.");
+  }
+
+  for (int counter = 0; counter < ni; counter++){
+    A(i[counter]-1, j[counter]-1) = X[counter];   // NOTE that R is 1-indexed whereas C is 0-indexed
+    A(j[counter]-1, i[counter]-1) = X[counter];
+  }
+
+  return A;  
+}
+
 // Function to recast matrix as feature ratios
 // [[Rcpp::export]]
 NumericMatrix ratiosRcpp(NumericMatrix & X){
@@ -445,4 +466,26 @@ NumericMatrix ratiosRcpp(NumericMatrix & X){
   }
 
   return result;
+}
+
+// Function to recast results data frame as gene-gene matrix
+// [[Rcpp::export]]
+NumericMatrix results2matRcpp(DataFrame& results, int n, double diagonal = 0.0){
+  NumericMatrix mat(n, n);
+
+  // fill in the values for each pair
+  int npairs = results.nrows();
+  for (int i = 0; i < npairs; i++){
+    int row = int(results(i, 0)) - 1;
+    int col = int(results(i, 1)) - 1;
+    mat(row, col) = results(i, 2);
+    mat(col, row) = results(i, 2);
+  }
+
+  // fill in the diagonal values
+  for (int i = 0; i < n; i++){
+    mat(i, i) = diagonal;
+  }
+  
+  return mat;
 }
