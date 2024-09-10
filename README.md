@@ -101,7 +101,7 @@ pr <- updateCutoffs(
         pr,
         number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
         custom_cutoffs = NULL,  # or specify custom cutoffs
-        tails = 1,  # 1 or 2-tailed test
+        tails = 'right',  # consider only the positive values ('right') or both sides ('both')
         ncores = 4  # parallelize here
       ) 
 ```
@@ -131,7 +131,7 @@ pr <- updateCutoffs(
         pr,
         number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
         custom_cutoffs = NULL,  # or specify custom cutoffs
-        tails = 1,  # 1 or 2-tailed test
+        tails = 'right',  # consider only the positive values ('right') or both sides ('both')
         ncores = 4  # parallelize here
       ) 
 ```
