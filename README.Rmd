@@ -40,20 +40,22 @@ There are a few proportionality statistics available. Select one with the 'metri
 ```{r, eval = FALSE}
 pr <- propr(
         counts,  # rows as samples, like it should be
-        metric = "rho",  # or "phi", "phs", "cor", "vlr"
-        ivar = "clr",  # or can use "iqlr" instead
+        metric = "rho",  # or "phi", "phs", "vlr"
+        ivar = "clr",  # or can use another gene as reference, by giving the name or index
         alpha = NA,  # use to handle zeros
-        p = 100  # used for updateCutoffs
+        p = 100  # used for permutation tests
       ) 
 ```
 
-You can determine the "signficance" of proportionality using a built-in permutation procedure. It tells estimates the false discovery rate (FDR) for any cutoff. This method can take a while to run, but is parallelizable.
+You can determine the "signficance" of proportionality using a built-in permutation procedure. It estimates the false discovery rate (FDR) for any cutoff. This method can take a while to run, but is parallelizable.
 
 ```{r, eval = FALSE}
 pr <- updateCutoffs(
         pr,
-        cutoff = seq(0, 1, .05),  # cutoffs at which to estimate FDR
-        ncores = 1  # parallelize here
+        number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
+        custom_cutoffs = NULL,  # or specify custom cutoffs
+        tails = 1,  # 1 or 2-tailed test
+        ncores = 4  # parallelize here
       ) 
 ```
 
@@ -67,7 +69,8 @@ There are many ways to calculate partial correlations, with or without shrinkage
 pr <- propr(
         counts,  # rows as samples, like it should be
         metric = "pcor.bshrink",  # partial correlation without shrinkage "pcor" is also available
-        p = 100  # used for updateCutoffs
+        ivar = "clr",  # "clr" is recommended
+        p = 100  # used for permutation tests
       ) 
 ```
 
@@ -76,9 +79,11 @@ You can also determine the "significance" of logratio partial correlations with 
 ```{r, eval = FALSE}
 pr <- updateCutoffs(
         pr,
-        cutoff = seq(0, 1, .05),  # cutoffs at which to estimate FDR
-        ncores = 1  # parallelize here
-      )
+        number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
+        custom_cutoffs = NULL,  # or specify custom cutoffs
+        tails = 1,  # 1 or 2-tailed test
+        ncores = 4  # parallelize here
+      ) 
 ```
 
 
@@ -91,7 +96,7 @@ pd <- propd(
         counts,
         group,  # a vector of 2 or more groups
         alpha = NA,  # whether to handle zeros
-        p = 100,  # used for updateCutoffs
+        p = 100,  # used for permutation tests
         weighted = TRUE  # whether to weight log-ratios
       )
 ```
@@ -128,6 +133,15 @@ Both functions return S4 objects. This package includes several helper functions
 
 Use `getResults` to pipe to `ggplot2` for visualization.
 
+We also provide accesory functions to get the significant pairs.
+```{r, eval = FALSE}
+?getSignificantResultsFDR
+?getSignificantResultsFstat
+?getAdjacencyFDR
+?getAdjacencyFstat
+?getCutoffFDR
+?getCutoffFstat
+```
 
 ## Ratio Methods
 
