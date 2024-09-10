@@ -47,18 +47,18 @@ test_that("getAdjacencyFDR and getSignificantResultsFDR return coherent results"
 
 test_that("getAdjacencyFstat works properly", {
 
-    for (fdr in c(TRUE, FALSE)){
+    for (fdr_adjusted in c(TRUE, FALSE)){
 
         # get propd object
         pr <- propd(x, as.character(y), p=10)
         pr <- updateF(pr)
 
         # get adjacency matrix
-        adj <- getAdjacencyFstat(pr, fdr=fdr)
+        adj <- getAdjacencyFstat(pr, fdr_adjusted=fdr_adjusted)
 
         # get expected adjacency matrix
         adj_expected <- matrix(0, nrow = ncol(x), ncol = ncol(x))
-        adj_expected[propr:::getMatrix(pr) <= getCutoffFstat(pr, fdr=fdr)] <- 1
+        adj_expected[propr:::getMatrix(pr) <= getCutoffFstat(pr, fdr_adjusted=fdr_adjusted)] <- 1
         adj_expected[diag(adj_expected)] <- 1
         rownames(adj_expected) <- colnames(x)
         colnames(adj_expected) <- colnames(x)

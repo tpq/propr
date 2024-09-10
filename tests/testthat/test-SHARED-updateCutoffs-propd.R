@@ -32,14 +32,17 @@ test_that("updateCutoffs.propd properly calculates truecounts", {
     pd@fdr$cutoff, 
     function(cut) sum(pd@results$theta < cut)
   )
+  truecounts_manual <- c(0:9)
 
   # check that truecounts are properly defined
   expect_equal(pd@fdr$truecounts, truecounts)
+  expect_equal(pd@fdr$truecounts, truecounts_manual)
 })
 
 test_that("updateCutoffs.propd properly calculates randcounts", {
 
   # get propd object and update cutoffs
+  set.seed(0)
   pd <- propd(x, as.character(y), p=10)
   pd <- updateCutoffs(pd, number_of_cutoffs=10)
 
@@ -61,9 +64,11 @@ test_that("updateCutoffs.propd properly calculates randcounts", {
     }
   }
   randcounts <- randcounts / 10
+  randcounts_manual <- c(0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 5.4)
 
   # check that the permutation tests work properly
   expect_equal(pd@fdr$randcounts, randcounts)
+  expect_equal(round(pd@fdr$randcounts, 1), randcounts_manual)
 })
 
 test_that("updateCutoffs.propd is reproducible when seed is set", {

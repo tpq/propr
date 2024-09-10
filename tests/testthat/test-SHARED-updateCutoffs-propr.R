@@ -2,6 +2,7 @@ library(testthat)
 library(propr)
 
 # define data matrix
+set.seed(123)
 N <- 100
 a <- seq(from = 5, to = 15, length.out = N)
 b <- a * rnorm(N, mean = 1, sd = 0.1)
@@ -39,14 +40,17 @@ test_that("updateCutoffs.propr properly calculates truecounts", {
     function(cut) sum(pr@results$propr > cut)
   )
   truecounts <- c(truecounts1, truecounts2)
+  truecounts_manual <- c(0,1,2, 6,5,4,3,3,1,0)
 
   # check that truecounts are properly defined
   expect_equal(pr@fdr$truecounts, truecounts)
+  expect_equal(pr@fdr$truecounts, truecounts_manual)
 })
 
 test_that("updateCutoffs.propr properly calculates randcounts", {
 
   # get propr object and update cutoffs
+  set.seed(0)
   pr <- propr(X, metric = "pcor.bshrink", p=10)
   pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
@@ -72,6 +76,7 @@ test_that("updateCutoffs.propr properly calculates randcounts", {
     }
   }
   randcounts <- randcounts / 10
+  randcounts_manual <- c(0,0,0, 9.7,9.7,9.2,8.2,0,0,0)
 
   # check that the permutation tests work properly
   expect_equal(pr@fdr$randcounts, randcounts)
