@@ -30,13 +30,13 @@ getResults <-
 getSignificantResultsFDR <-
   function(object, fdr = 0.05, window_size = 1, tails = NULL) {
 
-    if(inherits(object, "propr")){
+    if (inherits(object, "propr")) {
       results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
 
-    }else if(inherits(object, "propd")){
+    } else if(inherits(object, "propd")) {
       results <- getSignificantResultsFDR.propd(object, fdr=fdr, window_size=window_size)
 
-    }else{
+    } else {
       stop("Please provide a 'propr' or 'propd' object.")
     }
 
@@ -54,9 +54,11 @@ getSignificantResultsFDR.propd <-
 
     results <- getResults(object)
     cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
-    results <- results[which(results$theta <= cutoff), ]
-
-    return(results)
+    if (cutoff) {
+      return(results[which(results$theta <= cutoff), ])
+    } else {
+      return(results[0,])
+    }
 }
 
 #' @rdname getSignificantResultsFDR
@@ -83,12 +85,12 @@ getSignificantResultsFDR.propr <-
 
     # function to subset the results data frame based on the cutoff
     subsetBeyondCutoff <- function(data, cutoff) {
+      if (!cutoff) return(data[0,])  # return empty data frame when no cutoff found
       if (object@direct) {
-        data <- data[which(abs(data$propr) >= abs(cutoff)), ]
+        return(data[which(abs(data$propr) >= abs(cutoff)), ])
       } else {
-        data <- data[which(data$propr <= cutoff), ]
+        return(data[which(data$propr <= cutoff), ])
       }
-      return(data)
     }
 
     # correct fdr when two-sided
@@ -144,10 +146,14 @@ getSignificantResultsFstat <-
       results <- results[which(results$FDR <= pval), ]
 
     # get siniginicant theta based on the F-statistic cutoff
-    }else{
+    } else {
       message("Alert: Returning the significant pairs based on the F-statistic cutoff.")
       cutoff <- getCutoffFstat(object, pval = pval, fdr_adjusted = FALSE)
-      results <- results[which(results$theta <= cutoff), ]
+      if (cutoff) {
+        results <- results[which(results$theta <= cutoff), ]
+      } else {
+        results <- results[0,]
+      }
     }
 
     return(results)
