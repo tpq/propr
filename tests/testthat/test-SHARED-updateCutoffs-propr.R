@@ -13,22 +13,30 @@ X <- data.frame(a, b, c, d, e)
 
 test_that("updateCutoffs.propr properly set up cutoffs", {
 
-  # get propr object and update cutoffs
+  # get propr object
   pr <- propr(X, metric = "pcor.bshrink", p=10)
-  pr <- updateCutoffs(pr, number_of_cutoffs=10)
 
   # get cutoffs
-  cutoffs <- as.numeric( quantile(pr@matrix[lower.tri(pr@matrix)], probs = seq(0, 1, length.out = 10)) )
+  values <- pr@matrix[lower.tri(pr@matrix)]
+  cutoffs_right <- as.numeric( quantile(values[values >= 0], probs = seq(0, 1, length.out = 10)) )
+  cutoffs_both <- as.numeric( quantile(values, probs = seq(0, 1, length.out = 10)) )
 
   # check that cutoffs are properly defined
-  expect_equal(pr@fdr$cutoff, cutoffs)
+  expect_equal(
+    updateCutoffs(pr, number_of_cutoffs=10)@fdr$cutoff,
+    cutoffs_right
+  )
+  expect_equal(
+    updateCutoffs(pr, number_of_cutoffs=10, tails="both")@fdr$cutoff,
+    cutoffs_both
+  )
 })
 
 test_that("updateCutoffs.propr properly calculates truecounts", {
 
   # get propr object and update cutoffs
   pr <- propr(X, metric = "pcor.bshrink", p=10)
-  pr <- updateCutoffs(pr, number_of_cutoffs=10)
+  pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
 
   # get truecounts
   truecounts1 <- sapply(
@@ -52,7 +60,7 @@ test_that("updateCutoffs.propr properly calculates randcounts", {
   # get propr object and update cutoffs
   set.seed(0)
   pr <- propr(X, metric = "pcor.bshrink", p=10)
-  pr <- updateCutoffs(pr, number_of_cutoffs=10)
+  pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
 
   # get permuted values
   randcounts <- rep(0, 10)

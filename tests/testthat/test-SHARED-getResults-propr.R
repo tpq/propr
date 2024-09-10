@@ -38,7 +38,7 @@ test_that("test that getSignificantResultsFDR works as expected", {
   
   # get propr object
   pr <- propr(X, metric = "pcor.bshrink", p=10)
-  pr <- updateCutoffs(pr, number_of_cutoffs=10)
+  pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
   
   # get expected results
   cutoff_positive <- getCutoffFDR(pr, fdr = 0.05, window_size = 1, positive = TRUE)
@@ -47,7 +47,7 @@ test_that("test that getSignificantResultsFDR works as expected", {
   expected_negative <- pr@results$propr[which(pr@results$propr <= cutoff_negative)]
 
   # get significant results
-  results <- getSignificantResultsFDR(pr, fdr = 0.05)
+  results <- getSignificantResultsFDR(pr, fdr = 0.05, tails='both')
 
   # check that the values are correct
   expect_equal(results$propr[results$propr>=0], expected_positive)

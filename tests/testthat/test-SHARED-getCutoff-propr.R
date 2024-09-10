@@ -16,7 +16,7 @@ test_that("test that getCutoff gets the correct cutoff", {
     # get propr object and update cutoffs
     set.seed(0)
     pr <- propr(X, metric = "pcor.bshrink", p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=10)
+    pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
 
     # check cutoff is correct for positive values
     cutoff <- getCutoffFDR(pr, fdr = 0.05, window_size = 1, positive = TRUE)
