@@ -4,13 +4,23 @@
 \alias{getAdjacencyFDR}
 \alias{getAdjacencyFDR.propd}
 \alias{getAdjacencyFDR.propr}
-\title{Get Adjacency Matrix as indicated by permutation tests}
+\title{Get Adjacency Matrix as indicated by permutation tests.}
 \usage{
-getAdjacencyFDR(object, fdr = 0.05, window_size = 1, tails = NULL)
+getAdjacencyFDR(
+  object,
+  fdr = 0.05,
+  window_size = 1,
+  tails = c("right", "both")
+)
 
 getAdjacencyFDR.propd(object, fdr = 0.05, window_size = 1)
 
-getAdjacencyFDR.propr(object, fdr = 0.05, window_size = 1, tails = NULL)
+getAdjacencyFDR.propr(
+  object,
+  fdr = 0.05,
+  window_size = 1,
+  tails = c("right", "both")
+)
 }
 \arguments{
 \item{object}{A \code{propd} or \code{propr} object.}
@@ -20,15 +30,20 @@ getAdjacencyFDR.propr(object, fdr = 0.05, window_size = 1, tails = NULL)
 \item{window_size}{An integer. Default is 1. When it is greater than 1, the FDR
 values would be smoothed out by a moving average of the given window size.}
 
-\item{tails}{1 for one-sided on the right, and 2 for two-sided. When NULL, use default
-test for the given metric. This is only relevant for \code{propr} objects.}
+\item{tails}{'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
+combine one-sided on the right (positive values) and left (negative values). This is only 
+relevant for \code{propr} objects, as \code{propd} objects are always one-sided and only 
+have positive values.}
 }
 \value{
 An adjacency matrix.
 }
 \description{
-This function gets the significant pairs, according to the permutation tests. 
-Then it fills the adjacency matrix with 1 if pair is significant, otherwise 0.
+This function gets the significant pairs according to the permutation tests. Then it fills 
+the adjacency matrix with 1 if pair is significant, otherwise 0. The significance is determined
+by the cutoff value for which the false discovery rate (FDR) is less or equal than the given 
+value 'fdr'. The significant pairs are those that have a value greater/less or equal than the 
+cutoff, depending on the metric.
 }
 \section{Methods}{
 
