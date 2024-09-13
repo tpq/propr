@@ -32,6 +32,7 @@ IntegerVector shuffle_and_get_lower_triangle(IntegerMatrix& mat) {
   IntegerVector shuffled_triangle(n);
   IntegerVector index = sample(ncol, ncol, false) - 1;
 
+  // TODO check if this is correct
   int k = 0;
   for (int i = 0; i < ncol; ++i) {
     int index_i = index[i];

@@ -83,6 +83,18 @@ runGraflex_old <- function(A, K, p = 500) {
 # run tests             #
 # ===================== #
 
+test_that("check if get_lower_triangle works correctly", {
+
+  n <- 50
+  # Create a square and symmetric matrix
+  mat <- matrix(sample(0:1, n*n, replace = TRUE), nrow = n, byrow = TRUE)
+  # Expected lower triangle
+  expected <- mat[lower.tri(mat)]
+  # Compute the lower triangle
+  result <- propr:::get_lower_triangle(mat)
+  # Check if the result matches the expected lower triangle
+  expect_equal(result, expected)
+})
 
 test_that("check if odds ratio is computed correctly", {
 
