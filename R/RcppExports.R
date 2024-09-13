@@ -105,16 +105,12 @@ ctzRcpp <- function(X) {
     .Call(`_propr_ctzRcpp`, X)
 }
 
-get_lower_triangle <- function(mat) {
-    .Call(`_propr_get_lower_triangle`, mat)
+get_triangle <- function(mat) {
+    .Call(`_propr_get_triangle`, mat)
 }
 
-shuffle_and_get_lower_triangle <- function(mat) {
-    .Call(`_propr_shuffle_and_get_lower_triangle`, mat)
-}
-
-binTab <- function(A, G) {
-    .Call(`_propr_binTab`, A, G)
+get_triangle_from_index <- function(mat, index) {
+    .Call(`_propr_get_triangle_from_index`, mat, index)
 }
 
 getOR <- function(A, G) {
@@ -125,12 +121,8 @@ permuteOR <- function(A, Gstar, p = 100L) {
     .Call(`_propr_permuteOR`, A, Gstar, p)
 }
 
-getFDR_over <- function(actual, permuted) {
-    .Call(`_propr_getFDR_over`, actual, permuted)
-}
-
-getFDR_under <- function(actual, permuted) {
-    .Call(`_propr_getFDR_under`, actual, permuted)
+getFDR <- function(actual, permuted) {
+    .Call(`_propr_getFDR`, actual, permuted)
 }
 
 graflex <- function(A, G, p = 100L) {

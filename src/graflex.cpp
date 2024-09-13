@@ -5,8 +5,7 @@ using namespace Rcpp;
 
 // Function to extract the triangle of a square and symmetric IntegerMatrix
 // [[Rcpp::export]]
-IntegerVector get_lower_triangle(IntegerMatrix& mat) {
-  int nrow = mat.nrow();
+IntegerVector get_triangle(const IntegerMatrix& mat) {
   int ncol = mat.ncol();
   int n = ncol * (ncol - 1) / 2;
 
@@ -14,7 +13,7 @@ IntegerVector get_lower_triangle(IntegerMatrix& mat) {
 
   int k = 0;
   for (int j = 0; j < ncol; ++j) {
-      for (int i = j+1; i < nrow; ++i) {
+      for (int i = j+1; i < ncol; ++i) {
       triangle[k++] = mat(i, j);
     }
   }
@@ -22,70 +21,59 @@ IntegerVector get_lower_triangle(IntegerMatrix& mat) {
   return triangle;
 }
 
-// Function to shuffle a square and symmetric IntegerMatrix, and get the lower triangle
+// Function to get the triangle of a matrix based on the given indeces
 // [[Rcpp::export]]
-IntegerVector shuffle_and_get_lower_triangle(IntegerMatrix& mat) {
-  int nrow = mat.nrow();
+IntegerVector get_triangle_from_index(const IntegerMatrix& mat, const IntegerVector& index) {
   int ncol = mat.ncol();
   int n = ncol * (ncol - 1) / 2;
 
-  IntegerVector shuffled_triangle(n);
-  IntegerVector index = sample(ncol, ncol, false) - 1;
+  IntegerVector triangle(n);
 
-  // TODO check if this is correct
   int k = 0;
-  for (int i = 0; i < ncol; ++i) {
-    int index_i = index[i];
-    for (int j = 0; j < i; ++j) {
-      int index_j = index[j];
-      shuffled_triangle[k++] = mat(index_i, index_j);
+  for (int j = 0; j < ncol; ++j) {
+    for (int i = j+1; i < ncol; ++i) {
+      triangle[k++] = mat(index[i], index[j]);
     }
   }
 
-  return shuffled_triangle;
+  return triangle;
 }
 
 // Function to calculate the contingency table
 // [[Rcpp::export]]
-NumericMatrix binTab(IntegerVector& A, IntegerVector& G) {
-  NumericMatrix tab(2, 2);
+NumericVector getOR(const IntegerVector& A, const IntegerVector& G) {
   int n = A.size();
 
-  tab(0, 0) = sum((1 - A) * (1 - G));  // not in A and not in G
-  tab(0, 1) = sum((1 - A) * G);        // not in A but in G
-  tab(1, 0) = sum(A * (1 - G));        // in A but not G
-  tab(1, 1) = sum(A * G);              // in A and G
+  // calculate the contingency table
+  int a = 0, b = 0, c = 0, d = 0;
+  for (int i = 0; i < n; ++i) {
+    if (A[i] == 0) {
+      if (G[i] == 0) ++a;  // not in A and not in G
+      else ++b;            // not in A but in G
+    } else {
+      if (G[i] == 0) ++c;  // in A but not in G
+      else ++d;            // in A and in G
+    }
+  }
+  
+  // calculate the odds ratio
+  double odds_ratio = static_cast<double>(a * d) / (b * c);
 
-  return tab;
-}
-
-// Function to calculate the odds ratio, and parse all information into a matrix
-// [[Rcpp::export]]
-NumericMatrix getOR(IntegerVector& A, IntegerVector& G) {
-
-  NumericMatrix tab = binTab(A, G);
-  double odds_ratio = (tab(0, 0) * tab(1, 1)) / (tab(0, 1) * tab(1, 0));
-
-  NumericMatrix or_table(1, 8);
-  or_table(0, 0) = tab(0, 0);
-  or_table(0, 1) = tab(0, 1);
-  or_table(0, 2) = tab(1, 0);
-  or_table(0, 3) = tab(1, 1);
-  or_table(0, 4) = odds_ratio;
-  or_table(0, 5) = log(odds_ratio);
-
-  return or_table;
+  return NumericVector::create(
+    a, b, c, d, odds_ratio, std::log(odds_ratio), R_NaN, R_NaN
+  );
 }
 
 // Function to calculate the odds ratio and other relevant info for each permutation
 // [[Rcpp::export]]
-NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100) {
-
+NumericMatrix permuteOR(const IntegerMatrix& A, const IntegerVector& Gstar, int p = 100) {
+  int n = A.ncol();
   NumericMatrix or_table(p, 8);
 
   // calculate odds ratio for each permutation
   for (int i = 0; i < p; ++i) {
-    IntegerVector Astar = shuffle_and_get_lower_triangle(A);
+    IntegerVector idx = sample(n, n, false) - 1;
+    IntegerVector Astar = get_triangle_from_index(A, idx);
     or_table(i, _) = getOR(Astar, Gstar);
   }
 
@@ -93,46 +81,45 @@ NumericMatrix permuteOR(IntegerMatrix& A, IntegerVector& Gstar, int p = 100) {
 }
 
 // [[Rcpp::export]]
-double getFDR_over(double actual, NumericVector permuted) {
-  double n = permuted.size();
-  double fdr = 0.0;
-  for (int i = 0; i < n; ++i) {
-    if (permuted[i] >= actual) {
-      fdr += 1.0;
-    }
-  }
-  fdr /= n;
-  return fdr;
-}
+List getFDR(double actual, const NumericVector& permuted) {
+  int n = permuted.size();
+  int count_over = 0;
+  int count_under = 0;
 
-// [[Rcpp::export]]
-double getFDR_under(double actual, NumericVector permuted) {
-  double n = permuted.size();
-  double fdr = 0.0;
+  // Count values above and below the actual value
   for (int i = 0; i < n; ++i) {
-    if (permuted[i] <= actual) {
-      fdr += 1.0;
-    }
+    double current = permuted[i];
+    if (current >= actual) ++count_over;
+    if (current <= actual) ++count_under;
   }
-  fdr /= n;
-  return fdr;
+
+  // Calculate FDR for both "over" and "under"
+  double fdr_over = static_cast<double>(count_over) / n;
+  double fdr_under = static_cast<double>(count_under) / n;
+
+  // Return both FDR values as a named list
+  return List::create(
+    Named("over") = fdr_over,
+    Named("under") = fdr_under
+  );
 }
 
 // Function to calculate the odds ratio and FDR, given the adjacency matrix A and the knowledge graph G
 // [[Rcpp::export]]
-NumericMatrix graflex(IntegerMatrix& A, IntegerMatrix& G, int p = 100) {
+NumericVector graflex(const IntegerMatrix& A, const IntegerMatrix& G, int p = 100) {
 
   // get the actual odds ratio
-  IntegerVector Astar = get_lower_triangle(A);
-  IntegerVector Gstar = get_lower_triangle(G);
-  NumericMatrix actual = getOR(Astar, Gstar);
+  IntegerVector Astar = get_triangle(A);
+  IntegerVector Gstar = get_triangle(G);
+  NumericVector actual = getOR(Astar, Gstar);
 
   // get distribution of odds ratios on permuted data
   NumericMatrix permuted = permuteOR(A, Gstar, p);
 
   // calculate the FDR
-  actual(0, 6) = getFDR_under(actual(0, 4), permuted(_, 4));
-  actual(0, 7) = getFDR_over(actual(0, 4), permuted(_, 4));
+  List fdr = getFDR(actual(4), permuted(_, 4));
+  actual(6) = as<double>(fdr["under"]);
+  actual(7) = as<double>(fdr["over"]);
 
   return actual;
 }
