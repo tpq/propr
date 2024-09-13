@@ -1,3 +1,8 @@
+## propr 5.1.1
+---------------------
+* Speed up `graflex` related functions
+
+
 ## propr 5.1.0
 ---------------------
 * Allowed `updateCutoffs` function to compute the FDR values for negative cutoffs
