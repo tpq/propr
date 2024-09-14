@@ -317,51 +317,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// get_triangle
-IntegerVector get_triangle(const IntegerMatrix& mat);
-RcppExport SEXP _propr_get_triangle(SEXP matSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mat(matSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_triangle(mat));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_triangle_from_index
-IntegerVector get_triangle_from_index(const IntegerMatrix& mat, const IntegerVector& index);
-RcppExport SEXP _propr_get_triangle_from_index(SEXP matSEXP, SEXP indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type mat(matSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type index(indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_triangle_from_index(mat, index));
-    return rcpp_result_gen;
-END_RCPP
-}
 // getOR
-NumericVector getOR(const IntegerVector& A, const IntegerVector& G);
+NumericVector getOR(const IntegerMatrix& A, const IntegerMatrix& G);
 RcppExport SEXP _propr_getOR(SEXP ASEXP, SEXP GSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type G(GSEXP);
     rcpp_result_gen = Rcpp::wrap(getOR(A, G));
     return rcpp_result_gen;
 END_RCPP
 }
-// permuteOR
-NumericMatrix permuteOR(const IntegerMatrix& A, const IntegerVector& Gstar, int p);
-RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GstarSEXP, SEXP pSEXP) {
+// getORperm
+NumericVector getORperm(const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm);
+RcppExport SEXP _propr_getORperm(SEXP ASEXP, SEXP GSEXP, SEXP permSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type Gstar(GstarSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type perm(permSEXP);
+    rcpp_result_gen = Rcpp::wrap(getORperm(A, G, perm));
+    return rcpp_result_gen;
+END_RCPP
+}
+// permuteOR
+NumericMatrix permuteOR(const IntegerMatrix& A, const IntegerMatrix& G, int p);
+RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type G(GSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(permuteOR(A, Gstar, p));
+    rcpp_result_gen = Rcpp::wrap(permuteOR(A, G, p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -516,9 +506,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_count_less_equal_than", (DL_FUNC) &_propr_count_less_equal_than, 2},
     {"_propr_count_greater_equal_than", (DL_FUNC) &_propr_count_greater_equal_than, 2},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
-    {"_propr_get_triangle", (DL_FUNC) &_propr_get_triangle, 1},
-    {"_propr_get_triangle_from_index", (DL_FUNC) &_propr_get_triangle_from_index, 2},
     {"_propr_getOR", (DL_FUNC) &_propr_getOR, 2},
+    {"_propr_getORperm", (DL_FUNC) &_propr_getORperm, 3},
     {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 3},
     {"_propr_getFDR", (DL_FUNC) &_propr_getFDR, 2},
     {"_propr_graflex", (DL_FUNC) &_propr_graflex, 3},
