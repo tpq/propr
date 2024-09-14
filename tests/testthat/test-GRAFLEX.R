@@ -2,6 +2,21 @@ library(testthat)
 library(propr)
 library(Rcpp)
 
+# Create matrices of 0 and 1
+A <- matrix(c(1, 1, 0, 1, 0, 
+              1, 1, 1, 0, 1, 
+              0, 1, 1, 0, 1, 
+              1, 0, 0, 1, 1, 
+              0, 1, 1, 1, 1), 
+            nrow = 5, byrow = TRUE)
+K <- matrix(c(1, 0, 
+              0, 1, 
+              1, 0, 
+              0, 1, 
+              1, 1), 
+            nrow = 5, byrow = TRUE)
+colnames(K) <- c("C1", "C2")
+
 # ===================== #
 # old code for graflex  #
 # ===================== #
@@ -16,8 +31,7 @@ cppFunction("
 permuteOR_old <- function(A, G, p = 500) {
   Gstar <- G[lower.tri(G)]
   res <- lapply(1:p, function(i) {
-    # Shuffle the adjacency matrix
-    # index <- sample(1:ncol(A))
+    # index <- sample(ncol(A), ncol(A), replace = FALSE)
     index <- sample_idx(ncol(A))+1  # use the same random sampling generator
     A <- A[index, index]
     Astar <- A[lower.tri(A)]
@@ -90,37 +104,28 @@ runGraflex_old <- function(A, K, p = 500) {
 # run tests             #
 # ===================== #
 
-test_that("check if get_triangle works correctly", {
+test_that("check if odds ratio is computed correctly", {
 
-  n <- 50
-  # Create a square and symmetric matrix
-  mat <- matrix(sample(0:1, n*n, replace = TRUE), nrow = n, byrow = TRUE)
-  # Expected lower triangle
-  expected <- mat[lower.tri(mat)]
-  # Compute the triangle
-  result <- propr:::get_triangle(mat)
-  # Check if the result matches the expected lower triangle
-  expect_equal(result, expected)
-})
+  G <- K[, 1] %*% t(K[, 1])
+  A1 <- A[lower.tri(A)]
+  G1 <- G[lower.tri(G)]
 
-test_that("check if get_triangle_from_index works correctly", {
-  n <- 50
-  
-  # Create a square and symmetric matrix
-  mat <- matrix(sample(0:1, n*n, replace = TRUE), nrow = n, byrow = TRUE)
+  # Expected values
+  a <- length(A1[A1 == 0 & G1 == 0])  # not in A not in G
+  b <- length(A1[A1 == 0 & G1 == 1])  # not in A but in G
+  c <- length(A1[A1 == 1 & G1 == 0])  # in A but not in G
+  d <- length(A1[A1 == 1 & G1 == 1])  # in A in G
+  expected_odds_ratio <- (a * d) / (b * c)
 
-  # Create a random permutation of the indices
-  index <- sample(1:n)
+  # compute odds ratio table
+  or_table <- propr:::getOR(A, G)
 
-  # expected lower triangle
-  expected <- mat[index, index]
-  expected <- expected[lower.tri(expected)]
-
-  # Compute the lower triangle
-  result <- propr:::get_triangle_from_index(mat, index-1)
-
-  # Check if the result matches the expected lower triangle
-  expect_equal(result, expected)  
+  # check
+  expect_equal(a, as.integer(or_table[1]))
+  expect_equal(b, as.integer(or_table[2]))
+  expect_equal(c, as.integer(or_table[3]))
+  expect_equal(d, as.integer(or_table[4]))
+  expect_equal(expected_odds_ratio, or_table[5])
 })
 
 test_that("check that getFDR works properly", {
@@ -137,59 +142,26 @@ test_that("check that getFDR works properly", {
   expect_equal(res$over, sum(x >= actual) / length(x))
 })
 
-test_that("check if odds ratio is computed correctly", {
-
-  # Create two vectors of 1 and 0
-  Astar <- c(1, 0, 1, 1, 0, 1, 0, 0, 1, 0)
-  Gstar <- c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1)
+test_that("check if runGraflex produce the expected contingency table and odds ratio values", {
   
-  # Expected values
-  a <- 2  # not in A not in G
-  b <- 3  # not in A but in G
-  c <- 3  # in A but not in G
-  d <- 2  # in A in G
-  expected_odds_ratio <- (a * d) / (b * c)
+  Astar <- A[lower.tri(A)]
 
-  # compute odds ratio table
-  or_table <- propr:::getOR(Astar, Gstar)
-
-  # check
-  expect_equal(a, as.integer(or_table[1]))
-  expect_equal(b, as.integer(or_table[2]))
-  expect_equal(c, as.integer(or_table[3]))
-  expect_equal(d, as.integer(or_table[4]))
-  expect_equal(expected_odds_ratio, or_table[5])
-})
-
-test_that("check if runGraflex produce the expected results", {
-
-  # Create matrices of 0 and 1
-  A <- matrix(c(1, 1, 0, 1, 0, 
-                1, 1, 1, 0, 1, 
-                0, 1, 1, 0, 1, 
-                1, 0, 0, 1, 1, 
-                0, 1, 1, 1, 1), 
-              nrow = 5, byrow = TRUE)
-  K <- matrix(c(1, 0, 
-                0, 1, 
-                1, 0, 
-                0, 1, 
-                1, 1), 
-              nrow = 5, byrow = TRUE)
-  colnames(K) <- c("C1", "C2")
-  
   # Expected values for C1
-  a1 <- 2  # not in A not in G
-  b1 <- 2  # not in A but in G
-  c1 <- 5  # in A but not in G
-  d1 <- 1  # in A in G
+  G1 <- K[, 1] %*% t(K[, 1])
+  G1 <- G1[lower.tri(G1)]
+  a1 <- length(which(Astar == 0 & G1 == 0))  # not in A not in G
+  b1 <- length(which(Astar == 0 & G1 == 1))  # not in A but in G
+  c1 <- length(which(Astar == 1 & G1 == 0))  # in A but not in G
+  d1 <- length(which(Astar == 1 & G1 == 1))  # in A in G
   expected_odds_ratio1 <- (a1 * d1) / (b1 * c1)
 
   # Expected values for C2
-  a2 <- 3  # not in A not in G
-  b2 <- 1  # not in A but in G
-  c2 <- 4  # in A but not in G
-  d2 <- 2  # in A in G
+  G2 <- K[, 2] %*% t(K[, 2])
+  G2 <- G2[lower.tri(G2)]
+  a2 <- length(which(Astar == 0 & G2 == 0))  # not in A not in G
+  b2 <- length(which(Astar == 0 & G2 == 1))  # not in A but in G
+  c2 <- length(which(Astar == 1 & G2 == 0))  # in A but not in G
+  d2 <- length(which(Astar == 1 & G2 == 1))  # in A in G
   expected_odds_ratio2 <- (a2 * d2) / (b2 * c2)
 
   # compute graflex
@@ -209,23 +181,7 @@ test_that("check if runGraflex produce the expected results", {
 })
 
 test_that("check reproducibility seed works", {
-  
-    # Create a matrix of 0 and 1
-    A <- matrix(c(1, 1, 0, 1, 0, 
-                  1, 1, 1, 0, 1, 
-                  0, 1, 1, 0, 1, 
-                  1, 0, 0, 1, 1, 
-                  0, 1, 1, 1, 1), 
-                nrow = 5, byrow = TRUE)
-    K <- matrix(c(1, 0, 
-                  0, 1, 
-                  1, 0, 
-                  0, 1, 
-                  1, 1), 
-                nrow = 5, byrow = TRUE)
-    colnames(K) <- c("C1", "C2")
-    
-    # compute graflex
+
     set.seed(0)
     res1 <- propr:::runGraflex(A, K, p=100)
     set.seed(0)
@@ -233,38 +189,22 @@ test_that("check reproducibility seed works", {
     set.seed(123)
     res3 <- propr:::runGraflex(A, K, p=100)
   
-    # check
     expect_equal(res1, res2)
     expect_false(isTRUE(all.equal(res1, res3)))
 })
 
 test_that("check that permuteOR works as the old code", {
 
-  # Create matrices of 0 and 1
-  A <- matrix(c(1, 1, 0, 1, 0, 
-                1, 1, 1, 0, 1, 
-                0, 1, 1, 0, 1, 
-                1, 0, 0, 1, 1, 
-                0, 1, 1, 1, 1), 
-              nrow = 5, byrow = TRUE)
-  K <- matrix(c(1, 0, 
-                0, 1, 
-                1, 0, 
-                0, 1, 
-                1, 1), 
-              nrow = 5, byrow = TRUE)
-  colnames(K) <- c("C1", "C2")
-  Gk <- K[, 1] %*% t(K[, 1])
-  Gstar <- Gk[lower.tri(Gk)]
+  G <- K[, 1] %*% t(K[, 1])
   
   # compute permuted odds ratios
   set.seed(0)
-  res1 <- propr:::permuteOR(A, Gstar, 10)
+  res1 <- propr:::permuteOR(A, G, 10)
   set.seed(0)
-  res2 <- permuteOR_old(A, Gk, 10)
+  res2 <- permuteOR_old(A, G, 10)
   
   # check
-  expect_true(all(res1 == res2))
+  expect_true(all(res1[,-c(7,8)] == res2))
 })
 
 test_that("check if same results are obtained compared to old code", {

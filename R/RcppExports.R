@@ -105,28 +105,28 @@ ctzRcpp <- function(X) {
     .Call(`_propr_ctzRcpp`, X)
 }
 
-get_triangle <- function(mat) {
-    .Call(`_propr_get_triangle`, mat)
-}
-
-get_triangle_from_index <- function(mat, index) {
-    .Call(`_propr_get_triangle_from_index`, mat, index)
-}
-
 getOR <- function(A, G) {
     .Call(`_propr_getOR`, A, G)
 }
 
-permuteOR <- function(A, Gstar, p = 100L) {
-    .Call(`_propr_permuteOR`, A, Gstar, p)
+getORperm <- function(A, G, perm) {
+    .Call(`_propr_getORperm`, A, G, perm)
+}
+
+permuteOR <- function(A, G, p = 100L) {
+    .Call(`_propr_permuteOR`, A, G, p)
 }
 
 getFDR <- function(actual, permuted) {
     .Call(`_propr_getFDR`, actual, permuted)
 }
 
-graflex <- function(A, G, p = 100L) {
-    .Call(`_propr_graflex`, A, G, p)
+getG <- function(Gk) {
+    .Call(`_propr_getG`, Gk)
+}
+
+graflex <- function(A, Gk, p = 100L) {
+    .Call(`_propr_graflex`, A, Gk, p)
 }
 
 lr2vlr <- function(lr) {

@@ -21,19 +21,15 @@ runGraflex <- function(A, K, p=100, ncores=1) {
     stop("'A' must be a square matrix.")
 
   if (ncores == 1){
-
     # for each knowledge network, calculate odds ratio and FDR
     res <- lapply(1:ncol(K), function(k) {
-      Gk <- K[, k] %*% t(K[, k])      # converts the k column into an adjacency matrix (genes x genes)
-      graflex(A, Gk, p=p)  # this calls the graflex function implemented in Rcpp C++
+      graflex(A, K[,k], p=p)  # this calls the modified graflex function implemented in Rcpp C++
     })
-
-  }else{
+  } else {
     packageCheck("parallel")
     cl <- parallel::makeCluster(ncores)
     res <- parallel::parLapply(cl, 1:ncol(K), function(k) {
-      Gk <- K[, k] %*% t(K[, k])
-      graflex(A, Gk, p=p)
+      graflex(A, K[,k], p=p)
     })
     parallel::stopCluster(cl)
   }
