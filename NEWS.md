@@ -1,4 +1,8 @@
-## propr 5.1.1
+# propr 5.1.2
+---------------------
+* Restructured `graflex` to speed up
+
+# propr 5.1.1
 ---------------------
 * Speed up `graflex` related functions
 

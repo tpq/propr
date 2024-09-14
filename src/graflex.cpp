@@ -2,58 +2,49 @@
 #include <numeric>
 using namespace Rcpp;
 
-// Function to calculate the contingency table and the odds ratio
+// Optimized function to calculate the contingency table and the odds ratio
 // [[Rcpp::export]]
 NumericVector getOR(const IntegerMatrix& A, const IntegerMatrix& G) {
   int ncol = A.ncol();
-
-  // calculate the contingency table
   int a = 0, b = 0, c = 0, d = 0;
-  for (int j = 0; j < ncol; ++j) {
-      for (int i = j+1; i < ncol; ++i) {
-          if (A(i, j) == 0) {
-              if (G(i, j) == 0) ++a;  // not in A and not in G
-              else ++b;               // not in A but in G
-          } else {
-              if (G(i, j) == 0) ++c;  // in A but not in G
-              else ++d;               // in A and in G
-          }
-      }
+
+  for (int j = 0; j < ncol - 1; ++j) {
+    for (int i = j + 1; i < ncol; ++i) {
+      int a_val = A(i, j), g_val = G(i, j);
+      a += (1 - a_val) * (1 - g_val);
+      b += (1 - a_val) * g_val;
+      c += a_val * (1 - g_val);
+      d += a_val * g_val;
+    }
   }
 
-  // calculate the odds ratio
   double odds_ratio = static_cast<double>(a * d) / (b * c);
+  double log_odds_ratio = std::log(odds_ratio);
 
-  return NumericVector::create(
-    a, b, c, d, odds_ratio, std::log(odds_ratio), R_NaN, R_NaN
-  );
+  return NumericVector::create(a, b, c, d, odds_ratio, log_odds_ratio, R_NaN, R_NaN);
 }
 
-// Function to calculate the contingency table and the odds ratio, given a permuted index vector
+// Optimized function to calculate the contingency table and the odds ratio, given a permuted index vector
 // [[Rcpp::export]]
 NumericVector getORperm(const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm) {
   int ncol = A.ncol();
-
-  // calculate the contingency table
   int a = 0, b = 0, c = 0, d = 0;
-  for (int j = 0; j < ncol; ++j) {
-      for (int i = j+1; i < ncol; ++i) {
-          if (A(perm[i], perm[j]) == 0) {
-              if (G(i, j) == 0) ++a;  // not in A and not in G
-              else ++b;               // not in A but in G
-          } else {
-              if (G(i, j) == 0) ++c;  // in A but not in G
-              else ++d;               // in A and in G
-          }
-      }
+
+  for (int j = 0; j < ncol - 1; ++j) {
+    int pj = perm[j];
+    for (int i = j + 1; i < ncol; ++i) {
+      int a_val = A(perm[i], pj), g_val = G(i, j);
+      a += (1 - a_val) * (1 - g_val);
+      b += (1 - a_val) * g_val;
+      c += a_val * (1 - g_val);
+      d += a_val * g_val;
+    }
   }
 
-  // calculate the odds ratio
   double odds_ratio = static_cast<double>(a * d) / (b * c);
+  double log_odds_ratio = std::log(odds_ratio);
 
-  return NumericVector::create(
-    a, b, c, d, odds_ratio, std::log(odds_ratio), R_NaN, R_NaN
-  );
+  return NumericVector::create(a, b, c, d, odds_ratio, log_odds_ratio, R_NaN, R_NaN);
 }
 
 // Function to calculate the odds ratio and other relevant info for each permutation
@@ -99,9 +90,31 @@ List getFDR(double actual, const NumericVector& permuted) {
   );
 }
 
+// Function to calculate the G matrix from the Gk vector
+// [[Rcpp::export]]
+IntegerMatrix getG(const IntegerVector& Gk) {
+  int n = Gk.size();
+  IntegerMatrix G(n, n);
+  
+  for (int i = 0; i < n; ++i) {
+    int gi = Gk[i];
+    G(i, i) = gi * gi;
+    for (int j = 0; j < i; ++j) {
+      int value = gi * Gk[j];
+      G(i, j) = value;
+      G(j, i) = value;
+    }
+  }
+  
+  return G;
+}
+
 // Function to calculate the odds ratio and FDR, given the adjacency matrix A and the knowledge graph G
 // [[Rcpp::export]]
-NumericVector graflex(const IntegerMatrix& A, const IntegerMatrix& G, int p = 100) {
+NumericVector graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p = 100) {
+
+  // Calculate Gk
+  IntegerMatrix G = getG(Gk);
 
   // get the actual odds ratio
   NumericVector actual = getOR(A, G);

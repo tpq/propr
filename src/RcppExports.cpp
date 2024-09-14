@@ -367,16 +367,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getG
+IntegerMatrix getG(const IntegerVector& Gk);
+RcppExport SEXP _propr_getG(SEXP GkSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type Gk(GkSEXP);
+    rcpp_result_gen = Rcpp::wrap(getG(Gk));
+    return rcpp_result_gen;
+END_RCPP
+}
 // graflex
-NumericVector graflex(const IntegerMatrix& A, const IntegerMatrix& G, int p);
-RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP) {
+NumericVector graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p);
+RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GkSEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const IntegerMatrix& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const IntegerMatrix& >::type G(GSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type Gk(GkSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(graflex(A, G, p));
+    rcpp_result_gen = Rcpp::wrap(graflex(A, Gk, p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -510,6 +521,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_getORperm", (DL_FUNC) &_propr_getORperm, 3},
     {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 3},
     {"_propr_getFDR", (DL_FUNC) &_propr_getFDR, 2},
+    {"_propr_getG", (DL_FUNC) &_propr_getG, 1},
     {"_propr_graflex", (DL_FUNC) &_propr_graflex, 3},
     {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
     {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},

@@ -121,8 +121,12 @@ getFDR <- function(actual, permuted) {
     .Call(`_propr_getFDR`, actual, permuted)
 }
 
-graflex <- function(A, G, p = 100L) {
-    .Call(`_propr_graflex`, A, G, p)
+getG <- function(Gk) {
+    .Call(`_propr_getG`, Gk)
+}
+
+graflex <- function(A, Gk, p = 100L) {
+    .Call(`_propr_graflex`, A, Gk, p)
 }
 
 lr2vlr <- function(lr) {
