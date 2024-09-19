@@ -10,100 +10,41 @@
 #' @param fdr A float value for the false discovery rate. Default is 0.05.
 #' @param window_size An integer. Default is 1. When it is greater than 1, the FDR
 #' values would be smoothed out by a moving average of the given window size.
-#' @param tails 'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
-#' combine one-sided on the right (positive values) and left (negative values). This is only 
-#' relevant for \code{propr} objects, as \code{propd} objects are always one-sided and only 
-#' have positive values.
 #' @return An adjacency matrix.
 #'
 #' @export
 getAdjacencyFDR <- 
-  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
-
-  if (inherits(object, "propr")){
-    adj <- getAdjacencyFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
-
-  }else if(inherits(object, "propd")){
-    adj <- getAdjacencyFDR.propd(object, fdr=fdr, window_size=window_size)
-
-  }else{
-    stop("Please provide a 'propr' or 'propd' object.")
-  }
-
-  return(adj)
-}
-
-#' @rdname getAdjacencyFDR
-#' @section Methods:
-#' \code{getAdjacencyFDR.propd:}
-#' This function creates an adjacency matrix with the significant
-#' pairs from a \code{propd} object.
-#' @export
-getAdjacencyFDR.propd <- 
   function(object, fdr = 0.05, window_size = 1) {
 
-    # get cutoff
-    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
-
-    # get theta matrix
+    # get matrix
     mat <- getMatrix(object)
+
+    # set up some parameters
+    direct <- FALSE
+    if (inherits(object, "propr")) {
+      if (object@tails == 'both') mat <- abs(mat)
+      direct <- object@direct
+    }
 
     # create empty matrix
     adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
     rownames(adj) <- rownames(mat)
     colnames(adj) <- colnames(mat)
-    diag(adj) <- 1
+
+    # get cutoff
+    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
 
     # fill in significant pairs
-    if (cutoff) adj[mat <= cutoff] <- 1
-
-    return(adj)
-  }
-
-#' @rdname getAdjacencyFDR
-#' @section Methods:
-#' \code{getAdjacencyFDR.propr:}
-#' This function creates an adjacency matrix with the significant
-#' pairs from a \code{propd} object.
-#' @export
-getAdjacencyFDR.propr <-
-  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
-
-    # handle tails argument
-    tails <- match.arg(tails)
-    if (tails == 'both' & !object@direct) {
-      warning("Running tails='right' instead")  
-      tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
-    }
-
-    # correct fdr when considering both tails
-    # so that the total fdr is the given value
-    if (tails == 'both') fdr <- fdr / 2
-
-    # create empty matrix
-    adj <- matrix(0, nrow = ncol(object@matrix), ncol = ncol(object@matrix))
-    rownames(adj) <- rownames(object@matrix)
-    colnames(adj) <- colnames(object@matrix)
-    diag(adj) <- 1
-
-    # for positive tail
-    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
     if (cutoff) {
-      if (object@direct) {
-        adj[object@matrix >= 0 & object@matrix >= cutoff] <- 1
+      if (direct) {
+        adj[mat >= cutoff] <- 1
       } else {
-        adj[object@matrix <= cutoff] <- 1  # don't have negative values
+        adj[mat <= cutoff] <- 1
       }
     }
 
-    # for negative tail
-    if (tails == 'both'){
-      cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=F)
-      if (cutoff) adj[object@matrix < 0 & object@matrix <= cutoff] <- 1
-    }
-
-    return(adj)
-  }
+  return(adj)
+}
 
 #' Get Adjacency Matrix as indicated by F-statistics
 #'

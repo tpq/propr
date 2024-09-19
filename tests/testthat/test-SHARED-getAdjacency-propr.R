@@ -16,14 +16,14 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - clr", 
 
     # get propr object
     pr <- propr(X, metric = "pcor.bshrink", ivar='clr', p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=100, tails='both')
+    pr <- updateCutoffs(pr, number_of_cutoffs=100)
 
     # get adjacency matrix
-    adj <- getAdjacencyFDR(pr, tails='both')
+    adj <- getAdjacencyFDR(pr)
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix <= getCutoffFDR(pr, fdr=0.025, positive = FALSE) | pr@matrix >= getCutoffFDR(pr, fdr=0.025, positive = TRUE)] <- 1
+    adj_expected[abs(pr@matrix) >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -36,14 +36,14 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - alr", 
 
     # get propr object
     pr <- propr(X, metric = "pcor.bshrink", ivar='alr', p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=100, tails='both')
+    pr <- updateCutoffs(pr, number_of_cutoffs=100)
 
     # get adjacency matrix
-    adj <- getAdjacencyFDR(pr, tails='both')
+    adj <- getAdjacencyFDR(pr)
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix <= getCutoffFDR(pr, fdr=0.025, positive = FALSE) | pr@matrix >= getCutoffFDR(pr, fdr=0.025, positive = TRUE)] <- 1
+    adj_expected[abs(pr@matrix) >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -63,7 +63,7 @@ test_that("getAdjacencyFDR returns the expected values for rho - clr", {
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix >= getCutoffFDR(pr, positive = TRUE)] <- 1
+    adj_expected[pr@matrix >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -83,7 +83,7 @@ test_that("getAdjacencyFDR returns the expected values for rho - 5", {
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix >= getCutoffFDR(pr, positive = TRUE)] <- 1
+    adj_expected[pr@matrix >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -103,7 +103,7 @@ test_that("getAdjacencyFDR returns the expected values for phs - clr", {
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix <= getCutoffFDR(pr, positive = TRUE)] <- 1
+    adj_expected[pr@matrix <= getCutoffFDR(pr,)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -123,7 +123,7 @@ test_that("getAdjacencyFDR returns the expected values for phs - 5", {
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[pr@matrix <= getCutoffFDR(pr, positive = TRUE)] <- 1
+    adj_expected[pr@matrix <= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -139,12 +139,6 @@ test_that("getAdjacencyFDR and getSignificantResultsFDR return coherent results"
 
         # get propr object
         pr <- propr(X, metric=metric, p=10)
-
-        # expect error for pcor.shrink, since it does not produce positive values in this case
-        if (metric == 'pcor.shrink'){
-            expect_error(updateCutoffs(pr))
-            next
-        }
 
         # update FDR values
         pr <- updateCutoffs(pr, number_of_cutoffs=100)

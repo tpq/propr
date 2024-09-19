@@ -13,10 +13,10 @@
 #' cutoffs will be evenly spaced across the data.
 #' @param custom_cutoffs A numeric vector. When provided, this vector is used as the set of 
 #' cutoffs to test, and 'number_of_cutoffs' is ignored.
-#' @param tails 'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
-#' combine one-sided on the right (positive values) and left (negative values). This 
-#' is only relevant for \code{propr} objects, as \code{propd} objects are always one-sided
-#' and only have positive values.
+#' @param tails NULL or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
+#' symmetric two-sided test. If NULL, use default value according to the property 
+#' `has_meaningful_negative_values`. This is only relevant for \code{propr} objects, as 
+#' \code{propd} objects are always one-sided and only have positive values.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' 
@@ -25,37 +25,16 @@ updateCutoffs <-
   function(object,
            number_of_cutoffs = 100,
            custom_cutoffs = NULL,
-           tails = c('right','both'),
+           tails = NULL,
            ncores = 1) {
-    tails <- match.arg(tails)
 
-    # function to get the set of cutoffs
-    get_cutoffs <- function(values, number_of_cutoffs, custom_cutoffs, tails='right') {
-      if (!is.null(custom_cutoffs)) return(custom_cutoffs)
-      if (tails == 'right') {
-        values <- values[values >= 0]
-        if (length(values) == 0) stop("No positive values found.")
-      }
-      return(as.numeric(quantile(values, probs = seq(0, 1, length.out = number_of_cutoffs))))
-    }
-
-    # update FDR values for propr object
     if (inherits(object, "propr")) {
-      if (tails == 'both' & !object@direct) {
-        warning("Running tails='right' instead")  
-        tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
-      }
-      values <- object@results$propr
-      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails)
-      updateCutoffs.propr(object, cutoffs, ncores)
+      updateCutoffs.propr(object, number_of_cutoffs, custom_cutoffs, tails, ncores)
 
-    # update FDR values for propd object
     } else if (inherits(object, "propd")) {
-      values <- object@results$theta
-      cutoffs <- get_cutoffs(values, number_of_cutoffs, custom_cutoffs, tails='right')
-      updateCutoffs.propd(object, cutoffs, ncores)
+      updateCutoffs.propd(object, number_of_cutoffs, custom_cutoffs, ncores)
 
-    } else{
+    } else {
       stop("Provided 'object' not recognized.")
     }
 
@@ -71,12 +50,37 @@ updateCutoffs <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propr <-
-  function(object, cutoffs, ncores) {
+  function(object, 
+           number_of_cutoffs = 100, 
+           custom_cutoffs = NULL, 
+           tails = NULL, 
+           ncores = 1) {
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
     }
     if (object@metric == "phi") {
       warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
+    }
+
+    # handle right/both tails FDR test
+    if (is.null(tails)) {
+      tails <- ifelse(object@has_meaningful_negative_values, 'both', 'right')  # default option
+    } else if (!tails %in% c('right','both')) {
+      stop("Provided 'tails' not recognized.")
+    }
+    object@tails <- tails
+
+    # get cutoffs
+    if (is.null(custom_cutoffs)) {
+      vals <- object@results$propr
+      if (tails == 'right') {
+        vals <- vals[vals >= 0]
+      } else if (tails == 'both') {
+        vals <- abs(vals)
+      }
+      cutoffs <- as.numeric(quantile(vals, seq(0, 1, length.out = number_of_cutoffs)))
+    } else {
+      cutoffs <- custom_cutoffs
     }
 
     # Set up FDR cutoff table
@@ -92,8 +96,10 @@ updateCutoffs.propr <-
     }
 
     # count actual values greater or less than each cutoff
+    vals <- object@results$propr
+    if (tails == 'both') vals <- abs(vals)
     FDR$truecounts <- sapply(FDR$cutoff, function(cutoff) {
-      countValuesBeyondThreshold(object@results$propr, cutoff, object@direct)
+      countValuesBeyondThreshold(vals, cutoff, object@direct)
     })
 
     # calculate FDR
@@ -127,6 +133,7 @@ getFdrRandcounts.propr.parallel <-
       ))
       # Vector of propr scores for each pair of taxa.
       pkt <- pr.k@results$propr
+      if (object@tails == 'both') pkt <- abs(pkt)
       # Find number of permuted theta more or less than cutoff
       sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, object@direct))
     }
@@ -170,6 +177,7 @@ getFdrRandcounts.propr.run <-
         p = 0
       ))
       pkt <- pr.k@results$propr
+      if (object@tails == 'both') pkt <- abs(pkt)
 
       # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
       for (cut in 1:length(cutoffs)){
@@ -190,9 +198,16 @@ getFdrRandcounts.propr.run <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, cutoffs, ncores) {
+  function(object, number_of_cutoffs = 100, custom_cutoffs = NULL, ncores = 1) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
+
+    # get cutoffs
+    if (is.null(custom_cutoffs)) {
+      cutoffs <- as.numeric(quantile(object@results$theta, seq(0, 1, length.out = number_of_cutoffs)))
+    } else {
+      cutoffs <- custom_cutoffs
+    }
 
     # Set up FDR cutoff table
     FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))

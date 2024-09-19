@@ -15,7 +15,8 @@ setClass(
     pairs = "numeric",
     results = "data.frame",
     permutes = "list",
-    fdr = "data.frame"
+    fdr = "data.frame",
+    tails = "character"
   )
 )
 
