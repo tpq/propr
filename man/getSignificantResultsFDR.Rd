@@ -2,25 +2,15 @@
 % Please edit documentation in R/3-shared-getResults.R
 \name{getSignificantResultsFDR}
 \alias{getSignificantResultsFDR}
-\alias{getSignificantResultsFDR.propd}
 \alias{getSignificantResultsFDR.propr}
+\alias{getSignificantResultsFDR.propd}
 \title{Get Significant Results from Object based on the permutation tests.}
 \usage{
-getSignificantResultsFDR(
-  object,
-  fdr = 0.05,
-  window_size = 1,
-  tails = c("right", "both")
-)
+getSignificantResultsFDR(object, fdr = 0.05, window_size = 1)
+
+getSignificantResultsFDR.propr(object, fdr = 0.05, window_size = 1)
 
 getSignificantResultsFDR.propd(object, fdr = 0.05, window_size = 1)
-
-getSignificantResultsFDR.propr(
-  object,
-  fdr = 0.05,
-  window_size = 1,
-  tails = c("right", "both")
-)
 }
 \arguments{
 \item{object}{A \code{propd} or \code{propr} object.}
@@ -29,11 +19,6 @@ getSignificantResultsFDR.propr(
 
 \item{window_size}{An integer. Default is 1. When it is greater than 1, the FDR
 values would be smoothed out by a moving average of the given window size.}
-
-\item{tails}{'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
-combine one-sided on the right (positive values) and left (negative values). This is only 
-relevant for \code{propr} objects, as \code{propd} objects are always one-sided and only 
-have positive values.}
 }
 \value{
 A \code{data.frame} of results.
@@ -46,13 +31,13 @@ pairs are those that have a value greater/less or equal than the cutoff, dependi
 }
 \section{Methods}{
 
-\code{getSignificantResultsFDR.propd:}
-This function retrieves results from a \code{propd} object keeping 
+\code{getSignificantResultsFDR.propr:}
+This function retrieves results from a \code{propr} object keeping 
 only the statistically significant pairs.
 
 
-\code{getSignificantResultsFDR.propr:}
-This function retrieves results from a \code{propr} object keeping 
+\code{getSignificantResultsFDR.propd:}
+This function retrieves results from a \code{propd} object keeping 
 only the statistically significant pairs.
 }
 

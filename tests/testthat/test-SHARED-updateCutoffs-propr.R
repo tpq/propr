@@ -19,15 +19,19 @@ test_that("updateCutoffs.propr properly set up cutoffs", {
   # get cutoffs
   values <- pr@matrix[lower.tri(pr@matrix)]
   cutoffs_right <- as.numeric( quantile(values[values >= 0], probs = seq(0, 1, length.out = 10)) )
-  cutoffs_both <- as.numeric( quantile(values, probs = seq(0, 1, length.out = 10)) )
+  cutoffs_both <- as.numeric( quantile(abs(values), probs = seq(0, 1, length.out = 10)) )
 
   # check that cutoffs are properly defined
   expect_equal(
-    updateCutoffs(pr, number_of_cutoffs=10)@fdr$cutoff,
+    updateCutoffs(pr, number_of_cutoffs=10, tails="right")@fdr$cutoff,
     cutoffs_right
   )
   expect_equal(
     updateCutoffs(pr, number_of_cutoffs=10, tails="both")@fdr$cutoff,
+    cutoffs_both
+  )
+  expect_equal(
+    updateCutoffs(pr, number_of_cutoffs=10)@fdr$cutoff,
     cutoffs_both
   )
 })
@@ -36,29 +40,29 @@ test_that("updateCutoffs.propr properly calculates truecounts", {
 
   # get propr object and update cutoffs
   pr <- propr(X, metric = "pcor.bshrink", p=10)
-  pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
+  pr_right <- updateCutoffs(pr, number_of_cutoffs=10, tails='right')
+  pr_both <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
+  pr_default <- updateCutoffs(pr, number_of_cutoffs=10)
 
   # get truecounts
-  truecounts1 <- sapply(
-    pr@fdr$cutoff[pr@fdr$cutoff < 0], 
-    function(cut) sum(pr@results$propr < cut)
-  )
-  truecounts2 <- sapply(
-    pr@fdr$cutoff[pr@fdr$cutoff >= 0], 
+  truecounts_right <- sapply(
+    pr@fdr$cutoff, 
     function(cut) sum(pr@results$propr > cut)
   )
-  truecounts <- c(truecounts1, truecounts2)
-  truecounts_manual <- c(0,1,2, 6,5,4,3,3,1,0)
+  truecounts_both <- sapply(
+    pr@fdr$cutoff, 
+    function(cut) sum(abs(pr@results$propr) > cut)
+  )
 
   # check that truecounts are properly defined
-  expect_equal(pr@fdr$truecounts, truecounts)
-  expect_equal(pr@fdr$truecounts, truecounts_manual)
+  expect_true(all(pr_right@fdr$truecounts == truecounts_right))
+  expect_true(all(pr_both@fdr$truecounts == truecounts_both))
+  expect_true(all(pr_default@fdr$truecounts == truecounts_both))
 })
 
 test_that("updateCutoffs.propr properly calculates randcounts", {
 
   # get propr object and update cutoffs
-  set.seed(0)
   pr <- propr(X, metric = "pcor.bshrink", p=10)
   pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
 
@@ -74,17 +78,13 @@ test_that("updateCutoffs.propr properly calculates randcounts", {
       p = 0
     ))
     pkt <- pr.k@results$propr
+    pkt <- abs(pkt)
     for (cut in 1:length(pr@fdr$cutoff)){
       cutoff <- pr@fdr$cutoff[cut]
-      if (cutoff >= 0) {
-        randcounts[cut] <- randcounts[cut] + sum(pkt > cutoff)
-      } else {
-        randcounts[cut] <- randcounts[cut] + sum(pkt < cutoff)
-      }
+      randcounts[cut] <- randcounts[cut] + sum(pkt > cutoff)
     }
   }
   randcounts <- randcounts / 10
-  randcounts_manual <- c(0,0,0, 9.7,9.7,9.2,8.2,0,0,0)
 
   # check that the permutation tests work properly
   expect_equal(pr@fdr$randcounts, randcounts)

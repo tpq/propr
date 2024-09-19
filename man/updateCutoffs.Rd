@@ -10,13 +10,24 @@ updateCutoffs(
   object,
   number_of_cutoffs = 100,
   custom_cutoffs = NULL,
-  tails = c("right", "both"),
+  tails = NULL,
   ncores = 1
 )
 
-updateCutoffs.propr(object, cutoffs, ncores)
+updateCutoffs.propr(
+  object,
+  number_of_cutoffs = 100,
+  custom_cutoffs = NULL,
+  tails = NULL,
+  ncores = 1
+)
 
-updateCutoffs.propd(object, cutoffs, ncores)
+updateCutoffs.propd(
+  object,
+  number_of_cutoffs = 100,
+  custom_cutoffs = NULL,
+  ncores = 1
+)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
@@ -28,10 +39,10 @@ cutoffs will be evenly spaced across the data.}
 \item{custom_cutoffs}{A numeric vector. When provided, this vector is used as the set of 
 cutoffs to test, and 'number_of_cutoffs' is ignored.}
 
-\item{tails}{'right' or 'both'. 'right' is for one-sided on the right. 'both' is to 
-combine one-sided on the right (positive values) and left (negative values). This 
-is only relevant for \code{propr} objects, as \code{propd} objects are always one-sided
-and only have positive values.}
+\item{tails}{NULL or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
+symmetric two-sided test. If NULL, use default value according to the property 
+`has_meaningful_negative_values`. This is only relevant for \code{propr} objects, as 
+\code{propd} objects are always one-sided and only have positive values.}
 
 \item{ncores}{An integer. The number of parallel cores to use.}
 }

@@ -29,10 +29,10 @@ getResults <-
 #'
 #' @export
 getSignificantResultsFDR <-
-  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
+  function(object, fdr = 0.05, window_size = 1) {
 
     if (inherits(object, "propr")) {
-      results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size, tails=tails)
+      results <- getSignificantResultsFDR.propr(object, fdr=fdr, window_size=window_size)
 
     } else if(inherits(object, "propd")) {
       results <- getSignificantResultsFDR.propd(object, fdr=fdr, window_size=window_size)
@@ -40,6 +40,49 @@ getSignificantResultsFDR <-
     } else {
       stop("Please provide a 'propr' or 'propd' object.")
     }
+
+    return(results)
+}
+
+#' @rdname getSignificantResultsFDR
+#' @section Methods:
+#' \code{getSignificantResultsFDR.propr:}
+#' This function retrieves results from a \code{propr} object keeping 
+#' only the statistically significant pairs.
+#' @export
+getSignificantResultsFDR.propr <- 
+  function(object, fdr = 0.05, window_size = 1) {
+
+    # function to subset the results data frame based on the cutoff
+    subsetBeyondCutoff <- function(data, cutoff, tails=c('right', 'both')) {
+      tails <- match.arg(tails)
+      if (!cutoff) return(data[0,])  # return empty data frame when no cutoff found
+
+      # check only the positive values if tails is 'right'
+      if (tails == 'right') {
+        data <- data[which(data$propr > 0),]
+      }
+
+      # check both sides if tails is 'both'
+      vals <- data$propr
+      if (tails == 'both') {
+        vals <- abs(vals)
+      }
+
+      # return the significant values based on the cutoff
+      if (object@direct) {
+        return(data[which(vals >= cutoff), ])
+      } else {
+        return(data[which(vals <= cutoff), ])
+      }
+    }
+
+    # define results data frame
+    results <- getResults(object)
+
+    # get the significant positive values
+    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
+    results <- subsetBeyondCutoff(results, cutoff, tails=object@tails)
 
     return(results)
 }
@@ -60,56 +103,6 @@ getSignificantResultsFDR.propd <-
     } else {
       return(results[0,])
     }
-}
-
-#' @rdname getSignificantResultsFDR
-#' @section Methods:
-#' \code{getSignificantResultsFDR.propr:}
-#' This function retrieves results from a \code{propr} object keeping 
-#' only the statistically significant pairs.
-#' @export
-getSignificantResultsFDR.propr <- 
-  function(object, fdr = 0.05, window_size = 1, tails = c('right', 'both')) {
-
-    # handle tails argument
-    tails <- match.arg(tails)
-    if (tails == 'both' & !object@direct) {
-      warning("Running tails='right' instead")  
-      tails <- 'right'   # set to right, when non negative values can be expected for a given metric.
-    }
-
-    # function to subset the results data frame based on the cutoff
-    subsetBeyondCutoff <- function(data, cutoff) {
-      if (!cutoff) return(data[0,])  # return empty data frame when no cutoff found
-      if (object@direct) {
-        return(data[which(abs(data$propr) >= abs(cutoff)), ])
-      } else {
-        return(data[which(data$propr <= cutoff), ])
-      }
-    }
-
-    # correct fdr when considering both tails
-    # so that the total fdr is the given value
-    if (tails == 'both') fdr <- fdr / 2
-
-    # define results data frame
-    df <- getResults(object)
-    results <- data.frame(matrix(ncol = ncol(df), nrow = 0))
-    colnames(results) <- colnames(df)
-
-    # get the significant positive values
-    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
-    part <- df[which(df$propr >= 0),]
-    results <- rbind(results, subsetBeyondCutoff(part, cutoff))
-
-    # get the significant negative values
-    if (tails == 'both') {
-      cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size, positive=F)
-      part <- df[which(df$propr < 0),]
-      results <- rbind(results, subsetBeyondCutoff(part, cutoff))
-    }
-
-    return(results)
 }
 
 #' Get Significant Results based on the F-stats.

@@ -16,15 +16,13 @@ test_that("test that getCutoff gets the correct cutoff", {
     # get propr object and update cutoffs
     set.seed(0)
     pr <- propr(X, metric = "pcor.bshrink", p=10)
-    pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='both')
+    pr <- updateCutoffs(pr, number_of_cutoffs=10, tails='right')
 
-    # check cutoff is correct for positive values
-    cutoff <- getCutoffFDR(pr, fdr = 0.05, window_size = 1, positive = TRUE)
+    # get cutoff
+    cutoff <- getCutoffFDR(pr, fdr = 0.05, window_size = 1)
+
+    # check that cutoff is correct
     expect_equal(round(cutoff, 4), 0.6573)  # for the moment the expected value is manually calculated
-
-    # check cutoff is correct for negative values
-    cutoff <- getCutoffFDR(pr, fdr = 0.05, window_size = 1, positive = FALSE)
-    expect_equal(round(cutoff, 4), -0.0313)  # for the moment the expected value is manually calculated
 })
 
 test_that("test that moving average works as expected", {
