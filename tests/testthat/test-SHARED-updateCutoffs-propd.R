@@ -7,6 +7,77 @@ data(crabs)
 x <- crabs[,4:8]  # data matrix with 5 variables
 y <- crabs[,1]    # group vector
 
+# old code
+updateCutoffs_old <- function(object, cutoff = seq(.05, .95, .3)){
+
+  if(identical(object@permutes, data.frame())) stop("Permutation testing is disabled.")
+
+  # Let NA cutoff skip function
+  if(identical(cutoff, NA)) return(object)
+
+  # Set up FDR cutoff table
+  FDR <- as.data.frame(matrix(0, nrow = length(cutoff), ncol = 4))
+  colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
+  FDR$cutoff <- cutoff
+  p <- ncol(object@permutes)
+  lrv <- object@results$lrv
+
+  # Use calculateTheta to permute active theta
+  for(k in 1:p){
+
+    # Tally k-th thetas that fall below each cutoff
+    shuffle <- object@permutes[, k]
+
+    if(object@active == "theta_mod"){
+
+      # Calculate theta_mod with updateF (using i-th permuted object)
+      if(is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+      propdi <- suppressMessages(
+        propd(object@counts[shuffle, ], group = object@group, alpha = object@alpha, p = 0,
+              weighted = object@weighted))
+      propdi <- suppressMessages(
+        updateF(propdi, moderated = TRUE, ivar = object@Fivar))
+      pkt <- propdi@results$theta_mod
+
+    }else{
+
+      # Calculate all other thetas directly (using calculateTheta)
+      pkt <- suppressMessages(
+        calculate_theta(object@counts[shuffle, ], object@group, object@alpha, lrv,
+                       only = object@active, weighted = object@weighted))
+    }
+
+    # Find number of permuted theta less than cutoff
+    for(cut in 1:nrow(FDR)){ # randcounts as cumsum
+      FDR[cut, "randcounts"] <- FDR[cut, "randcounts"] + sum(pkt < FDR[cut, "cutoff"])
+    }
+  }
+
+  # Calculate FDR based on real and permuted tallys
+  FDR$randcounts <- FDR$randcounts / p # randcounts as mean
+  for(cut in 1:nrow(FDR)){
+    FDR[cut, "truecounts"] <- sum(object@results$theta < FDR[cut, "cutoff"])
+    FDR[cut, "FDR"] <- FDR[cut, "randcounts"] / FDR[cut, "truecounts"]
+  }
+
+  # Initialize @fdr
+  object@fdr <- FDR
+
+  return(object)
+}
+
+test_that("updateCutoffs_old and updateCutoffs.propd agree", {
+
+  # get propd object and update cutoffs
+  pd <- propd(x, as.character(y), p=10)
+  set.seed(0)
+  pd <- updateCutoffs(pd, number_of_cutoffs=10)
+  set.seed(0)
+  pd_old <- updateCutoffs_old(pd, cutoff = pd@fdr$cutoff)
+
+  # check that the two methods agree
+  expect_equal(pd@fdr, pd_old@fdr)
+})
 
 test_that("updateCutoffs.propd properly set up cutoffs", {
 

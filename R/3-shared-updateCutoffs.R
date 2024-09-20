@@ -13,8 +13,8 @@
 #' cutoffs will be evenly spaced across the data.
 #' @param custom_cutoffs A numeric vector. When provided, this vector is used as the set of 
 #' cutoffs to test, and 'number_of_cutoffs' is ignored.
-#' @param tails NULL or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
-#' symmetric two-sided test. If NULL, use default value according to the property 
+#' @param tails NA or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
+#' symmetric two-sided test. If NA, use default value according to the property 
 #' `has_meaningful_negative_values`. This is only relevant for \code{propr} objects, as 
 #' \code{propd} objects are always one-sided and only have positive values.
 #' @param ncores An integer. The number of parallel cores to use.
@@ -24,8 +24,8 @@
 updateCutoffs <-
   function(object,
            number_of_cutoffs = 100,
-           custom_cutoffs = NULL,
-           tails = NULL,
+           custom_cutoffs = NA,
+           tails = NA,
            ncores = 1) {
 
     if (inherits(object, "propr")) {
@@ -52,8 +52,8 @@ updateCutoffs <-
 updateCutoffs.propr <-
   function(object, 
            number_of_cutoffs = 100, 
-           custom_cutoffs = NULL, 
-           tails = NULL, 
+           custom_cutoffs = NA, 
+           tails = NA, 
            ncores = 1) {
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
@@ -63,7 +63,7 @@ updateCutoffs.propr <-
     }
 
     # handle right/both tails FDR test
-    if (is.null(tails)) {
+    if (is.na(tails)) {
       tails <- ifelse(object@has_meaningful_negative_values, 'both', 'right')  # default option
     } else if (!tails %in% c('right','both')) {
       stop("Provided 'tails' not recognized.")
@@ -71,7 +71,7 @@ updateCutoffs.propr <-
     object@tails <- tails
 
     # get cutoffs
-    if (is.null(custom_cutoffs)) {
+    if (is.na(custom_cutoffs)) {
       vals <- object@results$propr
       if (tails == 'right') {
         vals <- vals[vals >= 0]
@@ -198,12 +198,12 @@ getFdrRandcounts.propr.run <-
 #'  will use the same random seed each time.
 #' @export
 updateCutoffs.propd <-
-  function(object, number_of_cutoffs = 100, custom_cutoffs = NULL, ncores = 1) {
+  function(object, number_of_cutoffs = 100, custom_cutoffs = NA, ncores = 1) {
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
     # get cutoffs
-    if (is.null(custom_cutoffs)) {
+    if (is.na(custom_cutoffs)) {
       cutoffs <- as.numeric(quantile(object@results$theta, seq(0, 1, length.out = number_of_cutoffs)))
     } else {
       cutoffs <- custom_cutoffs
