@@ -9,23 +9,23 @@
 updateCutoffs(
   object,
   number_of_cutoffs = 100,
-  custom_cutoffs = NULL,
-  tails = NULL,
+  custom_cutoffs = NA,
+  tails = NA,
   ncores = 1
 )
 
 updateCutoffs.propr(
   object,
   number_of_cutoffs = 100,
-  custom_cutoffs = NULL,
-  tails = NULL,
+  custom_cutoffs = NA,
+  tails = NA,
   ncores = 1
 )
 
 updateCutoffs.propd(
   object,
   number_of_cutoffs = 100,
-  custom_cutoffs = NULL,
+  custom_cutoffs = NA,
   ncores = 1
 )
 }
@@ -39,8 +39,8 @@ cutoffs will be evenly spaced across the data.}
 \item{custom_cutoffs}{A numeric vector. When provided, this vector is used as the set of 
 cutoffs to test, and 'number_of_cutoffs' is ignored.}
 
-\item{tails}{NULL or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
-symmetric two-sided test. If NULL, use default value according to the property 
+\item{tails}{NA or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
+symmetric two-sided test. If NA, use default value according to the property 
 `has_meaningful_negative_values`. This is only relevant for \code{propr} objects, as 
 \code{propd} objects are always one-sided and only have positive values.}
 
