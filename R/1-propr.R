@@ -30,8 +30,6 @@
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
-#' @param ... Additional arguments passed to \code{corpcor::pcor.shrink},
-#'  if "pcor.shrink" metric is selected.
 #'
 #' @return A propr object containing the Propr matrix, associated log-ratio
 #'  transformation, and other calculated statistics.
@@ -68,8 +66,7 @@ propr <- function(counts,
                   select = NA,
                   symmetrize = FALSE,
                   alpha = NA,
-                  p = 0,
-                  ...) {
+                  p = 0) {
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
