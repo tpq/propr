@@ -15,6 +15,10 @@ been removed, with the remaining ones all sharing the prefix `run`. The
 core routines called by the `propr` and `propd` functions remain
 unchanged.
 
+## Requirements
+
+- GCC 13.3.0 (doesn't compile yet on GCC 14)
+
 ## Introduction
 
 The `propr` package provides an interface for 4 distinct approaches to
