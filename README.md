@@ -201,6 +201,15 @@ We also provide accesory functions to get the significant pairs.
 ?getCutoffFstat
 ```
 
+Notice that for the getter functions to work properly on `propd`
+objects, you have to set the target `theta` value active:
+
+``` r
+setActive(pd, "theta_d")
+setActive(pd, "theta_e")
+setActive(pd, "theta_mod")
+```
+
 ## Ratio Methods
 
 COMING SOON!!
