@@ -1,6 +1,10 @@
+# propr 5.1.4
+---------------------
+* Added `results_to_matrix` function
+
 # propr 5.1.3
 ---------------------
-* Corrected tails = 'both' to symmetric two-sided FDR test
+* Corrected `tails = 'both'` to symmetric two-sided FDR test
 
 # propr 5.1.2
 ---------------------
