@@ -79,6 +79,25 @@ test_that("updateCutoffs_old and updateCutoffs.propd agree", {
   expect_equal(pd@fdr, pd_old@fdr)
 })
 
+test_that("updateCutoffs_old and updateCutoffs.propd agree - when using theta_mod", {
+
+  # use this data instead, otherwise the limma voom will return Inf prior dfs, probably because crab data is not count data
+  x2 <- iris[,1:4]
+  y2 <- iris[,5]
+
+  # get propd object and update cutoffs
+  pd <- propd(x2, as.character(y2), p=10)
+  pd <- updateF(pd, moderated = TRUE)
+  pd <- setActive(pd, "theta_mod")
+  set.seed(0)
+  pd <- updateCutoffs(pd, number_of_cutoffs=10)
+  set.seed(0)
+  pd_old <- updateCutoffs_old(pd, cutoff = pd@fdr$cutoff)
+
+  # check that the two methods agree
+  expect_equal(pd@fdr, pd_old@fdr)
+})
+
 test_that("updateCutoffs.propd properly set up cutoffs", {
 
   # get propd object and update cutoffs

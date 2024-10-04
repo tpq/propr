@@ -258,7 +258,7 @@ getFdrRandcounts.propd.parallel <-
           weighted = object@weighted
         )
       )
-      propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = Fivar))
+      propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
       pkt <- propdi@results$theta_mod
       sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
     }
@@ -343,7 +343,7 @@ getPermutedThetaMod <-
         weighted = object@weighted
       )
     )
-    propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = Fivar))
+    propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
 
     return(propdi@results$theta_mod)
 }
