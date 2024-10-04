@@ -74,3 +74,23 @@ test_that('get propr matrix work', {
     getMatrix(pr)
   )
 })
+
+test_that('results_to_matrix works - when filtered',{
+
+  # compute differential proportionality
+  x <- iris[,1:4]  # data matrix with 4 variables
+  y <- iris[,5]    # group vector
+  pd <- propd(x, as.character(y))
+  pd <- updateF(pd, moderated=T)
+  results <- getSignificantResultsFstat(pd, fdr_adjusted=TRUE)
+  mat <- results_to_matrix(results)
+
+  # check it is filtered
+  expect_true(all(results$FDR <= 0.05))
+
+  # check values are correct
+  expect_equal(colnames(mat), unique(c(results$Partner, results$Pair)))
+  expect_true(results$theta[1] == mat[results$Pair[1], results$Partner[1]])
+  expect_true(results$theta[2] == mat[results$Pair[2], results$Partner[2]])
+  expect_true(results$theta[3] == mat[results$Pair[3], results$Partner[3]])
+})
