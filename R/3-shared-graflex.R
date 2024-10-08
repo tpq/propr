@@ -28,6 +28,7 @@ runGraflex <- function(A, K, p=100, ncores=1) {
   } else {
     packageCheck("parallel")
     cl <- parallel::makeCluster(ncores)
+    parallel::clusterExport(cl, varlist = c("p"), envir = environment()) # export the p variable to the cluster, otherwise it won't see it properly
     res <- parallel::parLapply(cl, 1:ncol(K), function(k) {
       graflex(A, K[,k], p=p)
     })

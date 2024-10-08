@@ -208,21 +208,6 @@ test_that("check that permuteOR works as the old code", {
 })
 
 test_that("check if same results are obtained compared to old code", {
-    
-    # Create matrices of 0 and 1
-    A <- matrix(c(1, 1, 0, 1, 0, 
-                  1, 1, 1, 0, 1, 
-                  0, 1, 1, 0, 1, 
-                  1, 0, 0, 1, 1, 
-                  0, 1, 1, 1, 1), 
-                nrow = 5, byrow = TRUE)
-    K <- matrix(c(1, 0, 
-                  0, 1, 
-                  1, 0, 
-                  0, 1, 
-                  1, 1), 
-                nrow = 5, byrow = TRUE)
-    colnames(K) <- c("C1", "C2")
 
     # compute graflex
     set.seed(0)
@@ -236,4 +221,17 @@ test_that("check if same results are obtained compared to old code", {
     
     # check
     expect_equal(res, res_old)
+})
+
+test_that("check that when ncores > 1 works", {
+
+  pp <- 100
+
+  # compute graflex
+  res1 <- propr:::runGraflex(A, K, p=pp, ncores=1)
+  res2 <- propr:::runGraflex(A, K, p=pp, ncores=2)
+
+  # check
+  cols <- c("Neither", "G.only", "A.only", "Both", "Odds", "LogOR", "Concept")
+  expect_true(all(res1[,cols] == res2[,cols]))
 })
