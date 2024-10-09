@@ -119,12 +119,13 @@ NumericVector graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p = 1
   // get the actual odds ratio
   NumericVector actual = getOR(A, G);
 
-  // get distribution of odds ratios on permuted data
-  NumericMatrix permuted = permuteOR(A, G, p);
-
-  // calculate the FDR
   // skip if the actual value is NaN, because then the FDR is also NaN
   if (!std::isnan(actual(4))) {
+
+    // get distribution of odds ratios on permuted data
+    NumericMatrix permuted = permuteOR(A, G, p);
+
+    // calculate the FDR
     List fdr = getFDR(actual(4), permuted(_, 4));
     actual(6) = as<double>(fdr["under"]);
     actual(7) = as<double>(fdr["over"]);
