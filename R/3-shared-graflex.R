@@ -25,10 +25,11 @@ runGraflex <- function(A, K, p=100, ncores=1) {
     res <- lapply(1:ncol(K), function(k) {
       graflex(A, K[,k], p=p)  # this calls the modified graflex function implemented in Rcpp C++
     })
+    
   } else {
     packageCheck("parallel")
     cl <- parallel::makeCluster(ncores)
-    parallel::clusterExport(cl, varlist = c("p"), envir = environment()) # export the p variable to the cluster, otherwise it won't see it properly
+    parallel::clusterExport(cl, varlist = c("A", "K", "p"), envir = environment())
     res <- parallel::parLapply(cl, 1:ncol(K), function(k) {
       graflex(A, K[,k], p=p)
     })

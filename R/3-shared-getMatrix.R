@@ -37,24 +37,24 @@ results_to_matrix <- function(results, what='theta') {
 
   # if the results data frame has the Pair and Partner columns as names
   if (!is.numeric(results$Partner)) {
-    features <- unique(c(results$Partner, results$Pair))
-    partner <- match(results$Partner, features)
+    features <- unique(c(results$Pair, results$Partner))
     pair <- match(results$Pair, features)
+    partner <- match(results$Partner, features)
     nfeatures <- length(features)
 
   # if the results data frame has the Pair and Partner columns as indices
   } else {
-    partner <- results$Partner
+    features <- sort(unique(c(results$Pair, results$Partner)))
+    features <- colnames(pr@counts)[features]
     pair <- results$Pair
-    nfeatures <- max(c(partner, pair))
+    partner <- results$Partner
+    nfeatures <- length(features)
   }
 
   # convert the results data frame into a matrix
-  mat <- vector2mat(results[,what], partner, pair, nfeatures)
+  mat <- vector2mat(results[,what], pair, partner, nfeatures)
   diag(mat) <- 0
-
-  # set the row and column names
-  if (!is.numeric(results$Partner)) rownames(mat) <- colnames(mat) <- features
+  rownames(mat) <- colnames(mat) <- features
 
   return(mat)
 }
