@@ -16,6 +16,8 @@ K <- matrix(c(1, 0,
               1, 1), 
             nrow = 5, byrow = TRUE)
 colnames(K) <- c("C1", "C2")
+rownames(A) <- c('a', 'b', 'c', 'd', 'e')
+rownames(K) <- c('a', 'b', 'c', 'd', 'e')
 
 # ===================== #
 # old code for graflex  #

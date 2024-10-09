@@ -19,6 +19,8 @@ runGraflex <- function(A, K, p=100, ncores=1) {
     stop("'A' and 'K' must have identical rows.")
   if (nrow(A) != ncol(A))
     stop("'A' must be a square matrix.")
+  if (all(rownames(A) != rownames(K)))
+    stop("'A' and 'K' must have the same row names.")
 
   if (ncores == 1){
     # for each knowledge network, calculate odds ratio and FDR
