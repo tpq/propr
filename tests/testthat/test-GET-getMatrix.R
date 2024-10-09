@@ -89,7 +89,7 @@ test_that('results_to_matrix works - when filtered',{
   expect_true(all(results$FDR <= 0.05))
 
   # check values are correct
-  expect_equal(colnames(mat), unique(c(results$Partner, results$Pair)))
+  expect_equal(colnames(mat), unique(c(results$Pair, results$Partner)))
   expect_true(results$theta[1] == mat[results$Pair[1], results$Partner[1]])
   expect_true(results$theta[2] == mat[results$Pair[2], results$Partner[2]])
   expect_true(results$theta[3] == mat[results$Pair[3], results$Partner[3]])
