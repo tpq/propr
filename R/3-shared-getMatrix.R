@@ -65,7 +65,7 @@ results_to_matrix <- function(results, what='theta', features = NULL) {
   # convert the results data frame into a matrix
   mat <- vector2mat(results[,what], pair, partner, nfeatures)
   diag(mat) <- 0
-  rownames(mat) <- colnames(mat) <- features
+  if (!is.numeric(features)) rownames(mat) <- colnames(mat) <- features
 
   return(mat)
 }
