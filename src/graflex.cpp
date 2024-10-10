@@ -11,10 +11,10 @@ NumericVector getOR(const IntegerMatrix& A, const IntegerMatrix& G) {
   for (int j = 0; j < ncol - 1; ++j) {
     for (int i = j + 1; i < ncol; ++i) {
       int a_val = A(i, j), g_val = G(i, j);
-      a += (1 - a_val) * (1 - g_val);
-      b += (1 - a_val) * g_val;
-      c += a_val * (1 - g_val);
-      d += a_val * g_val;
+      a += (1 - a_val) * (1 - g_val);     // 00
+      b += (1 - a_val) * g_val;           // 01
+      c += a_val * (1 - g_val);           // 10
+      d += a_val * g_val;                 // 11
     }
   }
 
@@ -119,13 +119,17 @@ NumericVector graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p = 1
   // get the actual odds ratio
   NumericVector actual = getOR(A, G);
 
-  // get distribution of odds ratios on permuted data
-  NumericMatrix permuted = permuteOR(A, G, p);
+  // skip if the actual value is NaN, because then the FDR is also NaN
+  if (!std::isnan(actual(4))) {
 
-  // calculate the FDR
-  List fdr = getFDR(actual(4), permuted(_, 4));
-  actual(6) = as<double>(fdr["under"]);
-  actual(7) = as<double>(fdr["over"]);
+    // get distribution of odds ratios on permuted data
+    NumericMatrix permuted = permuteOR(A, G, p);
+
+    // calculate the FDR
+    List fdr = getFDR(actual(4), permuted(_, 4));
+    actual(6) = as<double>(fdr["under"]);
+    actual(7) = as<double>(fdr["over"]);
+  }
 
   return actual;
 }

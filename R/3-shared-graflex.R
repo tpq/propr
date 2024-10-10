@@ -19,6 +19,8 @@ runGraflex <- function(A, K, p=100, ncores=1) {
     stop("'A' and 'K' must have identical rows.")
   if (nrow(A) != ncol(A))
     stop("'A' must be a square matrix.")
+  if (all(rownames(A) != rownames(K)))
+    stop("'A' and 'K' must have the same row names.")
 
   if (ncores == 1){
     # for each knowledge network, calculate odds ratio and FDR
@@ -44,6 +46,9 @@ runGraflex <- function(A, K, p=100, ncores=1) {
   colnames(res) <- c("Neither", "G.only", "A.only", "Both", "Odds", "LogOR", "FDR.under", "FDR.over", "Permutes", "Concept")
   # change the values to numeric, except for the concept column
   res[,1:9] <- lapply(res[,1:9], as.numeric)
+
+  # sort the results by the odds ratio
+  res <- res[order(res$Odds, decreasing=TRUE),]
 
   return(res)
 }

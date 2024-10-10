@@ -48,6 +48,7 @@ results_to_matrix <- function(results, what='theta', features = NULL) {
       stop("Some features are not found in the results data frame.")
     }
 
+  # if pair and partner are still indices
   } else {
     if (is.null(features)) {
       features <- sort(unique(c(results$Pair, results$Partner)))
