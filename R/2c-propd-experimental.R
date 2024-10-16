@@ -14,7 +14,7 @@
 #' @return A numeric vector. A theta for each feature.
 #' @export
 runNormalization <- function(object, norm.factors) {
-  if (!inherits(propd, "propd")) {
+  if (!inherits(object, "propd")) {
     stop("Please provide a propd object.")
   }
 
