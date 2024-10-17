@@ -17,15 +17,11 @@ runNormalization <- function(object, norm.factors) {
   if (!inherits(object, "propd")) {
     stop("Please provide a propd object.")
   }
-
-  if (!object@active == "theta_d") {
-    stop("Make theta_d the active theta.")
-  }
-
   if (!identical(length(norm.factors), nrow(object@counts))) {
     stop("The norm factors should have one value for each subject.")
   }
 
+  # compute thetas
   newCounts <- cbind(norm.factors, object@counts)
   newPD <-
     propd(
@@ -35,13 +31,19 @@ runNormalization <- function(object, norm.factors) {
       p = 0,
       weighted = object@weighted
     )
+  if (object@active == "theta_mod") {
+    newPD <- updateF(newPD, moderated = TRUE)
+  }
+  newPD <- setActive(newPD, object@active)
 
+  # parse thetas for each gene
   rawRes <- newPD@results
   perFeature <- rawRes[rawRes$Pair == 1,]
   if (!identical(perFeature$Partner, 2:(ncol(newCounts))))
     stop("DEBUG ERROR #GET001.")
   thetas <- perFeature$theta
   names(thetas) <- colnames(object@counts)
+  
   return(thetas)
 }
 
