@@ -71,7 +71,7 @@ updateCutoffs.propr <-
     object@tails <- tails
 
     # get cutoffs
-    if (is.na(custom_cutoffs)) {
+    if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       vals <- object@results$propr
       if (tails == 'right') {
         vals <- vals[vals >= 0]
@@ -203,7 +203,7 @@ updateCutoffs.propd <-
       stop("Permutation testing is disabled.")
 
     # get cutoffs
-    if (is.na(custom_cutoffs)) {
+    if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       cutoffs <- as.numeric(quantile(object@results$theta, seq(0, 1, length.out = number_of_cutoffs)))
     } else {
       cutoffs <- custom_cutoffs
