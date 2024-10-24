@@ -180,15 +180,15 @@ test_that("updateCutoffs.propr properly set up cutoffs", {
   )
   expect_equal(
     updateCutoffs(pr, number_of_cutoffs=10)@fdr$cutoff,
-    cutoffs_both
+    cutoffs_right
   )
   expect_equal(
-    updateCutoffs(pr, custom_cutoffs=cutoffs_both)@fdr,
+    updateCutoffs(pr, custom_cutoffs=cutoffs_right)@fdr,
     updateCutoffs(pr, number_of_cutoffs=10)@fdr
   )
   expect_equal(
-    updateCutoffs(pr, custom_cutoffs=cutoffs_right, tails='right')@fdr,
-    updateCutoffs(pr, number_of_cutoffs=10, tails='right')@fdr
+    updateCutoffs(pr, custom_cutoffs=cutoffs_both, tails='both')@fdr,
+    updateCutoffs(pr, number_of_cutoffs=10, tails='both')@fdr
   )
 })
 
