@@ -47,8 +47,5 @@ runGraflex <- function(A, K, p=100, ncores=1) {
   # change the values to numeric, except for the concept column
   res[,1:9] <- lapply(res[,1:9], as.numeric)
 
-  # sort the results by the odds ratio
-  res <- res[order(res$Odds, decreasing=TRUE),]
-
   return(res)
 }
