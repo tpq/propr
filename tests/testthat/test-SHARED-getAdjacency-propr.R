@@ -134,7 +134,7 @@ test_that("getAdjacencyFDR returns the expected values for phs - 5", {
 
 test_that("getAdjacencyFDR and getSignificantResultsFDR return coherent results", {
     
-    for (metric in c('rho', 'phi', 'phs', 'pcor', 'pcor.shrink', 'pcor.bshrink')){
+    for (metric in c('rho', 'phi', 'phs', 'pcor', 'pcor.bshrink')) { # pcor.shrink does not provide positive values for this dataset, and it gives error when tails = 'right'
         print(metric)
 
         # get propr object

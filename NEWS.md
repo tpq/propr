@@ -1,3 +1,8 @@
+# propr 5.1.5
+---------------------
+* Fixed bug in `updateCutoffs` related to the use of `custom_cutoffs`
+* Fixed `runNormalization` to properly work when `theta_mod` is used
+
 # propr 5.1.4
 ---------------------
 * Added `results_to_matrix` function

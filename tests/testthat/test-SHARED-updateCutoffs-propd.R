@@ -102,13 +102,19 @@ test_that("updateCutoffs.propd properly set up cutoffs", {
 
   # get propd object and update cutoffs
   pd <- propd(x, as.character(y), p=10)
-  pd <- updateCutoffs(pd, number_of_cutoffs=10)
+  pd1 <- updateCutoffs(pd, number_of_cutoffs=10)
 
   # get cutoffs
   cutoffs <- as.numeric( quantile(pd@results$theta, probs = seq(0, 1, length.out = 10)) )
 
+  # run with cutoffs
+  pd2 <- updateCutoffs(pd, custom_cutoffs=cutoffs)
+
   # check that cutoffs are properly defined
-  expect_equal(pd@fdr$cutoff, cutoffs)
+  expect_equal(pd1@fdr$cutoff, cutoffs)
+
+  # check that the two calls agree
+  expect_equal(pd1@fdr, pd2@fdr)
 })
 
 test_that("updateCutoffs.propd properly calculates truecounts", {

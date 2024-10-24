@@ -4,12 +4,14 @@
 \alias{results_to_matrix}
 \title{Get Matrix from Results}
 \usage{
-results_to_matrix(results, what = "theta")
+results_to_matrix(results, what = "theta", features = NULL)
 }
 \arguments{
 \item{results}{A \code{data.frame} of results.}
 
 \item{what}{A character string. The column name of the results data frame to be converted into a matrix.}
+
+\item{features}{A vector of features. Default is NULL.}
 }
 \value{
 A matrix.

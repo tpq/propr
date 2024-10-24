@@ -13,10 +13,10 @@
 #' cutoffs will be evenly spaced across the data.
 #' @param custom_cutoffs A numeric vector. When provided, this vector is used as the set of 
 #' cutoffs to test, and 'number_of_cutoffs' is ignored.
-#' @param tails NA or 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
-#' symmetric two-sided test. If NA, use default value according to the property 
-#' `has_meaningful_negative_values`. This is only relevant for \code{propr} objects, as 
-#' \code{propd} objects are always one-sided and only have positive values.
+#' @param tails 'right' or 'both'. 'right' is for one-sided on the right. 'both' for
+#' symmetric two-sided test. This is only relevant for \code{propr} objects, as 
+#' \code{propd} objects are always one-sided and only have positive values. Default 
+#' is 'right'.
 #' @param ncores An integer. The number of parallel cores to use.
 #' @return A \code{propr} or \code{propd} object with the FDR slot updated.
 #' 
@@ -25,7 +25,7 @@ updateCutoffs <-
   function(object,
            number_of_cutoffs = 100,
            custom_cutoffs = NA,
-           tails = NA,
+           tails = 'right',
            ncores = 1) {
 
     if (inherits(object, "propr")) {
@@ -53,7 +53,7 @@ updateCutoffs.propr <-
   function(object, 
            number_of_cutoffs = 100, 
            custom_cutoffs = NA, 
-           tails = NA, 
+           tails = 'right', 
            ncores = 1) {
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
@@ -61,17 +61,10 @@ updateCutoffs.propr <-
     if (object@metric == "phi") {
       warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
     }
-
-    # handle right/both tails FDR test
-    if (is.na(tails)) {
-      tails <- ifelse(object@has_meaningful_negative_values, 'both', 'right')  # default option
-    } else if (!tails %in% c('right','both')) {
-      stop("Provided 'tails' not recognized.")
-    }
     object@tails <- tails
 
     # get cutoffs
-    if (is.na(custom_cutoffs)) {
+    if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       vals <- object@results$propr
       if (tails == 'right') {
         vals <- vals[vals >= 0]
@@ -203,7 +196,7 @@ updateCutoffs.propd <-
       stop("Permutation testing is disabled.")
 
     # get cutoffs
-    if (is.na(custom_cutoffs)) {
+    if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       cutoffs <- as.numeric(quantile(object@results$theta, seq(0, 1, length.out = number_of_cutoffs)))
     } else {
       cutoffs <- custom_cutoffs

@@ -165,7 +165,7 @@ test_that("updateCutoffs.propr properly set up cutoffs", {
   pr <- propr(X, metric = "pcor.bshrink", p=10)
 
   # get cutoffs
-  values <- pr@matrix[lower.tri(pr@matrix)]
+  values <- pr@results$propr
   cutoffs_right <- as.numeric( quantile(values[values >= 0], probs = seq(0, 1, length.out = 10)) )
   cutoffs_both <- as.numeric( quantile(abs(values), probs = seq(0, 1, length.out = 10)) )
 
@@ -180,7 +180,15 @@ test_that("updateCutoffs.propr properly set up cutoffs", {
   )
   expect_equal(
     updateCutoffs(pr, number_of_cutoffs=10)@fdr$cutoff,
-    cutoffs_both
+    cutoffs_right
+  )
+  expect_equal(
+    updateCutoffs(pr, custom_cutoffs=cutoffs_right)@fdr,
+    updateCutoffs(pr, number_of_cutoffs=10)@fdr
+  )
+  expect_equal(
+    updateCutoffs(pr, custom_cutoffs=cutoffs_both, tails='both')@fdr,
+    updateCutoffs(pr, number_of_cutoffs=10, tails='both')@fdr
   )
 })
 
