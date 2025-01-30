@@ -14,7 +14,14 @@
 \usage{
 \S4method{show}{propd}(object)
 
-propd(counts, group, alpha = NA, p = 0, weighted = FALSE)
+propd(
+  counts,
+  group,
+  alpha = NA,
+  p = 0,
+  weighted = FALSE,
+  weights = as.matrix(NA)
+)
 
 setDisjointed(propd)
 
@@ -39,8 +46,11 @@ assignment of each count to different groups.}
 discovery rate (FDR). The default is 0.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
-should be performed. If \code{TRUE}, the function will use limma-based
-weights for the calculations.}
+should be performed.}
+
+\item{weights}{A matrix of weights. This parameter is optional and used 
+only if `weighted = TRUE`. If not provided, the function will use limma-
+based weights for the calculations.}
 
 \item{propd}{A \code{propd} object.}
 
