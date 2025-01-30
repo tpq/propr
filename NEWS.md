@@ -1,3 +1,7 @@
+# propr 5.1.6
+---------------------
+* Added option to use user provided weights in `propd` function
+
 # propr 5.1.5
 ---------------------
 * Fixed bug in `updateCutoffs` related to the use of `custom_cutoffs`

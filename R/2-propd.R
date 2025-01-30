@@ -6,9 +6,11 @@
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
 #' @param weighted A logical value indicating whether weighted calculations
-#'  should be performed. If \code{TRUE}, the function will use limma-based
-#'  weights for the calculations.
-#'
+#'  should be performed. 
+#' @param weights A matrix of weights. This parameter is optional and used 
+#' only if `weighted = TRUE`. If not provided, the function will use limma-
+#' based weights for the calculations.
+#' 
 #' @return A \code{propd} object containing the computed theta values,
 #'  associated count matrix, group labels, and other calculated statistics.
 #'
@@ -33,7 +35,8 @@ propd <- function(counts,
                   group,
                   alpha = NA,
                   p = 0,
-                  weighted = FALSE) {
+                  weighted = FALSE,
+                  weights = as.matrix(NA)) {
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
@@ -82,12 +85,19 @@ propd <- function(counts,
 
   # Initialize @weights
   if (weighted) {
-    message("Alert: Calculating limma-based weights.")
-    packageCheck("limma")
-    design <-
-      stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    result@weights <- t(v$weights)
+    if (is.na(weights[1, 1])) {
+      message("Alert: Calculating limma-based weights.")
+      packageCheck("limma")
+      design <-
+        stats::model.matrix(~ . + 0, data = as.data.frame(group))
+      v <- limma::voom(t(counts), design = design)
+      result@weights <- t(v$weights)
+    } else {
+      if (nrow(weights) != nrow(counts) | ncol(weights) != ncol(counts)) {
+        stop("The matrix dimensions of 'weights' must match the matrix dimensions 'counts'.")
+      }
+      result@weights <- weights
+    }
   }
 
   # Initialize @results
