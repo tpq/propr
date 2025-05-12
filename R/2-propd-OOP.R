@@ -7,7 +7,7 @@ setClass(
     alpha = "numeric",
     group = "character",
     weighted = "logical",
-    weights = "matrix",
+    weights = "data.frame",
     active = "character",
     Fivar = "ANY",
     dfz = "numeric",

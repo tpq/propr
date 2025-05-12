@@ -53,7 +53,11 @@ test_that("active theta_e matches calculation using theta_d", {
   # when weighted
   groups <- lapply(unique(group), function(g) g == group)
   ngrp <- length(unique(group))
-  W <- pd_w@weights
+  # calculate weights
+  design <-
+    stats::model.matrix(~ . + 0, data = as.data.frame(group))
+  v <- limma::voom(t(pd@counts), design = design)
+  W <- t(v$weights)
   ps <- lapply(groups, function(g) propr:::omega(W[g,]))
   names(ps) <- paste0("p", 1:ngrp)
   p <- propr:::omega(W)

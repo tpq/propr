@@ -7,9 +7,7 @@
 #'  discovery rate (FDR). The default is 0.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. 
-#' @param weights A matrix of weights. This parameter is optional and used 
-#' only if `weighted = TRUE`. If not provided, the function will use limma-
-#' based weights for the calculations.
+#' @param weights A custom matrix of weights.
 #' 
 #' @return A \code{propd} object containing the computed theta values,
 #'  associated count matrix, group labels, and other calculated statistics.
@@ -52,6 +50,15 @@ propd <- function(counts,
   if (length(group) != nrow(counts))
     stop("Too many or too few group labels.")
 
+  # set weighted to TRUE if weights are provided
+  if (!is.na(weights[1,1])) {
+    weighted <- TRUE
+    # error if permutation is requested
+    if (p > 0) {
+      stop("Permutation is not available with custom weights yet.")
+    }
+  }
+
   # Special handling for equivalent args
   if (identical(alpha, 0))
     alpha <- NA
@@ -69,7 +76,6 @@ propd <- function(counts,
   # Initialize @active, @weighted
   result <- new("propd")
   result@active <- "theta_d" # set theta_d active by default
-  result@weights <- as.matrix(NA)
   result@weighted <- weighted
   result@dfz <- 0
 
@@ -83,31 +89,14 @@ propd <- function(counts,
   ### CALCULATE THETA WITH OR WITHOUT WEIGHTS
   ##############################################################################
 
-  # Initialize @weights
-  if (weighted) {
-    if (is.na(weights[1, 1])) {
-      message("Alert: Calculating limma-based weights.")
-      packageCheck("limma")
-      design <-
-        stats::model.matrix(~ . + 0, data = as.data.frame(group))
-      v <- limma::voom(t(counts), design = design)
-      result@weights <- t(v$weights)
-    } else {
-      if (nrow(weights) != nrow(counts) | ncol(weights) != ncol(counts)) {
-        stop("The matrix dimensions of 'weights' must match the matrix dimensions 'counts'.")
-      }
-      result@weights <- weights
-    }
-  }
-
   # Initialize @results
   result@results <-
     calculate_theta(
       result@counts,
       result@group,
       result@alpha,
-      weighted = result@weighted,
-      weights = result@weights
+      weighted = weighted,
+      weights = weights
     )
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
   result@results$theta <-
