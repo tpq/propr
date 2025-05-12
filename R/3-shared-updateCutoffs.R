@@ -374,10 +374,12 @@ getPermutedTheta <-
 #' @param direct A logical value. If \code{TRUE}, direct relationship is considered.
 #' @return The number of values greater or less than the threshold.
 countValuesBeyondThreshold <- function(values, cutoff, direct){
-  if (direct){
-    func <- ifelse(cutoff >= 0, count_greater_than, count_less_than)
-  } else {
-    func <- count_less_than
+  if (is.na(cutoff)) {
+    return(NA)
   }
-  return(func(values, cutoff))
+  if (direct && cutoff >= 0){
+    return(count_greater_than(values, cutoff))
+  } else {
+    return(count_less_than(values, cutoff))
+  }
 }
