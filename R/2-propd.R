@@ -8,6 +8,7 @@
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. 
 #' @param weights A custom matrix of weights.
+#' @param shrink A logical value indicating whether to apply shrinkage
 #' 
 #' @return A \code{propd} object containing the computed theta values,
 #'  associated count matrix, group labels, and other calculated statistics.
@@ -34,7 +35,8 @@ propd <- function(counts,
                   alpha = NA,
                   p = 0,
                   weighted = FALSE,
-                  weights = as.matrix(NA)) {
+                  weights = as.matrix(NA),
+                  shrink = FALSE) {
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
@@ -57,6 +59,10 @@ propd <- function(counts,
     if (p > 0) {
       stop("Permutation is not available with custom weights yet.")
     }
+  }
+
+  if (shrink && weighted) {
+    stop("Shrinkage is not available for weighted computation yet.")
   }
 
   # Special handling for equivalent args
@@ -96,7 +102,8 @@ propd <- function(counts,
       result@group,
       result@alpha,
       weighted = weighted,
-      weights = weights
+      weights = weights,
+      shrink = shrink
     )
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
   result@results$theta <-

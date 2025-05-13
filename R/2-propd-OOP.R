@@ -13,7 +13,8 @@ setClass(
     dfz = "numeric",
     results = "data.frame",
     permutes = "data.frame",
-    fdr = "data.frame"
+    fdr = "data.frame",
+    shrink = "logical"
   )
 )
 

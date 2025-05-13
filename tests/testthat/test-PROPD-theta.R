@@ -80,4 +80,10 @@ test_that("active theta_f matches calculation using theta_e", {
   )
 })
 
-
+test_that("running propd with shrinkage works", {
+  pd <- propd(counts, group, p = 5, shrink = TRUE)
+  
+  # Check that pd is an S4 object and has a "results" slot
+  expect_true(isS4(pd))
+  expect_true("results" %in% slotNames(pd))
+})

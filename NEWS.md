@@ -1,3 +1,8 @@
+# propr 5.1.7
+---------------------
+* Added option to shrink the covariance matrix before computing the propd theta
+* Fix issues when using user provided weights in `propd` function
+
 # propr 5.1.6
 ---------------------
 * Added option to use user provided weights in `propd` function
