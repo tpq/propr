@@ -8,10 +8,9 @@
 #' @param lrv If LRV is provided, it is not computed within the function.
 #' @param only A character vector specifying the type of theta to calculate.
 #' @param weighted A logical value indicating whether weighted calculations
-#'  should be performed. If `TRUE`, the function will use limma-based weights
-#'  for the calculations.
-#' @param weights A matrix of limma-based weights. This parameter is optional
-#'  and used only if `weighted = TRUE`.
+#'  should be performed. 
+#' @param weights A weight matrix.
+#' @param shrink A logical value indicating whether to apply shrinkage
 #'
 #' @return A data frame containing the computed theta values and
 #'  related statistics, depending on the `only` parameter.
@@ -35,8 +34,13 @@ calculate_theta <-
            lrv = NA,
            only = "all",
            weighted = FALSE,
-           weights = as.matrix(NA)) {
+           weights = as.matrix(NA),
+           shrink = FALSE) {
+
+    # count matrix
     ct <- as.matrix(counts)
+
+    # define recompute lrv or not
     if (identical(lrv, NA)) {
       firstpass <- TRUE
     } else{
@@ -48,10 +52,13 @@ calculate_theta <-
       g == group)
     ngrp <- length(unique(group))
 
-    # Calculate weights and lrv modifier
+    ##############################################################################
+    ### Use weights
+    ##############################################################################
+
     if (weighted) {
-      # Do not delete -- this is used by updateCutoffs.propd()
-      if (is.na(weights[1, 1])) {
+      # calculate weights using limma
+      if (is.na(weights[1,1])) {
         message("Alert: Calculating limma-based weights.")
         packageCheck("limma")
         design <-
@@ -59,28 +66,49 @@ calculate_theta <-
         v <- limma::voom(t(counts), design = design)
         weights <- t(v$weights)
       }
+      if (nrow(weights) != nrow(counts) | ncol(weights) != ncol(counts)) {
+        stop("The matrix dimensions of 'weights' must match the matrix dimensions 'counts'.")
+      }
+    }
 
+    # use weights for lrv modifiers, if provided
+    if (weighted) {
       W <- weights
-      ps <- lapply(groups, function(g)
-        omega(W[g,]))
+      ps <- lapply(groups, function(g) omega(W[g,]))
       names(ps) <- paste0("p", 1:ngrp)
       p <- omega(W)
-
-    } else{
+    } else {
       W <- ct
-      ps <- lapply(groups, function(g)
-        sum(g) - 1)
+      ps <- lapply(groups, function(g) sum(g) - 1)
       names(ps) <- paste0("p", 1:ngrp)
       p <- length(group) - 1
     }
 
-    # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
-    if (firstpass)
-      lrv <- lrv(ct, W, weighted, alpha, ct, W)
-    lrvs <-
-      lapply(groups, function(g)
-        lrv(ct[g,], W[g,], weighted, alpha, ct, W))
-    names(lrvs) <- paste0("lrv", 1:ngrp)
+    ##############################################################################
+    ### Calculate logratio variance and differential proportionality theta
+    ##############################################################################
+
+    # calculate logratio variance based on shrunk covariance matrix
+    if (shrink) {
+      if (weighted) {
+        stop("Shrinkage is not available for weighted computation yet.")
+      }
+      if (firstpass)
+        lrv <- lrv_with_shrinkage(ct)
+      lrvs <- 
+        lapply(groups, function(g)
+          lrv_with_shrinkage(ct[g,]))
+      names(lrvs) <- paste0("lrv", 1:ngrp)
+    } else {
+
+      # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
+      if (firstpass)
+        lrv <- lrv(ct, W, weighted, alpha, ct, W)
+      lrvs <-
+        lapply(groups, function(g)
+          lrv(ct[g,], W[g,], weighted, alpha, ct, W))
+      names(lrvs) <- paste0("lrv", 1:ngrp)
+    }
 
     # Calculate LRM (using alpha-based LRM if appropriate)
     if (only == "all") {
@@ -161,3 +189,33 @@ calculate_theta <-
       )
     )
   }
+
+#' Calculate Logratio Variance with shrinkage
+#'
+#' This function computes the logratio variance (LRV) with the option
+#'  to apply shrinkage. It uses the `corpcor` package to compute a shrunk
+#'  covariance matrix and then converts it to a logratio variance matrix.
+#'
+#' @param ct A count matrix.
+#' @param shrink A logical value indicating whether to apply shrinkage.
+#' @return A shrunk logratio variance matrix.
+lrv_with_shrinkage <- function(ct, shrink = TRUE) {
+  
+  # compute covariance matrix on the log data
+  if (shrink) {
+    cov_matrix <- corpcor::cov.shrink(log(ct))
+  } else {
+    cov_matrix <- stats::cov(log(ct))
+  }
+
+  # convert shrunked covariance matrix to shrunked logratio variance matrix
+  diag_matrix <- diag(cov_matrix)
+  outer_sum <- outer(diag_matrix, diag_matrix, "+")
+  lrv <- outer_sum - 2 * cov_matrix
+
+  # it is symmetric
+  # we get the upper triangle, so that it is coherent with the function propr:::lrv
+  lrv <- lrv[upper.tri(lrv)]
+  
+  return(lrv)
+}

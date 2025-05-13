@@ -11,7 +11,8 @@ calculate_theta(
   lrv = NA,
   only = "all",
   weighted = FALSE,
-  weights = as.matrix(NA)
+  weights = as.matrix(NA),
+  shrink = FALSE
 )
 }
 \arguments{
@@ -28,11 +29,11 @@ assignment of each count to different groups.}
 \item{only}{A character vector specifying the type of theta to calculate.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
-should be performed. If `TRUE`, the function will use limma-based weights
-for the calculations.}
+should be performed.}
 
-\item{weights}{A matrix of limma-based weights. This parameter is optional
-and used only if `weighted = TRUE`.}
+\item{weights}{A weight matrix.}
+
+\item{shrink}{A logical value indicating whether to apply shrinkage}
 }
 \value{
 A data frame containing the computed theta values and

@@ -7,13 +7,14 @@ setClass(
     alpha = "numeric",
     group = "character",
     weighted = "logical",
-    weights = "matrix",
+    weights = "data.frame",
     active = "character",
     Fivar = "ANY",
     dfz = "numeric",
     results = "data.frame",
     permutes = "data.frame",
-    fdr = "data.frame"
+    fdr = "data.frame",
+    shrink = "logical"
   )
 )
 

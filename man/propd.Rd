@@ -20,7 +20,8 @@ propd(
   alpha = NA,
   p = 0,
   weighted = FALSE,
-  weights = as.matrix(NA)
+  weights = as.matrix(NA),
+  shrink = FALSE
 )
 
 setDisjointed(propd)
@@ -48,9 +49,9 @@ discovery rate (FDR). The default is 0.}
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed.}
 
-\item{weights}{A matrix of weights. This parameter is optional and used 
-only if `weighted = TRUE`. If not provided, the function will use limma-
-based weights for the calculations.}
+\item{weights}{A custom matrix of weights.}
+
+\item{shrink}{A logical value indicating whether to apply shrinkage}
 
 \item{propd}{A \code{propd} object.}
 
