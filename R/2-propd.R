@@ -83,6 +83,7 @@ propd <- function(counts,
   result <- new("propd")
   result@active <- "theta_d" # set theta_d active by default
   result@weighted <- weighted
+  result@shrink <- shrink
   result@dfz <- 0
 
   # Initialize @counts, @group, @alpha
