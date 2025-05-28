@@ -34,7 +34,8 @@ Imports:
     corpcor,
     ppcor,
     Rcpp,
-    stats
+    stats,
+    nvtxR
 Suggests:
     ALDEx2,
     fastcluster,

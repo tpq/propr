@@ -7,6 +7,7 @@
 #'  discovery rate (FDR). The default is 0.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. 
+#' @param weights A custom matrix of weights.
 #' @param shrink A logical value indicating whether to apply shrinkage
 #' 
 #' @return A \code{propd} object containing the computed theta values,
@@ -34,7 +35,9 @@ propd <- function(counts,
                   alpha = NA,
                   p = 0,
                   weighted = FALSE,
+                  weights = as.matrix(NA),
                   shrink = FALSE) {
+  nvtxR::nvtx_push_range("propd", 0)
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
@@ -50,7 +53,15 @@ propd <- function(counts,
   if (length(group) != nrow(counts))
     stop("Too many or too few group labels.")
 
-  # Throw error if scenario not supported
+  # set weighted to TRUE if weights are provided
+  if (!is.na(weights[1,1])) {
+    weighted <- TRUE
+    # error if permutation is requested
+    if (p > 0) {
+      stop("Permutation is not available with custom weights yet.")
+    }
+  }
+
   if (shrink && weighted) {
     stop("Shrinkage is not available for weighted computation yet.")
   }
@@ -58,6 +69,18 @@ propd <- function(counts,
   # Special handling for equivalent args
   if (identical(alpha, 0))
     alpha <- NA
+
+  ##############################################################################
+  ### OPTIONALLY REPLACE ZEROS AND SET UP propd OBJECT
+  ##############################################################################
+
+  if (is.na(alpha)) {
+    nvtxR::nvtx_push_range("simple_zero_replacement", 1)
+    ct <- simple_zero_replacement(counts)
+    nvtxR::nvtx_pop_range()
+  } else{
+    ct <- counts
+  }
 
   # Initialize @active, @weighted
   result <- new("propd")
@@ -67,7 +90,7 @@ propd <- function(counts,
   result@dfz <- 0
 
   # Initialize @counts, @group, @alpha
-  result@counts <- as.data.frame(counts)
+  result@counts <- as.data.frame(ct)
   result@group <- as.character(group)
   result@alpha <- as.numeric(alpha)
   result@permutes <- data.frame()
@@ -77,20 +100,31 @@ propd <- function(counts,
   ##############################################################################
 
   # Initialize @results
+  nvtxR::nvtx_push_range("calculate_theta", 1)
   result@results <-
     calculate_theta(
       result@counts,
       result@group,
       result@alpha,
       weighted = weighted,
+      weights = weights,
       shrink = shrink
     )
+    nvtxR::nvtx_pop_range()
+    
+  nvtxR::nvtx_push_range("ctzRcpp", 1)
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
-  result@results$theta <-
-    round(result@results$theta, 14) # round floats to 1
+  nvtxR::nvtx_pop_range()
+
+  result@results$theta <-round(result@results$theta, 14) # round floats to 1
+  
 
   # permute data
-  if (p > 0) result <- updatePermutes(result, p)
+  if (p > 0) {
+      nvtxR::nvtx_push_range("updatePermutes", 1)
+      result <- updatePermutes(result, p)
+      nvtxR::nvtx_pop_range()
+  }
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
@@ -99,6 +133,6 @@ propd <- function(counts,
   message("Alert: Use 'setActive' to select a theta type.")
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
   message("Alert: Use 'updateF' to calculate F-stat.")
-
+  nvtxR::nvtx_pop_range()
   return(result)
 }

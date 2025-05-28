@@ -1,3 +1,4 @@
+
 #' Calculate Theta and Related Statistics
 #'
 #' This function calculates theta and related statistics based on the input
@@ -35,6 +36,8 @@ calculate_theta <-
            weighted = FALSE,
            shrink = FALSE) {
 
+    nvtxR::nvtx_push_range("calculate_theta_inside", 1)
+    
     # count matrix
     ct <- as.matrix(counts)
 
@@ -90,9 +93,17 @@ calculate_theta <-
     # use weights for lrv modifiers, if provided
     if (weighted) {
       W <- weights
-      ps <- lapply(groups, function(g) omega(W[g,]))
+      #batch apply omega to the weights
+      nvtxR::nvtx_push_range("omega group (lrv modifiers )", 2)
+        ps <- lapply(groups, function(g) omega(W[g,]))
+      nvtxR::nvtx_pop_range()
+
       names(ps) <- paste0("p", 1:ngrp)
-      p <- omega(W)
+
+      nvtxR::nvtx_push_range("omega single (lrv modifiers )", 2)
+        p <- omega(W)
+      nvtxR::nvtx_pop_range()
+
     } else {
       W <- ct
       ps <- lapply(groups, function(g) sum(g) - 1)
@@ -120,45 +131,58 @@ calculate_theta <-
         stop("Shrinkage is not available for weighted computation yet.")
       }
       if (firstpass)
-        lrv <- lrv_with_shrinkage(ct)
-      lrvs <- 
-        lapply(groups, function(g)
-          lrv_with_shrinkage(ct[g,]))
-      names(lrvs) <- paste0("lrv", 1:ngrp)
-    } else {
+          nvtxR::nvtx_push_range("lrv_with_shrinkage_single (firstpass)", 2)
+            lrv <- lrv_with_shrinkage(ct)
+          nvtxR::nvtx_pop_range()
 
-      # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
-      if (firstpass)
-        lrv <- lrv(ct, W, weighted, alpha, ct, W)
-      lrvs <-
-        lapply(groups, function(g)
-          lrv(ct[g,], W[g,], weighted, alpha, ct, W))
-      names(lrvs) <- paste0("lrv", 1:ngrp)
+          nvtxR::nvtx_push_range("lrv_with_shrinkage_group (firstpass)", 2)
+            lrvs <-  lapply(groups, function(g) lrv_with_shrinkage(ct[g,]))
+          nvtxR::nvtx_pop_range()
+
+        names(lrvs) <- paste0("lrv", 1:ngrp)
+    } else {
+        # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
+      if (firstpass) {
+          nvtxR::nvtx_push_range("lrv_single (first_pass)", 2)
+          lrv <- lrv(ct, W, weighted, alpha, ct, W)
+          nvtxR::nvtx_pop_range()
+        }
+        nvtxR::nvtx_push_range("lrv_group", 2)
+        lrvs <- lapply(groups, function(g) {
+          lrv(ct[g,], W[g,], weighted, alpha, ct, W)
+        })
+        nvtxR::nvtx_pop_range()
+        names(lrvs) <- paste0("lrv", 1:ngrp)
     }
 
     # Calculate LRM (using alpha-based LRM if appropriate)
     if (only == "all") {
-      if (firstpass)
+      if (firstpass) {
+        nvtxR::nvtx_push_range("lrm_single (first_pass)", 2)
         lrm <- lrm(ct, W, weighted, alpha, ct, W)
-      lrms <-
-        lapply(groups, function(g)
-          lrm(ct[g,], W[g,], weighted, alpha, ct, W))
+        nvtxR::nvtx_pop_range()
+      }
+      nvtxR::nvtx_push_range("lrm_group", 2)
+        lrms <- lapply(groups, function(g) {
+          lrm(ct[g,], W[g,], weighted, alpha, ct, W)
+        })
+      nvtxR::nvtx_pop_range()
       names(lrms) <- paste0("lrm", 1:ngrp)
     }
 
+
     # Replace NaN thetas (from VLR = 0 or VLR = NaN) with 1
-    lrv0 <-
-      Reduce("|", lapply(lrvs, is.na)) |
-      is.na(lrv) | (lrv == 0) # aVLR triggers NaN
+    lrv0 <- Reduce("|", lapply(lrvs, is.na)) | is.na(lrv) | (lrv == 0) # aVLR triggers NaN
     replaceNaNs <- any(lrv0)
     if (replaceNaNs) {
-      if (firstpass)
-        message("Alert: Replacing NaN theta values with 1.")
+      if (firstpass) message("Alert: Replacing NaN theta values with 1.")
     }
 
     # Calculate within-group sums-of-squares (used to calculate theta)
     SS <- lapply(1:ngrp, function(i)
       ps[[i]] * lrvs[[i]])
+
+    nvtxR::nvtx_pop_range()
 
     ##############################################################################
     ### Build data.frame of results with computed theta
