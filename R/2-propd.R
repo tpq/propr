@@ -67,8 +67,7 @@ propd <- function(counts,
   }
 
   # Special handling for equivalent args
-  if (identical(alpha, 0))
-    alpha <- NA
+  if (identical(alpha, 0)) alpha <- NA
 
   ##############################################################################
   ### OPTIONALLY REPLACE ZEROS AND SET UP propd OBJECT
@@ -83,16 +82,16 @@ propd <- function(counts,
   }
 
   # Initialize @active, @weighted
-  result <- new("propd")
-  result@active <- "theta_d" # set theta_d active by default
+  result          <- new("propd")
+  result@active   <- "theta_d" # set theta_d active by default
   result@weighted <- weighted
-  result@shrink <- shrink
-  result@dfz <- 0
+  result@shrink   <- shrink
+  result@dfz      <- 0
 
   # Initialize @counts, @group, @alpha
-  result@counts <- as.data.frame(ct)
-  result@group <- as.character(group)
-  result@alpha <- as.numeric(alpha)
+  result@counts   <- as.data.frame(ct)
+  result@group    <- as.character(group)
+  result@alpha    <- as.numeric(alpha)
   result@permutes <- data.frame()
 
   ##############################################################################
@@ -101,16 +100,15 @@ propd <- function(counts,
 
   # Initialize @results
   nvtxR::nvtx_push_range("calculate_theta", 1)
-  result@results <-
-    calculate_theta(
-      result@counts,
-      result@group,
-      result@alpha,
-      weighted = weighted,
-      weights = weights,
-      shrink = shrink
-    )
-    nvtxR::nvtx_pop_range()
+  result@results <- calculate_theta(
+    result@counts,
+    result@group,
+    result@alpha,
+    weighted = weighted,
+    weights = weights,
+    shrink = shrink
+  )
+  nvtxR::nvtx_pop_range()
     
   nvtxR::nvtx_push_range("ctzRcpp", 1)
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
