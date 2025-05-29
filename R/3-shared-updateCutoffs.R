@@ -28,13 +28,14 @@ updateCutoffs <-
            tails = 'right',
            ncores = 1) {
     nvtxR::nvtx_push_range("updateCutoffs_inside", 1)
-
     if (inherits(object, "propr")) {
+      nvtxR::nvtx_push_range("updateCutoffs.propr", 2)
       updateCutoffs.propr(object, number_of_cutoffs, custom_cutoffs, tails, ncores)
-
+      nvtxR::nvtx_pop_range()
     } else if (inherits(object, "propd")) {
+      nvtxR::nvtx_push_range("updateCutoffs.propd", 2)
       updateCutoffs.propd(object, number_of_cutoffs, custom_cutoffs, ncores)
-
+      nvtxR::nvtx_pop_range()
     } else {
       nvtxR::nvtx_pop_range()
       stop("Provided 'object' not recognized.")
