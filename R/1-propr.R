@@ -30,6 +30,8 @@
 #' @param alpha The alpha parameter used in the alpha log-ratio transformation.
 #' @param p The number of permutations to perform for calculating the false
 #'  discovery rate (FDR). The default is 0.
+#' @param permutation_option A character string indicating if permute the data
+#' sample-wise or feature-wise. Default is "feature-wise"
 #'
 #' @return A propr object containing the Propr matrix, associated log-ratio
 #'  transformation, and other calculated statistics.
@@ -66,7 +68,8 @@ propr <- function(counts,
                   select = NA,
                   symmetrize = FALSE,
                   alpha = NA,
-                  p = 0) {
+                  p = 0,
+                  permutation_option = c("feature-wise", "sample-wise")) {
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
@@ -95,6 +98,11 @@ propr <- function(counts,
       stop("Please check the ivar argument is correct.")
     }
   }
+
+  # handle permutation option
+  permutation_option <- permutation_option[1]
+  if (!permutation_option %in% c("feature-wise", "sample-wise"))
+    stop("permutation_option must be 'feature-wise' or 'sample-wise'")
 
   ##############################################################################
   ### PERFORM ZERO REPLACEMENT AND LOG-RATIO TRANSFORM
@@ -188,6 +196,7 @@ propr <- function(counts,
   result@lambda <- lambda
   result@direct <- ifelse(metric[1] %in% c("rho", "cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)
   result@has_meaningful_negative_values <- ifelse(metric[1] %in% c("cor", "pcor", "pcor.shrink", "pcor.bshrink"), TRUE, FALSE)  # metrics like proportionality has negative values that are difficult to interpret, whereas correlation metrics have a clear interpretation
+  result@permutation_option <- permutation_option
 
   # ivar should not be NA for pcor.bshrink, otherwise updateCutoffs does not work
   if (metric == 'pcor.bshrink') result@ivar <- ivar_pcor
@@ -211,7 +220,7 @@ propr <- function(counts,
     )
 
   # permute data
-  if (p > 0) result <- updatePermutes(result, p)
+  if (p > 0) result <- updatePermutes(result, p, permutation_option)
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
