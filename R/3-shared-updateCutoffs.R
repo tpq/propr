@@ -274,7 +274,11 @@ getFdrRandcounts.propd.parallel <-
 
     # Each element of this list will be a vector whose elements
     # are the count of theta values less than the cutoff.
-    func = ifelse(object@active == "theta_mod", getFdrRandcountsMod, getFdrRandcounts)
+    if (object@active == "theta_mod") {
+      func <- getFdrRandcountsMod
+    } else {
+      func <- getFdrRandcounts
+    }
     randcounts <- parallel::parLapply(cl = cl,
                                       X = 1:ncol(object@permutes),
                                       fun = func)
