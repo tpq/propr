@@ -335,6 +335,7 @@ getFdrRandcounts.propd.parallel <-
       pkt <- propdi@results$theta_mod
       sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
     }
+    
     getFdrRandcounts <- function(k) {
       shuffle <- object@permutes[, k]
       pkt <- suppressMessages(
@@ -393,14 +394,12 @@ getFdrRandcounts.propd.run <-
     for (k in 1:p) {
       nvtxR::nvtx_push_range("single_permutation_propd", 3)
       numTicks <- progress(k, p, numTicks)
-
       # calculate permuted theta values
       if (object@active == "theta_mod") {
         pkt <- suppressMessages(getPermutedThetaMod(object, k))
       } else{
         pkt <- suppressMessages(getPermutedTheta(object, k))
       }
-
       # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
       for (cut in 1:length(cutoffs)){
         randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], direct=FALSE)
