@@ -42,10 +42,11 @@ endif ()
 if (NOT RCPP_LIB_PATH)
     execute_process(COMMAND ${R_ROOT_PATH}/bin/Rscript ${CMAKE_MODULE_PATH}/FindRLibraryPath.R OUTPUT_VARIABLE RCPP_LIB_PATH)
     set(RCPP_LIB_PATH ${RCPP_LIB_PATH})
-    message("Rcpp Lib Path :  " ${RCPP_LIB_PATH})
+    message("R Include Path :  " ${R_INCLUDE_PATH})
+    message("Rcpp Lib Path  :  " ${RCPP_LIB_PATH})
 endif ()
 
-message("R Home Path :  " ${R_ROOT_PATH})
+message("R Home Path    :  " ${R_ROOT_PATH})
 
 if (R_ROOT_PATH)
 
@@ -97,7 +98,6 @@ if (R_INCLUDE_PATH)
 endif ()
 
 if (RCPP_LIB_PATH)
-    #find libs
     find_library(
             RCPP_LIB
             REQUIRED
@@ -107,7 +107,6 @@ if (RCPP_LIB_PATH)
             NO_DEFAULT_PATH
     )
 
-    # find includes
     find_path(
             RCPP_INCLUDE_DIRS
             REQUIRED

@@ -1,0 +1,7 @@
+set(PROPR_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lrm.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/lrv.cu
+
+        ${PROPR_SOURCES}
+        PARENT_SCOPE
+)

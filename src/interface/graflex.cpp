@@ -1,0 +1,136 @@
+#include <Rcpp.h>
+#include <propr/interface/graflex.hpp>
+#include <propr/interface/device_selector.hpp>
+#include <propr/context.h>
+
+#include <propr/kernels/cpu/dispatch/graflex.hpp>
+#include <propr/kernels/cuda/dispatch/graflex.cuh>
+
+
+// [[Rcpp::export]]
+Rcpp::NumericVector propr::getOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G) {
+    Rcpp::NumericVector result(8); // Assuming getOR returns a vector of size 8
+     if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for getOR: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::getOR(A, G, result);
+        } else {
+            context.stream = stream;
+            propr::dispatch::cuda::getOR(A, G,result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        propr::dispatch::cpu::getOR(A, G, result);
+    }
+    return result;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector propr::getORperm(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm) {
+    Rcpp::NumericVector result(8);
+    if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for getORperm: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::getORperm(A, G, perm, result);
+        } else {
+            context.stream = stream;
+            propr::dispatch::cuda::getORperm(A, G, perm, result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        propr::dispatch::cpu::getORperm(A, G, perm, result);
+    }
+    return result;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix propr::permuteOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p) {
+     if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        Rcpp::NumericMatrix result(p, 8);
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for permuteOR: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::permuteOR(A, G, p, result);
+        } else {
+            context.stream = stream;
+             propr::dispatch::cuda::permuteOR(A, G, p, result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        Rcpp::NumericMatrix result(p, 8);
+        propr::dispatch::cpu::permuteOR(A, G, p, result);
+        return result;
+    }
+}
+
+// [[Rcpp::export]]
+Rcpp::List propr::getFDR(double actual, const Rcpp::NumericVector& permuted) {
+    Rcpp::List result;
+    if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for getFDR: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::getFDR(actual, permuted, result);
+        } else {
+            context.stream = stream;
+            propr::dispatch::cuda::getFDR(actual, permuted, result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        propr::dispatch::cpu::getFDR(actual, permuted, result);
+    }
+    return result;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerMatrix propr::getG(const Rcpp::IntegerVector& Gk) {
+    int n = Gk.size();
+    Rcpp::IntegerMatrix result(n, n);
+    if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for getG: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::getG(Gk, result);
+        } else {
+            context.stream = stream;
+            propr::dispatch::cuda::getG(Gk, result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        propr::dispatch::cpu::getG(Gk, result);
+    }
+    return result;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericVector propr::graflex(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p) {
+    Rcpp::NumericVector result(8);
+    if (propr::is_gpu_backend()) {
+        propr::propr_context context;
+        cudaStream_t stream;
+        cudaError_t err = cudaStreamCreate(&stream);
+        if (err != cudaSuccess) {
+            Rcpp::warning("CUDA stream creation failed for graflex: %s. Falling back to CPU.", cudaGetErrorString(err));
+            propr::dispatch::cpu::graflex(A, Gk, p, result);
+        } else {
+            context.stream = stream;
+            propr::dispatch::cuda::graflex(A, Gk, p, result, context);
+            cudaStreamDestroy(stream);
+        }
+    } else {
+        propr::dispatch::cpu::graflex(A, Gk, p, result);
+    }
+    return result;
+}
