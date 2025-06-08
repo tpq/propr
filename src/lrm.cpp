@@ -8,6 +8,8 @@
 #include <propr/kernels/cuda/dispatch/lrm.cuh>
 
 using namespace Rcpp;
+using namespace propr;
+
 
 // [[Rcpp::export]]
 NumericVector lrm(NumericMatrix &Y,
@@ -17,41 +19,41 @@ NumericVector lrm(NumericMatrix &Y,
                   NumericMatrix Yfull,
                   NumericMatrix Wfull) {
 
-    const bool use_gpu = propr::is_gpu_backend();
+    const bool use_gpu = is_gpu_backend();
 
     int nfeats = Y.ncol();
     int N_pairs = nfeats * (nfeats - 1) / 2;
     NumericVector result_vec(N_pairs);
 
     if (use_gpu) {
-        propr::propr_context context;
+        propr_context context;
         cudaStream_t stream;
         const cudaError_t err = cudaStreamCreate(&stream);
         if (err != cudaSuccess) {
             Rcpp::warning("CUDA stream creation failed: %s. Falling back to CPU.", cudaGetErrorString(err));
-            propr::dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
+            dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
             return result_vec;
         }
         context.stream = stream;
 
         if (!R_IsNA(a)) {
             if (weighted) {
-                 propr::dispatch::cuda::lrm_alpha_weighted(Y, W, a, Yfull, Wfull, result_vec, context);
+                 dispatch::cuda::lrm_alpha_weighted(Y, W, a, Yfull, Wfull, result_vec, context);
             } else {
-                propr::dispatch::cuda::lrm_alpha(Y, a, Yfull, result_vec, context);
+                dispatch::cuda::lrm_alpha(Y, a, Yfull, result_vec, context);
             }
         } else {
             if (weighted) {
-                propr::dispatch::cuda::lrm_weighted(Y, Wfull, result_vec, context);
+                dispatch::cuda::lrm_weighted(Y, Wfull, result_vec, context);
             } else {
-                propr::dispatch::cuda::lrm_basic(Y, result_vec, context);
+                dispatch::cuda::lrm_basic(Y, result_vec, context);
             }
         }
         cudaStreamDestroy(stream);
         return result_vec;
 
     } else {
-        propr::dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
+        dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
         return result_vec;
     }
 }
