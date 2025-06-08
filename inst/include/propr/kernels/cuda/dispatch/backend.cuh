@@ -22,7 +22,7 @@ namespace propr {
             void lltRcpp(Rcpp::NumericVector& out,const Rcpp::NumericMatrix & X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void urtRcpp(Rcpp::NumericVector& out,const Rcpp::NumericMatrix & X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void labRcpp(Rcpp::List & out, int nfeats, propr_context context=DEFAULT_GLOBAL_CONTEXT);
-            void half2mat(Rcpp::NumericMatrix& out, const Rcpp::NumericVector& X, propr_context context);
+            void half2mat(Rcpp::NumericMatrix& out, const Rcpp::NumericVector& X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void vector2mat(Rcpp::NumericMatrix& out, const Rcpp::NumericVector& X, const Rcpp::IntegerVector& i, const Rcpp::IntegerVector& j, int nfeats, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void ratiosRcpp(Rcpp::NumericMatrix & out, const Rcpp::NumericMatrix & X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void results2matRcpp(Rcpp::NumericMatrix & out, const Rcpp::DataFrame& results, int n, double diagonal = 0.0, propr_context context=DEFAULT_GLOBAL_CONTEXT);
