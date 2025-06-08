@@ -5,11 +5,10 @@
 namespace propr {
     namespace dispatch {
         namespace cuda {
-            void lr2vlr(Rcpp::NumericMatrix& lr, Rcpp::NumericMatrix &out, propr::propr_context context);
-            void lr2phi(Rcpp::NumericMatrix& lr, Rcpp::NumericMatrix &out, propr::propr_context context);
-
-            void lr2rho(Rcpp::NumericMatrix &lr, Rcpp::NumericMatrix &out, propr_context context);
-            void lr2phs(Rcpp::NumericMatrix& lr, Rcpp::NumericMatrix &out, propr::propr_context context);
+            void lr2vlr(Rcpp::NumericMatrix &out, Rcpp::NumericMatrix& lr, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            void lr2phi(Rcpp::NumericMatrix &out, Rcpp::NumericMatrix& lr, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            void lr2rho(Rcpp::NumericMatrix &out, Rcpp::NumericMatrix &lr, propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            void lr2phs(Rcpp::NumericMatrix &out, Rcpp::NumericMatrix& lr, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
         }
     }
 }

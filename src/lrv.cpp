@@ -24,33 +24,21 @@ NumericVector lrv(NumericMatrix &Y,
     NumericVector result_vec(N_pairs);
 
     if (use_gpu) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lrv(Y, W, weighted, a, Yfull, Wfull, result_vec);
-            return result_vec;
-        }
-        context.stream = stream;
-
         if (!R_IsNA(a)) { // Alpha-transformed
             if (weighted) {
-                dispatch::cuda::lrv_alpha_weighted(Y, W, a, Yfull, Wfull, result_vec, context);
+                dispatch::cuda::lrv_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);
             } else {
-                dispatch::cuda::lrv_alpha(Y, a, Yfull, result_vec, context);
+                dispatch::cuda::lrv_alpha(result_vec, Y, a, Yfull);
             }
         } else { // Non-transformed (log)
             if (weighted) {
-                dispatch::cuda::lrv_weighted(Y, W, result_vec, context);
+                dispatch::cuda::lrv_weighted(result_vec, Y, W);
             } else {
-                dispatch::cuda::lrv_basic(Y, result_vec, context);
+                dispatch::cuda::lrv_basic(result_vec, Y);
             }
         }
-        cudaStreamDestroy(stream);
-        return result_vec;
     } else {
-        dispatch::cpu::lrv(Y, W, weighted, a, Yfull, Wfull, result_vec);
-        return result_vec;
+        dispatch::cpu::lrv(result_vec, Y, W, weighted, a, Yfull, Wfull);
     }
+    return result_vec;
 }

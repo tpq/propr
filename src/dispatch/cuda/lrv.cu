@@ -13,9 +13,9 @@ using namespace Rcpp;
 using namespace propr;
 
 void
-dispatch::cuda::lrv_basic(Rcpp::NumericMatrix &Y,
-                                 Rcpp::NumericVector& out,
-                                 propr_context context) {
+dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
+                          Rcpp::NumericMatrix &Y,
+                          propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;
@@ -43,10 +43,10 @@ dispatch::cuda::lrv_basic(Rcpp::NumericMatrix &Y,
 }
 
 void
-dispatch::cuda::lrv_weighted(Rcpp::NumericMatrix &Y,
-                                    Rcpp::NumericMatrix &W,
-                                    Rcpp::NumericVector& out,
-                                    propr_context context) {
+dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
+                             Rcpp::NumericMatrix &Y,
+                             Rcpp::NumericMatrix &W,
+                             propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;
@@ -77,11 +77,11 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericMatrix &Y,
     CUDA_CHECK(cudaFree(d_variances));
 }
 
-void dispatch::cuda::lrv_alpha(Rcpp::NumericMatrix &Y,
-                                           double a,
-                                           Rcpp::NumericMatrix& Yfull,
-                                           Rcpp::NumericVector& out,
-                                           propr_context context) {
+void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
+                               Rcpp::NumericMatrix &Y,
+                               double a,
+                               Rcpp::NumericMatrix& Yfull,
+                               propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;
@@ -113,13 +113,13 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericMatrix &Y,
 }
 
 void
-dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericMatrix &Y,
-                                          Rcpp::NumericMatrix &W,
-                                          double a,
-                                          Rcpp::NumericMatrix& Yfull,
-                                          Rcpp::NumericMatrix& Wfull,
-                                          Rcpp::NumericVector& out,
-                                          propr_context context) {
+dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
+                                   Rcpp::NumericMatrix &Y,
+                                   Rcpp::NumericMatrix &W,
+                                   double a,
+                                   Rcpp::NumericMatrix& Yfull,
+                                   Rcpp::NumericMatrix& Wfull,
+                                   propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;

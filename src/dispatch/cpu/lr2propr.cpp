@@ -9,19 +9,19 @@ using namespace propr;
 
 
 void
-dispatch::cpu::lr2vlr(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
+dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
   CHECK_MATRIX_DIMS(out, nfeats, nfeats);
 
   NumericMatrix x_copy = clone(lr);
   NumericMatrix cov_tmp(nfeats, nfeats);
-  dispatch::cpu::covRcpp(x_copy, 0, cov_tmp);
-  for (int i = 0; i < nfeats; ++i) {
-      for (int j = 0; j < nfeats; ++j) {
-          out(i, j) = cov_tmp(i, j);
-      }
-  }
-
+  dispatch::cpu::covRcpp(out, x_copy, 0);
+  //for (int i = 0; i < nfeats; ++i) {
+  //    for (int j = 0; j < nfeats; ++j) {
+  //        out(i, j) = cov_tmp(i, j);
+  //    }
+  //}
+  
   NumericVector diag(nfeats);
   for(int j = 0; j < nfeats; j++){
     diag[j] = out(j, j);
@@ -34,11 +34,11 @@ dispatch::cpu::lr2vlr(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
 }
 
 void
-dispatch::cpu::lr2phi(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
+dispatch::cpu::lr2phi(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
-  dispatch::cpu::lr2vlr(x_copy, mat_tmp);
+  dispatch::cpu::lr2vlr(mat_tmp, x_copy);
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
@@ -55,11 +55,11 @@ dispatch::cpu::lr2phi(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
 }
 
 void
-dispatch::cpu::lr2rho(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
+dispatch::cpu::lr2rho(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
-  dispatch::cpu::lr2vlr(x_copy, mat_tmp);
+  dispatch::cpu::lr2vlr(mat_tmp, x_copy);
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
@@ -84,10 +84,10 @@ dispatch::cpu::lr2rho(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
 }
 
 void
-dispatch::cpu::lr2phs(Rcpp::NumericMatrix &lr, NumericMatrix& out) {
+dispatch::cpu::lr2phs(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
   NumericMatrix mat_tmp(nfeats, nfeats);
-  dispatch::cpu::lr2rho(lr, mat_tmp);
+  dispatch::cpu::lr2rho(mat_tmp, lr);
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {

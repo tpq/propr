@@ -15,19 +15,9 @@ Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X) {
     Rcpp::NumericVector result(llt);
 
     if (is_gpu_backend()) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed for ctzRcpp: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::ctzRcpp(X, result);
-        } else {
-            context.stream = stream;
-            dispatch::cuda::ctzRcpp(X, result, context);
-            cudaStreamDestroy(stream);
-        }
+        dispatch::cuda::ctzRcpp(result, X);
     } else {
-        dispatch::cpu::ctzRcpp(X, result);
+        dispatch::cpu::ctzRcpp(result, X);
     }
     return result;
 }

@@ -5,10 +5,10 @@
 namespace propr {
     namespace dispatch {
         namespace cpu {
-            void lr2vlr(Rcpp::NumericMatrix &lr, Rcpp::NumericMatrix& out);
-            void lr2phi(Rcpp::NumericMatrix &lr, Rcpp::NumericMatrix& out);
-            void lr2rho(Rcpp::NumericMatrix &lr, Rcpp::NumericMatrix& out);
-            void lr2phs(Rcpp::NumericMatrix &lr, Rcpp::NumericMatrix& out);
+            void lr2vlr(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &lr);
+            void lr2phi(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &lr);
+            void lr2rho(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &lr);
+            void lr2phs(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &lr);
         }
     }
 }

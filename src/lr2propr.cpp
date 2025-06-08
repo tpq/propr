@@ -14,19 +14,9 @@ Rcpp::NumericMatrix lr2vlr(Rcpp::NumericMatrix lr) {
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
     if (is_gpu_backend()) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed for lr2vlr: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lr2vlr(lr, result);
-        } else {
-            context.stream = stream;
-            dispatch::cuda::lr2vlr(lr, result, context);
-            cudaStreamDestroy(stream);
-        }
+        dispatch::cuda::lr2vlr(result, lr);
     } else {
-        dispatch::cpu::lr2vlr(lr, result);
+        dispatch::cpu::lr2vlr(result, lr);
     }
     return result;
 }
@@ -37,19 +27,9 @@ Rcpp::NumericMatrix lr2phi(Rcpp::NumericMatrix lr) {
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
     if (is_gpu_backend()) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed for lr2phi: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lr2phi(lr, result);
-        } else {
-            context.stream = stream;
-            result = dispatch::cuda::lr2phi(lr,result, context);
-            cudaStreamDestroy(stream);
-        }
+        dispatch::cuda::lr2phi(result, lr);
     } else {
-        dispatch::cpu::lr2phi(lr, result);
+        dispatch::cpu::lr2phi(result, lr);
     }
     return result;
 }
@@ -58,21 +38,10 @@ Rcpp::NumericMatrix lr2phi(Rcpp::NumericMatrix lr) {
 Rcpp::NumericMatrix lr2rho(Rcpp::NumericMatrix lr) {
     int nfeats = lr.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-
     if (is_gpu_backend()) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed for lr2rho: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lr2rho(lr, result);
-        } else {
-            context.stream = stream;
-            dispatch::cuda::lr2rho(lr, result, context);
-            cudaStreamDestroy(stream);
-        }
+        dispatch::cuda::lr2rho(result, lr);
     } else {
-        dispatch::cpu::lr2rho(lr, result);
+        dispatch::cpu::lr2rho(result, lr);
     }
     return result;
 }
@@ -83,19 +52,9 @@ Rcpp::NumericMatrix lr2phs(Rcpp::NumericMatrix lr) {
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
     if (is_gpu_backend()) {
-        propr_context context;
-        cudaStream_t stream;
-        cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed for lr2phs: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lr2phs(lr, result);
-        } else {
-            context.stream = stream;
-            dispatch::cuda::lr2phs(lr, result, context);
-            cudaStreamDestroy(stream);
-        }
+        dispatch::cuda::lr2phs(result, lr);
     } else {
-        dispatch::cpu::lr2phs(lr, result);
+        dispatch::cpu::lr2phs(result, lr);
     }
     return result;
 }

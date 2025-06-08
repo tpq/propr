@@ -7,12 +7,11 @@
 using namespace Rcpp;
 using namespace propr;
 
-// Calculate lrm with or without weights
 void
-dispatch::cpu::lrm(NumericMatrix &Y, NumericMatrix &W,
-				  bool weighted,double a,
-				  NumericMatrix& Yfull,NumericMatrix& Wfull,
-                  NumericVector& out)
+dispatch::cpu::lrm(NumericVector& out,
+				   NumericMatrix &Y, NumericMatrix &W,
+				   bool weighted,double a,
+				   NumericMatrix Yfull,NumericMatrix Wfull)
 {
 	NumericMatrix X = clone(Y);
 	int nfeats      = X.ncol();
@@ -61,15 +60,15 @@ dispatch::cpu::lrm(NumericMatrix &Y, NumericMatrix &W,
 					Wij = W(_, i) * W(_, j);
 					Wfullij = Wfull(_, i) * Wfull(_, j);
 
-                    dispatch::cpu::wtmRcpp(Xfull_copy(_, i), Wfullij, mean_Xfull_i);
-                    dispatch::cpu::wtmRcpp(Xfull_copy(_, j), Wfullij, mean_Xfull_j);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull_copy(_, i), Wfullij);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull_copy(_, j), Wfullij);
 					Xiscaled = X(_, i) / mean_Xfull_i;
 					Xjscaled = X(_, j) / mean_Xfull_j;
 
 					Xz = X(_, i) - X(_, j);
 					Xfullz = Xfull_copy(_, i) - Xfull_copy(_, j);
 
-                    dispatch::cpu::wtmRcpp(Xiscaled - Xjscaled, Wij, Mz_sum_val);
+                    dispatch::cpu::wtmRcpp(Mz_sum_val, Xiscaled - Xjscaled, Wij);
 					double Mz = Mz_sum_val;
 
 					double Cz = sum(Wij * Xz) / sum(Wij) + (sum(Wfullij * Xfullz) - sum(Wij * Xz)) / (sum(Wfullij) - sum(Wij));
@@ -102,7 +101,7 @@ dispatch::cpu::lrm(NumericMatrix &Y, NumericMatrix &W,
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
 					Wij = W(_, i) * W(_, j);
-                    dispatch::cpu::wtmRcpp(log(X(_, i) / X(_, j)), Wij, lrm_val);
+                    dispatch::cpu::wtmRcpp(lrm_val, log(X(_, i) / X(_, j)), Wij);
 					out(counter) = lrm_val;
 					counter += 1;
 				}

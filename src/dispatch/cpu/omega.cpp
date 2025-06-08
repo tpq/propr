@@ -5,10 +5,9 @@
 #include <propr/utils.hpp>
 
 using namespace Rcpp;
-using namespace propr;
 
 void
-dispatch::cpu::dof_global(NumericMatrix & W, NumericVector& out) {
+propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 	int nfeats = W.ncol();
 	int llt = nfeats * (nfeats - 1) / 2;
 	CHECK_VECTOR_SIZE(out, llt);
@@ -27,7 +26,7 @@ dispatch::cpu::dof_global(NumericMatrix & W, NumericVector& out) {
 
 
 void
-dispatch::cpu::dof_population(const NumericMatrix & W, NumericVector& out) {
+propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W) {
     int nfeats = W.ncol();
     int llt    = nfeats * (nfeats - 1) / 2;
     CHECK_VECTOR_SIZE(out, llt);

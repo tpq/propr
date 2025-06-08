@@ -7,7 +7,7 @@ using namespace Rcpp;
 using namespace propr;
 
 void
-dispatch::cpu::ctzRcpp(NumericMatrix & X, NumericVector& out){
+dispatch::cpu::ctzRcpp(NumericVector& out, NumericMatrix & X){
     int nfeats = X.ncol();
     int nsubjs = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;

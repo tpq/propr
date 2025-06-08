@@ -5,8 +5,8 @@
 namespace propr {
     namespace dispatch {
         namespace cuda {
-            void dof_global(const Rcpp::NumericMatrix & W, Rcpp::NumericVector& out, propr_context context);
-            void dof_population(const Rcpp::NumericMatrix & W, Rcpp::NumericVector& out, propr_context context);
+            void dof_global    (Rcpp::NumericVector& out, const Rcpp::NumericMatrix & W, propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            void dof_population(Rcpp::NumericVector& out, const Rcpp::NumericMatrix & W, propr_context context=DEFAULT_GLOBAL_CONTEXT);
         }
     }
 }

@@ -6,30 +6,31 @@ namespace propr {
     namespace dispatch {
         namespace cuda {
             void lrv_basic(
-                Rcpp::NumericMatrix &Y,
                 Rcpp::NumericVector &out,
-                propr_context context);
+                Rcpp::NumericMatrix &Y,
+                propr_context context=DEFAULT_GLOBAL_CONTEXT);
 
             void lrv_weighted(
+                Rcpp::NumericVector& out,
                 Rcpp::NumericMatrix &Y,
                 Rcpp::NumericMatrix &W,
-                Rcpp::NumericVector& out,
-                propr_context context);
+                propr_context context=DEFAULT_GLOBAL_CONTEXT);
 
             void lrv_alpha(
+                Rcpp::NumericVector &out,
                 Rcpp::NumericMatrix &Y,
                 const double a,
                 Rcpp::NumericMatrix& Yfull,
-                Rcpp::NumericVector &out,
-                propr_context context);
+                propr_context context=DEFAULT_GLOBAL_CONTEXT);
 
             void lrv_alpha_weighted(
+                Rcpp::NumericVector& out,
                 Rcpp::NumericMatrix &Y,
                 Rcpp::NumericMatrix &W,
                 const double a,
                 Rcpp::NumericMatrix& Yfull,
                 Rcpp::NumericMatrix& Wfull,
-                Rcpp::NumericVector& out, propr_context context);
+                propr_context context=DEFAULT_GLOBAL_CONTEXT);
 
         }
     } 

@@ -8,13 +8,13 @@ using namespace Rcpp;
 using namespace propr;
 
 void
-dispatch::cpu::lrv(Rcpp::NumericMatrix &Y,
+dispatch::cpu::lrv(Rcpp::NumericVector& out,
+				  Rcpp::NumericMatrix &Y,
 				  Rcpp::NumericMatrix &W,
 				  bool weighted,
 				  double a,
-				  Rcpp::NumericMatrix& Yfull,
-				  Rcpp::NumericMatrix& Wfull,
-                  Rcpp::NumericVector& out) {
+				  Rcpp::NumericMatrix Yfull,
+				  Rcpp::NumericMatrix Wfull) {
 	NumericMatrix X = clone(Y);
 	int nfeats        = X.ncol();
 	int llt           = nfeats * (nfeats - 1) / 2;
@@ -62,10 +62,10 @@ dispatch::cpu::lrv(Rcpp::NumericMatrix &Y,
 					Wij = W(_, i) * W(_, j);
 					Wfullij = Wfull(_, i) * Wfull(_, j);
 
-                    dispatch::cpu::wtmRcpp(X(_, i), Wij, mean_X_i);
-                    dispatch::cpu::wtmRcpp(X(_, j), Wij, mean_X_j);
-                    dispatch::cpu::wtmRcpp(Xfull_copy(_, i), Wfullij, mean_Xfull_i);
-                    dispatch::cpu::wtmRcpp(Xfull_copy(_, j), Wfullij, mean_Xfull_j);
+                    dispatch::cpu::wtmRcpp(mean_X_i, X(_, i), Wij);
+                    dispatch::cpu::wtmRcpp(mean_X_j, X(_, j), Wij);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull_copy(_, i), Wfullij);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull_copy(_, j), Wfullij);
 
 					Xiscaled = (X(_, i) - mean_X_i) / mean_Xfull_i;
 					Xjscaled = (X(_, j) - mean_X_j) / mean_Xfull_j;
@@ -107,7 +107,7 @@ dispatch::cpu::lrv(Rcpp::NumericMatrix &Y,
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
 					Wij = W(_, i) * W(_, j);
-					dispatch::cpu::wtvRcpp(log(X(_, i) / X(_, j)), Wij, wtv_val);
+					dispatch::cpu::wtvRcpp(wtv_val, log(X(_, i) / X(_, j)), Wij);
 					out(counter) = wtv_val;
 					counter += 1;
 				}

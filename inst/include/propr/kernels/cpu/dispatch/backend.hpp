@@ -4,27 +4,27 @@
 namespace propr {
     namespace dispatch {
         namespace cpu {
-            void wtmRcpp(const Rcpp::NumericVector &x, Rcpp::NumericVector &w,double& out);
-            void wtvRcpp(const Rcpp::NumericVector &x, Rcpp::NumericVector &w, double& out);
-            void corRcpp(Rcpp::NumericMatrix & X,  Rcpp::NumericMatrix& out);
-            void covRcpp(Rcpp::NumericMatrix & X, int norm_type = 0,  Rcpp::NumericMatrix& out);
-            void vlrRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericMatrix& out);
-            void clrRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericMatrix& out);
-            void alrRcpp(Rcpp::NumericMatrix & X, int ivar = 0,  Rcpp::NumericMatrix& out);
-            void symRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericMatrix& out);
-            void phiRcpp(Rcpp::NumericMatrix &X, bool sym = true,  Rcpp::NumericMatrix& out);
-            void rhoRcpp(Rcpp::NumericMatrix &X, Rcpp::NumericMatrix& lr, int ivar = 0,  Rcpp::NumericMatrix& out);
-            void indexPairs(Rcpp::NumericMatrix & X,Rcpp::String op = "==", double ref = 0, std::vector<int>& out);
-            void indexToCoord(Rcpp::IntegerVector V, int N, Rcpp::List& out);
-            void coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N, Rcpp::IntegerVector& out);
-            void linRcpp(Rcpp::NumericMatrix & rho, Rcpp::NumericMatrix lr, Rcpp::NumericMatrix& out);
-            void lltRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericVector& out);
-            void urtRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericVector& out);
-            void labRcpp(int nfeats, Rcpp::List & out);
-            void half2mat(Rcpp::NumericVector X, Rcpp::NumericMatrix& out);
-            void vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats, Rcpp::NumericMatrix& out);
-            void ratiosRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericMatrix & out);
-            void results2matRcpp(Rcpp::DataFrame& results, int n, double diagonal = 0.0, Rcpp::NumericMatrix & out );
+            void wtmRcpp(double& out, const Rcpp::NumericVector &x, Rcpp::NumericVector &w);
+            void wtvRcpp(double& out, const Rcpp::NumericVector &x, Rcpp::NumericVector &w);
+            void corRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X);
+            void covRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X, int norm_type = 0);
+            void vlrRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X);
+            void clrRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X);
+            void alrRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X, int ivar = 0);
+            void symRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & X);
+            void phiRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &X, bool sym = true);
+            void rhoRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &X, Rcpp::NumericMatrix& lr, int ivar = 0);
+            void indexPairs(std::vector<int>& out, Rcpp::NumericMatrix & X,Rcpp::String op = "==", double ref = 0);
+            void indexToCoord(Rcpp::List& out, Rcpp::IntegerVector V, int N);
+            void coordToIndex(Rcpp::IntegerVector& out, Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N);
+            void linRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix & rho, Rcpp::NumericMatrix lr);
+            void lltRcpp(Rcpp::NumericVector& out, Rcpp::NumericMatrix & X);
+            void urtRcpp(Rcpp::NumericVector& out, Rcpp::NumericMatrix & X);
+            void labRcpp(Rcpp::List & out, int nfeats);
+            void half2mat(Rcpp::NumericMatrix& out, Rcpp::NumericVector X);
+            void vector2mat(Rcpp::NumericMatrix& out, Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats);
+            void ratiosRcpp(Rcpp::NumericMatrix & out, Rcpp::NumericMatrix & X);
+            void results2matRcpp(Rcpp::NumericMatrix & out, Rcpp::DataFrame& results, int n, double diagonal = 0.0);
         }
     }
 }

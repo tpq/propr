@@ -1,0 +1,29 @@
+#! /bin/sh
+
+cd "$(dirname "$0")"
+
+ABSOLUE_PATH=$(dirname $(realpath "$0"))
+
+BUILDING_EXAMPLES="OFF"
+BUILDING_TESTS="OFF"
+INSTALL_PATH="/usr/local"
+VERBOSE=OFF
+CONFIG_PATH="${ABSOLUE_PATH}/config"
+echo ${ABSOLUE_PATH}
+
+rm -rf bin/
+mkdir bin/
+cmake -DCMAKE_BUILD_TYPE=RELEASE \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+  -DPROPR_BUILD_TESTS=$BUILDING_TESTS \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
+  -DCMAKE_VERBOSE_MAKEFILE:BOOL=$VERBOSE \
+  -H"${ABSOLUE_PATH}" \
+  -B"${ABSOLUE_PATH}/bin"
+
+cd bin/
+make clean
+make all -j 8
+
+cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || echo "Failed moving libpropr.so to src"
+rm -rf "${ABSOLUE_PATH}/bin/"

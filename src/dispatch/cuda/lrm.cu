@@ -8,7 +8,7 @@
 using namespace Rcpp;
 
 void
-propr::dispatch::cuda::lrm_basic(NumericMatrix &Y, NumericVector& out, propr::propr_context context) {
+propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;
@@ -35,10 +35,10 @@ propr::dispatch::cuda::lrm_basic(NumericMatrix &Y, NumericVector& out, propr::pr
 }
 
 void
-propr::dispatch::cuda::lrm_weighted(NumericMatrix &Y,
-                                   NumericMatrix &W,
-                                   NumericVector& out,
-                                   propr::propr_context context) {
+propr::dispatch::cuda::lrm_weighted(NumericVector& out,
+                                    NumericMatrix &Y,
+                                    NumericMatrix &W,
+                                    propr::propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     int N_pairs = N_genes * (N_genes - 1) / 2;
@@ -72,11 +72,11 @@ propr::dispatch::cuda::lrm_weighted(NumericMatrix &Y,
 }
 
 void
-propr::dispatch::cuda::lrm_alpha(NumericMatrix &Y,
-                                     const double a,
-                                     NumericMatrix& Yfull,
-                                     NumericVector& out,
-                                     propr::propr_context context) {
+propr::dispatch::cuda::lrm_alpha(NumericVector& out,
+                                 NumericMatrix &Y,
+                                 const double a,
+                                 NumericMatrix& Yfull,
+                                 propr::propr_context context) {
     int N1      = Y.nrow();
     int N_genes = Y.ncol();
     int NT      = Yfull.nrow();
@@ -109,13 +109,13 @@ propr::dispatch::cuda::lrm_alpha(NumericMatrix &Y,
 }
 
 void
-propr::dispatch::cuda::lrm_alpha_weighted(NumericMatrix &Y,
-                                              NumericMatrix &W,
-                                              const double a,
-                                              NumericMatrix& Yfull,
-                                              NumericMatrix& Wfull,
-                                              NumericVector& out,
-                                              propr::propr_context context) {
+propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
+                                          NumericMatrix &Y,
+                                          NumericMatrix &W,
+                                          const double a,
+                                          NumericMatrix& Yfull,
+                                          NumericMatrix& Wfull,
+                                          propr::propr_context context) {
     int N1 = Y.nrow();
     int N_genes = Y.ncol();
     int NT = Yfull.nrow();

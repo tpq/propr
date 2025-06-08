@@ -26,34 +26,22 @@ NumericVector lrm(NumericMatrix &Y,
     NumericVector result_vec(N_pairs);
 
     if (use_gpu) {
-        propr_context context;
-        cudaStream_t stream;
-        const cudaError_t err = cudaStreamCreate(&stream);
-        if (err != cudaSuccess) {
-            Rcpp::warning("CUDA stream creation failed: %s. Falling back to CPU.", cudaGetErrorString(err));
-            dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
-            return result_vec;
-        }
-        context.stream = stream;
-
         if (!R_IsNA(a)) {
             if (weighted) {
-                 dispatch::cuda::lrm_alpha_weighted(Y, W, a, Yfull, Wfull, result_vec, context);
+                 dispatch::cuda::lrm_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);
             } else {
-                dispatch::cuda::lrm_alpha(Y, a, Yfull, result_vec, context);
+                dispatch::cuda::lrm_alpha(result_vec, Y, a, Yfull);
             }
         } else {
             if (weighted) {
-                dispatch::cuda::lrm_weighted(Y, Wfull, result_vec, context);
+                dispatch::cuda::lrm_weighted(result_vec, Y, Wfull);
             } else {
-                dispatch::cuda::lrm_basic(Y, result_vec, context);
+                dispatch::cuda::lrm_basic(result_vec, Y);
             }
         }
-        cudaStreamDestroy(stream);
-        return result_vec;
-
     } else {
         dispatch::cpu::lrm(Y, W, weighted, a, Yfull, Wfull, result_vec);
-        return result_vec;
     }
+    return result_vec;
+
 }

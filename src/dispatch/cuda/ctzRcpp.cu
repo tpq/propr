@@ -5,7 +5,7 @@
 using namespace Rcpp;
 using namespace propr;
 
-void dispatch::cuda::ctzRcpp(NumericMatrix & X, NumericVector& out, propr::propr_context context){
+void dispatch::cuda::ctzRcpp(NumericVector& out, NumericMatrix & X, propr::propr_context context){
     Rcpp::stop("Not implemented in CUDA for ctzRcpp.");
     int nfeats = X.ncol();
     int nsubjs = X.nrow();

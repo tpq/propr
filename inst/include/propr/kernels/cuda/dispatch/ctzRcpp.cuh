@@ -6,7 +6,7 @@
 namespace propr {
     namespace dispatch {
         namespace cuda {
-            void ctzRcpp(Rcpp::NumericMatrix & X, Rcpp::NumericVector& out, propr::propr_context context);
+            void ctzRcpp(Rcpp::NumericVector& out, Rcpp::NumericMatrix & X, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
         }
     }
 }

@@ -5,12 +5,12 @@
 namespace propr {
     namespace dispatch {
         namespace cpu {
-            void getOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, Rcpp::NumericVector& out);
-            void getORperm(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm, Rcpp::NumericVector& out);
-            void permuteOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p, Rcpp::NumericMatrix& out);
-            void getFDR(double actual, const Rcpp::NumericVector& permuted, Rcpp::List& out);
-            void getG(const Rcpp::IntegerVector& Gk, Rcpp::IntegerMatrix& out);
-            void graflex(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p, Rcpp::NumericVector& out);
+            void getOR(Rcpp::NumericVector& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G);
+            void getORperm(Rcpp::NumericVector& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm);
+            void permuteOR(Rcpp::NumericMatrix& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p);
+            void getFDR(Rcpp::List& out, double actual, const Rcpp::NumericVector& permuted);
+            void getG(Rcpp::IntegerMatrix& out, const Rcpp::IntegerVector& Gk);
+            void graflex(Rcpp::NumericVector& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p);
         }
     }
 }

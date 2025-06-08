@@ -6,7 +6,7 @@ using namespace Rcpp;
 using namespace propr;
 
 void
-dispatch::cpu::getOR(const IntegerMatrix& A, const IntegerMatrix& G, NumericVector& out) {
+dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G) {
   CHECK_VECTOR_SIZE(out, 8);
   int ncol = A.ncol();
   int a = 0, b = 0, c = 0, d = 0;
@@ -35,7 +35,7 @@ dispatch::cpu::getOR(const IntegerMatrix& A, const IntegerMatrix& G, NumericVect
 }
 
 void
-dispatch::cpu::getORperm(const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm, NumericVector& out) {
+dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm) {
   CHECK_VECTOR_SIZE(out, 8); // Check if output vector has correct size
 
   int ncol = A.ncol();
@@ -66,13 +66,13 @@ dispatch::cpu::getORperm(const IntegerMatrix& A, const IntegerMatrix& G, const I
 }
 
 void
-dispatch::cpu::permuteOR(const IntegerMatrix& A, const IntegerMatrix& G, int p, NumericMatrix& out) {
+dispatch::cpu::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p) {
   CHECK_MATRIX_DIMS(out, p, 8);
   int ncol = A.ncol();
   NumericVector or_tmp(8);
   for (int i = 0; i < p; ++i) {
     IntegerVector perm = sample(ncol, ncol, false) - 1;
-    dispatch::cpu::getORperm(A, G, perm, or_tmp);
+    dispatch::cpu::getORperm(or_tmp, A, G, perm);
     for (int j = 0; j < 8; ++j) {
         out(i, j) = or_tmp[j];
     }
@@ -80,7 +80,7 @@ dispatch::cpu::permuteOR(const IntegerMatrix& A, const IntegerMatrix& G, int p, 
 }
 
 void
-dispatch::cpu::getFDR(double actual, const NumericVector& permuted, List& out) {
+dispatch::cpu::getFDR(List& out, double actual, const NumericVector& permuted) {
   int n = permuted.size();
   int count_over = 0;
   int count_under = 0;
@@ -99,7 +99,7 @@ dispatch::cpu::getFDR(double actual, const NumericVector& permuted, List& out) {
 }
 
 void
-dispatch::cpu::getG(const IntegerVector& Gk, IntegerMatrix& out) {
+dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
   int n = Gk.size();
   CHECK_MATRIX_DIMS(out, n, n);
   for (int i = 0; i < n; ++i) {
@@ -114,12 +114,12 @@ dispatch::cpu::getG(const IntegerVector& Gk, IntegerMatrix& out) {
 }
 
 void
-dispatch::cpu::graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p, NumericVector& out) {
+dispatch::cpu::graflex(NumericVector& out, const IntegerMatrix& A, const IntegerVector& Gk, int p) {
   IntegerMatrix G_tmp(Gk.size(), Gk.size());
-  dispatch::cpu::getG(Gk, G_tmp);
+  dispatch::cpu::getG(G_tmp, Gk);
 
   NumericVector actual_tmp(8);
-  dispatch::cpu::getOR(A, G_tmp, actual_tmp);
+  dispatch::cpu::getOR(actual_tmp, A, G_tmp);
 
   CHECK_VECTOR_SIZE(out, actual_tmp.length());
   for (int i = 0; i < actual_tmp.length(); ++i) {
@@ -128,10 +128,10 @@ dispatch::cpu::graflex(const IntegerMatrix& A, const IntegerVector& Gk, int p, N
 
   if (!std::isnan(actual_tmp(4))) {
     NumericMatrix permuted_tmp(p, 8);
-    dispatch::cpu::permuteOR(A, G_tmp, p, permuted_tmp);
+    dispatch::cpu::permuteOR(permuted_tmp, A, G_tmp, p);
 
-    List fdr_tmp; // Temporary list for FDR results
-    dispatch::cpu::getFDR(actual_tmp(4), permuted_tmp(_, 4), fdr_tmp);
+    List fdr_tmp; 
+    dispatch::cpu::getFDR(fdr_tmp, actual_tmp(4), permuted_tmp(_, 4));
     out(6) = as<double>(fdr_tmp["under"]);
     out(7) = as<double>(fdr_tmp["over"]);
   }

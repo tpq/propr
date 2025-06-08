@@ -5,8 +5,8 @@
 namespace propr {
     namespace dispatch {
         namespace cpu    {
-            void dof_global    (Rcpp::NumericMatrix& W, Rcpp::NumericVector& out);
-            void dof_population(const Rcpp::NumericMatrix& W, Rcpp::NumericVector& out);
+            void dof_global    (Rcpp::NumericVector& out, Rcpp::NumericMatrix& W);
+            void dof_population(Rcpp::NumericVector& out, const Rcpp::NumericMatrix& W);
         }
     }
 }
