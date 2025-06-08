@@ -31,9 +31,9 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_variances, N_samples, N_genes
-    );
+    //detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_variances, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -64,9 +64,9 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    detail::cuda::lrv_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_W, d_variances, N_samples, N_genes
-    );
+    //detail::cuda::lrv_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_W, d_variances, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -99,9 +99,9 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, static_cast<float>(a), d_variances, N_samples, N_genes
-    );
+    //detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_Yfull, static_cast<float>(a), d_variances, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -137,9 +137,9 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    detail::cuda::lrv_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, d_W, d_Wfull, static_cast<float>(a), d_variances, N_samples, N_genes
-    );
+    //detail::cuda::lrv_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_Yfull, d_W, d_Wfull, static_cast<float>(a), d_variances, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 

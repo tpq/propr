@@ -23,9 +23,9 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_mean, N_samples, N_genes
-    );
+    //propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_mean, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -59,9 +59,9 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_W, d_mean, N_samples, N_genes
-    );
+    //propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_W, d_mean, N_samples, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -96,9 +96,9 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
-    );
+    //propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
+    //    d_Y, d_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
+    //);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -144,9 +144,9 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     dim3 blockDim(16, 16);
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
-    propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, d_W, d_Wfull, N1, NT, static_cast<float>(a), d_means, N_genes
-    );
+    ///propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    ///    d_Y, d_Yfull, d_W, d_Wfull, N1, NT, static_cast<float>(a), d_means, N_genes
+    ///);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 

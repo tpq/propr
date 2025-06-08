@@ -25,5 +25,12 @@ cd bin/
 make clean
 make all -j 8
 
-cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || echo "Failed moving libpropr.so to src"
-rm -rf "${ABSOLUE_PATH}/bin/"
+if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
+    echo "Error: libpropr.so was not created. Check the build log above for errors."
+    exit 1
+fi
+
+echo "Copying libpropr.so..."
+cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
+
+echo "Configure script finished."

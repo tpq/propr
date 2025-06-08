@@ -5,8 +5,6 @@
 #include <propr/kernels/cuda/detail/lrm.cuh>
 
 
-
-
 __global__
 void
 propr::detail::cuda::lrm_basic(float* __restrict__ d_Y,
@@ -209,37 +207,31 @@ propr::detail::cuda::lrm_alpha_weighted(
 
     if (i < nb_genes && j < i) {
         // Phase 1:
-        // Accumulators for full data (size NT)
-        float sum_w_full    = 0.0f;      // Total weight for pair (i,j) in full data
-        float sum_wx_full_i = 0.0f;   // Weighted sum of X_{ki}^full for gene i
-        float sum_wx_full_j = 0.0f;   // Weighted sum of X_{kj}^full for gene j
+        float sum_w_full    = 0.0f;
+        float sum_wx_full_i = 0.0f;
+        float sum_wx_full_j = 0.0f;
         int k = 0;
         for (; k < (NT/4)*4; k += 4) {
-            // Load data and weights for genes i and j (4 samples at once)
             float4 yfull_i4 = *reinterpret_cast<float4*>(&d_Yfull[k + i * NT]);
             float4 yfull_j4 = *reinterpret_cast<float4*>(&d_Yfull[k + j * NT]);
             float4 wfull_i4 = *reinterpret_cast<float4*>(&d_Wfull[k + i * NT]);
             float4 wfull_j4 = *reinterpret_cast<float4*>(&d_Wfull[k + j * NT]);
 
-            // Process each sample in the vector
             for (int m = 0; m < 4; ++m) {
                 float y_i = reinterpret_cast<float*>(&yfull_i4)[m];
                 float y_j = reinterpret_cast<float*>(&yfull_j4)[m];
                 float w_i = reinterpret_cast<float*>(&wfull_i4)[m];
                 float w_j = reinterpret_cast<float*>(&wfull_j4)[m];
 
-                // Pair weight and transformed values
                 float w_ij = w_i * w_j;
                 float X_i = __powf(y_i, a);
                 float X_j = __powf(y_j, a);
 
-                // Update accumulators
                 sum_w_full    += w_ij;
                 sum_wx_full_i += w_ij * X_i;
                 sum_wx_full_j += w_ij * X_j;
             }
         }
-        // Remainder samples in full data
         for (; k < NT; ++k) {
             float y_i = d_Yfull[k + i * NT];
             float y_j = d_Yfull[k + j * NT];
@@ -255,48 +247,42 @@ propr::detail::cuda::lrm_alpha_weighted(
             sum_wx_full_j += w_ij * X_j;
         }
 
-        // Compute full-data means (avoid division by zero)
         float mu_i_full = 0.0f, mu_j_full = 0.0f;
-        float T_full = 0.0f; // Weighted sum of differences (X_i - X_j) for full data
+        float T_full = 0.0f;
         if (sum_w_full > 1e-10) {
             mu_i_full = sum_wx_full_i / sum_w_full;
             mu_j_full = sum_wx_full_j / sum_w_full;
             T_full = sum_wx_full_i - sum_wx_full_j;
         }
-        // Phase 2:
-        //  Accumulators for current group (size N1)
-        float sum_w_current = 0.0f;      // Total weight for pair (i,j) in current group
-        float sum_wx_current_i = 0.0f;   // Weighted sum of X_{ki} for gene i
-        float sum_wx_current_j = 0.0f;   // Weighted sum of X_{kj} for gene j
 
-        // Process current group data (N1) in vectorized chunks
+        // Phase 2:
+        float sum_w_current = 0.0f;
+        float sum_wx_current_i = 0.0f;   
+        float sum_wx_current_j = 0.0f;   
+
         k = 0;
         for (; k < (N1/4)*4; k += 4) {
-            // Load data and weights for genes i and j (4 samples at once)
             float4 y_i4 = *reinterpret_cast<float4*>(&d_Y[k + i * N1]);
             float4 y_j4 = *reinterpret_cast<float4*>(&d_Y[k + j * N1]);
             float4 w_i4 = *reinterpret_cast<float4*>(&d_W[k + i * N1]);
             float4 w_j4 = *reinterpret_cast<float4*>(&d_W[k + j * N1]);
 
-            // Process each sample in the vector
             for (int m = 0; m < 4; ++m) {
                 float y_i = reinterpret_cast<float*>(&y_i4)[m];
                 float y_j = reinterpret_cast<float*>(&y_j4)[m];
                 float w_i = reinterpret_cast<float*>(&w_i4)[m];
                 float w_j = reinterpret_cast<float*>(&w_j4)[m];
 
-                // Pair weight and transformed values
                 float w_ij = w_i * w_j;
                 float X_i = __powf(y_i, a);
                 float X_j = __powf(y_j, a);
 
-                // Update accumulators
                 sum_w_current += w_ij;
                 sum_wx_current_i += w_ij * X_i;
                 sum_wx_current_j += w_ij * X_j;
             }
         }
-        // Remainder samples in current group
+
         for (; k < N1; ++k) {
             float y_i = d_Y[k + i * N1];
             float y_j = d_Y[k + j * N1];
@@ -312,33 +298,28 @@ propr::detail::cuda::lrm_alpha_weighted(
             sum_wx_current_j += w_ij * X_j;
         }
 
-        float T_current = sum_wx_current_i - sum_wx_current_j; // Weighted sum of differences for current group
+        float T_current = sum_wx_current_i - sum_wx_current_j;
 
-        // Compute complement term (samples not in current group)
         float complement_term = 0.0f;
         float denom_complement = sum_w_full - sum_w_current;
         if (denom_complement > 1e-10) {
             complement_term = (T_full - T_current) / denom_complement;
         }
 
-        // Compute C_z (group-adjusted difference)
         float C_z = 0.0f;
         if (sum_w_current > 1e-10) {
             C_z = (T_current / sum_w_current) + complement_term;
         } else if (denom_complement > 1e-10) {
-            C_z = T_full / sum_w_full; // Fallback to full data mean difference
+            C_z = T_full / sum_w_full;
         }
 
-        // Compute M_z (scaled difference)
         float M_z = 0.0f;
         if (sum_w_current > 1e-10 && mu_i_full > 1e-10 && mu_j_full > 1e-10) {
             M_z = (sum_wx_current_i / mu_i_full - sum_wx_current_j / mu_j_full) / sum_w_current;
         }
 
-        // Final LRM calculation
         float result = ((C_z / 2.0f) + M_z) / a;
 
-        // Store result in lower triangular matrix
         int pair_index = (i * (i - 1)) / 2 + j;
         d_means[pair_index] = result;
     }
