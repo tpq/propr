@@ -14,10 +14,10 @@ Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X) {
     int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
 
-    if (is_gpu_backend()) {
-        dispatch::cuda::ctzRcpp(result, X);
-    } else {
+    //if (is_gpu_backend()) {
+    //    dispatch::cuda::ctzRcpp(result, X);
+    //} else {
         dispatch::cpu::ctzRcpp(result, X);
-    }
+    //}
     return result;
 }

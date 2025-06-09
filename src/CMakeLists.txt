@@ -1,7 +1,6 @@
 set(PROPR_SOURCES "")
 
 add_subdirectory(dispatch)
-add_subdirectory(kernels)
 
 file(GLOB SRC_ROOT_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -11,7 +10,7 @@ file(GLOB SRC_ROOT_FILES
 set(ALL_PROPR_SOURCES ${SRC_ROOT_FILES} ${PROPR_SOURCES})
 add_library(propr SHARED ${ALL_PROPR_SOURCES})
 target_link_libraries(propr  ${LIBS} CUDA::cublas CUDA::cudart)
-
+set_property(TARGET propr PROPERTY CUDA_ARCHITECTURES 90)
 set_target_properties(propr
         PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${R_INCLUDE}"

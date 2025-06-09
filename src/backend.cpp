@@ -207,11 +207,11 @@ Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X) {
 // [[Rcpp::export]]
 Rcpp::List labRcpp(int nfeats) {
     Rcpp::List result;
-     if (is_gpu_backend()) {
-        dispatch::cuda::labRcpp(result, nfeats);
-    } else {
+    // if (is_gpu_backend()) {
+    //    dispatch::cuda::labRcpp(result, nfeats);
+    //} else {
         dispatch::cpu::labRcpp(result, nfeats);
-    }
+    //}
     return result;
 }
 

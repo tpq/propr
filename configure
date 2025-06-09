@@ -32,5 +32,5 @@ fi
 
 echo "Copying libpropr.so..."
 cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
-
+rm -rf "${ABSOLUE_PATH}/bin/"
 echo "Configure script finished."
