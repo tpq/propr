@@ -9,6 +9,7 @@ foreach(test_src IN LISTS TEST_SOURCES)
     )
     target_include_directories(${test_name} PRIVATE
             ${CMAKE_SOURCE_DIR}/inst/include
+            ${CMAKE_CURRENT_SOURCE_DIR}
     )
     add_test(NAME ${test_name} COMMAND ${test_name})
 endforeach()
