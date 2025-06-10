@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0048 NEW)
 
-set(CUDACXX "/usr/local/cuda/bin/nvcc" CACHE FILEPATH "Path to nvcc compiler")
 project(PROPR CXX)
 
 
@@ -59,15 +58,7 @@ option(PROPR_BUILD_TESTS "Option to enable building tests" OFF)
 add_subdirectory(src)
 message("Install Path   : ${CMAKE_INSTALL_PREFIX}")
 message("PROPR Tests    : ${PROPR_BUILD_TESTS}")
-
-if (PROPR_BUILD_TESTS)
-    include_directories(${CMAKE_SOURCE_DIR}/prereq)
-    add_subdirectory(tests/cpp_tests)
-    include(CTest)
-    add_test(NAME System-Tests
-            COMMAND system-tests
-    )
-endif ()
+add_subdirectory(tests/cpp_tests)
 
 install(DIRECTORY inst/include DESTINATION ${CMAKE_INSTALL_PREFIX}/PROPR
         FILES_MATCHING

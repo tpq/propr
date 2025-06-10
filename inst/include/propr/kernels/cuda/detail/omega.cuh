@@ -6,7 +6,7 @@ namespace propr {
     namespace detail{
         namespace cuda {
             /**
-             * @brief  CUDA implementation of the “basic” Omega:  sum_{r} W(r,i)*W(r,j)
+             * @brief  CUDA implementation of the "basic" Omega:  sum_{r} W(r,i)*W(r,j)
              *
              * @param  h_W    [in]  Pointer to host array of length nRows*nFeats (column-major).
              * @param  h_res  [out] Pointer to host array of length nFeats*(nFeats-1)/2.
@@ -18,7 +18,7 @@ namespace propr {
             dof_group( const double* h_W, double* h_res, int nRows, int nFeats );
 
             /**
-             * @brief  CUDA implementation of the “weighted” Omega:
+             * @brief  CUDA implementation of the "weighted" Omega:
              *         For each pair (i>j), compute:
              *           Wij = W(:,i) * W(:,j)      (element-wise product)
              *           n   = sum(Wij)

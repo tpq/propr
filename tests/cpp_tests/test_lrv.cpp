@@ -1,6 +1,5 @@
 #include <catch.hpp>
 
-// Include headers for the functionality you want to test
 
 TEST_CASE("omega basic functionality", "[omega]") {
     // Add your test cases here
