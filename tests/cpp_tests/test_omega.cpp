@@ -1,11 +1,6 @@
-#include "catch2/catch.hpp"
+#include <catch2/catch.hpp>
+#include <propr/kernels/cuda/detail/omega.cuh>
 
-TEST_CASE("omega basic functionality", "[omega]") {
-    SECTION("Test section 1") {
-        REQUIRE(true);
-    }
+TEST_CASE("Simple sanity test for omega", "[omega]") {
 
-    SECTION("Test section 2") {
-        REQUIRE(1 == 1);
-    }
 }

@@ -59,16 +59,15 @@ add_subdirectory(src)
 message("Install Path   : ${CMAKE_INSTALL_PREFIX}")
 message("PROPR Tests    : ${PROPR_BUILD_TESTS}")
 
-if (PROPR_BUILD_TESTS)
-    set(Catch2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/Catch2")
-    find_package(Catch2 REQUIRED)
-    include_directories(${CMAKE_SOURCE_DIR}/thirdparty)
-    add_subdirectory(tests/cpp_tests)
-    include(CTest)
-endif()
-
 install(DIRECTORY inst/include DESTINATION ${CMAKE_INSTALL_PREFIX}/PROPR
         FILES_MATCHING
             PATTERN "*.hpp"
             PATTERN "*.h"
             PATTERN "*.cuh")
+
+
+if (PROPR_BUILD_TESTS)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/Catch2)
+    enable_testing()
+    add_subdirectory(${CMAKE_SOURCE_DIR}/tests/cpp_tests)
+endif()
