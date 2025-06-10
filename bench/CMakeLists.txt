@@ -11,6 +11,7 @@ foreach(SOURCE IN LISTS BENCHMARK_SOURCES)
     target_include_directories(${BENCHMARK_NAME} PRIVATE
             ${CMAKE_SOURCE_DIR}/inst/include
     )
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/nvbench)
     get_target_property(PROPR_ARCHITECTURES
             propr CUDA_ARCHITECTURES
     )

@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_RUNNER
-#include "catch2/catch.hpp"
+
 
 void runCatchTests(int argc, char *const argv[]) {
     Catch::Session().run(argc, argv);
