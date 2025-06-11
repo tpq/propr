@@ -16,6 +16,15 @@ test_that("lrv_with_shrinkage and lrv match, when shrinkage is false", {
     expect_equal(lrv1, lrv2)
 })
 
+
+test_that("lrv using gpu and lrv match", {
+    # calculate lrv 
+    lrv1 <- propr:::lrv(counts, counts, FALSE, NA, counts, counts, use_gpu=TRUE)
+    lrv2 <- propr:::lrv(counts, counts, FALSE, NA, counts, counts, use_gpu=FALSE)
+    # check if they are equal
+    expect_equal(lrv1, lrv2)
+})
+
 test_that("lrv with_shrinkage and lrv do not match, when shrinkage is true", {
     # calculate lrv with shrinkage
     lrv1 <- propr:::lrv(counts, counts, FALSE, NA, counts, counts)

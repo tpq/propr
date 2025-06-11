@@ -17,12 +17,12 @@ namespace propr {
     std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref,bool use_gpu = false);
     Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N,bool use_gpu = false);
     Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N,bool use_gpu = false);
-    Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr,bool use_gpu = false);
+    Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, bool use_gpu = false);
     Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X,bool use_gpu = false);
     Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X,bool use_gpu = false);
     Rcpp::List labRcpp(int nfeats,bool use_gpu = false);
     Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X,bool use_gpu = false);
-    Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeatsbool use_gpu = false);
+    Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeatsbool, bool use_gpu = false);
     Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu = false);
     Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, bool use_gpu = false);
 }
