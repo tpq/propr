@@ -11,219 +11,237 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // wtmRcpp
-double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w);
-RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP) {
+double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu);
+RcppExport SEXP _propr_wtmRcpp(SEXP xSEXP, SEXP wSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type w(wSEXP);
-    rcpp_result_gen = Rcpp::wrap(wtmRcpp(x, w));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(wtmRcpp(x, w, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // wtvRcpp
-double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w);
-RcppExport SEXP _propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP) {
+double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu);
+RcppExport SEXP _propr_wtvRcpp(SEXP xSEXP, SEXP wSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type w(wSEXP);
-    rcpp_result_gen = Rcpp::wrap(wtvRcpp(x, w));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(wtvRcpp(x, w, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // corRcpp
-Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_corRcpp(SEXP XSEXP) {
+Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_corRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(corRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(corRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // covRcpp
-Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type);
-RcppExport SEXP _propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP) {
+Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu);
+RcppExport SEXP _propr_covRcpp(SEXP XSEXP, SEXP norm_typeSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< int >::type norm_type(norm_typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(covRcpp(X, norm_type));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(covRcpp(X, norm_type, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // vlrRcpp
-Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_vlrRcpp(SEXP XSEXP) {
+Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_vlrRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(vlrRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(vlrRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // clrRcpp
-Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_clrRcpp(SEXP XSEXP) {
+Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_clrRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(clrRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(clrRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // alrRcpp
-Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar);
-RcppExport SEXP _propr_alrRcpp(SEXP XSEXP, SEXP ivarSEXP) {
+Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar, bool use_gpu);
+RcppExport SEXP _propr_alrRcpp(SEXP XSEXP, SEXP ivarSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< int >::type ivar(ivarSEXP);
-    rcpp_result_gen = Rcpp::wrap(alrRcpp(X, ivar));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(alrRcpp(X, ivar, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // symRcpp
-Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_symRcpp(SEXP XSEXP) {
+Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_symRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(symRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(symRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // phiRcpp
-Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym);
-RcppExport SEXP _propr_phiRcpp(SEXP XSEXP, SEXP symSEXP) {
+Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym, bool use_gpu);
+RcppExport SEXP _propr_phiRcpp(SEXP XSEXP, SEXP symSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< bool >::type sym(symSEXP);
-    rcpp_result_gen = Rcpp::wrap(phiRcpp(X, sym));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(phiRcpp(X, sym, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // rhoRcpp
-Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar);
-RcppExport SEXP _propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP) {
+Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar, bool use_gpu);
+RcppExport SEXP _propr_rhoRcpp(SEXP XSEXP, SEXP lrSEXP, SEXP ivarSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
     Rcpp::traits::input_parameter< int >::type ivar(ivarSEXP);
-    rcpp_result_gen = Rcpp::wrap(rhoRcpp(X, lr, ivar));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(rhoRcpp(X, lr, ivar, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // indexPairs
-std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref);
-RcppExport SEXP _propr_indexPairs(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP) {
+std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref, bool use_gpu);
+RcppExport SEXP _propr_indexPairs(SEXP XSEXP, SEXP opSEXP, SEXP refSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type op(opSEXP);
     Rcpp::traits::input_parameter< double >::type ref(refSEXP);
-    rcpp_result_gen = Rcpp::wrap(indexPairs(X, op, ref));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(indexPairs(X, op, ref, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // indexToCoord
-Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N);
-RcppExport SEXP _propr_indexToCoord(SEXP VSEXP, SEXP NSEXP) {
+Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N, bool use_gpu);
+RcppExport SEXP _propr_indexToCoord(SEXP VSEXP, SEXP NSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type V(VSEXP);
     Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    rcpp_result_gen = Rcpp::wrap(indexToCoord(V, N));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(indexToCoord(V, N, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // coordToIndex
-Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N);
-RcppExport SEXP _propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP) {
+Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N, bool use_gpu);
+RcppExport SEXP _propr_coordToIndex(SEXP rowSEXP, SEXP colSEXP, SEXP NSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type row(rowSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type col(colSEXP);
     Rcpp::traits::input_parameter< int >::type N(NSEXP);
-    rcpp_result_gen = Rcpp::wrap(coordToIndex(row, col, N));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(coordToIndex(row, col, N, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // linRcpp
-Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr);
-RcppExport SEXP _propr_linRcpp(SEXP rhoSEXP, SEXP lrSEXP) {
+Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, bool use_gpu);
+RcppExport SEXP _propr_linRcpp(SEXP rhoSEXP, SEXP lrSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
-    rcpp_result_gen = Rcpp::wrap(linRcpp(rho, lr));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(linRcpp(rho, lr, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lltRcpp
-Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_lltRcpp(SEXP XSEXP) {
+Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_lltRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(lltRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lltRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // urtRcpp
-Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_urtRcpp(SEXP XSEXP) {
+Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_urtRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(urtRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(urtRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // labRcpp
-Rcpp::List labRcpp(int nfeats);
-RcppExport SEXP _propr_labRcpp(SEXP nfeatsSEXP) {
+Rcpp::List labRcpp(int nfeats, bool use_gpu);
+RcppExport SEXP _propr_labRcpp(SEXP nfeatsSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type nfeats(nfeatsSEXP);
-    rcpp_result_gen = Rcpp::wrap(labRcpp(nfeats));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(labRcpp(nfeats, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // half2mat
-Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X);
-RcppExport SEXP _propr_half2mat(SEXP XSEXP) {
+Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X, bool use_gpu);
+RcppExport SEXP _propr_half2mat(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(half2mat(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(half2mat(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // vector2mat
-Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats);
-RcppExport SEXP _propr_vector2mat(SEXP XSEXP, SEXP iSEXP, SEXP jSEXP, SEXP nfeatsSEXP) {
+Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats, bool use_gpu);
+RcppExport SEXP _propr_vector2mat(SEXP XSEXP, SEXP iSEXP, SEXP jSEXP, SEXP nfeatsSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -231,214 +249,232 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type i(iSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type j(jSEXP);
     Rcpp::traits::input_parameter< int >::type nfeats(nfeatsSEXP);
-    rcpp_result_gen = Rcpp::wrap(vector2mat(X, i, j, nfeats));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(vector2mat(X, i, j, nfeats, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // ratiosRcpp
-Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X);
-RcppExport SEXP _propr_ratiosRcpp(SEXP XSEXP) {
+Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu);
+RcppExport SEXP _propr_ratiosRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(ratiosRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(ratiosRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // results2matRcpp
-Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal);
-RcppExport SEXP _propr_results2matRcpp(SEXP resultsSEXP, SEXP nSEXP, SEXP diagonalSEXP) {
+Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, bool use_gpu);
+RcppExport SEXP _propr_results2matRcpp(SEXP resultsSEXP, SEXP nSEXP, SEXP diagonalSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::DataFrame >::type results(resultsSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< double >::type diagonal(diagonalSEXP);
-    rcpp_result_gen = Rcpp::wrap(results2matRcpp(results, n, diagonal));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(results2matRcpp(results, n, diagonal, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // count_less_than
-int count_less_than(Rcpp::NumericVector x, double cutoff);
-RcppExport SEXP _propr_count_less_than(SEXP xSEXP, SEXP cutoffSEXP) {
+int count_less_than(Rcpp::NumericVector x, double cutoff, bool use_gpu);
+RcppExport SEXP _propr_count_less_than(SEXP xSEXP, SEXP cutoffSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(count_less_than(x, cutoff));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_less_than(x, cutoff, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // count_greater_than
-int count_greater_than(Rcpp::NumericVector x, double cutoff);
-RcppExport SEXP _propr_count_greater_than(SEXP xSEXP, SEXP cutoffSEXP) {
+int count_greater_than(Rcpp::NumericVector x, double cutoff, bool use_gpu);
+RcppExport SEXP _propr_count_greater_than(SEXP xSEXP, SEXP cutoffSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(count_greater_than(x, cutoff));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_greater_than(x, cutoff, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // count_less_equal_than
-int count_less_equal_than(Rcpp::NumericVector x, double cutoff);
-RcppExport SEXP _propr_count_less_equal_than(SEXP xSEXP, SEXP cutoffSEXP) {
+int count_less_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu);
+RcppExport SEXP _propr_count_less_equal_than(SEXP xSEXP, SEXP cutoffSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(count_less_equal_than(x, cutoff));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_less_equal_than(x, cutoff, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // count_greater_equal_than
-int count_greater_equal_than(Rcpp::NumericVector x, double cutoff);
-RcppExport SEXP _propr_count_greater_equal_than(SEXP xSEXP, SEXP cutoffSEXP) {
+int count_greater_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu);
+RcppExport SEXP _propr_count_greater_equal_than(SEXP xSEXP, SEXP cutoffSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
-    rcpp_result_gen = Rcpp::wrap(count_greater_equal_than(x, cutoff));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_greater_equal_than(x, cutoff, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // ctzRcpp
-Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix& X);
-RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP) {
+Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix& X, bool use_gpu);
+RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(ctzRcpp(X));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(ctzRcpp(X, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // getOR
-Rcpp::NumericVector getOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G);
-RcppExport SEXP _propr_getOR(SEXP ASEXP, SEXP GSEXP) {
+Rcpp::NumericVector getOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, bool use_gpu);
+RcppExport SEXP _propr_getOR(SEXP ASEXP, SEXP GSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type G(GSEXP);
-    rcpp_result_gen = Rcpp::wrap(getOR(A, G));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(getOR(A, G, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // getORperm
-Rcpp::NumericVector getORperm(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm);
-RcppExport SEXP _propr_getORperm(SEXP ASEXP, SEXP GSEXP, SEXP permSEXP) {
+Rcpp::NumericVector getORperm(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm, bool use_gpu);
+RcppExport SEXP _propr_getORperm(SEXP ASEXP, SEXP GSEXP, SEXP permSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type G(GSEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type perm(permSEXP);
-    rcpp_result_gen = Rcpp::wrap(getORperm(A, G, perm));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(getORperm(A, G, perm, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // permuteOR
-Rcpp::NumericMatrix permuteOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p);
-RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP) {
+Rcpp::NumericMatrix permuteOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p, bool use_gpu);
+RcppExport SEXP _propr_permuteOR(SEXP ASEXP, SEXP GSEXP, SEXP pSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type G(GSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(permuteOR(A, G, p));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(permuteOR(A, G, p, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // getFDR
-Rcpp::List getFDR(double actual, const Rcpp::NumericVector& permuted);
-RcppExport SEXP _propr_getFDR(SEXP actualSEXP, SEXP permutedSEXP) {
+Rcpp::List getFDR(double actual, const Rcpp::NumericVector& permuted, bool use_gpu);
+RcppExport SEXP _propr_getFDR(SEXP actualSEXP, SEXP permutedSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type actual(actualSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type permuted(permutedSEXP);
-    rcpp_result_gen = Rcpp::wrap(getFDR(actual, permuted));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(getFDR(actual, permuted, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // getG
-Rcpp::IntegerMatrix getG(const Rcpp::IntegerVector& Gk);
-RcppExport SEXP _propr_getG(SEXP GkSEXP) {
+Rcpp::IntegerMatrix getG(const Rcpp::IntegerVector& Gk, bool use_gpu);
+RcppExport SEXP _propr_getG(SEXP GkSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type Gk(GkSEXP);
-    rcpp_result_gen = Rcpp::wrap(getG(Gk));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(getG(Gk, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // graflex
-Rcpp::NumericVector graflex(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p);
-RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GkSEXP, SEXP pSEXP) {
+Rcpp::NumericVector graflex(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p, bool use_gpu);
+RcppExport SEXP _propr_graflex(SEXP ASEXP, SEXP GkSEXP, SEXP pSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::IntegerMatrix& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type Gk(GkSEXP);
     Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(graflex(A, Gk, p));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(graflex(A, Gk, p, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lr2vlr
-Rcpp::NumericMatrix lr2vlr(Rcpp::NumericMatrix lr);
-RcppExport SEXP _propr_lr2vlr(SEXP lrSEXP) {
+Rcpp::NumericMatrix lr2vlr(Rcpp::NumericMatrix lr, bool use_gpu);
+RcppExport SEXP _propr_lr2vlr(SEXP lrSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
-    rcpp_result_gen = Rcpp::wrap(lr2vlr(lr));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lr2vlr(lr, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lr2phi
-Rcpp::NumericMatrix lr2phi(Rcpp::NumericMatrix lr);
-RcppExport SEXP _propr_lr2phi(SEXP lrSEXP) {
+Rcpp::NumericMatrix lr2phi(Rcpp::NumericMatrix lr, bool use_gpu);
+RcppExport SEXP _propr_lr2phi(SEXP lrSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
-    rcpp_result_gen = Rcpp::wrap(lr2phi(lr));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lr2phi(lr, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lr2rho
-Rcpp::NumericMatrix lr2rho(Rcpp::NumericMatrix lr);
-RcppExport SEXP _propr_lr2rho(SEXP lrSEXP) {
+Rcpp::NumericMatrix lr2rho(Rcpp::NumericMatrix lr, bool use_gpu);
+RcppExport SEXP _propr_lr2rho(SEXP lrSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
-    rcpp_result_gen = Rcpp::wrap(lr2rho(lr));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lr2rho(lr, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lr2phs
-Rcpp::NumericMatrix lr2phs(Rcpp::NumericMatrix lr);
-RcppExport SEXP _propr_lr2phs(SEXP lrSEXP) {
+Rcpp::NumericMatrix lr2phs(Rcpp::NumericMatrix lr, bool use_gpu);
+RcppExport SEXP _propr_lr2phs(SEXP lrSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type lr(lrSEXP);
-    rcpp_result_gen = Rcpp::wrap(lr2phs(lr));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lr2phs(lr, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lrm
-NumericVector lrm(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a, NumericMatrix Yfull, NumericMatrix Wfull);
-RcppExport SEXP _propr_lrm(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP, SEXP YfullSEXP, SEXP WfullSEXP) {
+NumericVector lrm(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a, NumericMatrix Yfull, NumericMatrix Wfull, bool use_gpu);
+RcppExport SEXP _propr_lrm(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP, SEXP YfullSEXP, SEXP WfullSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -448,13 +484,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Yfull(YfullSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Wfull(WfullSEXP);
-    rcpp_result_gen = Rcpp::wrap(lrm(Y, W, weighted, a, Yfull, Wfull));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrm(Y, W, weighted, a, Yfull, Wfull, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 // lrv
-NumericVector lrv(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a, NumericMatrix Yfull, NumericMatrix Wfull);
-RcppExport SEXP _propr_lrv(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP, SEXP YfullSEXP, SEXP WfullSEXP) {
+NumericVector lrv(NumericMatrix& Y, NumericMatrix& W, bool weighted, double a, NumericMatrix Yfull, NumericMatrix Wfull, bool use_gpu);
+RcppExport SEXP _propr_lrv(SEXP YSEXP, SEXP WSEXP, SEXP weightedSEXP, SEXP aSEXP, SEXP YfullSEXP, SEXP WfullSEXP, SEXP use_gpuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -464,55 +501,51 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Yfull(YfullSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type Wfull(WfullSEXP);
-    rcpp_result_gen = Rcpp::wrap(lrv(Y, W, weighted, a, Yfull, Wfull));
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrv(Y, W, weighted, a, Yfull, Wfull, use_gpu));
     return rcpp_result_gen;
 END_RCPP
 }
 
-
-extern SEXP run_testthat_tests(SEXP use_xml_sxp);
-
 static const R_CallMethodDef CallEntries[] = {
-    {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 2},
-    {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 2},
-    {"_propr_corRcpp", (DL_FUNC) &_propr_corRcpp, 1},
-    {"_propr_covRcpp", (DL_FUNC) &_propr_covRcpp, 2},
-    {"_propr_vlrRcpp", (DL_FUNC) &_propr_vlrRcpp, 1},
-    {"_propr_clrRcpp", (DL_FUNC) &_propr_clrRcpp, 1},
-    {"_propr_alrRcpp", (DL_FUNC) &_propr_alrRcpp, 2},
-    {"_propr_symRcpp", (DL_FUNC) &_propr_symRcpp, 1},
-    {"_propr_phiRcpp", (DL_FUNC) &_propr_phiRcpp, 2},
-    {"_propr_rhoRcpp", (DL_FUNC) &_propr_rhoRcpp, 3},
-    {"_propr_indexPairs", (DL_FUNC) &_propr_indexPairs, 3},
-    {"_propr_indexToCoord", (DL_FUNC) &_propr_indexToCoord, 2},
-    {"_propr_coordToIndex", (DL_FUNC) &_propr_coordToIndex, 3},
-    {"_propr_linRcpp", (DL_FUNC) &_propr_linRcpp, 2},
-    {"_propr_lltRcpp", (DL_FUNC) &_propr_lltRcpp, 1},
-    {"_propr_urtRcpp", (DL_FUNC) &_propr_urtRcpp, 1},
-    {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 1},
-    {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 1},
-    {"_propr_vector2mat", (DL_FUNC) &_propr_vector2mat, 4},
-    {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 1},
-    {"_propr_results2matRcpp", (DL_FUNC) &_propr_results2matRcpp, 3},
-    {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 2},
-    {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 2},
-    {"_propr_count_less_equal_than", (DL_FUNC) &_propr_count_less_equal_than, 2},
-    {"_propr_count_greater_equal_than", (DL_FUNC) &_propr_count_greater_equal_than, 2},
-    {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 1},
-    {"_propr_getOR", (DL_FUNC) &_propr_getOR, 2},
-    {"_propr_getORperm", (DL_FUNC) &_propr_getORperm, 3},
-    {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 3},
-    {"_propr_getFDR", (DL_FUNC) &_propr_getFDR, 2},
-    {"_propr_getG", (DL_FUNC) &_propr_getG, 1},
-    {"_propr_graflex", (DL_FUNC) &_propr_graflex, 3},
-    {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 1},
-    {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 1},
-    {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 1},
-    {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 1},
-    {"_propr_lrm", (DL_FUNC) &_propr_lrm, 6},
-    {"_propr_lrv", (DL_FUNC) &_propr_lrv, 6},
-    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
-
+    {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 3},
+    {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 3},
+    {"_propr_corRcpp", (DL_FUNC) &_propr_corRcpp, 2},
+    {"_propr_covRcpp", (DL_FUNC) &_propr_covRcpp, 3},
+    {"_propr_vlrRcpp", (DL_FUNC) &_propr_vlrRcpp, 2},
+    {"_propr_clrRcpp", (DL_FUNC) &_propr_clrRcpp, 2},
+    {"_propr_alrRcpp", (DL_FUNC) &_propr_alrRcpp, 3},
+    {"_propr_symRcpp", (DL_FUNC) &_propr_symRcpp, 2},
+    {"_propr_phiRcpp", (DL_FUNC) &_propr_phiRcpp, 3},
+    {"_propr_rhoRcpp", (DL_FUNC) &_propr_rhoRcpp, 4},
+    {"_propr_indexPairs", (DL_FUNC) &_propr_indexPairs, 4},
+    {"_propr_indexToCoord", (DL_FUNC) &_propr_indexToCoord, 3},
+    {"_propr_coordToIndex", (DL_FUNC) &_propr_coordToIndex, 4},
+    {"_propr_linRcpp", (DL_FUNC) &_propr_linRcpp, 3},
+    {"_propr_lltRcpp", (DL_FUNC) &_propr_lltRcpp, 2},
+    {"_propr_urtRcpp", (DL_FUNC) &_propr_urtRcpp, 2},
+    {"_propr_labRcpp", (DL_FUNC) &_propr_labRcpp, 2},
+    {"_propr_half2mat", (DL_FUNC) &_propr_half2mat, 2},
+    {"_propr_vector2mat", (DL_FUNC) &_propr_vector2mat, 5},
+    {"_propr_ratiosRcpp", (DL_FUNC) &_propr_ratiosRcpp, 2},
+    {"_propr_results2matRcpp", (DL_FUNC) &_propr_results2matRcpp, 4},
+    {"_propr_count_less_than", (DL_FUNC) &_propr_count_less_than, 3},
+    {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 3},
+    {"_propr_count_less_equal_than", (DL_FUNC) &_propr_count_less_equal_than, 3},
+    {"_propr_count_greater_equal_than", (DL_FUNC) &_propr_count_greater_equal_than, 3},
+    {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 2},
+    {"_propr_getOR", (DL_FUNC) &_propr_getOR, 3},
+    {"_propr_getORperm", (DL_FUNC) &_propr_getORperm, 4},
+    {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 4},
+    {"_propr_getFDR", (DL_FUNC) &_propr_getFDR, 3},
+    {"_propr_getG", (DL_FUNC) &_propr_getG, 2},
+    {"_propr_graflex", (DL_FUNC) &_propr_graflex, 4},
+    {"_propr_lr2vlr", (DL_FUNC) &_propr_lr2vlr, 2},
+    {"_propr_lr2phi", (DL_FUNC) &_propr_lr2phi, 2},
+    {"_propr_lr2rho", (DL_FUNC) &_propr_lr2rho, 2},
+    {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 2},
+    {"_propr_lrm", (DL_FUNC) &_propr_lrm, 7},
+    {"_propr_lrv", (DL_FUNC) &_propr_lrv, 7},
     {NULL, NULL, 0}
 };
 
