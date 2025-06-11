@@ -2,6 +2,11 @@ set(PROPR_SOURCES "")
 
 add_subdirectory(dispatch)
 
+if (PROPR_BUILD_TESTS)
+    find_package(Testthat REQUIRED)
+    add_subdirectory(cpp_tests)
+endif()
+
 file(GLOB SRC_ROOT_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cu"
@@ -10,6 +15,11 @@ file(GLOB SRC_ROOT_FILES
 set(ALL_PROPR_SOURCES ${SRC_ROOT_FILES} ${PROPR_SOURCES})
 add_library(propr SHARED ${ALL_PROPR_SOURCES})
 target_link_libraries(propr  ${LIBS} CUDA::cublas CUDA::cudart)
+
+if (PROPR_BUILD_TESTS)
+    target_link_libraries(propr Testthat::Testthat)
+endif()
+
 set_property(TARGET propr PROPERTY CUDA_ARCHITECTURES 90)
 set_target_properties(propr
         PROPERTIES

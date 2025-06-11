@@ -469,6 +469,9 @@ BEGIN_RCPP
 END_RCPP
 }
 
+
+extern SEXP run_testthat_tests(SEXP use_xml_sxp);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 2},
     {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 2},
@@ -508,6 +511,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 1},
     {"_propr_lrm", (DL_FUNC) &_propr_lrm, 6},
     {"_propr_lrv", (DL_FUNC) &_propr_lrv, 6},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
+
     {NULL, NULL, 0}
 };
 

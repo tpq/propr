@@ -64,10 +64,3 @@ install(DIRECTORY inst/include DESTINATION ${CMAKE_INSTALL_PREFIX}/PROPR
             PATTERN "*.hpp"
             PATTERN "*.h"
             PATTERN "*.cuh")
-
-
-if (PROPR_BUILD_TESTS)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/Catch2)
-    enable_testing()
-    add_subdirectory(${CMAKE_SOURCE_DIR}/tests/cpp_tests)
-endif()
