@@ -11,9 +11,10 @@ VERBOSE=OFF
 CONFIG_PATH="${ABSOLUE_PATH}/config"
 echo ${ABSOLUE_PATH}
 
+rm "${ABSOLUE_PATH}/src/propr.so"
 rm -rf bin/
 mkdir bin/
-cmake -DCMAKE_BUILD_TYPE=DEBUG \
+cmake -DCMAKE_BUILD_TYPE=RELEASE \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DPROPR_BUILD_TESTS=$BUILDING_TESTS \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
@@ -30,7 +31,7 @@ if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
     exit 1
 fi
 
-#echo "Copying libpropr.so..."
-#cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
-#rm -rf "${ABSOLUE_PATH}/bin/"
-#echo "Configure script finished."
+echo "Copying libpropr.so..."
+cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
+rm -rf "${ABSOLUE_PATH}/bin/"
+echo "Configure script finished."

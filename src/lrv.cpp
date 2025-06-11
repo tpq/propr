@@ -21,7 +21,7 @@ NumericVector lrv(NumericMatrix &Y,
     int nfeats = Y.ncol();
     int N_pairs = nfeats * (nfeats - 1) / 2;
     NumericVector result_vec(N_pairs);
-
+    
     if (is_gpu_backend() || use_gpu) {
         if (!R_IsNA(a)) { // Alpha-transformed
             if (weighted) {

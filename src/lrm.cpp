@@ -35,7 +35,7 @@ NumericVector lrm(NumericMatrix &Y,
             if (weighted) {
                 dispatch::cuda::lrm_weighted(result_vec, Y, Wfull);
             } else {
-                //dispatch::cuda::lrm_basic(result_vec, Y);
+                dispatch::cuda::lrm_basic(result_vec, Y);
             }
         }
     } else {
