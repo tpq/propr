@@ -12,21 +12,21 @@
 using namespace propr;
 
 // [[Rcpp::export]]
-double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w) {
+double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
     double result;
     dispatch::cpu::wtmRcpp(result, x, w);
     return result;
 }
 
 // [[Rcpp::export]]
-double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w) {
+double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
     double result;
     dispatch::cpu::wtvRcpp(result, x, w);
     return result;
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
@@ -39,7 +39,7 @@ Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type) {
+Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
@@ -52,7 +52,7 @@ Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
     if (is_gpu_backend()) {
@@ -64,7 +64,7 @@ Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int n_rows = X.nrow();
     int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
@@ -78,7 +78,7 @@ Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar) {
+Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar, bool use_gpu) {
     int n_rows = X.nrow();
     int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
@@ -92,7 +92,7 @@ Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int n_rows = X.nrow();
     int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
@@ -106,7 +106,7 @@ Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym) {
+Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
@@ -119,7 +119,7 @@ Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar) {
+Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
@@ -132,7 +132,7 @@ Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int i
 }
 
 // [[Rcpp::export]]
-std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref) {
+std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref, bool use_gpu) {
     std::vector<int> result;
     if (is_gpu_backend()) {
         dispatch::cuda::indexPairs( result, X, op, ref);
@@ -143,7 +143,7 @@ std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref) 
 }
 
 // [[Rcpp::export]]
-Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N) {
+Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N, bool use_gpu) {
     Rcpp::List result;
     if (is_gpu_backend()) {
         dispatch::cuda::indexToCoord(result, V, N);
@@ -154,7 +154,7 @@ Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N) {
 }
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N) {
+Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N, bool use_gpu) {
     int size = row.length();
     Rcpp::IntegerVector result(size);
     if (is_gpu_backend()) {
@@ -166,7 +166,7 @@ Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector co
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr) {
+Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, bool use_gpu) {
     int n_rows = rho.nrow();
     int n_cols = rho.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
@@ -179,7 +179,7 @@ Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
@@ -192,7 +192,7 @@ Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
@@ -205,7 +205,7 @@ Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::List labRcpp(int nfeats) {
+Rcpp::List labRcpp(int nfeats, bool use_gpu) {
     Rcpp::List result;
     // if (is_gpu_backend()) {
     //    dispatch::cuda::labRcpp(result, nfeats);
@@ -216,7 +216,7 @@ Rcpp::List labRcpp(int nfeats) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X) {
+Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X, bool use_gpu) {
     int nfeats = round(sqrt(2 * X.length() + 0.25) + 0.5);
     Rcpp::NumericMatrix result(nfeats, nfeats);
     if (is_gpu_backend()) {
@@ -228,7 +228,7 @@ Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats) {
+Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats, bool use_gpu) {
     Rcpp::NumericMatrix result(nfeats, nfeats);
     if (is_gpu_backend()) {
         dispatch::cuda::vector2mat(result, X, i, j, nfeats);
@@ -239,7 +239,7 @@ Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcp
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X) {
+Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.ncol();
     int nsamps = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
@@ -254,7 +254,7 @@ Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal) {
+Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, bool use_gpu) {
     Rcpp::NumericMatrix result(n, n);
     if (is_gpu_backend()) {
         dispatch::cuda::results2matRcpp(result, results, n, diagonal);

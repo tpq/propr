@@ -9,8 +9,8 @@
 using namespace propr;
 
 // [[Rcpp::export]]
-int count_less_than(Rcpp::NumericVector x, double cutoff) {
-    //if (is_gpu_backend()) {
+int count_less_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    //if (is_gpu_backend() || use_gpu) {
     //    return dispatch::cuda::count_less_than(x, cutoff);
     //} else {
     return dispatch::cpu::count_less_than(x, cutoff);
@@ -18,8 +18,8 @@ int count_less_than(Rcpp::NumericVector x, double cutoff) {
 }
 
 // [[Rcpp::export]]
-int count_greater_than(Rcpp::NumericVector x, double cutoff) {
-    if (is_gpu_backend()) {
+int count_greater_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
         auto res = dispatch::cuda::count_greater_than(x, cutoff);
         return res;
     } else {
@@ -28,8 +28,8 @@ int count_greater_than(Rcpp::NumericVector x, double cutoff) {
 }
 
 // [[Rcpp::export]]
-int count_less_equal_than(Rcpp::NumericVector x, double cutoff) {
-    if (is_gpu_backend()) {
+int count_less_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
         auto res = dispatch::cuda::count_less_equal_than(x, cutoff);
         return res;
     } else {
@@ -38,8 +38,8 @@ int count_less_equal_than(Rcpp::NumericVector x, double cutoff) {
 }
 
 // [[Rcpp::export]]
-int count_greater_equal_than(Rcpp::NumericVector x, double cutoff) {
-    if (is_gpu_backend()) {
+int count_greater_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
         auto res = dispatch::cuda::count_greater_equal_than(x, cutoff);
         return res;
     } else {

@@ -17,15 +17,14 @@ NumericVector lrm(NumericMatrix &Y,
                   bool weighted,
                   double a,
                   NumericMatrix Yfull,
-                  NumericMatrix Wfull) {
-
-    const bool use_gpu = is_gpu_backend();
+                  NumericMatrix Wfull,
+                  bool use_gpu) {
 
     int nfeats = Y.ncol();
     int N_pairs = nfeats * (nfeats - 1) / 2;
     NumericVector result_vec(N_pairs);
 
-    if (use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
         if (!R_IsNA(a)) {
             if (weighted) {
                  dispatch::cuda::lrm_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);

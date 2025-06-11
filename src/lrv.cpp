@@ -15,15 +15,14 @@ NumericVector lrv(NumericMatrix &Y,
                   bool weighted,
                   double a,
                   NumericMatrix Yfull,
-                  NumericMatrix Wfull) {
-
-    bool use_gpu = is_gpu_backend();
+                  NumericMatrix Wfull,
+                  bool use_gpu) {
 
     int nfeats = Y.ncol();
     int N_pairs = nfeats * (nfeats - 1) / 2;
     NumericVector result_vec(N_pairs);
 
-    if (use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
         if (!R_IsNA(a)) { // Alpha-transformed
             if (weighted) {
                 dispatch::cuda::lrv_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);

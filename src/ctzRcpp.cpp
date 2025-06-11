@@ -9,12 +9,12 @@
 using namespace propr;
 
 // [[Rcpp::export]]
-Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X) {
+Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X, bool use_gpu) {
     int nfeats = X.ncol();
     int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
 
-    //if (is_gpu_backend()) {
+    //if (is_gpu_backend() || use_gpu) {
     //    dispatch::cuda::ctzRcpp(result, X);
     //} else {
         dispatch::cpu::ctzRcpp(result, X);
