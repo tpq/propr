@@ -1,0 +1,164 @@
+[
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/RcppExports.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/RcppExports.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/RcppExports.cpp",
+  "output": "src/CMakeFiles/propr.dir/RcppExports.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/backend.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/backend.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/backend.cpp",
+  "output": "src/CMakeFiles/propr.dir/backend.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/comparison.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/comparison.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/comparison.cpp",
+  "output": "src/CMakeFiles/propr.dir/comparison.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/ctzRcpp.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/ctzRcpp.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/ctzRcpp.cpp",
+  "output": "src/CMakeFiles/propr.dir/ctzRcpp.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/graflex.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/graflex.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/graflex.cpp",
+  "output": "src/CMakeFiles/propr.dir/graflex.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/lr2propr.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lr2propr.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lr2propr.cpp",
+  "output": "src/CMakeFiles/propr.dir/lr2propr.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/lrm.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lrm.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lrm.cpp",
+  "output": "src/CMakeFiles/propr.dir/lrm.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/lrv.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lrv.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/lrv.cpp",
+  "output": "src/CMakeFiles/propr.dir/lrv.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/device_selector.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/device_selector.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/device_selector.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/device_selector.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/comparison.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/comparison.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/comparison.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/comparison.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/ctzRcpp.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/ctzRcpp.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/ctzRcpp.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/ctzRcpp.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/graflex.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/graflex.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/graflex.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/graflex.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/lr2propr.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lr2propr.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lr2propr.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/lr2propr.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/backend.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/backend.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/backend.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/backend.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/lrm.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lrm.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lrm.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/lrm.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/lrv.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lrv.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/lrv.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/lrv.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/usr/bin/c++ -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS -I/usr/share/R/include -I/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/targets/x86_64-linux/include -isystem /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include -g -g -fPIC -o CMakeFiles/propr.dir/dispatch/cpu/omega.cpp.o -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/omega.cpp",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cpu/omega.cpp",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cpu/omega.cpp.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/comparison.cu -o CMakeFiles/propr.dir/dispatch/cuda/comparison.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/comparison.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/comparison.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/ctzRcpp.cu -o CMakeFiles/propr.dir/dispatch/cuda/ctzRcpp.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/ctzRcpp.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/ctzRcpp.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/graflex.cu -o CMakeFiles/propr.dir/dispatch/cuda/graflex.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/graflex.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/graflex.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lr2propr.cu -o CMakeFiles/propr.dir/dispatch/cuda/lr2propr.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lr2propr.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/lr2propr.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/backend.cu -o CMakeFiles/propr.dir/dispatch/cuda/backend.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/backend.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/backend.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lrm.cu -o CMakeFiles/propr.dir/dispatch/cuda/lrm.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lrm.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/lrm.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lrv.cu -o CMakeFiles/propr.dir/dispatch/cuda/lrv.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/lrv.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/lrv.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/src",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" -Dpropr_EXPORTS --options-file CMakeFiles/propr.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -Xcompiler=-fPIC -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/omega.cu -o CMakeFiles/propr.dir/dispatch/cuda/omega.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/src/dispatch/cuda/omega.cu",
+  "output": "src/CMakeFiles/propr.dir/dispatch/cuda/omega.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/tests/cpp_tests",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" --options-file CMakeFiles/test_main.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/tests/cpp_tests/test_main.cu -o CMakeFiles/test_main.dir/test_main.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/tests/cpp_tests/test_main.cu",
+  "output": "tests/cpp_tests/CMakeFiles/test_main.dir/test_main.cu.o"
+},
+{
+  "directory": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/bin/tests/cpp_tests",
+  "command": "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin/nvcc -forward-unknown-to-host-compiler -DCONFIG_FILES_DIR=\\\"\\\" --options-file CMakeFiles/test_main.dir/includes_CUDA.rsp -g -std=c++17 \"--generate-code=arch=compute_90,code=[compute_90,sm_90]\" -x cu -c /gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/tests/cpp_tests/test_lrv.cu -o CMakeFiles/test_main.dir/test_lrv.cu.o",
+  "file": "/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/tests/cpp_tests/test_lrv.cu",
+  "output": "tests/cpp_tests/CMakeFiles/test_main.dir/test_lrv.cu.o"
+}
+]

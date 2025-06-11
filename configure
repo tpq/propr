@@ -4,8 +4,8 @@ cd "$(dirname "$0")"
 
 ABSOLUE_PATH=$(dirname $(realpath "$0"))
 
-BUILDING_EXAMPLES="OFF"
-BUILDING_TESTS="OFF"
+BUILDING_EXAMPLES="ON"
+BUILDING_TESTS="ON"
 INSTALL_PATH="/usr/local"
 VERBOSE=OFF
 CONFIG_PATH="${ABSOLUE_PATH}/config"
@@ -13,7 +13,7 @@ echo ${ABSOLUE_PATH}
 
 rm -rf bin/
 mkdir bin/
-cmake -DCMAKE_BUILD_TYPE=RELEASE \
+cmake -DCMAKE_BUILD_TYPE=DEBUG \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DPROPR_BUILD_TESTS=$BUILDING_TESTS \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
@@ -30,7 +30,7 @@ if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
     exit 1
 fi
 
-echo "Copying libpropr.so..."
-cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
-rm -rf "${ABSOLUE_PATH}/bin/"
-echo "Configure script finished."
+#echo "Copying libpropr.so..."
+#cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
+#rm -rf "${ABSOLUE_PATH}/bin/"
+#echo "Configure script finished."

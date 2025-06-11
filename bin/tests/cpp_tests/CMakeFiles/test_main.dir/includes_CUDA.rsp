@@ -1,0 +1,1 @@
+-I/usr/share/R/include -I"/home/bsc/bsc099260/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include" -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/inst/include -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/tests/cpp_tests -I/gpfs/projects/bsc99/bsc099260/EuroHPC/PROPR/SRC/BASELINE/propr/thirdparty/Catch2/single_include
