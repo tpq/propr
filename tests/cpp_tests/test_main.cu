@@ -1,2 +1,2 @@
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define TESTTHAT_TEST_RUNNER
+#include <testthat.h>

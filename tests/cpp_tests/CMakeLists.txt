@@ -1,6 +1,7 @@
+find_package(Testthat REQUIRED)
 set(TEST_SOURCES test_main.cu test_lrv.cu)
 add_executable(test_main ${TEST_SOURCES})
-target_link_libraries(test_main  CUDA::cublas CUDA::cudart propr Catch2::Catch2)
+target_link_libraries(test_main  CUDA::cublas CUDA::cudart propr Catch2::Catch2 Testthat::Testthat)
 set_property(TARGET test_main PROPERTY CUDA_ARCHITECTURES 90)
 add_test(NAME test_main COMMAND test_main)
 target_include_directories(test_main PRIVATE
@@ -11,7 +12,7 @@ set_target_properties(test_main
         PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${R_INCLUDE}"
             INTERFACE_LINK_LIBRARIES "${R_LIB}"
-            IMPORTED_LOCATION ${RCPP_LIB}
+            IMPORTED_LOCATION "${RCPP_LIB}"
 )
 
 #set (CMAKE_CXX_FLAGS "-stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")

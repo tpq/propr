@@ -1,9 +1,3 @@
-##########################################################################
-# Copyright (c) 2023, King Abdullah University of Science and Technology
-# All rights reserved.
-# MPCR is an R package provided by the STSDS group at KAUST
-##########################################################################
-
 # - Find the R and Rcpp library
 #
 # Usage:
@@ -40,7 +34,7 @@ endif ()
 
 
 if (NOT RCPP_LIB_PATH)
-    execute_process(COMMAND ${R_ROOT_PATH}/bin/Rscript ${CMAKE_MODULE_PATH}/FindRLibraryPath.R OUTPUT_VARIABLE RCPP_LIB_PATH)
+    execute_process(COMMAND ${R_ROOT_PATH}/bin/Rscript -e "cat(find.package('Rcpp'))" OUTPUT_VARIABLE RCPP_LIB_PATH)
     set(RCPP_LIB_PATH ${RCPP_LIB_PATH})
     message("R Include Path :  " ${R_INCLUDE_PATH})
     message("Rcpp Lib Path  :  " ${RCPP_LIB_PATH})
@@ -49,37 +43,20 @@ endif ()
 message("R Home Path    :  " ${R_ROOT_PATH})
 
 if (R_ROOT_PATH)
-
-    if (APPLE)
-        find_library(
-                R_DYN_LIB
-                NAMES "libR.dylib"
-                PATHS ${R_ROOT_PATH}
-                PATH_SUFFIXES "lib" "lib64" "bin"
-                NO_DEFAULT_PATH
-        )
-
-    else ()
-        #find libs
-        find_library(
-                R_DYN_LIB
-                NAMES "libR.so"
-                PATHS ${R_ROOT_PATH}
-                PATH_SUFFIXES "lib" "lib64" "bin"
-                NO_DEFAULT_PATH
-        )
-
-    endif ()
+    find_library(
+            R_DYN_LIB
+            NAMES "libR.so"
+            PATHS ${R_ROOT_PATH}
+            PATH_SUFFIXES "lib" "lib64" "bin"
+            NO_DEFAULT_PATH
+    )
 
     if (R_DYN_LIB MATCHES R_DYN_LIB-NOTFOUND)
         set(R_DYN_LIB "")
         message("R is built with no dynamic library support")
     endif ()
 
-    set(R_LIB
-            ${R_DYN_LIB}
-    )
-
+    set(R_LIB ${R_DYN_LIB} )
 else ()
     error("R is not installed ")
 endif (R_ROOT_PATH)
@@ -106,17 +83,13 @@ if (RCPP_LIB_PATH)
             PATH_SUFFIXES "/libs" "/lib64" "/bin"
             NO_DEFAULT_PATH
     )
-
-    find_path(
-            RCPP_INCLUDE_DIRS
-            REQUIRED
-            NAMES "Rcpp.h"
-            PATHS ${RCPP_LIB_PATH}
-            PATH_SUFFIXES "/include"
-            NO_DEFAULT_PATH
+    find_path( RCPP_INCLUDE_DIRS
+               REQUIRED
+                    NAMES "Rcpp.h"
+                    PATHS ${RCPP_LIB_PATH}
+                    PATH_SUFFIXES "/include"
+                    NO_DEFAULT_PATH
     )
-
-
 else ()
     message("Rcpp is not installed ...")
 endif (RCPP_LIB_PATH)
@@ -131,21 +104,16 @@ add_library(R INTERFACE IMPORTED)
 
 if (R_LIB)
     include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(R DEFAULT_MSG
-            R_INCLUDE R_LIB)
-
+    find_package_handle_standard_args(R DEFAULT_MSG R_INCLUDE R_LIB)
     include_directories(${R_INCLUDE})
     mark_as_advanced(R_INCLUDE R_INCLUDE_DIRS RCPP_INCLUDE_DIRS R_LIB RCPP_LIB)
-
 else ()
     set_target_properties(R
             PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${R_INCLUDE}"
             IMPORTED_LOCATION ${RCPP_LIB}
     )
     include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(R DEFAULT_MSG
-            R_INCLUDE)
-
+    find_package_handle_standard_args(R DEFAULT_MSG R_INCLUDE)
     include_directories(${R_INCLUDE})
     mark_as_advanced(R_INCLUDE R_INCLUDE_DIRS RCPP_INCLUDE_DIRS RCPP_LIB)
 endif ()
