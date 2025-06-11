@@ -73,11 +73,11 @@ if (Testthat_FOUND)
                     "${Testthat_INCLUDE_DIRS}"
                     IMPORTED_LOCATION  "${Testthat_LIBRARY}"
     )
-    if (Testthat_LIBRARY)
-        set_target_properties(Testthat::Testthat
-                    PROPERTIES
-                        INTERFACE_LINK_LIBRARIES
-                            "${Testthat_LIBRARY}" )
-    endif()
+    #if (Testthat_LIBRARY)
+    #    set_target_properties(Testthat::Testthat
+    #                PROPERTIES
+    #                    INTERFACE_LINK_LIBRARIES
+    #                        "${Testthat_LIBRARY}" )
+    #endif()
     mark_as_advanced(Testthat_INCLUDE_DIRS Testthat_LIBRARY)
 endif()
