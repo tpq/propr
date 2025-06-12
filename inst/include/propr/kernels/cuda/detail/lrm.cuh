@@ -9,7 +9,7 @@ namespace propr {
 
             __global__
             void
-            lrm_basic(float* __restrict__ d_Y,
+            lrm_basic(float* __restrict__ d_Y, int d_Y_stride,
                       float* __restrict__ d_mean,
                       int nb_samples,
                       int nb_genes) {
@@ -17,12 +17,12 @@ namespace propr {
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
 
                 if (i < nb_genes && j < i) {
-                    float4 accum = {0.0f, 0.0f, 0.0f};
+                    float4 accum = {0.0f, 0.0f, 0.0f, 0.0f};
                     int k = 0;
                     #pragma unroll
                     for (; k < (nb_samples/4)*4; k += 4) {
-                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * nb_samples]);
-                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * nb_samples]);
+                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
+                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
                         accum.x = __fmaf_rn(1.0f, __logf(__fdividef(y_i.x, y_j.x)), accum.x);
                         accum.y = __fmaf_rn(1.0f, __logf(__fdividef(y_i.y, y_j.y)), accum.y);
                         accum.z = __fmaf_rn(1.0f, __logf(__fdividef(y_i.z, y_j.z)), accum.z);
@@ -31,8 +31,8 @@ namespace propr {
 
                     accum.x = accum.x + accum.y + accum.z + accum.w;
                     for (; k < nb_samples; ++k) {
-                        float yi = d_Y[k + i * nb_samples];
-                        float yj = d_Y[k + j * nb_samples];
+                        float yi = d_Y[k + i * d_Y_stride];
+                        float yj = d_Y[k + j * d_Y_stride];
                         accum.x  = __fmaf_rn(1.0f, __logf(__fdividef(yi, yj)), accum.x);
                     }
 
@@ -46,8 +46,8 @@ namespace propr {
 
             __global__
             void
-            lrm_weighted(float* __restrict__ d_Y,
-                         float* __restrict__ d_W,
+            lrm_weighted(float* __restrict__ d_Y, int d_Y_stride,
+                         float* __restrict__ d_W, int d_W_stride,
                          float* __restrict__ d_mean,
                          int nb_samples,
                          int nb_genes) {
@@ -60,16 +60,16 @@ namespace propr {
                     int k = 0;
                     #pragma unroll
                     for (; k < (nb_samples/4)*4; k += 4) {
-                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * nb_samples]);
-                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * nb_samples]);
+                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
+                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
 
-                        float4 w_i = *reinterpret_cast<float4*>(&d_W[k + i * nb_samples]);
-                        float4 w_j = *reinterpret_cast<float4*>(&d_W[k + j * nb_samples]);
+                        float4 w_i = *reinterpret_cast<float4*>(&d_W[k + i * d_W_stride]);
+                        float4 w_j = *reinterpret_cast<float4*>(&d_W[k + j * d_W_stride]);
 
                         #pragma unroll
                         for (int m = 0; m < 4; ++m) {
                             float mean_old = accum.y;
-                            float w_k      = (&w_i.x)[m] * (&w_i.x)[m];
+                            float w_k      = (&w_i.x)[m] * (&w_j.x)[m];
                             float w        = w_k;
                             accum.x        = __fmaf_rn(1.0f, w, accum.x);
 
@@ -81,11 +81,11 @@ namespace propr {
                     }
 
                     for (; k < nb_samples; ++k) {
-                        float y_ik = d_Y[k + i * nb_samples];
-                        float y_jk = d_Y[k + j * nb_samples];
+                        float y_ik = d_Y[k + i * d_Y_stride];
+                        float y_jk = d_Y[k + j * d_Y_stride];
 
-                        float w_ik = d_W[k + i * nb_samples];
-                        float w_jk = d_W[k + j * nb_samples];
+                        float w_ik = d_W[k + i * d_W_stride];
+                        float w_jk = d_W[k + j * d_W_stride];
 
                         float w_k = w_ik * w_jk;
 
@@ -107,8 +107,8 @@ namespace propr {
 
             __global__
             void
-            lrm_alpha(float* __restrict__ d_Y,
-                      float* __restrict__ d_Yfull,
+            lrm_alpha(float* __restrict__     d_Y, int d_Y_stride,
+                      float* __restrict__ d_Yfull, int d_Yfull_stride,
                       int N1, int NT,
                       float a,
                       float* __restrict__ d_means,
@@ -127,8 +127,8 @@ namespace propr {
                     k = 0; N = 0;
                     #pragma unroll
                     for (; k < (NT/4) * 4; k += 4) {
-                        float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * NT]);
-                        float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * NT]);
+                        float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * d_Yfull_stride]);
+                        float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * d_Yfull_stride]);
 
                         #pragma unroll
                         for (int m = 0; m < 4; ++m) {
@@ -144,8 +144,8 @@ namespace propr {
                     }
 
                     for (; k < NT; ++k) {
-                        float yfull_i = d_Yfull[k + i * NT];
-                        float yfull_j = d_Yfull[k + j * NT];
+                        float yfull_i = d_Yfull[k + i * d_Yfull_stride];
+                        float yfull_j = d_Yfull[k + j * d_Yfull_stride];
                         float inv_N    = __frcp_rn(static_cast<float>(++N));
                         float X_full_i = __powf(yfull_i, a);
                         float X_full_j = __powf(yfull_j, a);
@@ -159,8 +159,8 @@ namespace propr {
                     k = 0; n = 0;
                     #pragma unroll
                     for (; k < (N1/4) * 4; k += 4) {
-                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * N1]);
-                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * N1]);
+                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
+                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
 
                         #pragma unroll
                         for (int m = 0; m < 4; ++m) {
@@ -173,8 +173,8 @@ namespace propr {
                     }
 
                     for (; k < N1; ++k) {
-                        float y_i   = d_Y[k + i * N1];
-                        float y_j   = d_Y[k + j * N1];
+                        float y_i   = d_Y[k + i * d_Y_stride];
+                        float y_j   = d_Y[k + j * d_Y_stride];
                         float X_i   = __powf(y_i, a);
                         float X_j   = __powf(y_j, a);
                         S_i = S_i + X_i; S_j = S_j + X_j;
@@ -195,10 +195,10 @@ namespace propr {
 
             __global__
             void
-            lrm_alpha_weighted( float* __restrict__ d_Y,
-                                float* __restrict__ d_Yfull,
-                                float* __restrict__ d_W,
-                                float* __restrict__ d_Wfull,
+            lrm_alpha_weighted( float* __restrict__ d_Y    , int Y_stride,
+                                float* __restrict__ d_Yfull, int Yfull_stride,
+                                float* __restrict__ d_W    , int W_stride,
+                                float* __restrict__ d_Wfull, int Wfull_stride,
                                 int N1, int NT,
                                 float a,
                                 float* __restrict__ d_means,
@@ -213,10 +213,10 @@ namespace propr {
                     float sum_wx_full_j = 0.0f;
                     int k = 0;
                     for (; k < (NT/4)*4; k += 4) {
-                        float4 yfull_i4 = *reinterpret_cast<float4*>(&d_Yfull[k + i * NT]);
-                        float4 yfull_j4 = *reinterpret_cast<float4*>(&d_Yfull[k + j * NT]);
-                        float4 wfull_i4 = *reinterpret_cast<float4*>(&d_Wfull[k + i * NT]);
-                        float4 wfull_j4 = *reinterpret_cast<float4*>(&d_Wfull[k + j * NT]);
+                        float4 yfull_i4 = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
+                        float4 yfull_j4 = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
+                        float4 wfull_i4 = *reinterpret_cast<float4*>(&d_Wfull[k + i * Wfull_stride]);
+                        float4 wfull_j4 = *reinterpret_cast<float4*>(&d_Wfull[k + j * Wfull_stride]);
 
                         for (int m = 0; m < 4; ++m) {
                             float y_i = reinterpret_cast<float*>(&yfull_i4)[m];
@@ -234,10 +234,10 @@ namespace propr {
                         }
                     }
                     for (; k < NT; ++k) {
-                        float y_i = d_Yfull[k + i * NT];
-                        float y_j = d_Yfull[k + j * NT];
-                        float w_i = d_Wfull[k + i * NT];
-                        float w_j = d_Wfull[k + j * NT];
+                        float y_i = d_Yfull[k + i * Yfull_stride];
+                        float y_j = d_Yfull[k + j * Yfull_stride];
+                        float w_i = d_Wfull[k + i * Wfull_stride];
+                        float w_j = d_Wfull[k + j * Wfull_stride];
 
                         float w_ij = w_i * w_j;
                         float X_i = __powf(y_i, a);
@@ -263,10 +263,10 @@ namespace propr {
 
                     k = 0;
                     for (; k < (N1/4)*4; k += 4) {
-                        float4 y_i4 = *reinterpret_cast<float4*>(&d_Y[k + i * N1]);
-                        float4 y_j4 = *reinterpret_cast<float4*>(&d_Y[k + j * N1]);
-                        float4 w_i4 = *reinterpret_cast<float4*>(&d_W[k + i * N1]);
-                        float4 w_j4 = *reinterpret_cast<float4*>(&d_W[k + j * N1]);
+                        float4 y_i4 = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
+                        float4 y_j4 = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
+                        float4 w_i4 = *reinterpret_cast<float4*>(&d_W[k + i * W_stride]);
+                        float4 w_j4 = *reinterpret_cast<float4*>(&d_W[k + j * W_stride]);
 
                         for (int m = 0; m < 4; ++m) {
                             float y_i = reinterpret_cast<float*>(&y_i4)[m];
@@ -285,10 +285,10 @@ namespace propr {
                     }
 
                     for (; k < N1; ++k) {
-                        float y_i = d_Y[k + i * N1];
-                        float y_j = d_Y[k + j * N1];
-                        float w_i = d_W[k + i * N1];
-                        float w_j = d_W[k + j * N1];
+                        float y_i = d_Y[k + i * Y_stride];
+                        float y_j = d_Y[k + j * Y_stride];
+                        float w_i = d_W[k + i * W_stride];
+                        float w_j = d_W[k + j * W_stride];
 
                         float w_ij = w_i * w_j;
                         float X_i = __powf(y_i, a);

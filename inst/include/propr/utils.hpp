@@ -38,19 +38,31 @@ static void checkCublas(cublasStatus_t st, const char* msg) {
     }
 }
 
+inline void check_alignment(const void* ptr, int alignment) {
+    if ((uintptr_t)ptr % (alignment * sizeof(float)) != 0) {
+        printf("ERROR: Misaligned access at %p, required alignment: %d bytes\n", 
+               ptr, alignment * (int)sizeof(float));
+    }
+}
 
-inline float* RcppNumericMatrixToDeviceFloat(Rcpp::NumericMatrix& mat, int& num_rows, int& num_cols) {
-    num_rows = mat.nrow();
-    num_cols = mat.ncol();
+inline float* RcppNumericMatrixToDeviceFloat(Rcpp::NumericMatrix& mat, int& memory_stride, int alignment = 16) {
+    int original_rows = mat.nrow();
+    int num_cols      = mat.ncol(); 
+    
+    int padded_rows = ((original_rows + alignment - 1) / alignment) * alignment;
+    size_t total_size = padded_rows * num_cols * sizeof(float);
     float* d_ptr;
-    CUDA_CHECK(cudaMalloc(&d_ptr, num_rows * num_cols * sizeof(float)));
-    std::vector<float> h_vec(num_rows * num_cols);
+    CUDA_CHECK(cudaMalloc(&d_ptr, total_size));
+    CUDA_CHECK(cudaMemset(d_ptr, 0, total_size));    
+    std::vector<float> h_vec(padded_rows * num_cols, 0.0f);
     for (int j = 0; j < num_cols; ++j) {
-        for (int i = 0; i < num_rows; ++i) {
-            h_vec[i + j * num_rows] = static_cast<float>(mat(i, j));
+        for (int i = 0; i < original_rows; ++i) {
+            h_vec[i + j * padded_rows] = static_cast<float>(mat(i, j));
         }
     }
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_vec.data(), num_rows * num_cols * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_ptr, h_vec.data(), total_size, cudaMemcpyHostToDevice));    
+    memory_stride = padded_rows;
+    check_alignment(d_ptr, alignment);
     return d_ptr;
 }
 

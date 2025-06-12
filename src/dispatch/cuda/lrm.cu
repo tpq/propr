@@ -14,8 +14,8 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y;
-    int num_rows, num_cols;
-    d_Y = RcppNumericMatrixToDeviceFloat(Y, num_rows, num_cols);
+    int stride;
+    d_Y = RcppNumericMatrixToDeviceFloat(Y, stride);
 
     float* d_mean;
     CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
@@ -24,7 +24,7 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
     propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_mean, N_samples, N_genes
+        d_Y, stride, d_mean, N_samples, N_genes
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
@@ -45,12 +45,12 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y;
-    int num_rows_Y, num_cols_Y;
-    d_Y = RcppNumericMatrixToDeviceFloat(Y, num_rows_Y, num_cols_Y);
+    int stride_Y;
+    d_Y = RcppNumericMatrixToDeviceFloat(Y, stride_Y);
 
     float* d_W;
-    int num_rows_W, num_cols_W;
-    d_W = RcppNumericMatrixToDeviceFloat(W, num_rows_W, num_cols_W);
+    int stride_W;
+    d_W = RcppNumericMatrixToDeviceFloat(W, stride_W);
 
 
     float* d_mean;
@@ -60,7 +60,7 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
     propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_W, d_mean, N_samples, N_genes
+        d_Y, stride_Y, d_W, stride_W, d_mean, N_samples, N_genes
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
@@ -82,13 +82,10 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     int NT      = Yfull.nrow();
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
-    float* d_Y;
-    int num_rows_Y, num_cols_Y;
-    d_Y = RcppNumericMatrixToDeviceFloat(Y, num_rows_Y, num_cols_Y);
 
-    float* d_Yfull;
-    int num_rows_Yfull, num_cols_Yfull;
-    d_Yfull = RcppNumericMatrixToDeviceFloat(Yfull, num_rows_Yfull, num_cols_Yfull);
+    float* d_Y; float* d_Yfull;
+    int stride_Y    ; d_Y     = RcppNumericMatrixToDeviceFloat(Y, stride_Y);
+    int stride_Yfull; d_Yfull = RcppNumericMatrixToDeviceFloat(Yfull, stride_Yfull);
 
     float* d_means;
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
@@ -97,7 +94,7 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
     propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
+        d_Y, stride_Y, d_Yfull, stride_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
@@ -122,21 +119,11 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
-    float* d_Y;
-    int num_rows_Y, num_cols_Y;
-    d_Y = RcppNumericMatrixToDeviceFloat(Y, num_rows_Y, num_cols_Y);
-
-    float* d_W;
-    int num_rows_W, num_cols_W;
-    d_W = RcppNumericMatrixToDeviceFloat(W, num_rows_W, num_cols_W);
-
-    float* d_Yfull;
-    int num_rows_Yfull, num_cols_Yfull;
-    d_Yfull = RcppNumericMatrixToDeviceFloat(Yfull, num_rows_Yfull, num_cols_Yfull);
-
-    float* d_Wfull;
-    int num_rows_Wfull, num_cols_Wfull;
-    d_Wfull = RcppNumericMatrixToDeviceFloat(Wfull, num_rows_Wfull, num_cols_Wfull);
+    float* d_Y, * d_W, * d_Yfull, * d_Wfull;
+    int stride_Y    ; d_Y     = RcppNumericMatrixToDeviceFloat(Y, stride_Y);
+    int stride_W    ; d_W     = RcppNumericMatrixToDeviceFloat(W, stride_W);
+    int stride_Yfull; d_Yfull = RcppNumericMatrixToDeviceFloat(Yfull, stride_Yfull);
+    int stride_Wfull; d_Wfull = RcppNumericMatrixToDeviceFloat(Wfull, stride_Wfull);
 
     float* d_means;
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
@@ -145,7 +132,11 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
     propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y, d_Yfull, d_W, d_Wfull, N1, NT, static_cast<float>(a), d_means, N_genes
+        d_Y    ,stride_Y, 
+        d_Yfull,stride_Yfull,
+        d_W    , stride_W,
+        d_Wfull, stride_Wfull, 
+        N1, NT, static_cast<float>(a), d_means, N_genes
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
