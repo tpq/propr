@@ -5,6 +5,7 @@
 #include <vector>
 #include <Rcpp.h>
 
+#define IS_POWER_OF_2(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))
 
 // __constant__ const float FLT_MAX = 3.402823466e+38f;
 // __constant__ const float FLT_MIN = 1.175494351e-38f;
@@ -54,7 +55,7 @@ inline float* RcppNumericMatrixToDeviceFloat(Rcpp::NumericMatrix& mat, int& memo
     float* d_ptr;
     CUDA_CHECK(cudaMalloc(&d_ptr, total_size));
     CUDA_CHECK(cudaMemset(d_ptr, 0, total_size));    
-    std::vector<float> h_vec(padded_rows * num_cols, 0.0f);
+    std::vector h_vec(padded_rows * num_cols, 0.0f);
     for (int j = 0; j < num_cols; ++j) {
         for (int i = 0; i < original_rows; ++i) {
             h_vec[i + j * padded_rows] = static_cast<float>(mat(i, j));
@@ -66,9 +67,16 @@ inline float* RcppNumericMatrixToDeviceFloat(Rcpp::NumericMatrix& mat, int& memo
     return d_ptr;
 }
 
-inline void copyFloatToNumericVector(float* d_src, Rcpp::NumericVector& h_dest, int size) {
-    std::vector<float> h_temp(size);
-    CUDA_CHECK(cudaMemcpy(h_temp.data(), d_src, size * sizeof(float), cudaMemcpyDeviceToHost));
+template<typename T>
+void copyToNumericVector(const T* d_src,
+                                Rcpp::NumericVector& h_dest,
+                                int size) {
+    std::vector<T> h_temp(size);
+    CUDA_CHECK(cudaMemcpy(
+        h_temp.data(), d_src,
+        size * sizeof(T),
+        cudaMemcpyDeviceToHost
+    ));
     for (int i = 0; i < size; ++i) {
         h_dest[i] = static_cast<double>(h_temp[i]);
     }

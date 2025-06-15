@@ -35,7 +35,7 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_variances, out, N_pairs);
+    copyToNumericVector(d_variances, out, N_pairs);
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_variances));
 }
@@ -68,7 +68,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_variances, out, N_pairs);
+    copyToNumericVector(d_variances, out, N_pairs);
 
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_W));
@@ -105,7 +105,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_variances, out, N_pairs);
+    copyToNumericVector(d_variances, out, N_pairs);
 
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_Yfull));
@@ -146,7 +146,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_variances, out, N_pairs);
+    copyToNumericVector(d_variances, out, N_pairs);
 
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_W));

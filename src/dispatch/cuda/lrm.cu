@@ -29,7 +29,7 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_mean, out, N_pairs);
+    copyToNumericVector(d_mean, out, N_pairs);
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_mean));
 }
@@ -65,7 +65,7 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_mean, out, N_pairs);
+    copyToNumericVector(d_mean, out, N_pairs);
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_W));
     CUDA_CHECK(cudaFree(d_mean));
@@ -99,7 +99,7 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_means, out, N_pairs);
+    copyToNumericVector(d_means, out, N_pairs);
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_Yfull));
     CUDA_CHECK(cudaFree(d_means));
@@ -141,7 +141,7 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-    copyFloatToNumericVector(d_means, out, N_pairs);
+    copyToNumericVector(d_means, out, N_pairs);
 
     CUDA_CHECK(cudaFree(d_Y));
     CUDA_CHECK(cudaFree(d_W));
