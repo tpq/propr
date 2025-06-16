@@ -24,7 +24,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_zeroes, nfeats * sizeof(int)));
 
     const int BLK = 256;
-    int grid1 = (nfeats + BLK - 1) / BLK;
+    int grid1 = nfeats;
     detail::cuda::count_per_feature<BLK><<<grid1, BLK, 0, context.stream>>>(
         d_X, X_stride, nsubjs, nfeats, d_zeroes
     );

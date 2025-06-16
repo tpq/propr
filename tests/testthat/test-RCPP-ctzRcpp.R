@@ -8,7 +8,6 @@ df     <- data.frame(propr:::labRcpp(ncol(mat)), "Z" = propr:::ctzRcpp(mat))
 df_gpu <- data.frame(propr:::labRcpp(ncol(mat)), "Z" = propr:::ctzRcpp(mat, use_gpu=TRUE))
 
 test_that("ctzRcpp correctly counts joint zero frequency", {
-
   for(i in 1:nrow(df)){
     expect_equal(
       df$Z[i],

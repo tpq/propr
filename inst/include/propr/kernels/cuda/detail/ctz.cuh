@@ -4,7 +4,7 @@
 #include <device_launch_parameters.h>
 #include <propr/utils.hpp>
 #include <propr/kernels/cuda/detail/utils.hpp>
-
+#include <cub/cub.cuh> 
 
 
 namespace propr {
@@ -25,27 +25,22 @@ namespace propr {
             __global__
             void count_per_feature(const float* __restrict__ X, int X_stride, int nsubjs, int nfeats, int* result) {
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
-                if (blockIdx.x > nfeats) return;
+                using BlockReduce = cub::BlockReduce<int, BLK_X>;
                 const int tidx = threadIdx.x;
                 const int col  = blockIdx.x;
-                const int nsubj_padded = (nsubjs / BLK_X) * BLK_X;
+                const int nsubj_padded = (nsubjs + BLK_X - 1) / BLK_X;
                 int z_count       = 0;
-                __shared__ int partials[BLK_X];
+                __shared__ typename BlockReduce::TempStorage partials;
                 for(int i = 0; i < nsubj_padded; i += BLK_X) {
                     if(tidx + i < nsubjs) {
-                        z_count += static_cast<int>(X[(tidx + i) * X_stride + col] == 0);
+                        z_count += static_cast<int>(X[(tidx + i)  + col*X_stride] == 0);
                     }
                 }
-                if(tidx + nsubj_padded < nsubjs) {
-                    z_count += static_cast<int>(X[(tidx + nsubj_padded) * X_stride + col] == 0);
-                }
-                partials[tidx] = z_count;
-                block_reduce_x<int, BLK_X>(partials);
-                const int val = partials[0];
+                const int val = BlockReduce(partials).Sum(z_count);
                 __syncthreads();
                 if(tidx == 0) result[col] = val;
                 if(tidx == 0){
-                    printf("feature %d: %d",col, val);
+                    printf("feature %d: %d\n",col, val);
                 }
             }
         }

@@ -13,11 +13,11 @@ Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X, bool use_gpu) {
     int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
     
-    //if (is_gpu_backend() || use_gpu) {
-    //    Rprintf("Using GPU");
+    Rprintf("%d\n", use_gpu);
+    if (is_gpu_backend() || use_gpu) {
         dispatch::cuda::ctzRcpp(result, X);
-    //} else {
-    //    dispatch::cpu::ctzRcpp(result, X);
-    //}
+    } else {
+        dispatch::cpu::ctzRcpp(result, X);
+    }
     return result;
 }
