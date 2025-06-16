@@ -2,154 +2,154 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 wtmRcpp <- function(x, w, use_gpu = FALSE) {
-    .Call(`_propr_wtmRcpp`, x, w, use_gpu = FALSE)
+    .Call(`_propr_wtmRcpp`, x, w, use_gpu)
 }
 
 wtvRcpp <- function(x, w, use_gpu = FALSE) {
-    .Call(`_propr_wtvRcpp`, x, w, use_gpu = FALSE)
+    .Call(`_propr_wtvRcpp`, x, w, use_gpu)
 }
 
 corRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_corRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_corRcpp`, X, use_gpu)
 }
 
 covRcpp <- function(X, norm_type, use_gpu = FALSE) {
-    .Call(`_propr_covRcpp`, X, norm_type, use_gpu = FALSE)
+    .Call(`_propr_covRcpp`, X, norm_type, use_gpu)
 }
 
 vlrRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_vlrRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_vlrRcpp`, X, use_gpu)
 }
 
 clrRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_clrRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_clrRcpp`, X, use_gpu)
 }
 
 alrRcpp <- function(X, ivar, use_gpu = FALSE) {
-    .Call(`_propr_alrRcpp`, X, ivar, use_gpu = FALSE)
+    .Call(`_propr_alrRcpp`, X, ivar, use_gpu)
 }
 
 symRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_symRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_symRcpp`, X, use_gpu)
 }
 
 phiRcpp <- function(X, sym, use_gpu = FALSE) {
-    .Call(`_propr_phiRcpp`, X, sym, use_gpu = FALSE)
+    .Call(`_propr_phiRcpp`, X, sym, use_gpu)
 }
 
 rhoRcpp <- function(X, lr, ivar, use_gpu = FALSE) {
-    .Call(`_propr_rhoRcpp`, X, lr, ivar, use_gpu = FALSE)
+    .Call(`_propr_rhoRcpp`, X, lr, ivar, use_gpu)
 }
 
 indexPairs <- function(X, op, ref, use_gpu = FALSE) {
-    .Call(`_propr_indexPairs`, X, op, ref, use_gpu = FALSE)
+    .Call(`_propr_indexPairs`, X, op, ref, use_gpu)
 }
 
 indexToCoord <- function(V, N, use_gpu = FALSE) {
-    .Call(`_propr_indexToCoord`, V, N, use_gpu = FALSE)
+    .Call(`_propr_indexToCoord`, V, N, use_gpu)
 }
 
 coordToIndex <- function(row, col, N, use_gpu = FALSE) {
-    .Call(`_propr_coordToIndex`, row, col, N, use_gpu = FALSE)
+    .Call(`_propr_coordToIndex`, row, col, N, use_gpu)
 }
 
 linRcpp <- function(rho, lr, use_gpu = FALSE) {
-    .Call(`_propr_linRcpp`, rho, lr, use_gpu = FALSE)
+    .Call(`_propr_linRcpp`, rho, lr, use_gpu)
 }
 
 lltRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_lltRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_lltRcpp`, X, use_gpu)
 }
 
 urtRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_urtRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_urtRcpp`, X, use_gpu)
 }
 
 labRcpp <- function(nfeats, use_gpu = FALSE) {
-    .Call(`_propr_labRcpp`, nfeats, use_gpu = FALSE)
+    .Call(`_propr_labRcpp`, nfeats, use_gpu)
 }
 
 half2mat <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_half2mat`, X, use_gpu = FALSE)
+    .Call(`_propr_half2mat`, X, use_gpu)
 }
 
 vector2mat <- function(X, i, j, nfeats, use_gpu = FALSE) {
-    .Call(`_propr_vector2mat`, X, i, j, nfeats, use_gpu = FALSE)
+    .Call(`_propr_vector2mat`, X, i, j, nfeats, use_gpu)
 }
 
 ratiosRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_ratiosRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_ratiosRcpp`, X, use_gpu)
 }
 
 results2matRcpp <- function(results, n, diagonal, use_gpu = FALSE) {
-    .Call(`_propr_results2matRcpp`, results, n, diagonal, use_gpu = FALSE)
+    .Call(`_propr_results2matRcpp`, results, n, diagonal, use_gpu)
 }
 
 count_less_than <- function(x, cutoff, use_gpu = FALSE) {
-    .Call(`_propr_count_less_than`, x, cutoff, use_gpu = FALSE)
+    .Call(`_propr_count_less_than`, x, cutoff, use_gpu)
 }
 
 count_greater_than <- function(x, cutoff, use_gpu = FALSE) {
-    .Call(`_propr_count_greater_than`, x, cutoff, use_gpu = FALSE)
+    .Call(`_propr_count_greater_than`, x, cutoff, use_gpu)
 }
 
 count_less_equal_than <- function(x, cutoff, use_gpu = FALSE) {
-    .Call(`_propr_count_less_equal_than`, x, cutoff, use_gpu = FALSE)
+    .Call(`_propr_count_less_equal_than`, x, cutoff, use_gpu)
 }
 
 count_greater_equal_than <- function(x, cutoff, use_gpu = FALSE) {
-    .Call(`_propr_count_greater_equal_than`, x, cutoff, use_gpu = FALSE)
+    .Call(`_propr_count_greater_equal_than`, x, cutoff, use_gpu)
 }
 
 ctzRcpp <- function(X, use_gpu = FALSE) {
-    .Call(`_propr_ctzRcpp`, X, use_gpu = FALSE)
+    .Call(`_propr_ctzRcpp`, X, use_gpu)
 }
 
 getOR <- function(A, G, use_gpu = FALSE) {
-    .Call(`_propr_getOR`, A, G, use_gpu = FALSE)
+    .Call(`_propr_getOR`, A, G, use_gpu)
 }
 
 getORperm <- function(A, G, perm, use_gpu = FALSE) {
-    .Call(`_propr_getORperm`, A, G, perm, use_gpu = FALSE)
+    .Call(`_propr_getORperm`, A, G, perm, use_gpu)
 }
 
 permuteOR <- function(A, G, p, use_gpu = FALSE) {
-    .Call(`_propr_permuteOR`, A, G, p, use_gpu = FALSE)
+    .Call(`_propr_permuteOR`, A, G, p, use_gpu)
 }
 
 getFDR <- function(actual, permuted, use_gpu = FALSE) {
-    .Call(`_propr_getFDR`, actual, permuted, use_gpu = FALSE)
+    .Call(`_propr_getFDR`, actual, permuted, use_gpu)
 }
 
 getG <- function(Gk, use_gpu = FALSE) {
-    .Call(`_propr_getG`, Gk, use_gpu = FALSE)
+    .Call(`_propr_getG`, Gk, use_gpu)
 }
 
 graflex <- function(A, Gk, p, use_gpu = FALSE) {
-    .Call(`_propr_graflex`, A, Gk, p, use_gpu = FALSE)
+    .Call(`_propr_graflex`, A, Gk, p, use_gpu)
 }
 
 lr2vlr <- function(lr, use_gpu = FALSE) {
-    .Call(`_propr_lr2vlr`, lr, use_gpu = FALSE)
+    .Call(`_propr_lr2vlr`, lr, use_gpu)
 }
 
 lr2phi <- function(lr, use_gpu = FALSE) {
-    .Call(`_propr_lr2phi`, lr, use_gpu = FALSE)
+    .Call(`_propr_lr2phi`, lr, use_gpu)
 }
 
 lr2rho <- function(lr, use_gpu = FALSE) {
-    .Call(`_propr_lr2rho`, lr, use_gpu = FALSE)
+    .Call(`_propr_lr2rho`, lr, use_gpu)
 }
 
 lr2phs <- function(lr, use_gpu = FALSE) {
-    .Call(`_propr_lr2phs`, lr, use_gpu = FALSE)
+    .Call(`_propr_lr2phs`, lr, use_gpu)
 }
 
 lrm <- function(Y, W, weighted, a, Yfull, Wfull, use_gpu = FALSE) {
-    .Call(`_propr_lrm`, Y, W, weighted, a, Yfull, Wfull, use_gpu = FALSE)
+    .Call(`_propr_lrm`, Y, W, weighted, a, Yfull, Wfull, use_gpu)
 }
 
 lrv <- function(Y, W, weighted, a, Yfull, Wfull, use_gpu = FALSE) {
-    .Call(`_propr_lrv`, Y, W, weighted, a, Yfull, Wfull, use_gpu = FALSE)
+    .Call(`_propr_lrv`, Y, W, weighted, a, Yfull, Wfull, use_gpu)
 }
 

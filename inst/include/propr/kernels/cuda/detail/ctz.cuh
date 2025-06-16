@@ -19,7 +19,6 @@ namespace propr {
                     result[pair_index] = d_X[i] + d_X[j];
                 }
             }
-
             
             template<int BLK_X>
             __global__
@@ -39,9 +38,6 @@ namespace propr {
                 const int val = BlockReduce(partials).Sum(z_count);
                 __syncthreads();
                 if(tidx == 0) result[col] = val;
-                if(tidx == 0){
-                    printf("feature %d: %d\n",col, val);
-                }
             }
         }
     }
