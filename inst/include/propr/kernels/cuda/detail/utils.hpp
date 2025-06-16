@@ -19,9 +19,9 @@ __device__ __forceinline__
 void block_reduce_x(T* sdata) {
     __syncthreads();
     if(threadIdx.x < n/2) sdata[threadIdx.x] += sdata[threadIdx.x + n/2];
-    block_reduce_x<n/2>(sdata);
+    block_reduce_x<T, n/2>(sdata);
 }
 
 template <>
 __device__ __forceinline__
-void block_reduce_x<0, int>(int* sdata){}
+void block_reduce_x<int, 0>(int* sdata){}

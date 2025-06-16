@@ -20,8 +20,9 @@ namespace propr {
                 }
             }
 
-            __global__
+            
             template<int BLK_X>
+            __global__
             void count_per_feature(const float* __restrict__ X, int X_stride, int nsubjs, int nfeats, int* result) {
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
                 if (blockIdx.x > nfeats) return;
@@ -39,9 +40,13 @@ namespace propr {
                     z_count += static_cast<int>(X[(tidx + nsubj_padded) * X_stride + col] == 0);
                 }
                 partials[tidx] = z_count;
-                const int val =  block_reduce_x<int, BLK_X>(partials);
+                block_reduce_x<int, BLK_X>(partials);
+                const int val = partials[0];
                 __syncthreads();
                 if(tidx == 0) result[col] = val;
+                if(tidx == 0){
+                    printf("feature %d: %d",col, val);
+                }
             }
         }
     }
