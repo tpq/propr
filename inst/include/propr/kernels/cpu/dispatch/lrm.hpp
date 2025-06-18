@@ -5,7 +5,6 @@
 namespace propr {
     namespace dispatch {
         namespace cpu {
-            __forceinline__
             void lrm(Rcpp::NumericVector& out,
                     Rcpp::NumericMatrix &Y, 
                     Rcpp::NumericMatrix &W,

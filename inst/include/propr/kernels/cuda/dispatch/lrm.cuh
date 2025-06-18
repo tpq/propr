@@ -6,27 +6,23 @@ namespace propr {
     namespace dispatch {
         namespace cuda {
             
-            __forceinline__
             void lrm_basic(Rcpp::NumericVector& out,
                            Rcpp::NumericMatrix &Y,
                            propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
-            
-            __forceinline__
+
             void lrm_weighted(
                 Rcpp::NumericVector& out,
                 Rcpp::NumericMatrix &Y,
                 Rcpp::NumericMatrix &W,
                 propr_context context=DEFAULT_GLOBAL_CONTEXT);
-            
-            __forceinline__
+
             void lrm_alpha(
                 Rcpp::NumericVector& out,
                 Rcpp::NumericMatrix &Y,
                 double a,
                 Rcpp::NumericMatrix &Yfull,
                 propr_context context=DEFAULT_GLOBAL_CONTEXT);
-            
-            __forceinline__
+
             void lrm_alpha_weighted(
                 Rcpp::NumericVector& out,
                 Rcpp::NumericMatrix &Y,
