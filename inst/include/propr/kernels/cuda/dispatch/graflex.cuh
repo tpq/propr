@@ -7,11 +7,23 @@
 namespace propr {
     namespace dispatch {
         namespace cuda {
+            
+            __forceinline__
             void getOR(Rcpp::NumericVector& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            
+            __forceinline__
             void getORperm(Rcpp::NumericVector&out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, const Rcpp::IntegerVector& perm, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            
+            __forceinline__
             void permuteOR(Rcpp::NumericMatrix& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, int p, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            
+            __forceinline__
             void getFDR(Rcpp::List& out, double actual, const Rcpp::NumericVector& permuted, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            
+            __forceinline__
             void getG(Rcpp::IntegerMatrix& out, const Rcpp::IntegerVector& Gk, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            
+            __forceinline__
             void graflex(Rcpp::NumericVector& out, const Rcpp::IntegerMatrix& A, const Rcpp::IntegerVector& Gk, int p, propr::propr_context context=DEFAULT_GLOBAL_CONTEXT) ;
         }
     }
