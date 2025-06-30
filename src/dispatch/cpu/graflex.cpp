@@ -102,10 +102,11 @@ void
 dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
   int n = Gk.size();
   CHECK_MATRIX_DIMS(out, n, n);
+
   for (int i = 0; i < n; ++i) {
-    int gi = Gk[i];
-    out(i, i) = gi * gi;
     for (int j = 0; j < i; ++j) {
+      int gi = Gk[i];
+      out(i, i) = gi * gi;
       int value = gi * Gk[j];
       out(i, j) = value;
       out(j, i) = value;

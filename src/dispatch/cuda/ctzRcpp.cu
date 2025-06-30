@@ -18,7 +18,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
 
     float* d_X;
     int X_stride;
-    d_X = RcppNumericMatrixToDeviceFloat(X, X_stride);
+    d_X = RcppMatrixToDevice<float>(X, X_stride);
 
     int* d_zeroes;
     CUDA_CHECK(cudaMalloc(&d_zeroes, nfeats * sizeof(int)));
