@@ -1,6 +1,6 @@
 #pragma once
 #include <cuda_runtime.h>
-#include <device_launch_parameters.h>
+#define PROPR_WARP_SIZE 32U
 
 template<typename T>
 __device__ __forceinline__
@@ -14,14 +14,18 @@ T warp_reduce_sum(T val) {
 }
 
 
-template <typename T, int n>
-__device__ __forceinline__
-void block_reduce_x(T* sdata) {
-    __syncthreads();
-    if(threadIdx.x < n/2) sdata[threadIdx.x] += sdata[threadIdx.x + n/2];
-    block_reduce_x<T, n/2>(sdata);
-}
+template<typename T>
+__device__ inline T block_reduce_sum(T val, bool final_sync=false) {
+    __shared__ T shared_val[PROPR_WARP_SIZE];
+    const int lane_id   = threadIdx.x % PROPR_WARP_SIZE;
+    const int warp_id   = threadIdx.x / PROPR_WARP_SIZE;
+    const int num_warps = blockDim.x  / PROPR_WARP_SIZE;
 
-template <>
-__device__ __forceinline__
-void block_reduce_x<int, 0>(int* sdata){}
+    T warp_val = warp_reduce_sum(val);
+    if (lane_id == 0) { shared_val[warp_id] = warp_val; }
+    __syncthreads();
+    warp_val = (lane_id < num_warps) ? shared_val[lane_id] : T(0);
+    T block_val = warp_reduce_sum(warp_val);
+    if (final_sync)  __syncthreads();
+    return block_val;
+}

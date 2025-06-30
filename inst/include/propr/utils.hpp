@@ -46,33 +46,47 @@ inline void check_alignment(const void* ptr, int alignment) {
     }
 }
 
-template <typename OutT,int RTYPE>
-inline OutT* RcppMatrixToDevice(Rcpp::Matrix<RTYPE>& mat,int& memory_stride, int alignment = 16) {
-    int original_rows = mat.nrow();
-    int num_cols      = mat.ncol(); 
-    
-    int padded_rows = ((original_rows + alignment - 1) / alignment) * alignment;
-    size_t total_size = padded_rows * num_cols * sizeof(OutT);
+template <typename OutT, int RTYPE, const bool RowMajor=false>
+inline OutT* RcppMatrixToDevice(
+    const Rcpp::Matrix<RTYPE>& mat,
+    int& memory_stride,
+    int alignment = 16
+) {
+    const int nrows = mat.nrow();
+    const int ncols = mat.ncol();
 
-    OutT* d_ptr;
-    CUDA_CHECK(cudaMalloc(&d_ptr, total_size));
-    CUDA_CHECK(cudaMemset(d_ptr, 0, total_size));    
-    std::vector h_vec(padded_rows * num_cols, 0.0f);
-    for (int j = 0; j < num_cols; ++j) {
-        for (int i = 0; i < original_rows; ++i) {
-            h_vec[i + j * padded_rows] = static_cast<OutT>(mat(i, j));
-        }
+    constexpr bool ColMajor = !RowMajor;
+    const int slow_orig = ColMajor ? nrows : ncols;
+    const int fast_orig = ColMajor ? ncols : nrows;
+
+    const int slow_padded = ((slow_orig + alignment - 1) / alignment) * alignment;
+    const size_t total_elems = size_t(slow_padded) * fast_orig;
+    const size_t total_bytes = total_elems * sizeof(OutT);
+
+    OutT* d_ptr = nullptr;
+    CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
+    CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
+
+    std::vector<OutT> h_buf(total_elems, OutT(0));
+    if constexpr (ColMajor) {
+        for (int j = 0; j < ncols; ++j)
+            for (int i = 0; i < nrows; ++i)
+                h_buf[i + j * slow_padded] = static_cast<OutT>(mat(i, j));
+    } else {
+        for (int i = 0; i < nrows; ++i)
+            for (int j = 0; j < ncols; ++j)
+                h_buf[j + i * slow_padded] = static_cast<OutT>(mat(i, j));
     }
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_vec.data(), total_size, cudaMemcpyHostToDevice));    
-    memory_stride = padded_rows;
+
+    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf.data(), total_bytes, cudaMemcpyHostToDevice));
+    memory_stride = slow_padded;
     check_alignment(d_ptr, alignment);
     return d_ptr;
 }
 
+
 template<typename T>
-void copyToNumericVector(const T* d_src,
-                                Rcpp::NumericVector& h_dest,
-                                int size) {
+void copyToNumericVector(const T* d_src,Rcpp::NumericVector& h_dest, int size) {
     std::vector<T> h_temp(size);
     CUDA_CHECK(cudaMemcpy(
         h_temp.data(), d_src,

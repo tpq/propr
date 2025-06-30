@@ -25,11 +25,13 @@ namespace propr {
             void count_per_feature(const float* __restrict__ X, int X_stride, int nsubjs, int nfeats, int* result) {
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
                 using BlockReduce = cub::BlockReduce<int, BLK_X>;
+                using block_scan_storage_t  = typename BlockReduce::TempStorage;
+
                 const int tidx = threadIdx.x;
                 const int col  = blockIdx.x;
                 const int nsubj_padded = (nsubjs + BLK_X - 1) / BLK_X;
                 int z_count       = 0;
-                __shared__ typename BlockReduce::TempStorage partials;
+                __shared__ block_scan_storage_t partials;
                 for(int i = 0; i < nsubj_padded; i += BLK_X) {
                     if(tidx + i < nsubjs) {
                         z_count += static_cast<int>(X[(tidx + i)  + col*X_stride] == 0);

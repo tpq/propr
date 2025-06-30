@@ -13,11 +13,12 @@ dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMa
 
   for (int j = 0; j < ncol - 1; ++j) {
     for (int i = j + 1; i < ncol; ++i) {
-      int a_val = A(i, j), g_val = G(i, j);
+      int a_val = A(i, j);
+      int g_val = G(i, j);
       a += (1 - a_val) * (1 - g_val);
-      b += (1 - a_val) * g_val;
-      c += a_val * (1 - g_val);
-      d += a_val * g_val;
+      b +=       (1 - a_val) * g_val;
+      c +=       a_val * (1 - g_val);
+      d +=             a_val * g_val;
     }
   }
 
@@ -42,9 +43,9 @@ dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const Integ
   int a = 0, b = 0, c = 0, d = 0;
 
   for (int j = 0; j < ncol - 1; ++j) {
-    int pj = perm[j];
     for (int i = j + 1; i < ncol; ++i) {
-      int a_val = A(perm[i], pj), g_val = G(i, j);
+      int a_val = A(perm[i], perm[j]);
+      int g_val = G(i, j);
       a += (1 - a_val) * (1 - g_val);
       b += (1 - a_val) * g_val;
       c += a_val * (1 - g_val);
