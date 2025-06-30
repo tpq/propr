@@ -144,6 +144,21 @@ test_that("check that getFDR works properly", {
   expect_equal(res$over, sum(x >= actual) / length(x))
 })
 
+
+test_that("check that getFDR works properly GPU", {
+
+  # create a vector of values between 0 and 1
+  x <- runif(100)
+  actual <- runif(1)
+
+  # compute FDR
+  res <- propr:::getFDR(actual, x, use_gpu=TRUE)
+
+  # check
+  expect_equal(res$under, sum(x <= actual) / length(x))
+  expect_equal(res$over, sum(x >= actual) / length(x))
+})
+
 test_that("check if runGraflex produce the expected contingency table and odds ratio values", {
   
   Astar <- A[lower.tri(A)]
