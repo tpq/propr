@@ -22,7 +22,7 @@ dispatch::cuda::getOR(NumericVector& out,
                       const IntegerMatrix& G, 
                       propr::propr_context context) {
 
-    using scan_tile_state_t = cub::ScanTileState<int>;
+    using scan_tile_state_t = cub::ScanTileState<int4>;
     
     const int n = A.ncol();
 
@@ -30,69 +30,45 @@ dispatch::cuda::getOR(NumericVector& out,
     int a_stride; int* d_A; d_A = RcppMatrixToDevice<int>(A, a_stride);
 
     const int numPairs      = (n * (n - 1)) / 2;
-    const int blockSize     = 128;
+    const int blockSize     = 512;
     const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
-    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
 
     std::size_t device_partials_size{};
     scan_tile_state_t::AllocationSize(numBlocks, device_partials_size);
 
-
-    std::array<thrust::device_vector<uint8_t>, 4> temp_storage;
-    std::array<scan_tile_state_t, 4> tile_status;
-
-    for (int i = 0; i < 4; ++i) {
-        auto &buf = temp_storage[i];
-        buf.resize(device_partials_size);
-        tile_status[i].Init(
-            numBlocks,
-            thrust::raw_pointer_cast(buf.data()),
-            device_partials_size
-        );
-    }
-
-    auto &tile_a = tile_status[0];
-    auto &tile_b = tile_status[1];
-    auto &tile_c = tile_status[2];
-    auto &tile_d = tile_status[3];
-
-
-     int *d_a, *d_b, *d_c, *d_d;
-    CUDA_CHECK(cudaMalloc(&d_a, sizeof(int)));
-    CUDA_CHECK(cudaMalloc(&d_b, sizeof(int)));
-    CUDA_CHECK(cudaMalloc(&d_c, sizeof(int)));
-    CUDA_CHECK(cudaMalloc(&d_d, sizeof(int)));
-    CUDA_CHECK(cudaMemset(d_a, 0, sizeof(int)));
-    CUDA_CHECK(cudaMemset(d_b, 0, sizeof(int)));
-    CUDA_CHECK(cudaMemset(d_c, 0, sizeof(int)));
-    CUDA_CHECK(cudaMemset(d_d, 0, sizeof(int)));
-
-
-    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, blockSize>>>(
-      tile_a, tile_b, tile_c, tile_d, numBlocks
+    std::size_t aligned_size = ((device_partials_size + 15) / 16) * 16;
+    void *d_temp_storage;
+    CUDA_CHECK(cudaMalloc(&d_temp_storage, aligned_size));
+    
+    scan_tile_state_t tile_state;
+    tile_state.Init(
+        numBlocks,
+        d_temp_storage,
+        device_partials_size
     );
-    CUDA_CHECK(cudaDeviceSynchronize());
-    CUDA_CHECK(cudaGetLastError());
+
+    int4 *d_acc;
+    CUDA_CHECK(cudaMalloc(&d_acc, sizeof(int4)));
+    CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(int4)));
+    
     detail::cuda::compute_odd_ratio<<<numBlocks, blockSize>>>(
-      tile_a, tile_b, tile_c, tile_d,
-      d_A, a_stride,
-      d_G, g_stride,
-      n,
-      d_a, d_b, d_c, d_d
+        tile_state,
+        d_A, a_stride,
+        d_G, g_stride,
+        n,
+        d_acc
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    int h_a, h_b, h_c, h_d;
-    CUDA_CHECK(cudaMemcpy(&h_a, d_a, sizeof(int), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(&h_b, d_b, sizeof(int), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(&h_c, d_c, sizeof(int), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(&h_d, d_d, sizeof(int), cudaMemcpyDeviceToHost));
+    int4 h_acc;
+    CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(int4), cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaFree(d_acc));
 
-    CUDA_CHECK(cudaFree(d_a));
-    CUDA_CHECK(cudaFree(d_b));
-    CUDA_CHECK(cudaFree(d_c));
-    CUDA_CHECK(cudaFree(d_d));
+    int h_a = h_acc.x;
+    int h_b = h_acc.y;
+    int h_c = h_acc.z;
+    int h_d = h_acc.w;
 
     double odds_ratio = static_cast<double>(h_a * h_d) / (h_b * h_c);
     double log_odds_ratio = std::log(odds_ratio);
@@ -107,6 +83,7 @@ dispatch::cuda::getOR(NumericVector& out,
     
     CUDA_CHECK(cudaFree(d_G));
     CUDA_CHECK(cudaFree(d_A));
+    CUDA_CHECK(cudaFree(d_temp_storage));
 }
 
 void
