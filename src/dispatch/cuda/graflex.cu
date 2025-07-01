@@ -1,5 +1,7 @@
 #include <array>
 
+#include <cooperative_groups.h>
+
 #include <cub/device/device_scan.cuh>
 
 #include <thrust/device_ptr.h>
@@ -32,6 +34,7 @@ dispatch::cuda::getOR(NumericVector& out,
     const int numPairs      = (n * (n - 1)) / 2;
     const int blockSize     = 512;
     const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
+    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
 
     std::size_t device_partials_size{};
     scan_tile_state_t::AllocationSize(numBlocks, device_partials_size);
@@ -50,16 +53,19 @@ dispatch::cuda::getOR(NumericVector& out,
     int4 *d_acc;
     CUDA_CHECK(cudaMalloc(&d_acc, sizeof(int4)));
     CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(int4)));
-    
-    detail::cuda::compute_odd_ratio<<<numBlocks, blockSize>>>(
-        tile_state,
-        d_A, a_stride,
-        d_G, g_stride,
-        n,
-        d_acc
-    );
-    CUDA_CHECK(cudaGetLastError());
+
+    void *kernelArgs[] = {
+        (void *)&tile_state,
+        (void *)&d_A, 
+        (void *)&a_stride,
+        (void *)&d_G, 
+        (void *)&g_stride,
+        (void *)&n,
+        (void *)&d_acc
+    };
+    cudaLaunchCooperativeKernel((void *)detail::cuda::compute_odd_ratio, numBlocks, blockSize, kernelArgs, 0, NULL);
     CUDA_CHECK(cudaDeviceSynchronize());
+    CUDA_CHECK(cudaGetLastError());
 
     int4 h_acc;
     CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(int4), cudaMemcpyDeviceToHost));
