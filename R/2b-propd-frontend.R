@@ -57,6 +57,9 @@ setActive <-
 #' @rdname propd
 #' @param moderated For \code{updateF}, a boolean. Toggles
 #'  whether to calculate a moderated F-statistic.
+#' @param moderated_trend For \code{updateF}, a boolean. Toggles
+#'  whether to incorporate mean-variance trend in the moderated 
+#'  F-statistic. Default is FALSE.
 #' @param ivar See \code{propr} method.
 #' @section Functions:
 #' \code{updateF:}
@@ -68,6 +71,7 @@ setActive <-
 #' @export
 updateF <- function(propd,
                     moderated = FALSE,
+                    moderated_trend = FALSE,
                     ivar = "clr") {
   # Check that active theta is theta_d? propd@active
   if (!propd@active == "theta_d") {
@@ -105,7 +109,7 @@ updateF <- function(propd,
       stats::model.matrix(~ . + 0, data = as.data.frame(propd@group))
     v <- limma::voom(z.sr, design = design)
     param <- limma::lmFit(v, design)
-    param <- limma::eBayes(param)
+    param <- limma::eBayes(param, trend=moderated_trend)
     z.df <- param$df.prior
     propd@dfz <- param$df.prior
     z.s2 <- param$s2.prior

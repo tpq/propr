@@ -1,3 +1,9 @@
+# propr 5.1.8
+---------------------
+* Use feature-wise permutation for propr()
+* Fix bug when calling updateCutoffs with func
+* Add trend=TRUE flag for updateF
+
 # propr 5.1.7
 ---------------------
 * Added option to shrink the covariance matrix before computing the propd theta
