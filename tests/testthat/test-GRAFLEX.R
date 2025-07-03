@@ -216,10 +216,13 @@ test_that("check that permuteOR works as the old code", {
   
   # compute permuted odds ratios
   set.seed(0)
-  res1 <- propr:::permuteOR(A, G, 10)
+  res1 <- propr:::permuteOR(A, G, 10, use_gpu=TRUE)
   set.seed(0)
   res2 <- permuteOR_old(A, G, 10)
-  
+
+  df1 <- as.data.frame(res1[, 1:6])
+  colnames(df1) <- c("Neither", "G.only", "A.only", "Both", "Odds", "LogOR")
+    
   # check
   expect_true(all(res1[,-c(7,8)] == res2))
 })

@@ -8,7 +8,7 @@ using namespace propr;
 
 void
 dispatch::cpu::wtmRcpp(double& out, const NumericVector& x, NumericVector& w){
-  out =  sum(x * w) / sum(w);
+  out =  sum(x * w) / sum(w); 
 }
 
 void

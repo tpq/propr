@@ -40,20 +40,20 @@ dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const Integ
   CHECK_VECTOR_SIZE(out, 8); // Check if output vector has correct size
 
   int ncol = A.ncol();
-  int a = 0, b = 0, c = 0, d = 0;
+  double a = 0, b = 0, c = 0, d = 0;
 
   for (int j = 0; j < ncol - 1; ++j) {
     for (int i = j + 1; i < ncol; ++i) {
       int a_val = A(perm[i], perm[j]);
       int g_val = G(i, j);
-      a += (1 - a_val) * (1 - g_val);
-      b += (1 - a_val) * g_val;
-      c += a_val * (1 - g_val);
-      d += a_val * g_val;
+      a += static_cast<double>((1 - a_val) * (1 - g_val));
+      b += static_cast<double>((1 - a_val) * g_val);
+      c += static_cast<double>(a_val * (1 - g_val));
+      d += static_cast<double>(a_val * g_val);
     }
   }
 
-  double odds_ratio = static_cast<double>((a /b) * (d/c));
+  double odds_ratio = static_cast<double>((a/b) * (d/c));
   double log_odds_ratio = std::log(odds_ratio);
 
   out[0] = a;
@@ -106,9 +106,8 @@ dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
 
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
-      int gi = Gk[i];
-      out(i, i) = gi * gi;
-      int value = gi * Gk[j];
+      out(i, i) = Gk[i] * Gk[i];
+      int value = Gk[i] * Gk[j];
       out(i, j) = value;
       out(j, i) = value;
     }
