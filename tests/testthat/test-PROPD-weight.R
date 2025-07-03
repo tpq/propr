@@ -89,26 +89,46 @@ test_that("test that weights are properly incorporated to omega" ,{
     expect_equal(omega_w, omega_e)
 })
 
-# test_that("test that weights are properly incorporated to theta", {
-#     # get weights
-#     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-#     v <- limma::voom(t(counts), design = design)
-#     W <- t(v$weights)
+test_that("test that weights are properly incorporated to theta", {
+    # get weights
+    design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
+    v <- limma::voom(t(counts), design = design)
+    W <- t(v$weights)
 
-#     # calculate theta using propr
-#     counts <- as.matrix(counts)
-#     theta_w <- propr:::calculate_theta(counts, group, weighted=TRUE)
+    # calculate theta using propr
+    counts <- as.matrix(counts)
+    theta_w <- propr:::calculate_theta(counts, group, weighted=TRUE)$theta
 
-#     # calculate expected theta with weights manually
-#     theta_e <- c()
-#     for (i in 2:ncol(counts)) {
-#         for (j in 1:(i-1)) {
-#             Wij <- 2 * W[, i] * W[, j] / (W[, i] + W[, j])
-#             lrv <- propr:::wtmRcpp(log(counts[, i] / counts[, j]), Wij)
-#             lrm <- propr:::wtmRcpp(counts[, i] / counts[, j], Wij)
-#             omega <- sum(Wij) +
-#         }
-#     }
+    # calculate expected theta with weights manually
+    theta_e <- c()
+    groups <- lapply(unique(group), function(g) g == group)
+    Wfull <- W
+    W1 <- W[groups[[1]],]
+    W2 <- W[groups[[2]],]
+    counts1 <- counts[groups[[1]],]
+    counts2 <- counts[groups[[2]],]
+    for (i in 2:ncol(counts)) {
+        for (j in 1:(i-1)) {
+            # calculate lrv and omega for group 1
+            Wij1 <- 2 * W1[, i] * W1[, j] / (W1[, i] + W1[, j])
+            lrv1 <- propr:::wtvRcpp(log(counts1[, i] / counts1[, j]), Wij1)
+            omega1 <- sum(Wij1) - sum(Wij1^2) / sum(Wij1)
 
-#     expect_equal(theta_w, theta_e)
-# })
+            # calculate lrv and omega for group 2
+            Wij2 <- 2 * W2[, i] * W2[, j] / (W2[, i] + W2[, j])
+            lrv2 <- propr:::wtvRcpp(log(counts2[, i] / counts2[, j]), Wij2)
+            omega2 <- sum(Wij2) - sum(Wij2^2) / sum(Wij2)
+
+            # calculate lrv and omega between groups
+            Wij <- 2 * Wfull[, i] * Wfull[, j] / (Wfull[, i] + Wfull[, j])
+            lrv <- propr:::wtvRcpp(log(counts[, i] / counts[, j]), Wij)
+            omega <- sum(Wij) - sum(Wij^2) / sum(Wij)
+
+            # calculate theta
+            theta <- (omega1 * lrv1 + omega2 * lrv2) / (omega * lrv)
+            theta_e <- c(theta_e, theta)
+        }
+    }
+
+    expect_equal(theta_w, theta_e)
+})
