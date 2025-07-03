@@ -247,5 +247,24 @@ dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_c
 
 void
 dispatch::cuda::graflex(NumericVector& out, const IntegerMatrix& A, const IntegerVector& Gk, int p, propr::propr_context context) {
-    Rcpp::stop("Not implemented in CUDA for graflex.");   
+    IntegerMatrix G_tmp(Gk.size(), Gk.size());
+    dispatch::cuda::getG(G_tmp, Gk);
+
+    NumericVector actual_tmp(8);
+    dispatch::cuda::getOR(actual_tmp, A, G_tmp);
+
+    CHECK_VECTOR_SIZE(out, actual_tmp.length());
+    for (int i = 0; i < actual_tmp.length(); ++i) {
+        out[i] = actual_tmp[i];
+    }
+
+    if (!std::isnan(actual_tmp(4))) {
+        NumericMatrix permuted_tmp(p, 8);
+        dispatch::cuda::permuteOR(permuted_tmp, A, G_tmp, p);
+
+        List fdr_tmp; 
+        dispatch::cuda::getFDR(fdr_tmp, actual_tmp(4), permuted_tmp(_, 4));
+        out(6) = as<double>(fdr_tmp["under"]);
+        out(7) = as<double>(fdr_tmp["over"]);
+    }   
 }
