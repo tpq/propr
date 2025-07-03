@@ -37,7 +37,11 @@ test_that("test that weights are properly incorporated to lrv", {
     for (i in 2:ncol(counts)) {
         for (j in 1:(i-1)) {
             Wij <- 2 * W[, i] * W[, j] / (W[, i] + W[, j])
-            lrv_e <- c(lrv_e, propr:::wtvRcpp(log(counts[, i] / counts[, j]), Wij))
+            x <- log(counts[, i] / counts[, j])
+            xbar <- sum(x * Wij) / sum(Wij)
+            lrv <- sum(Wij * (x - xbar)^2) / (sum(Wij) - sum(Wij^2) / sum(Wij))
+            lrv_e <- c(lrv_e, lrv)
+            #lrv_e <- c(lrv_e, propr:::wtvRcpp(log(counts[, i] / counts[, j]), Wij))  # this is the same as above
         }
     }
 
@@ -60,7 +64,9 @@ test_that("test that weights are properly incorporated to lrm", {
     for (i in 2:ncol(counts)) {
         for (j in 1:(i-1)) {
             Wij <- 2 * W[, i] * W[, j] / (W[, i] + W[, j])
-            lrm_e <- c(lrm_e, propr:::wtmRcpp(log(counts[, i] / counts[, j]), Wij))
+            x <- log(counts[, i] / counts[, j])
+            xbar <- sum(x * Wij) / sum(Wij)
+            lrm_e <- c(lrm_e, xbar)
         }
     }
 
