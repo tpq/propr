@@ -66,8 +66,8 @@ NumericVector lrm(NumericMatrix & Y,
       Rcpp::NumericVector Xfullz(fullfeats);
       for(int i = 1; i < nfeats; i++){
         for(int j = 0; j < i; j++){
-          Wij = W(_, i) * W(_, j);
-          Wfullij = Wfull(_, i) * Wfull(_, j);
+          Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+          Wfullij = 2 * Wfull(_, i) * Wfull(_, j) / (Wfull(_, i) + Wfull(_, j));
           Xiscaled = X(_, i) / wtmRcpp(Xfull(_, i), Wfullij);
           Xjscaled = X(_, j) / wtmRcpp(Xfull(_, j), Wfullij);
           Xz = X(_, i) - X(_, j);
@@ -109,7 +109,7 @@ NumericVector lrm(NumericMatrix & Y,
       Rcpp::NumericVector Wij(nfeats);
       for(int i = 1; i < nfeats; i++){
         for(int j = 0; j < i; j++){
-          Wij = W(_, i) * W(_, j);
+          Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
           result(counter) = wtmRcpp(log(X(_, i) / X(_, j)), Wij);
           counter += 1;
         }
