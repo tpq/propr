@@ -66,3 +66,49 @@ test_that("test that weights are properly incorporated to lrm", {
 
     expect_equal(lrm_w, lrm_e)
 })
+
+test_that("test that weights are properly incorporated to omega" ,{
+    # get weights
+    design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
+    v <- limma::voom(t(counts), design = design)
+    W <- t(v$weights)
+
+    # calculate omega using propr
+    counts <- as.matrix(counts)
+    omega_w <- propr:::omega(W)
+
+    # calculate expected omega with weights manually
+    omega_e <- c()
+    for (i in 2:ncol(counts)) {
+        for (j in 1:(i-1)) {
+            Wij <- 2 * W[, i] * W[, j] / (W[, i] + W[, j])
+            omega_e <- c(omega_e, sum(Wij) - sum(Wij^2) / sum(Wij))
+        }
+    }
+
+    expect_equal(omega_w, omega_e)
+})
+
+# test_that("test that weights are properly incorporated to theta", {
+#     # get weights
+#     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
+#     v <- limma::voom(t(counts), design = design)
+#     W <- t(v$weights)
+
+#     # calculate theta using propr
+#     counts <- as.matrix(counts)
+#     theta_w <- propr:::calculate_theta(counts, group, weighted=TRUE)
+
+#     # calculate expected theta with weights manually
+#     theta_e <- c()
+#     for (i in 2:ncol(counts)) {
+#         for (j in 1:(i-1)) {
+#             Wij <- 2 * W[, i] * W[, j] / (W[, i] + W[, j])
+#             lrv <- propr:::wtmRcpp(log(counts[, i] / counts[, j]), Wij)
+#             lrm <- propr:::wtmRcpp(counts[, i] / counts[, j], Wij)
+#             omega <- sum(Wij) +
+#         }
+#     }
+
+#     expect_equal(theta_w, theta_e)
+# })

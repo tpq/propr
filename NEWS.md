@@ -3,6 +3,7 @@
 * Use feature-wise permutation for propr()
 * Fix bug when calling updateCutoffs with func
 * Add trend=TRUE flag for updateF
+* Use harmonic mean when calculating weighted lrv and lrm
 
 # propr 5.1.7
 ---------------------
