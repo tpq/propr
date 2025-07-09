@@ -14,7 +14,7 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y;
-    int stride;
+    offset_t stride;
     d_Y = RcppMatrixToDevice<float>(Y, stride);
 
     float* d_mean;
@@ -45,11 +45,11 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y;
-    int stride_Y;
+    offset_t stride_Y;
     d_Y = RcppMatrixToDevice<float>(Y, stride_Y);
 
     float* d_W;
-    int stride_W;
+    offset_t stride_W;
     d_W = RcppMatrixToDevice<float>(W, stride_W);
 
 
@@ -84,8 +84,8 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y; float* d_Yfull;
-    int stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y);
-    int stride_Yfull; d_Yfull = RcppMatrixToDevice<float>(Yfull, stride_Yfull);
+    offset_t stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y);
+    offset_t stride_Yfull; d_Yfull = RcppMatrixToDevice<float>(Yfull, stride_Yfull);
 
     float* d_means;
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
@@ -120,10 +120,10 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y, * d_W, * d_Yfull, * d_Wfull;
-    int stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y); 
-    int stride_W    ; d_W     = RcppMatrixToDevice<float>(W, stride_W);
-    int stride_Yfull; d_Yfull = RcppMatrixToDevice<float>(Yfull, stride_Yfull);
-    int stride_Wfull; d_Wfull = RcppMatrixToDevice<float>(Wfull, stride_Wfull);
+    offset_t stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y); 
+    offset_t stride_W    ; d_W     = RcppMatrixToDevice<float>(W, stride_W);
+    offset_t stride_Yfull; d_Yfull = RcppMatrixToDevice<float>(Yfull, stride_Yfull);
+    offset_t stride_Wfull; d_Wfull = RcppMatrixToDevice<float>(Wfull, stride_Wfull);
 
     float* d_means;
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
@@ -132,8 +132,8 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
 
     propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
-        d_Y    ,stride_Y, 
-        d_Yfull,stride_Yfull,
+        d_Y    , stride_Y, 
+        d_Yfull, stride_Yfull,
         d_W    , stride_W,
         d_Wfull, stride_Wfull, 
         N1, NT, static_cast<float>(a), d_means, N_genes

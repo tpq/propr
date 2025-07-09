@@ -25,9 +25,9 @@ namespace propr {
 
             __global__ void
             compute_odd_ratio(cub::ScanTileState<uint4> tile_state,
-                            unsigned char* __restrict__ A, int a_stride,
-                            unsigned char* __restrict__ G, int g_stride,
-                            int n, 
+                            unsigned char* __restrict__ A, offset_t a_stride,
+                            unsigned char* __restrict__ G, offset_t g_stride,
+                            offset_t n, 
                             uint4 *acc) {
                 using scan_op_t             = UInt4Sum;
                 using tile_prefix_op        = cub::TilePrefixCallbackOp<uint4, scan_op_t, cub::ScanTileState<uint4>>;
@@ -42,15 +42,15 @@ namespace propr {
                 const int tid = threadIdx.x;
                 const int bid = blockIdx.x;
                 
-                int stride = gridDim.x * blockDim.x;
-                int total_pairs = (n * (n - 1)) / 2;
+                offset_t stride = gridDim.x * blockDim.x;
+                offset_t total_pairs = (n * (n - 1)) / 2;
                 
                 unsigned int a_acc = 0;
                 unsigned int b_acc = 0;
                 unsigned int c_acc = 0;
                 unsigned int d_acc = 0;
 
-                for (int k = blockDim.x * bid + tid; k < total_pairs; k += stride) {
+                for (offset_t k = blockDim.x * bid + tid; k < total_pairs; k += stride) {
                     const double disc = 4.0*n*n - 4.0*n - 8.0*k + 1.0;
                     const double s = sqrt(disc);
                     const int a = static_cast<int>(floor(((2.0*n + 1.0) - s) / 2.0));

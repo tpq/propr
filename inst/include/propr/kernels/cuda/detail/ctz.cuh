@@ -11,7 +11,7 @@ namespace propr {
     namespace detail {
         namespace cuda {
             __global__
-            void count_joint_zeros(const int* __restrict__ d_X, int X_stride, int nfeats, int* result) {
+            void count_joint_zeros(const int* __restrict__ d_X, offset_t X_stride, int nfeats, int* result) {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i < nfeats && j < i) {
@@ -22,7 +22,7 @@ namespace propr {
             
             template<int BLK_X>
             __global__
-            void count_per_feature(const float* __restrict__ X, int X_stride, int nsubjs, int nfeats, int* result) {
+            void count_per_feature(const float* __restrict__ X, offset_t X_stride, int nsubjs, int nfeats, int* result) {
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
                 using BlockReduce = cub::BlockReduce<int, BLK_X>;
                 using block_scan_storage_t  = typename BlockReduce::TempStorage;

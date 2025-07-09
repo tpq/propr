@@ -6,7 +6,6 @@
 using namespace Rcpp;
 using namespace propr;
 
-
 void dispatch::cuda::wtmRcpp(double& out, const NumericVector& x, const NumericVector& w, propr_context context){
   Rcpp::stop("wtmRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
 }

@@ -14,8 +14,10 @@ namespace propr {
              * @param  nRows  [in]  Number of rows in W.
              * @param  nFeats [in]  Number of columns in W.
              */
-            extern "C" void
-            dof_group( const double* h_W, double* h_res, int nRows, int nFeats );
+            void
+            dof_group( const double* h_W, double* h_res, int nRows, int nFeats ){
+
+            }
 
             /**
              * @brief  CUDA implementation of the "weighted" Omega:
@@ -30,8 +32,10 @@ namespace propr {
              * @param  nRows  [in]  Number of rows in W.
              * @param  nFeats [in]  Number of columns in W.
              */
-            extern "C" void
-            dof_population( const double* h_W, double* h_res, int nRows, int nFeats );
+            void
+            dof_population( const double* h_W, double* h_res, int nRows, int nFeats ){
+                
+            }
         }
     }
 }

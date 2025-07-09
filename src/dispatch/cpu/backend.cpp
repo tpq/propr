@@ -46,8 +46,7 @@ dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix & X) {
   }
   for (int i = 0; i < m; ++i) {
     for (int j = 0; j <= i; ++j) {
-      out(i, j) = sum(X_centered(_,i) * X_centered(_,j)) *
-        inv_sqrt_ss(i) * inv_sqrt_ss(j);
+      out(i, j) = sum(X_centered(_,i) * X_centered(_,j)) * inv_sqrt_ss(i) * inv_sqrt_ss(j);
       out(j, i) = out(i, j);
     }
   }
@@ -370,11 +369,7 @@ dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, 
     stop("i, j, and X must be the same length.");
   }
   CHECK_MATRIX_DIMS(out, nfeats, nfeats);
-  for (int row_idx = 0; row_idx < nfeats; ++row_idx) {
-    for (int col_idx = 0; col_idx < nfeats; ++col_idx) {
-      out(row_idx, col_idx) = 0.0;
-    }
-  }
+  std::memset( REAL(out), 0, sizeof(double) * out.size() );
   for (int counter = 0; counter < ni; counter++){
     out(i[counter]-1, j[counter]-1) = X[counter];
     out(j[counter]-1, i[counter]-1) = X[counter];

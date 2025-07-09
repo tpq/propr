@@ -15,7 +15,7 @@ propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 	int counter = 0;
 	double n    = 0;
 	for(int i = 1; i < nfeats; i++){
-		for(int j = 0; j < i; j++){
+		for(int j = 0; j < nfeats; j++){
 			Wij = W(_, i) * W(_, j);
 			n = sum(Wij);
 			out(counter) = n - sum(pow(Wij, 2)) / n;

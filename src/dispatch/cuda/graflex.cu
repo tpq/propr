@@ -26,8 +26,8 @@ dispatch::cuda::getOR(NumericVector& out,
 
     const int n = A.ncol();
 
-    int a_stride; unsigned char* d_A; d_A = RcppMatrixToDevice<unsigned char,INTSXP, false>(A, a_stride,1);
-    int g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char,INTSXP, false>(G, g_stride,1);
+    offset_t a_stride; unsigned char* d_A; d_A = RcppMatrixToDevice<unsigned char,INTSXP, false>(A, a_stride,1);
+    offset_t g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char,INTSXP, false>(G, g_stride,1);
 
     const int numPairs      = (n * (n - 1)) / 2;
     const int blockSize     = 1024;
@@ -93,12 +93,12 @@ dispatch::cuda::getOR(NumericVector& out,
 
 void
 dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm, propr::propr_context context) {
-        using scan_tile_state_t = cub::ScanTileState<uint4>;
-
+    using scan_tile_state_t = cub::ScanTileState<uint4>;
+    //TODO: donot forget to consider the number of elements per thread
     const int n = A.ncol();
 
-    int a_stride; unsigned char* d_A; d_A = RcppMatrixPermToDevice<unsigned char, INTSXP, false>(A, perm,a_stride,1);
-    int g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char, INTSXP, false>(G, g_stride,1);
+    offset_t a_stride; unsigned char* d_A; d_A = RcppMatrixPermToDevice<unsigned char, INTSXP, false>(A, perm,a_stride,1);
+    offset_t g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char, INTSXP, false>(G, g_stride,1);
 
     const int numPairs      = (n * (n - 1)) / 2;
     const int blockSize     = 1024;

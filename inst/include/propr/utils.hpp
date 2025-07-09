@@ -57,6 +57,7 @@
   } while (0)
 
 
+
 static void checkCublas(cublasStatus_t st, const char* msg) {
     if (st != CUBLAS_STATUS_SUCCESS) {
         fprintf(stderr, "[cuBLAS ERROR] %s\n", msg);
@@ -71,99 +72,128 @@ inline void check_alignment(const void* ptr, int alignment) {
     }
 }
 
+
+using offset_t = std::size_t; 
+
 template <typename OutT, int RTYPE, const bool RowMajor=false>
 inline OutT* RcppMatrixToDevice(
     const Rcpp::Matrix<RTYPE>& mat,
-    int& memory_stride,
+    offset_t& memory_stride,
     int alignment = 16
 ) {
-    const int nrows = mat.nrow();
-    const int ncols = mat.ncol();
+    const offset_t nrows = mat.nrow();
+    const offset_t ncols = mat.ncol();
 
     constexpr bool ColMajor = !RowMajor;
-    const int slow_orig = ColMajor ? nrows : ncols;
-    const int fast_orig = ColMajor ? ncols : nrows;
+    const offset_t slow_orig = ColMajor ? nrows : ncols;
+    const offset_t fast_orig = ColMajor ? ncols : nrows;
 
-    const int slow_padded = ((slow_orig + alignment - 1) / alignment) * alignment;
-    const size_t total_elems = size_t(slow_padded) * fast_orig;
-    const size_t total_bytes = total_elems * sizeof(OutT);
+    const offset_t slow_padded = ((slow_orig + alignment - 1) / alignment) * alignment;
+    const offset_t total_elems = slow_padded * fast_orig;
+    const size_t  total_bytes = total_elems * sizeof(OutT);
 
     OutT* d_ptr = nullptr;
     CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
     CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
 
-    std::vector<OutT> h_buf(total_elems, OutT(0));
+    OutT* h_buf = static_cast<OutT*>(std::malloc(total_bytes));
+    if (!h_buf) throw std::bad_alloc();
+    std::memset(h_buf, 0, total_bytes);
+
     if constexpr (ColMajor) {
-        for (int j = 0; j < ncols; ++j)
-            for (int i = 0; i < nrows; ++i)
-                h_buf[i + j * slow_padded] = static_cast<OutT>(mat(i, j));
+        for (offset_t j = 0; j < ncols; ++j) {
+            for (offset_t i = 0; i < nrows; ++i) {
+                const offset_t idx = i + j * slow_padded;
+                h_buf[idx] = static_cast<OutT>(mat(i, j));
+            }
+        }
     } else {
-        for (int i = 0; i < nrows; ++i)
-            for (int j = 0; j < ncols; ++j)
-                h_buf[j + i * slow_padded] = static_cast<OutT>(mat(i, j));
+        for (offset_t i = 0; i < nrows; ++i) {
+            for (offset_t j = 0; j < ncols; ++j) {
+                const offset_t idx = j + i * slow_padded;
+                h_buf[idx] = static_cast<OutT>(mat(i, j));
+            }
+        }
     }
 
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf.data(), total_bytes, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
+    std::free(h_buf);
+
     memory_stride = slow_padded;
     check_alignment(d_ptr, alignment);
     return d_ptr;
 }
-
 
 
 template <typename OutT, int RTYPE, const bool RowMajor=false>
 inline OutT* RcppMatrixPermToDevice(
     const Rcpp::Matrix<RTYPE>& mat,
     const Rcpp::IntegerVector& perm,
-    int& memory_stride,
+    offset_t& memory_stride,
     int alignment = 16
 ) {
-    const int nrows = mat.nrow();
-    const int ncols = mat.ncol();
+    const offset_t nrows = mat.nrow();
+    const offset_t ncols = mat.ncol();
 
     constexpr bool ColMajor = !RowMajor;
-    const int slow_orig = ColMajor ? nrows : ncols;
-    const int fast_orig = ColMajor ? ncols : nrows;
+    const offset_t slow_orig = ColMajor ? nrows : ncols;
+    const offset_t fast_orig = ColMajor ? ncols : nrows;
 
-    const int slow_padded = ((slow_orig + alignment - 1) / alignment) * alignment;
-    const size_t total_elems = size_t(slow_padded) * fast_orig;
-    const size_t total_bytes = total_elems * sizeof(OutT);
+    const offset_t slow_padded =
+        ((slow_orig + alignment - 1) / alignment) * alignment;
+    const offset_t total_elems = slow_padded * fast_orig;
+    const size_t  total_bytes = total_elems * sizeof(OutT);
 
     OutT* d_ptr = nullptr;
     CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
     CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
 
-    std::vector<OutT> h_buf(total_elems, OutT(0));
+    OutT* h_buf = static_cast<OutT*>(std::malloc(total_bytes));
+    if (!h_buf) throw std::bad_alloc();
+    std::memset(h_buf, 0, total_bytes);
+
     if constexpr (ColMajor) {
-        for (int j = 0; j < ncols; ++j)
-            for (int i = 0; i < nrows; ++i)
-                h_buf[i + j * slow_padded] = static_cast<OutT>(mat(perm[i], perm[j]));
+        for (offset_t j = 0; j < ncols; ++j) {
+            for (offset_t i = 0; i < nrows; ++i) {
+                const offset_t idx = i + j * slow_padded;
+                h_buf[idx] = static_cast<OutT>(mat(perm[i], perm[j]));
+            }
+        }
     } else {
-        for (int i = 0; i < nrows; ++i)
-            for (int j = 0; j < ncols; ++j)
-                h_buf[j + i * slow_padded] = static_cast<OutT>(mat(perm[i], perm[j]));
+        for (offset_t i = 0; i < nrows; ++i) {
+            for (offset_t j = 0; j < ncols; ++j) {
+                const offset_t idx = j + i * slow_padded;
+                h_buf[idx] = static_cast<OutT>(mat(perm[i], perm[j]));
+            }
+        }
     }
 
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf.data(), total_bytes, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
+    std::free(h_buf);
+
     memory_stride = slow_padded;
     check_alignment(d_ptr, alignment);
     return d_ptr;
 }
 
 
-
 template<typename T, int RTYPE>
-void copyToNumericVector(const T* d_src, Rcpp::Vector<RTYPE>& h_dest, int size) {
-    std::vector<T> h_temp(size);
-    CUDA_CHECK(cudaMemcpy(
-        h_temp.data(), d_src,
-        size * sizeof(T),
-        cudaMemcpyDeviceToHost
-    ));
-    for (int i = 0; i < size; ++i) {
+void copyToNumericVector(
+    const T* d_src,
+    Rcpp::Vector<RTYPE>& h_dest,
+    offset_t size
+) {
+    const size_t bytes = size * sizeof(T);
+    T* h_temp = static_cast<T*>(std::malloc(bytes));
+    if (!h_temp) throw std::bad_alloc();
+
+    CUDA_CHECK(cudaMemcpy(h_temp, d_src, bytes, cudaMemcpyDeviceToHost));
+    for (offset_t i = 0; i < size; ++i) {
         h_dest[i] = static_cast<double>(h_temp[i]);
     }
+    std::free(h_temp);
 }
+
 
 template<typename T, int RTYPE>
 T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, int size) {

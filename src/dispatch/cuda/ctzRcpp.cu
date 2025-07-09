@@ -17,7 +17,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     CHECK_VECTOR_SIZE(out, llt);
 
     float* d_X;
-    int X_stride;
+    offset_t X_stride;
     d_X = RcppMatrixToDevice<float>(X, X_stride);
 
     int* d_zeroes;

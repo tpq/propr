@@ -40,6 +40,7 @@ dispatch::cpu::lr2phi(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   NumericMatrix mat_tmp(nfeats, nfeats);
   dispatch::cpu::lr2vlr(mat_tmp, x_copy);
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
           out(i, j) = mat_tmp(i, j);

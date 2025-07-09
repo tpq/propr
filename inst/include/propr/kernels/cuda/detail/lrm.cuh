@@ -9,7 +9,7 @@ namespace propr {
 
             __global__
             void
-            lrm_basic(float* __restrict__ d_Y, int d_Y_stride,
+            lrm_basic(float* __restrict__ d_Y, offset_t d_Y_stride,
                       float* __restrict__ d_mean,
                       int nb_samples,
                       int nb_genes) {
@@ -46,8 +46,8 @@ namespace propr {
 
             __global__
             void
-            lrm_weighted(float* __restrict__ d_Y, int d_Y_stride,
-                         float* __restrict__ d_W, int d_W_stride,
+            lrm_weighted(float* __restrict__ d_Y, offset_t d_Y_stride,
+                         float* __restrict__ d_W, offset_t d_W_stride,
                          float* __restrict__ d_mean,
                          int nb_samples,
                          int nb_genes) {
@@ -107,8 +107,8 @@ namespace propr {
 
             __global__
             void
-            lrm_alpha(float* __restrict__     d_Y, int d_Y_stride,
-                      float* __restrict__ d_Yfull, int d_Yfull_stride,
+            lrm_alpha(float* __restrict__     d_Y, offset_t d_Y_stride,
+                      float* __restrict__ d_Yfull, offset_t d_Yfull_stride,
                       int N1, int NT,
                       float a,
                       float* __restrict__ d_means,
@@ -195,10 +195,10 @@ namespace propr {
 
             __global__
             void
-            lrm_alpha_weighted( float* __restrict__ d_Y    , int Y_stride,
-                                float* __restrict__ d_Yfull, int Yfull_stride,
-                                float* __restrict__ d_W    , int W_stride,
-                                float* __restrict__ d_Wfull, int Wfull_stride,
+            lrm_alpha_weighted( float* __restrict__ d_Y    , offset_t Y_stride,
+                                float* __restrict__ d_Yfull, offset_t Yfull_stride,
+                                float* __restrict__ d_W    , offset_t W_stride,
+                                float* __restrict__ d_Wfull, offset_t Wfull_stride,
                                 int N1, int NT,
                                 float a,
                                 float* __restrict__ d_means,

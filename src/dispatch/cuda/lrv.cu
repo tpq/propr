@@ -22,7 +22,7 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y;
-    int stride; d_Y = RcppMatrixToDevice<float>(Y, stride);
+    offset_t stride; d_Y = RcppMatrixToDevice<float>(Y, stride);
     float* d_variances;
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
@@ -51,8 +51,8 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y, * d_W;
-    int Y_stride; d_Y = RcppMatrixToDevice<float>(Y, Y_stride);
-    int W_stride; d_W = RcppMatrixToDevice<float>(W, W_stride);
+    offset_t Y_stride; d_Y = RcppMatrixToDevice<float>(Y, Y_stride);
+    offset_t W_stride; d_W = RcppMatrixToDevice<float>(W, W_stride);
 
     float* d_variances;
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
@@ -88,8 +88,8 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     float* d_Y;
     float* d_Yfull;
 
-    int Y_stride    ; d_Y     = RcppMatrixToDevice<float>(Y,         Y_stride);
-    int Yfull_stride; d_Yfull = RcppMatrixToDevice<float>(Yfull, Yfull_stride);
+    offset_t Y_stride    ; d_Y     = RcppMatrixToDevice<float>(Y,         Y_stride);
+    offset_t Yfull_stride; d_Yfull = RcppMatrixToDevice<float>(Yfull, Yfull_stride);
 
     float* d_variances;
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
@@ -125,10 +125,10 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y,* d_W,* d_Yfull,* d_Wfull;
-    int Y_stride    ; d_Y     = RcppMatrixToDevice<float>(Y    , Y_stride    );
-    int W_stride    ; d_W     = RcppMatrixToDevice<float>(W    , W_stride    );
-    int Yfull_stride; d_Yfull = RcppMatrixToDevice<float>(Yfull, Yfull_stride);
-    int Wfull_stride; d_Wfull = RcppMatrixToDevice<float>(Wfull, Wfull_stride);
+    offset_t Y_stride    ; d_Y     = RcppMatrixToDevice<float>(Y    , Y_stride    );
+    offset_t W_stride    ; d_W     = RcppMatrixToDevice<float>(W    , W_stride    );
+    offset_t Yfull_stride; d_Yfull = RcppMatrixToDevice<float>(Yfull, Yfull_stride);
+    offset_t Wfull_stride; d_Wfull = RcppMatrixToDevice<float>(Wfull, Wfull_stride);
 
     float* d_variances;
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));

@@ -1,12 +1,13 @@
 #pragma once
 #include <cuda_runtime.h>
+#include <propr/utils.hpp>
 
 namespace propr{
     namespace detail {
         namespace cuda {
             __global__
             void
-            lrv_basic(float* __restrict__ d_Y, int stride,
+            lrv_basic(float* __restrict__ d_Y, offset_t stride,
                       float* __restrict__ d_variances,
                       int nb_samples, int nb_genes) {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -55,8 +56,8 @@ namespace propr{
 
             __global__
             void
-            lrv_weighted(float* __restrict__ d_Y, int Y_stride,
-                         float* __restrict__ d_W, int W_stride,
+            lrv_weighted(float* __restrict__ d_Y, offset_t Y_stride,
+                         float* __restrict__ d_W, offset_t W_stride,
                          float* __restrict__ d_variances, 
                          int nb_samples, int nb_genes) {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -134,8 +135,8 @@ namespace propr{
 
             __global__
             void
-            lrv_alpha(float* __restrict__ d_Y    , int Y_stride,
-                      float* __restrict__ d_Yfull, int Yfull_stride, 
+            lrv_alpha(float* __restrict__ d_Y    , offset_t Y_stride,
+                      float* __restrict__ d_Yfull, offset_t Yfull_stride, 
                       float a,
                       float* __restrict__ d_variances,
                       int nb_samples, int nb_genes) {
@@ -247,10 +248,10 @@ namespace propr{
 
             __global__
             void
-            lrv_alpha_weighted(float* __restrict__ d_Y    , int Y_stride,
-                               float* __restrict__ d_Yfull, int Yfull_stride,
-                               float* __restrict__ d_W    , int W_stride,
-                               float* __restrict__ d_Wfull, int Wfull_stride, 
+            lrv_alpha_weighted(float* __restrict__ d_Y    , offset_t Y_stride,
+                               float* __restrict__ d_Yfull, offset_t Yfull_stride,
+                               float* __restrict__ d_W    , offset_t W_stride,
+                               float* __restrict__ d_Wfull, offset_t Wfull_stride, 
                                float a,
                                float* __restrict__ d_variances,
                                int nb_samples, int nb_genes) {
