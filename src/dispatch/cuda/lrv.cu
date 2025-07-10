@@ -3,7 +3,9 @@
 #include <stdio.h>
 
 #include <propr/context.h>
-#include <propr/utils.hpp>
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/rcpp_cuda.cuh>
+
 
 #include <propr/kernels/cuda/detail/lrv.cuh>
 #include <propr/kernels/cuda/dispatch/lrv.cuh>

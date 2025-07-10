@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 #include <math.h>
 #include <propr/kernels/cpu/dispatch/backend.hpp>
-#include <propr/utils.hpp>
+#include <propr/utils/rcpp_checks.h>
 
 using namespace Rcpp;
 using namespace propr;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
-#include <propr/utils.hpp>
+#include <propr/data/types.h>
 
 namespace propr {
     namespace detail {

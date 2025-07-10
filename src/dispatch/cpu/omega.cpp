@@ -1,8 +1,8 @@
 #include <Rcpp.h>
 #include <numeric>
 
+#include <propr/utils/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/omega.hpp>
-#include <propr/utils.hpp>
 
 using namespace Rcpp;
 

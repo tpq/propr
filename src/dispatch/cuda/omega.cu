@@ -1,5 +1,7 @@
 #include <Rcpp.h>
-#include <propr/utils.hpp>
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/cuda_checks.h>
+
 #include <propr/context.h>
 #include <propr/kernels/cuda/dispatch/omega.cuh>
 

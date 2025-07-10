@@ -1,6 +1,7 @@
 #include <Rcpp.h>
+
+#include <propr/utils/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/ctzRcpp.hpp>
-#include <propr/utils.hpp>
 
 
 using namespace Rcpp;

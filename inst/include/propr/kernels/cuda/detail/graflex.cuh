@@ -1,11 +1,11 @@
 #pragma once
 
 #include <cuda_runtime.h>
-#include <cub/device/device_scan.cuh>
-#include <cooperative_groups.h>
-#include <propr/utils.hpp>
-#include <propr/kernels/cuda/detail/utils.hpp>
 
+#include <cub/device/device_scan.cuh>
+
+#include <propr/data/types.h>
+#include <propr/utils/constants.h>
 
 namespace propr {
     namespace detail {
@@ -23,6 +23,7 @@ namespace propr {
                 tile_state.InitializeStatus(blocks_in_grid);
             }
 
+            template <int BLOCK_THREADS>
             __global__ void
             compute_odd_ratio(cub::ScanTileState<uint4> tile_state,
                             unsigned char* __restrict__ A, offset_t a_stride,
@@ -33,7 +34,7 @@ namespace propr {
                 using tile_prefix_op        = cub::TilePrefixCallbackOp<uint4, scan_op_t, cub::ScanTileState<uint4>>;
                 using device_scan_storage_t = typename tile_prefix_op::TempStorage;
 
-                using block_reduce_t        = cub::BlockReduce<uint4, 1024>;
+                using block_reduce_t        = cub::BlockReduce<uint4, BLOCK_THREADS>;
                 using block_scan_storage_t  = typename block_reduce_t::TempStorage;
                 
                 __shared__ block_scan_storage_t  block_partials;
@@ -93,7 +94,6 @@ namespace propr {
                 } else {
                     if (tid == 0) *acc = blk_acc;
                 }
-
             }
         }
     }

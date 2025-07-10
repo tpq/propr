@@ -1,7 +1,11 @@
 #include <Rcpp.h>
-#include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
-#include <propr/utils.hpp>
 
+#include <propr/data/types.h>
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/cuda_checks.h>
+#include <propr/utils/rcpp_cuda.cuh>
+
+#include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
 #include <propr/kernels/cuda/detail/ctz.cuh>
 
 using namespace Rcpp;
@@ -16,9 +20,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     int llt    = nfeats * (nfeats - 1) / 2;
     CHECK_VECTOR_SIZE(out, llt);
 
-    float* d_X;
-    offset_t X_stride;
-    d_X = RcppMatrixToDevice<float>(X, X_stride);
+    offset_t X_stride; float* d_X = RcppMatrixToDevice<float>(X, X_stride);
 
     int* d_zeroes;
     CUDA_CHECK(cudaMalloc(&d_zeroes, nfeats * sizeof(int)));

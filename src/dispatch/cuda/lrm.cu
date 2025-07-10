@@ -1,7 +1,11 @@
 #include <Rcpp.h>
 #include <cuda_runtime.h>
 #include <propr/interface/backend.hpp>
-#include <propr/utils.hpp>
+
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/cuda_checks.h>
+#include <propr/utils/rcpp_cuda.cuh>
+
 #include <propr/kernels/cuda/dispatch/lrm.cuh>
 #include <propr/kernels/cuda/detail/lrm.cuh>
 
@@ -14,8 +18,7 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y;
-    offset_t stride;
-    d_Y = RcppMatrixToDevice<float>(Y, stride);
+    offset_t stride; d_Y = RcppMatrixToDevice<float>(Y, stride);
 
     float* d_mean;
     CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
@@ -44,13 +47,9 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     int N_pairs = N_genes * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
-    float* d_Y;
-    offset_t stride_Y;
-    d_Y = RcppMatrixToDevice<float>(Y, stride_Y);
-
-    float* d_W;
-    offset_t stride_W;
-    d_W = RcppMatrixToDevice<float>(W, stride_W);
+    
+    offset_t stride_Y; float* d_Y = RcppMatrixToDevice<float>(Y, stride_Y);
+    offset_t stride_W; float* d_W = RcppMatrixToDevice<float>(W, stride_W);
 
 
     float* d_mean;

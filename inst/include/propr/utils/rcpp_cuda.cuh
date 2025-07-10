@@ -1,79 +1,13 @@
-#pragma once
-
-#include <cublas_v2.h> 
-#include <cuda_runtime.h>
-#include <vector>
 #include <Rcpp.h>
+#include <propr/data/types.h>
+#include <propr/utils/cuda_checks.h>
 
-#define IS_POWER_OF_2(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))
-
-// __constant__ const float FLT_MAX = 3.402823466e+38f;
-// __constant__ const float FLT_MIN = 1.175494351e-38f;
-
-
-#define CHECK_MATRIX_DIMS(mat, expected_rows, expected_cols) \
-    if (mat.nrow() != expected_rows || mat.ncol() != expected_cols) { \
-        Rcpp::stop("Error: Output matrix dimensions do not match expected dimensions."); \
-    }
-
-#define CHECK_VECTOR_SIZE(vec, expected_size) \
-    if (vec.length() != expected_size) { \
-        Rcpp::stop("Error: Output vector size does not match expected size."); \
-    }
-
-
-#define CUDA_CHECK(call) \
-    do { \
-        cudaError_t err = call; \
-        if (err != cudaSuccess) { \
-            fprintf(stderr, "CUDA error at %s:%d - %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
-            exit(EXIT_FAILURE); \
-        } \
-    } while (0)
-
-
-#define CUBLAS_CHECK(call)                                                                        \
-  do {                                                                                            \
-    cublasStatus_t status = (call);                                                               \
-    if (status != CUBLAS_STATUS_SUCCESS) {                                                        \
-      std::string error_msg;                                                                      \
-      switch (status) {                                                                           \
-        case CUBLAS_STATUS_SUCCESS:          error_msg = "CUBLAS_STATUS_SUCCESS"; break;          \
-        case CUBLAS_STATUS_NOT_INITIALIZED:  error_msg = "CUBLAS_STATUS_NOT_INITIALIZED"; break;  \
-        case CUBLAS_STATUS_ALLOC_FAILED:     error_msg = "CUBLAS_STATUS_ALLOC_FAILED"; break;     \
-        case CUBLAS_STATUS_INVALID_VALUE:    error_msg = "CUBLAS_STATUS_INVALID_VALUE"; break;    \
-        case CUBLAS_STATUS_ARCH_MISMATCH:    error_msg = "CUBLAS_STATUS_ARCH_MISMATCH"; break;    \
-        case CUBLAS_STATUS_MAPPING_ERROR:    error_msg = "CUBLAS_STATUS_MAPPING_ERROR"; break;    \
-        case CUBLAS_STATUS_EXECUTION_FAILED: error_msg = "CUBLAS_STATUS_EXECUTION_FAILED"; break; \
-        case CUBLAS_STATUS_INTERNAL_ERROR:   error_msg = "CUBLAS_STATUS_INTERNAL_ERROR"; break;   \
-        case CUBLAS_STATUS_NOT_SUPPORTED:    error_msg = "CUBLAS_STATUS_NOT_SUPPORTED"; break;    \
-        case CUBLAS_STATUS_LICENSE_ERROR:    error_msg = "CUBLAS_STATUS_LICENSE_ERROR"; break;    \
-        default:                             error_msg = "Unknown cuBLAS error"; break;           \
-      }                                                                                           \
-      std::cerr << "cuBLAS error at " << __FILE__ << ":" << __LINE__ << ": "                      \
-                << error_msg << " (" << status << ")" << std::endl;                               \
-      std::exit(EXIT_FAILURE);                                                                    \
-    }                                                                                             \
-  } while (0)
-
-
-
-static void checkCublas(cublasStatus_t st, const char* msg) {
-    if (st != CUBLAS_STATUS_SUCCESS) {
-        fprintf(stderr, "[cuBLAS ERROR] %s\n", msg);
-        exit(-1);
-    }
-}
 
 inline void check_alignment(const void* ptr, int alignment) {
     if ((uintptr_t)ptr % (alignment * sizeof(float)) != 0) {
-        printf("ERROR: Misaligned access at %p, required alignment: %d bytes\n", 
-               ptr, alignment * (int)sizeof(float));
+        printf("ERROR: Misaligned access at %p, required alignment: %d bytes\n",  ptr, alignment * (int)sizeof(float));
     }
 }
-
-
-using offset_t = std::size_t; 
 
 template <typename OutT, int RTYPE, const bool RowMajor=false>
 inline OutT* RcppMatrixToDevice(

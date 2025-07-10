@@ -5,7 +5,8 @@
 #include <thrust/execution_policy.h>
 
 #include <propr/context.h>
-#include <propr/utils.hpp>
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/cuda_checks.h>
 #include <propr/kernels/cuda/dispatch/comparison.cuh>
 
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <cub/cub.cuh>
 #include <cuda_runtime.h>
-#include <device_launch_parameters.h>
-#include <propr/utils.hpp>
-#include <propr/kernels/cuda/detail/utils.hpp>
-#include <cub/cub.cuh> 
+
+#include <propr/utils/constants.h>
+
 
 
 namespace propr {

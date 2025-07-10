@@ -3,11 +3,15 @@
 #include <cub/device/device_scan.cuh>
 
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 #include <thrust/execution_policy.h>
 #include <thrust/transform_reduce.h>
-#include <thrust/device_vector.h>
 
-#include <propr/utils.hpp>
+#include <propr/data/types.h>
+#include <propr/utils/cuda_checks.h>
+#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/rcpp_cuda.cuh>
+
 #include <propr/kernels/cuda/detail/graflex.cuh>
 #include <propr/kernels/cuda/dispatch/graflex.cuh>
 
@@ -22,6 +26,9 @@ dispatch::cuda::getOR(NumericVector& out,
                       const IntegerMatrix& G, 
                       propr::propr_context context) {
 
+    constexpr int MAX_PAIRS = std::numeric_limits<std::int32_t>::max();
+    const int blockSize     = 1024;
+
     using scan_tile_state_t = cub::ScanTileState<uint4>;
 
     const int n = A.ncol();
@@ -29,8 +36,10 @@ dispatch::cuda::getOR(NumericVector& out,
     offset_t a_stride; unsigned char* d_A; d_A = RcppMatrixToDevice<unsigned char,INTSXP, false>(A, a_stride,1);
     offset_t g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char,INTSXP, false>(G, g_stride,1);
 
-    const int numPairs      = (n * (n - 1)) / 2;
-    const int blockSize     = 1024;
+    const std::int64_t Nmax = static_cast<std::int64_t>(std::floor(std::sqrt(2.0 * MAX_PAIRS)));
+    const std::int32_t k = (n + Nmax - 1) / Nmax; // elements per thread
+
+    const int numPairs      = int32_t(((int64_t(n) * (n - 1)) / 2) / k);
     const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
     const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
         
@@ -57,7 +66,7 @@ dispatch::cuda::getOR(NumericVector& out,
     CUDA_CHECK(cudaDeviceSynchronize());
     CUDA_CHECK(cudaGetLastError());
     
-    detail::cuda::compute_odd_ratio<<<numBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
         tile_state,
         d_A, a_stride,
         d_G, g_stride,
@@ -93,6 +102,9 @@ dispatch::cuda::getOR(NumericVector& out,
 
 void
 dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm, propr::propr_context context) {
+    constexpr int MAX_PAIRS = std::numeric_limits<std::int32_t>::max();
+    const int blockSize     = 1024;
+
     using scan_tile_state_t = cub::ScanTileState<uint4>;
     //TODO: donot forget to consider the number of elements per thread
     const int n = A.ncol();
@@ -100,8 +112,11 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     offset_t a_stride; unsigned char* d_A; d_A = RcppMatrixPermToDevice<unsigned char, INTSXP, false>(A, perm,a_stride,1);
     offset_t g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char, INTSXP, false>(G, g_stride,1);
 
-    const int numPairs      = (n * (n - 1)) / 2;
-    const int blockSize     = 1024;
+    
+    const std::int64_t Nmax = static_cast<std::int64_t>(std::floor(std::sqrt(2.0 * MAX_PAIRS)));
+    const std::int32_t k = (n + Nmax - 1) / Nmax; // elements per thread
+
+    const int numPairs      = int32_t(((int64_t(n) * (n - 1)) / 2) / k);
     const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
     const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
         
@@ -128,7 +143,7 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     CUDA_CHECK(cudaDeviceSynchronize());
     CUDA_CHECK(cudaGetLastError());
     
-    detail::cuda::compute_odd_ratio<<<numBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
         tile_state,
         d_A, a_stride,
         d_G, g_stride,

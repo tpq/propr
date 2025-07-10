@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 #include <propr/kernels/cpu/dispatch/graflex.hpp>
-#include <propr/utils.hpp>
+#include <propr/utils/rcpp_checks.h>
 
 using namespace Rcpp;
 using namespace propr;

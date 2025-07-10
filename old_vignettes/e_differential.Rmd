@@ -45,7 +45,7 @@ Below, we run `propd` using the `iris` dataset.
 ```{r, message = FALSE}
 library(propr)
 data(iris)
-keep <- iris$Species %in% c("setosa", "versicolor")
+keep   <- iris$Species %in% c("setosa", "versicolor")
 counts <- iris[keep, 1:4] * 10
 group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
 pd <- propd(counts, group, alpha = NA, p = 100)
