@@ -16,7 +16,6 @@
 #include <propr/kernels/cuda/dispatch/graflex.cuh>
 
 
-
 using namespace Rcpp;
 using namespace propr;
 
@@ -109,8 +108,8 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     //TODO: donot forget to consider the number of elements per thread
     const int n = A.ncol();
 
-    offset_t a_stride; unsigned char* d_A; d_A = RcppMatrixPermToDevice<unsigned char, INTSXP, false>(A, perm,a_stride,1);
-    offset_t g_stride; unsigned char* d_G; d_G = RcppMatrixToDevice<unsigned char, INTSXP, false>(G, g_stride,1);
+    offset_t a_stride; unsigned char* d_A = RcppMatrixPermToDevice<unsigned char, INTSXP, false>(A, perm,a_stride,1);
+    offset_t g_stride; unsigned char* d_G = RcppMatrixToDevice<unsigned char, INTSXP, false>(G, g_stride,1);
 
     
     const std::int64_t Nmax = static_cast<std::int64_t>(std::floor(std::sqrt(2.0 * MAX_PAIRS)));

@@ -20,7 +20,7 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
                           propr_context context) {
     int N_samples = Y.nrow();
     int N_genes   = Y.ncol();
-    int N_pairs = N_genes * (N_genes - 1) / 2;
+    size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y;
@@ -49,7 +49,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
                              propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
-    int N_pairs = N_genes * (N_genes - 1) / 2;
+    size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y, * d_W;
@@ -84,7 +84,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
                                propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
-    int N_pairs = N_genes * (N_genes - 1) / 2;
+    size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y;
@@ -124,7 +124,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
                                    propr_context context) {
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
-    int N_pairs = N_genes * (N_genes - 1) / 2;
+    size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y,* d_W,* d_Yfull,* d_Wfull;
     offset_t Y_stride    ; d_Y     = RcppMatrixToDevice<float>(Y    , Y_stride    );

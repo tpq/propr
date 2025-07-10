@@ -115,7 +115,7 @@ template<typename T, int RTYPE>
 void copyToNumericVector(
     const T* d_src,
     Rcpp::Vector<RTYPE>& h_dest,
-    offset_t size
+    size_t size
 ) {
     const size_t bytes = size * sizeof(T);
     T* h_temp = static_cast<T*>(std::malloc(bytes));
@@ -130,7 +130,7 @@ void copyToNumericVector(
 
 
 template<typename T, int RTYPE>
-T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, int size) {
+T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, size_t size) {
     using SrcType = typename Rcpp::traits::storage_type<RTYPE>::type;
     
     T* d_ptr     = nullptr;
