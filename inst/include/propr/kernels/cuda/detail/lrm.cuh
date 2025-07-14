@@ -103,16 +103,16 @@ namespace propr {
                 
             }
 
-
             __global__
             void
-            lrm_alpha(float* __restrict__     d_Y, offset_t d_Y_stride,
-                      float* __restrict__ d_Yfull, offset_t d_Yfull_stride,
-                      int N1, int NT,
-                      float a,
-                      float* __restrict__ d_means,
-                      int nb_samples,
-                      int nb_genes) {
+            lrm_alpha(float* __restrict__     d_Y,         size_t d_Y_stride,
+                    float* __restrict__     d_Yfull,     size_t d_Yfull_stride,
+                    int                      N1,
+                    int                      NT,
+                    float                    a,
+                    float* __restrict__     d_means,
+                    int                      nb_samples,
+                    int                      nb_genes) {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i >= nb_genes || j >= i) return;
@@ -121,74 +121,63 @@ namespace propr {
                 float S_i = 0.0f, S_j = 0.0f;
 
                 float T = 0.0f, D = 0.0f;
-                int n, N, k;
+                int n = 0, N = 0, k = 0;
 
-                k = 0; N = 0;
+                // --- full-group running means + T sum ---
                 #pragma unroll
-                for (; k < (NT/4) * 4; k += 4) {
+                for (; k + 3 < NT; k += 4) {
                     float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * d_Yfull_stride]);
                     float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * d_Yfull_stride]);
-
                     #pragma unroll
                     for (int m = 0; m < 4; ++m) {
                         float inv_N    = __frcp_rn(static_cast<float>(++N));
                         float X_full_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
                         float X_full_j = __powf(reinterpret_cast<float*>(&yfull_j)[m], a);
-                        float delta_mu_i = X_full_i - mu_full_i;
-                        float delta_mu_j = X_full_j - mu_full_j;
-                        mu_full_i = __fmaf_rn(delta_mu_i, inv_N,mu_full_i);
-                        mu_full_j = __fmaf_rn(delta_mu_j, inv_N,mu_full_j);
-                        T  = T + X_full_i - X_full_j;
+                        mu_full_i = __fmaf_rn(X_full_i - mu_full_i, inv_N, mu_full_i);
+                        mu_full_j = __fmaf_rn(X_full_j - mu_full_j, inv_N, mu_full_j);
+                        T += (X_full_i - X_full_j);
                     }
                 }
-
                 for (; k < NT; ++k) {
-                    float yfull_i = d_Yfull[k + i * d_Yfull_stride];
-                    float yfull_j = d_Yfull[k + j * d_Yfull_stride];
                     float inv_N    = __frcp_rn(static_cast<float>(++N));
-                    float X_full_i = __powf(yfull_i, a);
-                    float X_full_j = __powf(yfull_j, a);
-                    float delta_mu_i = X_full_i - mu_full_i;
-                    float delta_mu_j = X_full_j - mu_full_j;
-                    mu_full_i =__fmaf_rn(delta_mu_i, inv_N,mu_full_i);
-                    mu_full_j =__fmaf_rn(delta_mu_j, inv_N,mu_full_j);
-                    T  = T + (X_full_i - X_full_j);
-                } T *= NT;
-                
-                k = 0; n = 0;
+                    float X_full_i = __powf(d_Yfull[k + i * d_Yfull_stride], a);
+                    float X_full_j = __powf(d_Yfull[k + j * d_Yfull_stride], a);
+                    mu_full_i = __fmaf_rn(X_full_i - mu_full_i, inv_N, mu_full_i);
+                    mu_full_j = __fmaf_rn(X_full_j - mu_full_j, inv_N, mu_full_j);
+                    T += (X_full_i - X_full_j);
+                }
+
+                k = 0;
                 #pragma unroll
-                for (; k < (N1/4) * 4; k += 4) {
+                for (; k + 3 < N1; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
-
                     #pragma unroll
                     for (int m = 0; m < 4; ++m) {
-                        float X_i   = __powf(reinterpret_cast<float*>(&y_i)[m], a);
-                        float X_j   = __powf(reinterpret_cast<float*>(&y_j)[m], a);
-                        S_i = S_i + X_i; 
-                        S_j = S_j + X_j;
-                        D += (X_i - X_j);
+                        float X_i = __powf(reinterpret_cast<float*>(&y_i)[m], a);
+                        float X_j = __powf(reinterpret_cast<float*>(&y_j)[m], a);
+                        S_i += X_i; 
+                        S_j += X_j;
+                        D   += (X_i - X_j);
                     }
                 }
-
                 for (; k < N1; ++k) {
-                    float y_i   = d_Y[k + i * d_Y_stride];
-                    float y_j   = d_Y[k + j * d_Y_stride];
-                    float X_i   = __powf(y_i, a);
-                    float X_j   = __powf(y_j, a);
-                    S_i = S_i + X_i; S_j = S_j + X_j;
-                    D += (X_i - X_j);
+                    float X_i = __powf(d_Y[k + i * d_Y_stride], a);
+                    float X_j = __powf(d_Y[k + j * d_Y_stride], a);
+                    S_i += X_i; 
+                    S_j += X_j;
+                    D   += (X_i - X_j);
                 }
 
-
-                float complement_term = float((N1 < NT)) * (T - D) / (NT - n);
-                float C_z = D / n + complement_term;
-                float M_z = (S_i / (N1 * mu_full_i)) - (S_j / (N1 * mu_full_j));
+                // --- final combination using n == N1 ---
+                float complement_term = float((N1 < NT)) * (T - D) / (NT - N1);
+                float C_z = D / float(N1) + complement_term;
+                float M_z = (S_i/mu_full_i - S_j/mu_full_j) / float(N1)
 
                 int pair_index = (i * (i - 1)) / 2 + j;
-                d_means[pair_index] =  ( (C_z / 2) + M_z ) / a;
-
+                d_means[pair_index] = ((C_z / 2) + M_z) / a;
             }
+
 
 
 
