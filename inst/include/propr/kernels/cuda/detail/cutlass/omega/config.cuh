@@ -1,0 +1,68 @@
+#pragma once
+#include <cute/tensor.hpp>
+
+namespace propr {
+    namespace kernels{
+        namespace cutlass {
+            struct OmegaConfig {
+                public:
+                    static constexpr auto BLK_M = cute::Int<128>{};
+                    static constexpr auto BLK_K = cute::Int<32>{};
+                private:
+                    using BlockShapeA    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
+                    using BlockShapeB    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
+                    using SmemLayoutAtom = decltype(cute::composition(cute::Swizzle<3, 3, 3>{},
+                                                    cute::make_layout(cute::make_shape(cute::Int<8>{}, cute::Int<BK>{}),
+                                                    cute::make_stride(cute::Int<BK>{}, cute::Int<1>{}))));
+
+                public:
+                    using SmemLayoutA = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeA{}));
+                    using SmemLayoutB = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeB{}));
+                    struct SharedStorage {
+                        cute::ArrayEngine<cute::half_t, cute::cosize_v<typename SmemLayoutA>> A;
+                        cute::ArrayEngine<cute::half_t, cute::cosize_v<typename SmemLayoutB>> B;
+                    };
+
+                private:
+                    using GmemCopyTraits = cute::Copy_Traits<cute::SM80_CP_ASYNC_CACHEGLOBAL<cute::uint128_t>>;
+                    using GmemCopyAtom   = cute::Copy_Atom<GmemCopyTraits, cute::half_t>;
+                    using GmemCopyThreadLayout = decltype(cute::make_layout(
+                                                             cute::make_shape (cute::Int<32>{}, cute::Int<4>{}),    
+                                                             cute::make_stride(cute::Int<4>{} , cute::Int<1>{})));
+                    using GmemCopyValLayout = decltype(cute::make_layout(cute::make_shape(cute::Int<1>{} , cute::Int<8>{})));
+                public:
+                    using GmemCopyA = decltype(cute::make_tiled_copy(GmemCopyAtom{}, GmemCopyThreadLayout{}, GmemCopyValLayout{}));
+                    using GmemCopyB = GmemCopyA;
+
+                private:
+                    using SmemCopyAtom  = cute::Copy_Atom<Copy_Traits<cute::SM75_U32x4_LDSM_N>, cute::half_t>;
+
+
+                    using MmaTraits = cute::MMA_Traits<cute::SM80_16x8x16_F32F16F16F32_TN>;
+                    using MmaAtom   = MMA_Atom<MmaTraits>;
+                    static constexpr int kMmaEURepeatM = 2;
+                    static constexpr int kMmaEURepeatN = 2;
+                    static constexpr int kMmaEURepeatK = 1;
+                    using MmaAtomShape = typename MmaTraits::Shape_MNK;
+
+                    static constexpr int kMmaPM = 2 * kMmaEURepeatM * get<0>(MmaAtomShape{});
+                    static constexpr int kMmaPN = 2 * kMmaEURepeatN * get<1>(MmaAtomShape{});
+                    static constexpr int kMmaPK = 1 * kMmaEURepeatK * get<2>(MmaAtomShape{});
+
+                    using MMA_EU_RepeatT = decltype(cute::make_layout(
+                                                        cute::make_shape(cute::Int<kMmaEURepeatM>{}, 
+                                                                         cute::Int<kMmaEURepeatN>{}, 
+                                                                         cute::Int<kMmaEURepeatK>{}
+                                                                    )));
+                    using MMA_P_T = cute::Tile<cute::Int<kMmaPM>, cute::Int<kMmaPN>, cute::Int<kMmaPK>>;
+                public:
+                    using TiledMMA  = decltype(cute::make_tiled_mma(MmaAtom{}, MMA_EU_RepeatT{}, MMA_P_T{}));
+                    using SmemCopyA = decltype(cute::make_tiled_copy_A(SmemCopyAtom{}, TiledMMA{}));
+                    using SmemCopyB = decltype(cute::make_tiled_copy_B(SmemCopyAtom{}, TiledMMA{}));
+                
+                public:
+                    using NumericConverter = cutlass::NumericConverter<cute::half_t, float, cutlass::FloatRoundStyle::round_to_nearest>;
+                };
+        }
+    }
+}
