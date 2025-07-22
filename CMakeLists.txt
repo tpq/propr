@@ -44,7 +44,6 @@ if (CMAKE_CUDA_COMPILER)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda  -g")
     message("CUDA           : FOUND")
     find_package(CUDAToolkit REQUIRED)
-    #find_package(Thrust REQUIRED)
 else ()
     message("CUDA           : NOT FOUND")
 endif ()
@@ -54,6 +53,10 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif ()
 message("Install Prefix : " ${CMAKE_INSTALL_PREFIX})
 include_directories(${CMAKE_SOURCE_DIR}/inst/include)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/cutlass)
+
+include_directories(${CMAKE_SOURCE_DIR}/thirdparty/cutlass/include/)
 
 option(PROPR_BUILD_TESTS "Option to enable building tests" OFF)
 

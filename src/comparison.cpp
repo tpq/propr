@@ -10,11 +10,11 @@ using namespace propr;
 
 // [[Rcpp::export]]
 int count_less_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
-    //if (is_gpu_backend() || use_gpu) {
-    //    return dispatch::cuda::count_less_than(x, cutoff);
-    //} else {
-    return dispatch::cpu::count_less_than(x, cutoff);
-    //}
+    if (is_gpu_backend() || use_gpu) {
+        return dispatch::cuda::count_less_than(x, cutoff);
+    } else {
+        return dispatch::cpu::count_less_than(x, cutoff);
+    }
 }
 
 // [[Rcpp::export]]

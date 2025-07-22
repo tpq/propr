@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cute/tensor.hpp>
-
+#include <propr/kernels/cuda/detail/cutlass/omega/thread/statistics.cuh>
 
 namespace propr {
     namespace kernels {
         namespace cutlass {
-            template <typename Config, typename T>
+            template <typename Config, typename T=cute::half_t>
             __global__ 
             void omega_kernel(const T *Aptr, T *Dptr, int m, int k) {
                 using namespace cute;
@@ -21,10 +21,10 @@ namespace propr {
                 Tensor D  = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(m, Int<1>{}));
                 Tensor DT = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(Int<1>{}, m));  // non-owing copy of D transpose
 
-                Tensor gA  = local_tile(A , make_tile(Int<Config::BLK_M>{}, Int<BLK_K>{}), make_coord(iy,  _)); // (BLK_M, BLK_K, num_tile_k)
-                Tensor gB  = local_tile(B , make_tile(Int<Config::BLK_M>{}, Int<BLK_K>{}), make_coord(ix,  _)); // (BLK_M, BLK_K, num_tile_k)
-                Tensor gD  = local_tile(D , make_tile(Int<Config::BLK_M>{}, Int<BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
-                Tensor gDT = local_tile(DT, make_tile(Int<Config::BLK_M>{}, Int<BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
+                Tensor gA  = local_tile(A , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(iy,  _)); // (BLK_M, BLK_K, num_tile_k)
+                Tensor gB  = local_tile(B , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(ix,  _)); // (BLK_M, BLK_K, num_tile_k)
+                Tensor gD  = local_tile(D , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
+                Tensor gDT = local_tile(DT, make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
 
                 // Compute tile residues for predication
                 auto m_max_coord = m - size<0>(gA) * iy; 
@@ -36,11 +36,11 @@ namespace propr {
                 // use char type to avoid issues with different template param T
                 extern __shared__ char shared_memory[];
                 Config::SharedStorage &smem = *reinterpret_cast<Config::SharedStorage *>(shared_memory);
-                auto sA = make_tensor(make_smem_ptr(smem.A.begin()), SmemLayoutA{}); // (BLK_M,BLK_K,PIPE)
-                auto sB = make_tensor(make_smem_ptr(smem.B.begin()), SmemLayoutB{}); 
+                auto sA = make_tensor(make_smem_ptr(smem.A.begin()), Config::SmemLayoutA{}); // (BLK_M,BLK_K,PIPE)
+                auto sB = make_tensor(make_smem_ptr(smem.B.begin()), Config::SmemLayoutB{});
 
                 // register, use tiled_mma to partition register A/B/C
-                TiledMMA tiled_mma;
+                typename Config::TiledMMA tiled_mma;
                 auto thr_mma = tiled_mma.get_slice(threadIdx.x);
                 auto tCgD    = thr_mma.partition_C(gD); 
                 auto tCgDT   = thr_mma.partition_C(gDT); // partition for D transposed
@@ -48,9 +48,11 @@ namespace propr {
                 auto tCrA   = thr_mma.partition_fragment_A(gA(_, _, 0)); // (MMA, MMA_M, MMA_K)
                 auto tCrB   = thr_mma.partition_fragment_B(gB(_, _, 0)); // (MMA, MMA_N, MMA_K)
 
-                auto tCrD_n = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
-                auto tCrD_s = thr_mma.partition_fragment_C1(gD);
-                clear(tCrD_n); clear(tCrD_s);
+                thread::OmegaHarmonic<Config> thr_omg(gD);
+
+                // auto tCrD_n = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
+                // auto tCrD_s = thr_mma.partition_fragment_C(gD);
+                // clear(tCrD_n); clear(tCrD_s);
 
                 // from global memory to shared memory
                 typename Config::GmemCopyA g2s_tiled_copy_a;
@@ -119,8 +121,7 @@ namespace propr {
                 }
                 cp_async_fence();
 
-                
-                int ntile = (k + BLK_K - 1) / BLK_K;
+                int ntile = (k + Config::BLK_K - 1) / Config::BLK_K;
                 CUTE_UNROLL
                 for (int itile = 0; itile < ntile; ++itile) {
                     if (itile >= 1) {
@@ -138,7 +139,7 @@ namespace propr {
                         cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
                         cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
                         auto a_view = tCrA(_, _, ik); auto b_view = tCrB(_, _, ik);
-                        harmonic_mean(tiled_mma, a_view, b_view, tCrD_n, tCrD_s);
+                        thr_omg(a_view, b_view);
                     }
                 } 
 
@@ -148,10 +149,9 @@ namespace propr {
                 Tensor tCcD = thr_mma.partition_C(cD); 
                 typename Config::NumericConverter converter;
                 CUTE_UNROLL
-                for (int i = 0; i < size(tCrD_n); ++i) {
+                for (int i = 0; i < thr_omg.size(); ++i) {
                     if (elem_less(tCcD(i), make_coord(m_max_coord, n_max_coord))) {
-                        auto n_val = tCrD_n(i), s_val = tCrD_s(i);
-                        auto result = (1.0f - (n_val == 0.0f)) * (n_val - s_val / (n_val + (n_val == 0.0f)));
+                        auto result = thr_omg.get(i);
                         tCgD(i) = converter(result);
                         if (ix < iy) tCgDT(i) = converter(result);
                     }

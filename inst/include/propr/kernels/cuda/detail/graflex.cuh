@@ -73,8 +73,6 @@ namespace propr {
 
                 scan_op_t scan_op{};
                 uint4 blk_acc = block_reduce_t(block_partials).Reduce(values, scan_op);
-                
-                //if(tid == 0) printf("[%d] (%d,%d,%d,%d)\n", bid,blk_acc.x,blk_acc.y,blk_acc.z,blk_acc.w);
 
                 tile_prefix_op prefix(tile_state, device_partials, scan_op);
                 const int tile_idx = prefix.GetTileIdx();

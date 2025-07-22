@@ -4,3 +4,6 @@
 [submodule "thirdparty/Catch2"]
 	path = thirdparty/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "thirdparty/cutlass"]
+	path = thirdparty/cutlass
+	url = https://github.com/NVIDIA/cutlass

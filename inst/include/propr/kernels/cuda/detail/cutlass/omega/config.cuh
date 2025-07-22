@@ -1,5 +1,6 @@
 #pragma once
 #include <cute/tensor.hpp>
+#include <cutlass/numeric_conversion.h>
 
 namespace propr {
     namespace kernels{
@@ -12,8 +13,8 @@ namespace propr {
                     using BlockShapeA    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
                     using BlockShapeB    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
                     using SmemLayoutAtom = decltype(cute::composition(cute::Swizzle<3, 3, 3>{},
-                                                    cute::make_layout(cute::make_shape(cute::Int<8>{}, cute::Int<BK>{}),
-                                                    cute::make_stride(cute::Int<BK>{}, cute::Int<1>{}))));
+                                                    cute::make_layout(cute::make_shape(cute::Int<8>{}, cute::Int<BLK_K>{}),
+                                                    cute::make_stride(cute::Int<BLK_K>{}, cute::Int<1>{}))));
 
                 public:
                     using SmemLayoutA = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeA{}));
@@ -35,19 +36,19 @@ namespace propr {
                     using GmemCopyB = GmemCopyA;
 
                 private:
-                    using SmemCopyAtom  = cute::Copy_Atom<Copy_Traits<cute::SM75_U32x4_LDSM_N>, cute::half_t>;
+                    using SmemCopyAtom  = cute::Copy_Atom<cute::Copy_Traits<cute::SM75_U32x4_LDSM_N>, cute::half_t>;
 
 
                     using MmaTraits = cute::MMA_Traits<cute::SM80_16x8x16_F32F16F16F32_TN>;
-                    using MmaAtom   = MMA_Atom<MmaTraits>;
+                    using MmaAtom   = cute::MMA_Atom<MmaTraits>;
                     static constexpr int kMmaEURepeatM = 2;
                     static constexpr int kMmaEURepeatN = 2;
                     static constexpr int kMmaEURepeatK = 1;
-                    using MmaAtomShape = typename MmaTraits::Shape_MNK;
+                    using MmaAtomShape = MmaTraits::Shape_MNK;
 
-                    static constexpr int kMmaPM = 2 * kMmaEURepeatM * get<0>(MmaAtomShape{});
-                    static constexpr int kMmaPN = 2 * kMmaEURepeatN * get<1>(MmaAtomShape{});
-                    static constexpr int kMmaPK = 1 * kMmaEURepeatK * get<2>(MmaAtomShape{});
+                    static constexpr int kMmaPM = 2 * kMmaEURepeatM * cute::get<0>(MmaAtomShape{});
+                    static constexpr int kMmaPN = 2 * kMmaEURepeatN * cute::get<1>(MmaAtomShape{});
+                    static constexpr int kMmaPK = 1 * kMmaEURepeatK * cute::get<2>(MmaAtomShape{});
 
                     using MMA_EU_RepeatT = decltype(cute::make_layout(
                                                         cute::make_shape(cute::Int<kMmaEURepeatM>{}, 
