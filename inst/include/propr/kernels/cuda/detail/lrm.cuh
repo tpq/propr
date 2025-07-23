@@ -121,7 +121,7 @@ namespace propr {
                 float S_i = 0.0f, S_j = 0.0f;
 
                 float T = 0.0f, D = 0.0f;
-                int n = 0, N = 0, k = 0;
+                int N = 0, k = 0;
 
                 // --- full-group running means + T sum ---
                 #pragma unroll
@@ -172,7 +172,7 @@ namespace propr {
                 // --- final combination using n == N1 ---
                 float complement_term = float((N1 < NT)) * (T - D) / (NT - N1);
                 float C_z = D / float(N1) + complement_term;
-                float M_z = (S_i/mu_full_i - S_j/mu_full_j) / float(N1)
+                float M_z = (S_i/mu_full_i - S_j/mu_full_j) / float(N1);
 
                 int pair_index = (i * (i - 1)) / 2 + j;
                 d_means[pair_index] = ((C_z / 2) + M_z) / a;

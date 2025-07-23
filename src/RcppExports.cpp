@@ -506,6 +506,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// omega
+Rcpp::NumericVector omega(Rcpp::NumericMatrix& W, bool use_gpu);
+RcppExport SEXP _propr_omega(SEXP WSEXP, SEXP use_gpuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(omega(W, use_gpu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Omega
+Rcpp::NumericVector Omega(Rcpp::NumericMatrix& W, bool use_gpu);
+RcppExport SEXP _propr_Omega(SEXP WSEXP, SEXP use_gpuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_gpu(use_gpuSEXP);
+    rcpp_result_gen = Rcpp::wrap(Omega(W, use_gpu));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 3},
@@ -546,6 +570,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_lr2phs", (DL_FUNC) &_propr_lr2phs, 2},
     {"_propr_lrm", (DL_FUNC) &_propr_lrm, 7},
     {"_propr_lrv", (DL_FUNC) &_propr_lrv, 7},
+    {"_propr_omega", (DL_FUNC) &_propr_omega, 2},
+    {"_propr_Omega", (DL_FUNC) &_propr_Omega, 2},
     {NULL, NULL, 0}
 };
 

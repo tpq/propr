@@ -1,11 +1,11 @@
 #pragma once
 
 #include <cute/tensor.hpp>
-#include <propr/kernels/cuda/detail/cutlass/omega/thread/statistics.cuh>
+// #include <propr/kernels/cuda/detail/cutlass/omega/thread/statistics.cuh>
 
 namespace propr {
     namespace kernels {
-        namespace cutlass {
+        namespace cutlass_impl {
             template <typename Config, typename T=cute::half_t>
             __global__ 
             void omega_kernel(const T *Aptr, T *Dptr, int m, int k) {
@@ -35,9 +35,11 @@ namespace propr {
                 // Shared memory buffers
                 // use char type to avoid issues with different template param T
                 extern __shared__ char shared_memory[];
-                Config::SharedStorage &smem = *reinterpret_cast<Config::SharedStorage *>(shared_memory);
-                auto sA = make_tensor(make_smem_ptr(smem.A.begin()), Config::SmemLayoutA{}); // (BLK_M,BLK_K,PIPE)
-                auto sB = make_tensor(make_smem_ptr(smem.B.begin()), Config::SmemLayoutB{});
+                typename Config::SharedStorage &smem = *reinterpret_cast<typename Config::SharedStorage *>(shared_memory);
+                typename Config::SmemLayoutA sA_layout;
+                typename Config::SmemLayoutB sB_layout;
+                auto sA = make_tensor(make_smem_ptr(smem.A.begin()), sA_layout); // (BLK_M,BLK_K,PIPE)
+                auto sB = make_tensor(make_smem_ptr(smem.B.begin()), sB_layout);
 
                 // register, use tiled_mma to partition register A/B/C
                 typename Config::TiledMMA tiled_mma;
@@ -48,11 +50,9 @@ namespace propr {
                 auto tCrA   = thr_mma.partition_fragment_A(gA(_, _, 0)); // (MMA, MMA_M, MMA_K)
                 auto tCrB   = thr_mma.partition_fragment_B(gB(_, _, 0)); // (MMA, MMA_N, MMA_K)
 
-                thread::OmegaHarmonic<Config> thr_omg(gD);
-
-                // auto tCrD_n = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
-                // auto tCrD_s = thr_mma.partition_fragment_C(gD);
-                // clear(tCrD_n); clear(tCrD_s);
+                auto tDrD_n = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
+                auto tDrD_s = thr_mma.partition_fragment_C(gD);
+                clear(tDrD_n); clear(tDrD_s);
 
                 // from global memory to shared memory
                 typename Config::GmemCopyA g2s_tiled_copy_a;
@@ -139,7 +139,17 @@ namespace propr {
                         cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
                         cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
                         auto a_view = tCrA(_, _, ik); auto b_view = tCrB(_, _, ik);
-                        thr_omg(a_view, b_view);
+                        CUTE_UNROLL
+                        for (int i = 0; i < cute::size(a_view); ++i) {
+                            auto a = a_view(i); auto b = b_view(i);
+                            a_view(i) = (2.0f / (a + b)) * a;
+                        }
+                        cute::gemm(tiled_mma, tDrD_n, a_view, b_view, tDrD_n);
+                        CUTE_UNROLL
+                        for (int i = 0; i < cute::size(a_view); ++i) a_view(i) = a_view(i) * a_view(i);
+                        CUTE_UNROLL
+                        for (int i = 0; i < cute::size(b_view); ++i) b_view(i) = b_view(i) * b_view(i);
+                        cute::gemm(tiled_mma, tDrD_s, a_view, b_view, tDrD_s);
                     }
                 } 
 
@@ -149,9 +159,9 @@ namespace propr {
                 Tensor tCcD = thr_mma.partition_C(cD); 
                 typename Config::NumericConverter converter;
                 CUTE_UNROLL
-                for (int i = 0; i < thr_omg.size(); ++i) {
+                for (int i = 0; i < cute::size(tDrD_n); ++i) {
                     if (elem_less(tCcD(i), make_coord(m_max_coord, n_max_coord))) {
-                        auto result = thr_omg.get(i);
+                        auto result = (1.0f - (tDrD_n(i) == 0.0f)) * (tDrD_n(i) - tDrD_s(i) / (tDrD_n(i) + (tDrD_n(i) == 0.0f)));
                         tCgD(i) = converter(result);
                         if (ix < iy) tCgDT(i) = converter(result);
                     }

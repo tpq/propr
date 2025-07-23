@@ -19,12 +19,14 @@ cmake -DCMAKE_BUILD_TYPE=RELEASE \
   -DPROPR_BUILD_TESTS=$BUILDING_TESTS \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
   -DCMAKE_VERBOSE_MAKEFILE:BOOL=$VERBOSE \
+  -DCUTLASS_NVCC_ARCHS=90 \
+  -DCUTLASS_ENABLE_HEADERS_ONLY=ON \
   -H"${ABSOLUE_PATH}" \
   -B"${ABSOLUE_PATH}/bin"
 
 cd bin/
 make clean
-make all -j 8
+make all -j 80
 
 if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
     echo "Error: libpropr.so was not created. Check the build log above for errors."

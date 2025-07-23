@@ -153,3 +153,11 @@ lrv <- function(Y, W, weighted, a, Yfull, Wfull, use_gpu = FALSE) {
     .Call(`_propr_lrv`, Y, W, weighted, a, Yfull, Wfull, use_gpu)
 }
 
+omega <- function(W, use_gpu = FALSE) {
+    .Call(`_propr_omega`, W, use_gpu)
+}
+
+Omega <- function(W, use_gpu = FALSE) {
+    .Call(`_propr_Omega`, W, use_gpu)
+}
+

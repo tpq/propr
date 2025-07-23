@@ -1,5 +1,5 @@
 #include <Rcpp.h>
-#include <cuda_fp16.hpp>
+#include <cuda_fp16.h>
 
 #include <propr/data/types.h>
 #include <propr/utils/cuda_checks.h>
@@ -15,6 +15,16 @@ template<> struct CastOperator<__half,float> {
 template<> struct CastOperator<float,__half> {
     float operator()(const __half h) const { return __half2float(h); }
 };
+
+
+
+template<> struct CastOperator<__half,double> {
+    __half operator()(const double x) const { return __float2half(static_cast<float>(x)); }
+};
+template<> struct CastOperator<double,__half> {
+    double operator()(const __half h) const { return static_cast<double>(__half2float(h)); }
+};
+
 
 
 inline void check_alignment(const void* ptr, int alignment) {
@@ -58,14 +68,14 @@ inline OutT* RcppMatrixToDevice(
         for (offset_t j = 0; j < ncols; ++j) {
             for (offset_t i = 0; i < nrows; ++i) {
                 const offset_t idx = i + j * slow_padded;
-                h_buf[idx] = castOp( mat(i, j) );
+                h_buf[idx] = CastOp( mat(i, j) );
             }
         }
     } else {
         for (offset_t i = 0; i < nrows; ++i) {
             for (offset_t j = 0; j < ncols; ++j) {
                 const offset_t idx = j + i * slow_padded;
-                h_buf[idx] = castOp( mat(i, j) );
+                h_buf[idx] = CastOp( mat(i, j) );
             }
         }
     }

@@ -4,7 +4,7 @@
 
 namespace propr {
     namespace kernels{
-        namespace cutlass {
+        namespace cutlass_impl {
             struct OmegaConfig {
                 public:
                     static constexpr auto BLK_M = cute::Int<128>{};
@@ -20,8 +20,8 @@ namespace propr {
                     using SmemLayoutA = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeA{}));
                     using SmemLayoutB = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeB{}));
                     struct SharedStorage {
-                        cute::ArrayEngine<cute::half_t, cute::cosize_v<typename SmemLayoutA>> A;
-                        cute::ArrayEngine<cute::half_t, cute::cosize_v<typename SmemLayoutB>> B;
+                        cute::ArrayEngine<cute::half_t, cute::cosize_v<SmemLayoutA>> A;
+                        cute::ArrayEngine<cute::half_t, cute::cosize_v<SmemLayoutB>> B;
                     };
 
                 private:
@@ -62,7 +62,7 @@ namespace propr {
                     using SmemCopyB = decltype(cute::make_tiled_copy_B(SmemCopyAtom{}, TiledMMA{}));
                 
                 public:
-                    using NumericConverter = cutlass::NumericConverter<cute::half_t, float, cutlass::FloatRoundStyle::round_to_nearest>;
+                    using NumericConverter = decltype(cutlass::NumericConverter<cute::half_t, float, cutlass::FloatRoundStyle::round_to_nearest>());
                 };
         }
     }

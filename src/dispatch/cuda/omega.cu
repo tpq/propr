@@ -13,11 +13,10 @@ using namespace Rcpp;
 using namespace propr;
 
 
-void dof_global(NumericVector& out,
-                const NumericMatrix& W,
-                propr_context context) {
+void 
+propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, propr_context context) {
     using Converter = cutlass::NumericConverter<cute::half_t, float>;
-    using Config     = kernels::cutlass::OmegaConfig;
+    using Config     = kernels::cutlass_impl::OmegaConfig;
 
     int nfeats = W.ncol();
     const size_t llt = static_cast<size_t>(nfeats) * (nfeats - 1) / 2;
@@ -37,7 +36,7 @@ void dof_global(NumericVector& out,
     static constexpr int shm_size_AB = cute::cosize(Config::SmemLayoutA{}) + cute::cosize(Config::SmemLayoutB{});
     static constexpr int kShmSize = shm_size_AB * sizeof(__half);
     int shm_size = kShmSize;
-    const auto fptr = propr::kernels::cutlass::omega_kernel<Config,cute::half_t>;
+    const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config,cute::half_t>;
 
     cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, shm_size);
     cudaFuncSetAttribute(fptr, cudaFuncAttributePreferredSharedMemoryCarveout, 100);
@@ -64,12 +63,11 @@ void dof_global(NumericVector& out,
     CUDA_CHECK(cudaFree(d_W));
     CUDA_CHECK(cudaFree(d_out));
 }
-
-void dof_population(NumericVector& out,
-                    const NumericMatrix& W,
-                    propr_context context) {
+ 
+void 
+propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W, propr_context context) {
     using Converter = cutlass::NumericConverter<cute::half_t, float>;
-    using Config = kernels::cutlass::OmegaConfig;
+    using Config = kernels::cutlass_impl::OmegaConfig;
 
     int nfeats = W.ncol();
     const size_t llt = static_cast<size_t>(nfeats) * (nfeats - 1) / 2;
@@ -89,7 +87,7 @@ void dof_population(NumericVector& out,
     static constexpr int shm_size_AB = cute::cosize(Config::SmemLayoutA{}) + cute::cosize(Config::SmemLayoutB{});
     static constexpr int kShmSize = shm_size_AB * sizeof(__half);
     int shm_size = kShmSize;
-    const auto fptr = propr::kernels::cutlass::omega_kernel<Config,cute::half_t>;
+    const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config,cute::half_t>;
 
     cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, shm_size);
     cudaFuncSetAttribute(fptr, cudaFuncAttributePreferredSharedMemoryCarveout, 100);
