@@ -62,7 +62,8 @@ namespace propr {
                     using SmemCopyB = decltype(cute::make_tiled_copy_B(SmemCopyAtom{}, TiledMMA{}));
                 
                 public:
-                    using NumericConverter = decltype(cutlass::NumericConverter<cute::half_t, float, cutlass::FloatRoundStyle::round_to_nearest>());
+                    using NumericConverter     = decltype(cutlass::NumericConverter<cute::half_t, float>());
+                    using BackNumericConverter = decltype(cutlass::NumericConverter<float,cute::half_t>());
                 };
         }
     }

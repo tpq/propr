@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cute/tensor.hpp>
+#include <propr/utils/constants.h>
+
 // #include <propr/kernels/cuda/detail/cutlass/omega/thread/statistics.cuh>
 
 namespace propr {
@@ -8,18 +10,20 @@ namespace propr {
         namespace cutlass_impl {
             template <typename Config, typename T=cute::half_t>
             __global__ 
-            void omega_kernel(const T *Aptr, T *Dptr, int m, int k) {
+            void omega_kernel(int m, int k, const T *Aptr, int stride_a, T *Dptr, int stride_d) {
                 using namespace cute;
+                typename Config::BackNumericConverter com_conv;
+                typename Config::NumericConverter     store_conv;
 
                 int idx = threadIdx.x;
                 int ix  = blockIdx.x;
                 int iy  = blockIdx.y;
                 if (ix > iy) return;
 
-                Tensor A  = make_tensor(make_gmem_ptr(Aptr), make_shape(m, k), make_stride(k, Int<1>{}));
-                Tensor B  = make_tensor(make_gmem_ptr(Aptr), make_shape(m, k), make_stride(k, Int<1>{})); // non-owing copy of A
-                Tensor D  = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(m, Int<1>{}));
-                Tensor DT = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(Int<1>{}, m));  // non-owing copy of D transpose
+                Tensor A  = make_tensor(make_gmem_ptr(Aptr), make_shape(m, k), make_stride(stride_a, Int<1>{}));
+                Tensor B  = make_tensor(make_gmem_ptr(Aptr), make_shape(m, k), make_stride(stride_a, Int<1>{})); // non-owing copy of A
+                Tensor D  = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(stride_d, Int<1>{}));
+                Tensor DT = make_tensor(make_gmem_ptr(Dptr), make_shape(m, m), make_stride(Int<1>{}, stride_d));  // non-owing copy of D transpose
 
                 Tensor gA  = local_tile(A , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(iy,  _)); // (BLK_M, BLK_K, num_tile_k)
                 Tensor gB  = local_tile(B , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(ix,  _)); // (BLK_M, BLK_K, num_tile_k)
@@ -50,9 +54,13 @@ namespace propr {
                 auto tCrA   = thr_mma.partition_fragment_A(gA(_, _, 0)); // (MMA, MMA_M, MMA_K)
                 auto tCrB   = thr_mma.partition_fragment_B(gB(_, _, 0)); // (MMA, MMA_N, MMA_K)
 
-                auto tDrD_n = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
+                auto tDrD_u = thr_mma.partition_fragment_C(gD);          // (MMA, MMA_M, MMA_N)
                 auto tDrD_s = thr_mma.partition_fragment_C(gD);
-                clear(tDrD_n); clear(tDrD_s);
+
+                auto tDrD_ul = thr_mma.partition_fragment_C(gD);
+                auto tDrD_sl = thr_mma.partition_fragment_C(gD);
+
+                clear(tDrD_u ); clear(tDrD_s);
 
                 // from global memory to shared memory
                 typename Config::GmemCopyA g2s_tiled_copy_a;
@@ -122,6 +130,8 @@ namespace propr {
                 cp_async_fence();
 
                 int ntile = (k + Config::BLK_K - 1) / Config::BLK_K;
+                
+                bool first = true;
                 CUTE_UNROLL
                 for (int itile = 0; itile < ntile; ++itile) {
                     if (itile >= 1) {
@@ -129,11 +139,11 @@ namespace propr {
                         cute::copy_if(g2s_tiled_copy_b, tBpB, tBgB_copy(_, _, _, itile - 1), tBsB_copy(_, _, _));
                         cp_async_fence();
                     }
-
                     cp_async_wait<0>();
                     __syncthreads();
 
                     int nk = size<2>(tCrA);
+                    clear(tDrD_ul); clear(tDrD_sl);
                     CUTE_UNROLL
                     for (int ik = 0; ik < nk; ++ik) {
                         cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
@@ -142,14 +152,26 @@ namespace propr {
                         CUTE_UNROLL
                         for (int i = 0; i < cute::size(a_view); ++i) {
                             auto a = a_view(i); auto b = b_view(i);
-                            a_view(i) = (2.0f / (a + b)) * a;
+                            auto af = com_conv(a), bf = com_conv(b), denom = af + bf;
+                            a_view(i) = cute::half_t( std::abs(denom) > FLT_EPSILON  ? (2.0f * af * bf / denom)  : 0.0f );
+                            b_view(i) = cute::half_t(1.0f);
                         }
-                        cute::gemm(tiled_mma, tDrD_n, a_view, b_view, tDrD_n);
+                        cute::gemm(tiled_mma, tDrD_sl, a_view, b_view, tDrD_sl);
                         CUTE_UNROLL
-                        for (int i = 0; i < cute::size(a_view); ++i) a_view(i) = a_view(i) * a_view(i);
-                        CUTE_UNROLL
-                        for (int i = 0; i < cute::size(b_view); ++i) b_view(i) = b_view(i) * b_view(i);
-                        cute::gemm(tiled_mma, tDrD_s, a_view, b_view, tDrD_s);
+                        for (int i = 0; i < cute::size(a_view); ++i) { b_view(i) = a_view(i); }
+                        cute::gemm(tiled_mma, tDrD_ul, a_view, b_view, tDrD_ul);
+                    }
+                    if (first){
+                        for (int i = 0; i < cute::size(tDrD_u); ++i) {
+                            tDrD_s(i) = tDrD_sl(i);
+                            tDrD_u(i) = abs(tDrD_sl(i)) > FLT_EPSILON ? tDrD_ul(i) / tDrD_sl(i) : 0.0f;
+                        }
+                        first = false;
+                    } else {
+                        for (int i = 0; i < cute::size(tDrD_u); ++i) {
+                            tDrD_u(i) += (abs(tDrD_s(i) + tDrD_sl(i)) > FLT_EPSILON ? (tDrD_ul(i) - tDrD_sl(i) * tDrD_u(i))  / (tDrD_s(i) + tDrD_sl(i)): 0.0f);
+                            tDrD_s(i) += tDrD_sl(i);
+                        }
                     }
                 } 
 
@@ -157,18 +179,15 @@ namespace propr {
 
                 Tensor cD = make_identity_tensor(make_shape(size<0>(gD), size<1>(gD)));
                 Tensor tCcD = thr_mma.partition_C(cD); 
-                typename Config::NumericConverter converter;
                 CUTE_UNROLL
-                for (int i = 0; i < cute::size(tDrD_n); ++i) {
+                for (int i = 0; i < cute::size(tDrD_u); ++i) {
                     if (elem_less(tCcD(i), make_coord(m_max_coord, n_max_coord))) {
-                        auto result = (1.0f - (tDrD_n(i) == 0.0f)) * (tDrD_n(i) - tDrD_s(i) / (tDrD_n(i) + (tDrD_n(i) == 0.0f)));
-                        tCgD(i) = converter(result);
-                        if (ix < iy) tCgDT(i) = converter(result);
+                        auto result = tDrD_s(i) - tDrD_u(i);
+                        tCgD(i) = store_conv(result);
+                        if (ix < iy) tCgDT(i) = store_conv(result);
                     }
                 }
-
             }
-
         }
     }
 }

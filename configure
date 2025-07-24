@@ -26,7 +26,7 @@ cmake -DCMAKE_BUILD_TYPE=RELEASE \
 
 cd bin/
 make clean
-make all -j 80
+make all -j$(nproc)
 
 if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
     echo "Error: libpropr.so was not created. Check the build log above for errors."

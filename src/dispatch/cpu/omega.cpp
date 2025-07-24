@@ -12,18 +12,28 @@ propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 	int llt = nfeats * (nfeats - 1) / 2;
 	CHECK_VECTOR_SIZE(out, llt);
 	NumericVector Wij(W.nrow());
+
+    NumericMatrix Wl(W);
+    for (int i = 0; i < W.nrow(); ++i) {
+      for (int j = 0; j < nfeats; ++j) {
+        Wl(i, j) = float( (j%2) + 1);
+      }
+    }
+
 	int counter = 0;
 	double n    = 0;
+    std::cout << "[CPU]: ";
 	for(int i = 1; i < nfeats; i++){
-		for(int j = 0; j < nfeats; j++){
-			Wij = W(_, i) * W(_, j);
+		for(int j = 0; j < i; j++){
+			Wij = 2 * Wl(_, i) * Wl(_, j) / ( Wl(_, i) + Wl(_, j));
 			n = sum(Wij);
 			out(counter) = n - sum(pow(Wij, 2)) / n;
+            std::cout << out(counter) << " ";
 			counter += 1;
 		}
 	}
+    std::cout << std::endl;
 }
-
 
 void
 propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W) {
