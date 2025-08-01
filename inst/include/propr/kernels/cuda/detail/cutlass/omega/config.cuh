@@ -2,6 +2,10 @@
 #include <cute/tensor.hpp>
 #include <cutlass/numeric_conversion.h>
 
+#include <propr/kernels/cuda/detail/cutlass/omega/atoms/harmonic_atom_sm80.cuh>
+#include <propr/kernels/cuda/detail/cutlass/omega/traits/harmonic_traits_sm80.cuh>
+
+
 namespace propr {
     namespace kernels{
         namespace cutlass_impl {
@@ -39,8 +43,12 @@ namespace propr {
                     using SmemCopyAtom  = cute::Copy_Atom<cute::Copy_Traits<cute::SM75_U32x4_LDSM_N>, cute::half_t>;
 
 
-                    using MmaTraits = cute::MMA_Traits<cute::SM80_16x8x16_F32F16F16F32_TN>;
+                    using MmaTraits = cute::MMA_Traits<propr::cutlass_atoms::SM80_16x8x16_F32F16F16F32_TN_HARMONIC_1>;
                     using MmaAtom   = cute::MMA_Atom<MmaTraits>;
+
+                    using MmaTraits2 = cute::MMA_Traits<propr::cutlass_atoms::SM80_16x8x16_F32F16F16F32_TN_HARMONIC_2>;
+                    using MmaAtom2   = cute::MMA_Atom<MmaTraits2>;
+
                     static constexpr int kMmaEURepeatM = 2;
                     static constexpr int kMmaEURepeatN = 2;
                     static constexpr int kMmaEURepeatK = 1;
@@ -57,13 +65,15 @@ namespace propr {
                                                                     )));
                     using MMA_P_T = cute::Tile<cute::Int<kMmaPM>, cute::Int<kMmaPN>, cute::Int<kMmaPK>>;
                 public:
-                    using TiledMMA  = decltype(cute::make_tiled_mma(MmaAtom{}, MMA_EU_RepeatT{}, MMA_P_T{}));
+                    using TiledMMA   = decltype(cute::make_tiled_mma(MmaAtom{}, MMA_EU_RepeatT{}, MMA_P_T{}));
+                    using TiledMMA2  = decltype(cute::make_tiled_mma(MmaAtom2{}, MMA_EU_RepeatT{}, MMA_P_T{}));
+
                     using SmemCopyA = decltype(cute::make_tiled_copy_A(SmemCopyAtom{}, TiledMMA{}));
                     using SmemCopyB = decltype(cute::make_tiled_copy_B(SmemCopyAtom{}, TiledMMA{}));
                 
                 public:
-                    using NumericConverter     = decltype(cutlass::NumericConverter<cute::half_t, float>());
-                    using BackNumericConverter = decltype(cutlass::NumericConverter<float,cute::half_t>());
+                    using NumericConverter     = decltype(cutlass::NumericConverter<cute::half_t, float, cutlass::FloatRoundStyle::round_to_nearest>());
+                    using BackNumericConverter = decltype(cutlass::NumericConverter<float,cute::half_t , cutlass::FloatRoundStyle::round_to_nearest>());
                 };
         }
     }

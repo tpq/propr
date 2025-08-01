@@ -88,7 +88,6 @@ inline OutT* RcppMatrixToDevice(
     return d_ptr;
 }
 
-
 template <typename OutT, int RTYPE, const bool RowMajor=false>
 inline OutT* RcppMatrixPermToDevice(
     const Rcpp::Matrix<RTYPE>& mat,
