@@ -57,13 +57,40 @@ NumericMatrix pad_matrix(const NumericMatrix& mat,
 
 void 
 propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, propr_context context) {
-    using Config     = kernels::cutlass_impl::OmegaConfig;
+    using Config = kernels::cutlass_impl::OmegaConfig;
     NumericMatrix W2(W);
+    // printRMatrix(W2);
+    // for(int i=0; i < W2.nrow(); i++){
+    //   for(int j=0; j < W2.ncol(); j++){
+    //     W2(i,j) = float(335.712);
+    //   } 
+    // }
+
+    for(int i=0; i < W2.nrow(); i++){
+      for(int j=0; j < W2.ncol(); j++){
+        W2(i,j) = float(0);
+      } 
+    }
+
+    for(int i=0; i < W2.nrow(); i++){
+      for(int j=0; j < W2.ncol(); j++){
+        W2(i,j) = float(j) * W2.nrow() + i + 1;
+      }
+    }
+    printRMatrix(W2);
 
     int t = 32;
     auto Wl = pad_matrix(W2, 0, ((W2.nrow() + t - 1)/t)*t - W2.nrow(), 0, ((W2.ncol() + t - 1)/t)*t - W2.ncol());
     int nfeats  = Wl.ncol();
     int samples = Wl.nrow();
+    // printRMatrix(Wl);
+
+    //  for(int i=0; i < Wl.nrow(); i++){
+    //   for(int j=0; j < Wl.ncol(); j++){
+    //     Wl(i,j) = float(i) + float(j)*Wl.nrow();
+    //   }
+    // }
+    // printRMatrix(Wl);
     
     std::cout << "[" << W.nrow() << "," << W.ncol() << "]" << std::endl;
 
@@ -75,6 +102,7 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     float* d_out = nullptr;
     offset_t dout_stride = ((nfeats  + alignment - 1) / alignment) * alignment;
     CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+
     const int BX = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
     const int BY = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
 
@@ -82,12 +110,14 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     dim3 grid(BX, BY);
     static constexpr int shm_size_AB = cute::cosize(Config::SmemLayoutA{}) + cute::cosize(Config::SmemLayoutB{});
     static constexpr int kShmSize = shm_size_AB * sizeof(__half);
-    int shm_size = kShmSize;
-    const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config,cute::half_t, float>;
+    const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config, cute::half_t, float>;
 
-    cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, shm_size);
+    cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, kShmSize);
     cudaFuncSetAttribute(fptr, cudaFuncAttributePreferredSharedMemoryCarveout, 100);
-    fptr<<<grid, block, shm_size, context.stream>>>(nfeats, samples, d_W, d_out);
+
+    std::cout <<  "M: "<< nfeats << " K: " << samples << std::endl;
+    std::cout <<  "fptr<<<(" << grid.x << ","<< grid.y <<")"<< ",(" << block.x << "," << block.y <<")>>>" << std::endl;
+    fptr<<<grid, block, kShmSize, context.stream>>>(nfeats, samples, d_W, d_out);
     
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
     auto h_full= new std::vector<float> (nfeats * dout_stride);
@@ -101,10 +131,10 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     size_t counter = 0;
     double* out_ptr = REAL(out);
     std::cout << "[GPU]: \n";
-    for (int i = 1; i < nfeats; ++i) {
-        for (int j = 0; j < i; ++j) {
+    for (int i = 0; i < nfeats; ++i) {
+        for (int j = 0; j < nfeats; ++j) {
             float v = h_full->at(size_t(i) * dout_stride + j);
-            out_ptr[counter++] = static_cast<double>(v);
+            // out_ptr[counter++] = static_cast<double>(v);
             std::cout << v << " ";
         }
         std::cout << std::endl;

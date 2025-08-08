@@ -7,7 +7,8 @@ namespace propr {
     namespace kernels {
         namespace cutlass_impl {
             template <typename Config, typename Tin, typename Tout>
-            __global__ 
+            __global__  
+            // __launch_bounds__(int(decltype(size(Config::TiledMMA{}))::value))
             void omega_kernel(int m, int k, const Tin *Aptr, Tout *Dptr) {
                 using namespace cute;
                 int idx = threadIdx.x;
@@ -22,6 +23,7 @@ namespace propr {
 
                 Tensor gA  = local_tile(A , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(iy,  _)); // (BLK_M, BLK_K, num_tile_k)
                 Tensor gB  = local_tile(B , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_K>{}), make_coord(ix,  _)); // (BLK_M, BLK_K, num_tile_k)
+
                 Tensor gD  = local_tile(D , make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
                 Tensor gDT = local_tile(DT, make_tile(Int<Config::BLK_M>{}, Int<Config::BLK_M>{}), make_coord(iy, ix)); // (BLK_M, BLK_M)
 
@@ -51,40 +53,35 @@ namespace propr {
                 auto tCrA   = thr_mma.partition_fragment_A(gA(_, _, 0)); // (MMA, MMA_M, MMA_K)
                 auto tCrB   = thr_mma.partition_fragment_B(gB(_, _, 0)); // (MMA, MMA_N, MMA_K)
 
-                auto tCrD_nl = thr_mma.partition_fragment_C(gD);
-                auto tCrD_sl = thr_mma.partition_fragment_C(gD);
+                auto tCrD_n  = thr_mma.partition_fragment_C(gD);
+                auto tCrD_s  = thr_mma.partition_fragment_C(gD);
 
-                auto tCrD_n = thr_mma.partition_fragment_C(gD);
-                auto tCrD_s = thr_mma.partition_fragment_C(gD);
-
-                clear(tCrD_n );  clear(tCrD_s);
-                // clear(tCrD_nl ); clear(tCrD_sl);
+                clear(tCrD_n); clear(tCrD_s);
 
                 // from global memory to shared memory
                 typename Config::GmemCopyA g2s_tiled_copy_a;
-                typename Config::GmemCopyB g2s_tiled_copy_b;
                 auto g2s_thr_copy_a = g2s_tiled_copy_a.get_slice(idx);
+                auto tAgA_copy      = g2s_thr_copy_a.partition_S(gA); // (CPY, CPY_M, CPY_K, k)
+                auto tAsA_copy      = g2s_thr_copy_a.partition_D(sA); // (CPY, CPY_M, CPY_K)
+
+                typename Config::GmemCopyB g2s_tiled_copy_b;
                 auto g2s_thr_copy_b = g2s_tiled_copy_b.get_slice(idx);
-                auto tAgA_copy = g2s_thr_copy_a.partition_S(gA); // (CPY, CPY_M, CPY_K, k)
-                auto tAsA_copy = g2s_thr_copy_a.partition_D(sA); // (CPY, CPY_M, CPY_K)
-                auto tBgB_copy = g2s_thr_copy_b.partition_S(gB); // (CPY, CPY_N, CPY_K, k)
-                auto tBsB_copy = g2s_thr_copy_b.partition_D(sB); // (CPY, CPY_N, CPY_K)
+                auto tBgB_copy      = g2s_thr_copy_b.partition_S(gB); // (CPY, CPY_N, CPY_K, k)
+                auto tBsB_copy      = g2s_thr_copy_b.partition_D(sB); // (CPY, CPY_N, CPY_K)
 
                 // from shared memory to register, use tiled_mma to generate tiled_copy
                 typename Config::SmemCopyA s2r_tiled_copy_a;
-
                 auto s2r_thr_copy_a   = s2r_tiled_copy_a.get_slice(idx);
-                auto tAsA = s2r_thr_copy_a.partition_S(sA);     // (CPY, CPY_M, CPY_K)
-                auto tCrA_view = s2r_thr_copy_a.retile_D(tCrA); // (CPY, CPY_M, CPY_K)
+                auto tAsA             = s2r_thr_copy_a.partition_S(sA);     // (CPY, CPY_M, CPY_K)
+                auto tCrA_view        = s2r_thr_copy_a.retile_D(tCrA);      // (CPY, CPY_M, CPY_K)
 
                 typename Config::SmemCopyB s2r_tiled_copy_b;
-                auto s2r_thr_copy_b   = s2r_tiled_copy_b.get_slice(idx);
-                auto tBsB = s2r_thr_copy_b.partition_S(sB);     // (CPY, CPY_N, CPY_K)
-                auto tCrB_view = s2r_thr_copy_b.retile_D(tCrB); // (CPY, CPY_N, CPY_K)
+                auto s2r_thr_copy_b = s2r_tiled_copy_b.get_slice(idx);
+                auto tBsB           = s2r_thr_copy_b.partition_S(sB);     // (CPY, CPY_N, CPY_K)
+                auto tCrB_view      = s2r_thr_copy_b.retile_D(tCrB);      // (CPY, CPY_N, CPY_K)
 
                 //
                 // PREDICATES
-                //
                 Tensor tApA = make_tensor<bool>(make_shape(size<1>(tAsA_copy), size<2>(tAsA_copy)), Stride<_1, _0>{});
                 Tensor tBpB = make_tensor<bool>(make_shape(size<1>(tBsB_copy), size<2>(tBsB_copy)), Stride<_1, _0>{});
 
@@ -110,8 +107,7 @@ namespace propr {
                 Tensor tAgAk = tAgA_copy(_, _, _, size<2>(gA) - 1);
                 CUTE_UNROLL
                 for (int i = 0; i < size<2>(tAsA_copy); ++i) {
-                    if (get<1>(tAcA(0, 0, i)) < get<2>(residue_mnk)) { 
-                        // blk_k coord < residue_k (gA shifted)
+                    if (get<1>(tAcA(0, 0, i)) < get<2>(residue_mnk)) { // blk_k coord < residue_k (gA shifted)
                         cute::copy_if(g2s_tiled_copy_a, tApA(_, i), tAgAk(_, _, i), tAsA_copy(_, _, i));
                     }
                 }
@@ -119,8 +115,7 @@ namespace propr {
                 Tensor tBgBk = tBgB_copy(_, _, _, size<2>(gB) - 1);
                 CUTE_UNROLL
                 for (int i = 0; i < size<2>(tBsB_copy); ++i) {
-                    if (get<1>(tBcB(0, 0, i)) < get<2>(residue_mnk)) { 
-                        // blk_k coord < residue_k (gA shifted)
+                    if (get<1>(tBcB(0, 0, i)) < get<2>(residue_mnk)) {  // blk_k coord < residue_k (gA shifted)
                         cute::copy_if(g2s_tiled_copy_b, tBpB(_, i), tBgBk(_, _, i), tBsB_copy(_, _, i));
                     }
                 }
@@ -141,52 +136,12 @@ namespace propr {
                     int nk = size<2>(tCrA);
                     CUTE_UNROLL
                     for (int ik = 0; ik < nk; ++ik) {
-                        // clear(tDrD_ul); clear(tDrD_sl);
                         cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
                         cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
-                        auto a_view = tCrA(_, _, ik); auto b_view = tCrB(_, _, ik);
-
-                        if (threadIdx.x == 0 && blockIdx.x == 0) {
-                            for(int j =0; j < connnt; j++)  printf("\n");
-                            printf("Before:\n");
-                            for (int i = 0; i < cute::size(tCrD_s); ++i) {
-                                auto n_val = tCrD_n(i), s_val = tCrD_s(i);
-                                printf("%f %f \n",n_val, s_val);
-                            }
-                        }
-
-                        cute::gemm(tiled_mma,  tCrD_n, a_view, b_view, tCrD_n);
-                        cute::gemm(tiled_mma2, tCrD_s, a_view, b_view, tCrD_s);
-
-                        if (threadIdx.x == 0 && blockIdx.x == 0) {
-                            for(int j =0; j < connnt; j++)  printf("\n");
-                            printf("After:\n");
-                            for (int i = 0; i < cute::size(tCrD_s); ++i) {
-                                auto n_val = tCrD_n(i), s_val = tCrD_s(i);
-                                printf("%f %f \n",n_val, s_val);
-                            }
-                            connnt+=1;
-                        }
-
-                        // cute::gemm(tiled_mma, tDrD_sl, a_view, b_view, tDrD_sl);
-
-                        // CUTE_UNROLL
-                        // for (int i = 0; i < cute::size(a_view); ++i) { b_view(i) = a_view(i); }
-                        // cute::gemm(tiled_mma, tDrD_ul, a_view, b_view, tDrD_ul);
-                        // if (first){
-                        //     for (int i = 0; i < cute::size(tDrD_u); ++i) {
-                        //         tDrD_s(i) = tDrD_sl(i);
-                        //         tDrD_u(i) = abs(tDrD_sl(i)) > FLT_EPSILON ? tDrD_ul(i) / tDrD_sl(i) : 0.0f;
-                        //     }
-                        //     first = false;
-                        // } else {
-                        //     for (int i = 0; i < cute::size(tDrD_u); ++i) {
-                        //         tDrD_u(i) += (abs(tDrD_s(i) + tDrD_sl(i)) > FLT_EPSILON ? (tDrD_ul(i) - tDrD_sl(i) * tDrD_u(i))  / (tDrD_s(i) + tDrD_sl(i)): 0.0f);
-                        //         tDrD_s(i) += tDrD_sl(i);
-                        //     }
-                        // }
+                        cute::gemm(tiled_mma , tCrD_n, tCrA(_, _, ik), tCrB(_, _, ik), tCrD_n);
+                        cute::gemm(tiled_mma2, tCrD_s, tCrA(_, _, ik), tCrB(_, _, ik), tCrD_s);
                     }
-                } 
+                }
                 __syncthreads();
 
                 Tensor cD = make_identity_tensor(make_shape(size<0>(gD), size<1>(gD)));
@@ -194,10 +149,12 @@ namespace propr {
                 CUTE_UNROLL
                 for (int i = 0; i < cute::size(tCrD_s); ++i) {
                     if (elem_less(tCcD(i), make_coord(m_max_coord, n_max_coord))) {
-                        // auto result = tDrD_s(i) - tDrD_u(i);
                         auto n_val = tCrD_n(i), s_val = tCrD_s(i);
-                        // if (threadIdx.x == 0 && blockIdx.x == 0) printf("%f %f \n",n_val, s_val);
-                        auto result = (1.0f - (n_val == 0.0f)) * (n_val - s_val / (n_val + (n_val == 0.0f)));
+                        // if (threadIdx.x == 4) printf("[%d] %f %f \n",threadIdx.x, n_val, s_val);
+                        auto result = n_val;
+                        // auto result = s_val;
+                        // auto result = (1.0f - (n_val == 0.0f)) * (n_val - s_val / (n_val + (n_val == 0.0f)));
+                        // auto result = tCrD_n(i) - tCrD_s(i);
                         tCgD(i) = result;
                         if (ix < iy) tCgDT(i) = result;
                     }

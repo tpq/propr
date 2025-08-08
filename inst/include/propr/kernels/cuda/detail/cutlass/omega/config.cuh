@@ -41,7 +41,7 @@ namespace propr {
 
                 private:
                     using SmemCopyAtom  = cute::Copy_Atom<cute::Copy_Traits<cute::SM75_U32x4_LDSM_N>, cute::half_t>;
-
+                 // using SmemCopyAtom  = cute::Copy_Atom<cute::Copy_Traits<cute::SM80_CP_ASYNC_CACHEGLOBAL<cute::uint128_t>>, cute::half_t>;
 
                     using MmaTraits = cute::MMA_Traits<propr::cutlass_atoms::SM80_16x8x16_F32F16F16F32_TN_HARMONIC_1>;
                     using MmaAtom   = cute::MMA_Atom<MmaTraits>;

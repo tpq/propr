@@ -42,8 +42,9 @@ propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 		for(int j = 0; j < i; j++){
 			Wij = 2 * W(_, i) * W(_, j) / ( W(_, i) + W(_, j));
 			n = sum(Wij);
+      // printf("%f %f\n", n, sum(pow(Wij, 2)) );
 			out(counter) = n - sum(pow(Wij, 2)) / n;
-      std::cout << out(counter) << " ";
+      // std::cout << out(counter) << " ";
 			counter += 1;
 		}
 	}
@@ -74,4 +75,5 @@ propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W
 //        2703.29 2435.75 
 //        894.549 862.709 705.633 
 // [CPU]: 6910.41 12157.3 6096.84 2401.04 2006.21 2293.52 
-// [CPU]: 15856.7 14952.2 8605.14 3322.39 2893.77 3021.38 
+// [CPU]: 15856.7 14952.2 8605.14 3322.39 2893.77 3021.38 d
+
