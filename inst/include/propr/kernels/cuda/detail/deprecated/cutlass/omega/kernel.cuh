@@ -39,6 +39,7 @@ namespace propr {
                 typename Config::SharedStorage &smem = *reinterpret_cast<typename Config::SharedStorage *>(shared_memory);
                 typename Config::SmemLayoutA sA_layout;
                 typename Config::SmemLayoutB sB_layout;
+
                 auto sA = make_tensor(make_smem_ptr(smem.A.begin()), sA_layout); // (BLK_M,BLK_K,PIPE)
                 auto sB = make_tensor(make_smem_ptr(smem.B.begin()), sB_layout);
 
@@ -55,8 +56,9 @@ namespace propr {
 
                 auto tCrD_n  = thr_mma.partition_fragment_C(gD);
                 auto tCrD_s  = thr_mma.partition_fragment_C(gD);
+                auto dummy   = thr_mma.partition_fragment_C(gD);
 
-                clear(tCrD_n); clear(tCrD_s);
+                clear(tCrD_n); clear(tCrD_s); clear(dummy);
 
                 // from global memory to shared memory
                 typename Config::GmemCopyA g2s_tiled_copy_a;
@@ -132,16 +134,53 @@ namespace propr {
                     cp_async_wait<0>();
                     __syncthreads();
 
-                    int connnt=0;
+                    // int nk = size<2>(tCrA);
+                    // CUTE_UNROLL
+                    // for (int ik = 0; ik < nk; ++ik) {
+                    //     cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
+                    //     cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
+
+                    //     cute::gemm(tiled_mma , acc_1, tCrA(_, _, ik), tCrB(_, _, ik), acc_1);
+                    //     cute::gemm(tiled_mma2, acc_2, tCrA(_, _, ik), tCrB(_, _, ik), acc_2);
+                        
+                    //     // printf("\n");
+                    // }
+                    // // printf("\n\n\n");
+
                     int nk = size<2>(tCrA);
                     CUTE_UNROLL
                     for (int ik = 0; ik < nk; ++ik) {
                         cute::copy(s2r_tiled_copy_a, tAsA(_, _, ik), tCrA_view(_, _, ik)); // copy  (CPY, CPY_M), sync
-                        cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
-                        cute::gemm(tiled_mma , tCrD_n, tCrA(_, _, ik), tCrB(_, _, ik), tCrD_n);
-                        cute::gemm(tiled_mma2, tCrD_s, tCrA(_, _, ik), tCrB(_, _, ik), tCrD_s);
+                        for(int ki=0; ki < 8 ; ki++) {
+                            int warp_id  = threadIdx.x / PROPR_WARP_SIZE;
+                            int lane_id  = threadIdx.x % PROPR_WARP_SIZE;
+                            int remapped_indx =  warp_id * PROPR_WARP_SIZE + (ki* 4 + (lane_id % 4));
+                            // printf(" threadidx.x = %d remapped = %d\n",threadIdx.x, remapped_indx);
+                            auto s2r_thr_copy_b = s2r_tiled_copy_b.get_slice(idx);
+                            // auto s2r_thr_copy_b = s2r_tiled_copy_b.get_slice(threadIdx.x);
+                            auto tBsB           = s2r_thr_copy_b.partition_S(sB);     // (CPY, CPY_N, CPY_K)
+                            auto tCrB_view      = s2r_thr_copy_b.retile_D(tCrB);
+                             
+                            cute::copy(s2r_tiled_copy_b, tBsB(_, _, ik), tCrB_view(_, _, ik)); // copy  (CPY, CPY_N)
+
+                            auto& acc_1 =  (lane_id % 4) == (ki % 4) ? tCrD_n : dummy;
+                            auto& acc_2 =  (lane_id % 4) == (ki % 4) ? tCrD_s : dummy;
+
+                            if (threadIdx.x == 1) print_tensor(tCrB(_, _, ik));
+                            __syncthreads();
+
+                            cute::gemm(tiled_mma , acc_1, tCrA(_, _, ik), tCrB(_, _, ik), acc_1);
+                            cute::gemm(tiled_mma2, acc_2, tCrA(_, _, ik), tCrB(_, _, ik), acc_2);
+
+                            // if (threadIdx.x == 0|| threadIdx.x == 1 || threadIdx.x == 2 || threadIdx.x == 3) 
+                            //     printf("%d[%d] %f %f \n",(lane_id % 4) == (ki % 4), threadIdx.x, tCrD_n(0), tCrD_s(0));
+                        }
+                        // printf("\n");
                     }
+                    // printf("\n\n\n");
+                    
                 }
+
                 __syncthreads();
 
                 Tensor cD = make_identity_tensor(make_shape(size<0>(gD), size<1>(gD)));
@@ -150,7 +189,7 @@ namespace propr {
                 for (int i = 0; i < cute::size(tCrD_s); ++i) {
                     if (elem_less(tCcD(i), make_coord(m_max_coord, n_max_coord))) {
                         auto n_val = tCrD_n(i), s_val = tCrD_s(i);
-                        // if (threadIdx.x == 4) printf("[%d] %f %f \n",threadIdx.x, n_val, s_val);
+                        if (threadIdx.x == 4) printf("[%d] %f %f \n",threadIdx.x, n_val, s_val);
                         auto result = n_val;
                         // auto result = s_val;
                         // auto result = (1.0f - (n_val == 0.0f)) * (n_val - s_val / (n_val + (n_val == 0.0f)));
@@ -159,7 +198,102 @@ namespace propr {
                         if (ix < iy) tCgDT(i) = result;
                     }
                 }
+
+                printAgBg();
             }
         }
     }
 }
+
+
+// void 
+// propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, propr_context context) {
+//     using Config = kernels::cutlass_impl::OmegaConfig;
+//     NumericMatrix W2(W);
+//     // printRMatrix(W2);
+//     // for(int i=0; i < W2.nrow(); i++){
+//     //   for(int j=0; j < W2.ncol(); j++){
+//     //     W2(i,j) = float(335.712);
+//     //   } 
+//     // }
+
+//     for(int i=0; i < W2.nrow(); i++){
+//       for(int j=0; j < W2.ncol(); j++){
+//         W2(i,j) = float(0);
+//       } 
+//     }
+
+//     for(int i=0; i < W2.nrow(); i++){
+//       for(int j=0; j < W2.ncol(); j++){
+//         W2(i,j) = float(j) * W2.nrow() + i + 1;
+//       }
+//     }
+//     printRMatrix(W2);
+
+//     int t = 32;
+//     auto Wl = pad_matrix(W2, 0, ((W2.nrow() + t - 1)/t)*t - W2.nrow(), 0, ((W2.ncol() + t - 1)/t)*t - W2.ncol());
+//     int nfeats  = Wl.ncol();
+//     int samples = Wl.nrow();
+//     // printRMatrix(Wl);
+
+//     //  for(int i=0; i < Wl.nrow(); i++){
+//     //   for(int j=0; j < Wl.ncol(); j++){
+//     //     Wl(i,j) = float(i) + float(j)*Wl.nrow();
+//     //   }
+//     // }
+//     // printRMatrix(Wl);
+    
+//     std::cout << "[" << W.nrow() << "," << W.ncol() << "]" << std::endl;
+
+//     const size_t llt = static_cast<size_t>(nfeats) * (nfeats - 1) / 2;
+//     // CHECK_VECTOR_SIZE(out, llt);
+//     int alignment = 1; //16
+//     offset_t W_stride;
+//     auto *d_W = RcppMatrixToDevice<cute::half_t, REALSXP>(Wl, W_stride, alignment);
+//     float* d_out = nullptr;
+//     offset_t dout_stride = ((nfeats  + alignment - 1) / alignment) * alignment;
+//     CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+
+//     const int BX = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
+//     const int BY = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
+
+//     dim3 block(cute::size(Config::TiledMMA{}));
+//     dim3 grid(BX, BY);
+//     static constexpr int shm_size_AB = cute::cosize(Config::SmemLayoutA{}) + cute::cosize(Config::SmemLayoutB{});
+//     static constexpr int kShmSize = shm_size_AB * sizeof(__half);
+//     const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config, cute::half_t, float>;
+
+//     cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, kShmSize);
+//     cudaFuncSetAttribute(fptr, cudaFuncAttributePreferredSharedMemoryCarveout, 100);
+
+//     std::cout <<  "M: "<< nfeats << " K: " << samples << std::endl;
+//     std::cout <<  "fptr<<<(" << grid.x << ","<< grid.y <<")"<< ",(" << block.x << "," << block.y <<")>>>" << std::endl;
+//     fptr<<<grid, block, kShmSize, context.stream>>>(nfeats, samples, d_W, d_out);
+    
+//     CUDA_CHECK(cudaStreamSynchronize(context.stream));
+//     auto h_full= new std::vector<float> (nfeats * dout_stride);
+//     CUDA_CHECK(cudaMemcpy(
+//         h_full->data(),
+//         d_out,
+//         nfeats * dout_stride * sizeof(float),
+//         cudaMemcpyDeviceToHost
+//     ));
+
+//     size_t counter = 0;
+//     double* out_ptr = REAL(out);
+//     std::cout << "[GPU]: \n";
+//     for (int i = 0; i < nfeats; ++i) {
+//         for (int j = 0; j < nfeats; ++j) {
+//             float v = h_full->at(size_t(i) * dout_stride + j);
+//             // out_ptr[counter++] = static_cast<double>(v);
+//             std::cout << v << " ";
+//         }
+//         std::cout << std::endl;
+//     }
+//     std::cout << std::endl;
+
+//     CUDA_CHECK(cudaFree(d_W));
+//     CUDA_CHECK(cudaFree(d_out));
+//     exit(-1);
+// }
+ 

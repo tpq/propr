@@ -57,93 +57,57 @@ NumericMatrix pad_matrix(const NumericMatrix& mat,
 
 void 
 propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, propr_context context) {
-    using Config = kernels::cutlass_impl::OmegaConfig;
+
+    const int BLOCK_SIZE_M  = 128;
+    const int BLOCK_SIZE_K  = 8;
+    const int BLOCK_SIZE_N  = 128;
+    const int THREAD_SIZE_X = 8;
+    const int THREAD_SIZE_Y = 8;
+
     NumericMatrix W2(W);
-    // printRMatrix(W2);
-    // for(int i=0; i < W2.nrow(); i++){
-    //   for(int j=0; j < W2.ncol(); j++){
-    //     W2(i,j) = float(335.712);
-    //   } 
-    // }
 
-    for(int i=0; i < W2.nrow(); i++){
-      for(int j=0; j < W2.ncol(); j++){
-        W2(i,j) = float(0);
-      } 
-    }
-
-    for(int i=0; i < W2.nrow(); i++){
-      for(int j=0; j < W2.ncol(); j++){
-        W2(i,j) = float(j) * W2.nrow() + i + 1;
-      }
-    }
-    printRMatrix(W2);
-
-    int t = 32;
+    int t = 128;
     auto Wl = pad_matrix(W2, 0, ((W2.nrow() + t - 1)/t)*t - W2.nrow(), 0, ((W2.ncol() + t - 1)/t)*t - W2.ncol());
     int nfeats  = Wl.ncol();
     int samples = Wl.nrow();
-    // printRMatrix(Wl);
 
-    //  for(int i=0; i < Wl.nrow(); i++){
-    //   for(int j=0; j < Wl.ncol(); j++){
-    //     Wl(i,j) = float(i) + float(j)*Wl.nrow();
-    //   }
-    // }
-    // printRMatrix(Wl);
-    
     std::cout << "[" << W.nrow() << "," << W.ncol() << "]" << std::endl;
+    printRMatrix(Wl);
 
     const size_t llt = static_cast<size_t>(nfeats) * (nfeats - 1) / 2;
     // CHECK_VECTOR_SIZE(out, llt);
     int alignment = 1; //16
     offset_t W_stride;
-    auto *d_W = RcppMatrixToDevice<cute::half_t, REALSXP>(Wl, W_stride, alignment);
+    auto *d_W = RcppMatrixToDevice<float, REALSXP>(Wl, W_stride, alignment);
     float* d_out = nullptr;
     offset_t dout_stride = ((nfeats  + alignment - 1) / alignment) * alignment;
     CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
 
-    const int BX = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
-    const int BY = (nfeats + Config::BLK_M - 1) / Config::BLK_M;
+    dim3 block(BLOCK_SIZE_N / THREAD_SIZE_X, BLOCK_SIZE_M / THREAD_SIZE_Y);
+    dim3 grid(nfeats / BLOCK_SIZE_N, nfeats / BLOCK_SIZE_M);
 
-    dim3 block(cute::size(Config::TiledMMA{}));
-    dim3 grid(BX, BY);
-    static constexpr int shm_size_AB = cute::cosize(Config::SmemLayoutA{}) + cute::cosize(Config::SmemLayoutB{});
-    static constexpr int kShmSize = shm_size_AB * sizeof(__half);
-    const auto fptr = propr::kernels::cutlass_impl::omega_kernel<Config, cute::half_t, float>;
-
-    cudaFuncSetAttribute(fptr, cudaFuncAttributeMaxDynamicSharedMemorySize, kShmSize);
-    cudaFuncSetAttribute(fptr, cudaFuncAttributePreferredSharedMemoryCarveout, 100);
-
-    std::cout <<  "M: "<< nfeats << " K: " << samples << std::endl;
-    std::cout <<  "fptr<<<(" << grid.x << ","<< grid.y <<")"<< ",(" << block.x << "," << block.y <<")>>>" << std::endl;
-    fptr<<<grid, block, kShmSize, context.stream>>>(nfeats, samples, d_W, d_out);
-    
+    std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
+    omega_kernel<BLOCK_SIZE_M, BLOCK_SIZE_K, THREAD_SIZE_Y, THREAD_SIZE_X><<<grid, block, 0>>>(d_W, d_out, nfeats, samples);
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    auto h_full= new std::vector<float> (nfeats * dout_stride);
+    auto h_full= new std::vector<float> (nfeats * nfeats);
     CUDA_CHECK(cudaMemcpy(
         h_full->data(),
         d_out,
-        nfeats * dout_stride * sizeof(float),
+        nfeats * nfeats * sizeof(float),
         cudaMemcpyDeviceToHost
     ));
-
+    
     size_t counter = 0;
     double* out_ptr = REAL(out);
-    std::cout << "[GPU]: \n";
-    for (int i = 0; i < nfeats; ++i) {
-        for (int j = 0; j < nfeats; ++j) {
-            float v = h_full->at(size_t(i) * dout_stride + j);
-            // out_ptr[counter++] = static_cast<double>(v);
-            std::cout << v << " ";
+    for (int i = 1; i < W.nrows(); ++i) {
+        for (int j = 0; j < i; ++j) {
+            float v = h_full->at(size_t(i) * nfeats + j);
+            out_ptr[counter++] = static_cast<double>(v);
         }
-        std::cout << std::endl;
     }
-    std::cout << std::endl;
 
     CUDA_CHECK(cudaFree(d_W));
     CUDA_CHECK(cudaFree(d_out));
-    exit(-1);
 }
  
 void 

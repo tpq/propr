@@ -11,18 +11,19 @@ namespace propr {
         namespace cutlass_impl {
             struct OmegaConfig {
                 public:
-                    static constexpr auto BLK_M = cute::Int<128>{};
+                    static constexpr auto BLK_M = cute::Int<64>{}; //cute::Int<128>{};
                     static constexpr auto BLK_K = cute::Int<32>{};
                 private:
                     using BlockShapeA    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
                     using BlockShapeB    = cute::Shape<cute::Int<BLK_M>, cute::Int<BLK_K>>;
                     using SmemLayoutAtom = decltype(cute::composition(cute::Swizzle<3, 3, 3>{},
                                                     cute::make_layout(cute::make_shape(cute::Int<8>{}, cute::Int<BLK_K>{}),
-                                                    cute::make_stride(cute::Int<BLK_K>{}, cute::Int<1>{}))));
+                                                    cute::make_stride(cute::Int<BLK_K>{}, cute::Int<1>{})) ) );
 
                 public:
                     using SmemLayoutA = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeA{}));
                     using SmemLayoutB = decltype(cute::tile_to_shape(SmemLayoutAtom{}, BlockShapeB{}));
+
                     struct SharedStorage {
                         cute::ArrayEngine<cute::half_t, cute::cosize_v<SmemLayoutA>> A;
                         cute::ArrayEngine<cute::half_t, cute::cosize_v<SmemLayoutB>> B;
@@ -30,12 +31,15 @@ namespace propr {
 
                 private:
                     using GmemCopyTraits = cute::Copy_Traits<cute::SM80_CP_ASYNC_CACHEGLOBAL<cute::uint128_t>>;
+
                     using GmemCopyAtom   = cute::Copy_Atom<GmemCopyTraits, cute::half_t>;
+                    
                     using GmemCopyThreadLayout = decltype(cute::make_layout(
                                                              cute::make_shape (cute::Int<32>{}, cute::Int<4>{}),    
                                                              cute::make_stride(cute::Int<4>{} , cute::Int<1>{})));
                     using GmemCopyValLayout = decltype(cute::make_layout(cute::make_shape(cute::Int<1>{} , cute::Int<8>{})));
-                public:
+
+                public: 
                     using GmemCopyA = decltype(cute::make_tiled_copy(GmemCopyAtom{}, GmemCopyThreadLayout{}, GmemCopyValLayout{}));
                     using GmemCopyB = GmemCopyA;
 

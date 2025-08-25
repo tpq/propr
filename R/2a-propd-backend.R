@@ -84,20 +84,20 @@ calculate_theta <-
 
     # use weights for lrv modifiers, if provided
     if (weighted) {
-      nvtxR::nvtx_push_range("setup_weighted_W", 2)
       W <- weights
-      nvtxR::nvtx_pop_range()
-      
+      message("omega group (lrv modifiers )")
       #batch apply omega to the weights
       nvtxR::nvtx_push_range("omega group (lrv modifiers )", 2)
       ps <- lapply(groups, function(g) omega(W[g,]))
       nvtxR::nvtx_pop_range()
+      message("DONE: omega group (lrv modifiers )")
 
       names(ps) <- paste0("p", 1:ngrp)
-
+      message("omega single (lrv modifiers )")
       nvtxR::nvtx_push_range("omega single (lrv modifiers )", 2)
       p <- omega(W)
       nvtxR::nvtx_pop_range()
+      message("DONE: omega single (lrv modifiers )")
 
     } else {
       nvtxR::nvtx_push_range("compute_W_and_ps", 2)

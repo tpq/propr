@@ -3,8 +3,49 @@
 #include <propr/utils/constants.h>
 #include <propr/utils/preprocessor.cuh>
 
+
+__device__ int Ag[128][201] = {0};
+__device__ int Bg[128][201] = {0};
+
+
+CUTE_DEVICE
+void printAgBg(){
+    if (threadIdx.x == 0){
+        for(int thread = 0; thread < 128; thread++) {
+            printf("thread %d:\n", thread);                
+            for(int start_col = 1; start_col < 201; start_col += 50) {
+                int end_col = (start_col + 49 < 201) ? start_col + 49 : 200;                    
+                for(int col = start_col; col <= end_col; col++) {
+                    printf("%d", Ag[thread][col]);
+                    if(col < end_col) printf(", ");
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+        printf("\n");
+        printf("\n");
+        printf("\n");
+
+        for(int thread = 0; thread < 128; thread++) {
+            printf("thread %d:\n", thread);                
+            for(int start_col = 1; start_col < 201; start_col += 50) {
+                int end_col = (start_col + 49 < 201) ? start_col + 49 : 200;                    
+                for(int col = start_col; col <= end_col; col++) {
+                    printf("%d", Bg[thread][col]);
+                    if(col < end_col) printf(", ");
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+    }
+}
+
+
 namespace propr {
     namespace cutlass_atoms { 
+
         PROPR_FORCE_INLINE 
         PROPR_HOST_DEVICE
         __half2 normalize2(__half2 a, __half2 b) {
@@ -39,16 +80,35 @@ namespace propr {
                 __half2 B0 = *reinterpret_cast<const __half2*>(&b0);
                 __half2 B1 = *reinterpret_cast<const __half2*>(&b1);
 
-                if (threadIdx.x == 4 && blockIdx.x == 0 && blockIdx.y == 0) {
-                    printf(
-                        "                        %.2f   %.2f | %.2f   %.2f \n"
-                        " %.2f  %.2f|%.2f  %.2f|                           \n"
-                        " %.2f  %.2f|%.2f  %.2f|                           \n",
-                        __half2float(B0.x), __half2float(B0.y), __half2float(B1.x), __half2float(B1.y),
-                        __half2float(A0.x), __half2float(A0.y), __half2float(A2.x), __half2float(A2.y),
-                        __half2float(A1.x), __half2float(A1.y), __half2float(A3.x), __half2float(A3.y)
-                    );
-                }
+                Ag[threadIdx.x][int(__half2float(A0.x))] += 1;
+                Ag[threadIdx.x][int(__half2float(A0.y))] += 1;
+
+                Ag[threadIdx.x][int(__half2float(A2.x))] += 1;
+                Ag[threadIdx.x][int(__half2float(A2.y))] += 1;
+
+                Ag[threadIdx.x][int(__half2float(A1.x))] += 1;
+                Ag[threadIdx.x][int(__half2float(A1.y))] += 1;
+
+                Ag[threadIdx.x][int(__half2float(A3.x))] += 1;
+                Ag[threadIdx.x][int(__half2float(A3.y))] += 1;
+
+                Bg[threadIdx.x][int(__half2float(B0.x))] += 1;
+                Bg[threadIdx.x][int(__half2float(B0.y))] += 1;
+
+                Bg[threadIdx.x][int(__half2float(B1.x))] += 1;
+                Bg[threadIdx.x][int(__half2float(B1.y))] += 1;
+
+
+                // if (threadIdx.x == 4 && blockIdx.x == 0 && blockIdx.y == 0) {
+                //     printf(
+                //         "                        %.2f   %.2f | %.2f   %.2f \n"
+                //         " %.2f  %.2f|%.2f  %.2f|                           \n"
+                //         " %.2f  %.2f|%.2f  %.2f|                           \n",
+                //         __half2float(B0.x), __half2float(B0.y), __half2float(B1.x), __half2float(B1.y),
+                //         __half2float(A0.x), __half2float(A0.y), __half2float(A2.x), __half2float(A2.y),
+                //         __half2float(A1.x), __half2float(A1.y), __half2float(A3.x), __half2float(A3.y)
+                //     );
+                // }
 
 
                 // A0 = normalize2(A0, B0);

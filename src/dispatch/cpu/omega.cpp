@@ -30,25 +30,23 @@ NumericMatrix pad_matrix2(const NumericMatrix& mat,
 
 void
 propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
-	int nfeats = W.ncol();
-	int llt = nfeats * (nfeats - 1) / 2;
-	CHECK_VECTOR_SIZE(out, llt);
-	NumericVector Wij(W.nrow());
 
-	int counter = 0;
-	double n    = 0;
-  std::cout << "[CPU]: ";
-	for(int i = 1; i < nfeats; i++){
-		for(int j = 0; j < i; j++){
-			Wij = 2 * W(_, i) * W(_, j) / ( W(_, i) + W(_, j));
-			n = sum(Wij);
-      // printf("%f %f\n", n, sum(pow(Wij, 2)) );
-			out(counter) = n - sum(pow(Wij, 2)) / n;
-      // std::cout << out(counter) << " ";
-			counter += 1;
-		}
-	}
-  std::cout << std::endl;
+  int nfeats = W.ncol();
+  int llt = nfeats * (nfeats - 1) / 2;
+  Rcpp::NumericVector result(llt);
+  Rcpp::NumericVector Wij(nfeats);
+  int counter = 0;
+  double n = 0;
+
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+      n = sum(Wij);
+      out(counter) = n - sum(pow(Wij, 2)) / n;
+      std::cout << out(counter) << " ";
+      counter += 1;
+    } std::cout << std::endl;
+  }
 }
 
 void
@@ -57,23 +55,13 @@ propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W
     int llt    = nfeats * (nfeats - 1) / 2;
     CHECK_VECTOR_SIZE(out, llt);
     int counter = 0;
-    for (int i = 1; i < nfeats; ++i) {
-        for (int j = 0; j < i; ++j) {
-            Rcpp::NumericVector col_i = W(_, i);
-            Rcpp::NumericVector col_j = W(_, j);
-            double s = std::inner_product(
-                col_i.begin(), col_i.end(),
-                col_j.begin(),
-                0.0
-            );
-            out[counter++] = s;
-        }
+
+    NumericVector Wij(nfeats);
+    for(int i = 1; i < nfeats; i++){
+      for(int j = 0; j < i; j++){
+        Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+        out(counter) = sum(Wij);
+        counter += 1;
+      }
     }
 }
-
-// [CPU]: 8785.39 
-//        2703.29 2435.75 
-//        894.549 862.709 705.633 
-// [CPU]: 6910.41 12157.3 6096.84 2401.04 2006.21 2293.52 
-// [CPU]: 15856.7 14952.2 8605.14 3322.39 2893.77 3021.38 d
-
