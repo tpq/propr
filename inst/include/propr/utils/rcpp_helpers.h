@@ -1,10 +1,13 @@
+#pragma once
+
 #include <Rcpp.h>
+#include <iostream>
 
 namespace propr {
     namespace rcpp {
         namespace helpers {
             
-            void printRMatrix(Rcpp::NumericMatrix mat) {
+            inline void printRMatrix(Rcpp::NumericMatrix mat) {
                 int nrow = mat.nrow();
                 int ncol = mat.ncol();
                 for (int i = 0; i < nrow; ++i) {
@@ -14,7 +17,16 @@ namespace propr {
                 }  std::cout << std::endl;
             }
 
-            Rcpp::NumericMatrix pad_matrix(const Rcpp::NumericMatrix& mat,
+
+            inline void printRVector(Rcpp::NumericVector vec) {
+                int nele = vec.size();
+                for (int i = 0; i < nele; ++i) {
+                    std::cout << vec(i) << " ";
+                }
+                std::cout << std::endl;
+            }
+
+            inline Rcpp::NumericMatrix pad_matrix(const Rcpp::NumericMatrix& mat,
                                            int padTop, int padBottom,
                                            int padLeft, int padRight) {
                 int old_nrow = mat.nrow();
