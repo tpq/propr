@@ -1,6 +1,8 @@
 #pragma once
+
 #include <cuda_runtime.h>
 #include <propr/data/types.h>
+#include <propr/utils/preprocessor.cuh>
 
 namespace propr{
     namespace detail {
@@ -19,12 +21,12 @@ namespace propr{
                 AccT sum_log_ratios2 = 0.0f;
 
                 int k = 0;
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples / 4) * 4; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * stride]);
 
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; m++) {
                         float ratio     = __fdividef((&y_i.x)[m], (&y_j.x)[m]);
                         float log_val   = __logf(ratio);
@@ -33,7 +35,7 @@ namespace propr{
                     }
                 }
                 
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < nb_samples; ++k) {
                     const float yi = d_Y[k + i * stride];
                     const float yj = d_Y[k + j * stride];
@@ -68,14 +70,14 @@ namespace propr{
                 float4 accum = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
                 int k = 0;
 
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples/4)*4 ; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
                     float4 w_i = *reinterpret_cast<float4*>(&d_W[k + i * W_stride]);
                     float4 w_j = *reinterpret_cast<float4*>(&d_W[k + j * W_stride]);
                 
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float ratio = __fdividef((&y_i.x)[m], (&y_j.x)[m]);
                         float log_val = __logf(ratio);
@@ -94,7 +96,7 @@ namespace propr{
                     }
                 }
 
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < nb_samples; ++k) {
                     float y_ik = d_Y[k + i * Y_stride];
                     float y_jk = d_Y[k + j * Y_stride];
@@ -148,14 +150,14 @@ namespace propr{
                 float C = 0.0f;
                 int n = 0, k = 0;
 
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples/4) * 4; k += 4) {
                     float4 y_i     = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
                     float4 y_j     = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
                     float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
                     float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
 
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         n++;
                         float inv_n = __frcp_rn(static_cast<float>(n));
@@ -274,7 +276,7 @@ namespace propr{
                 float sum_w_full_X_full_j = 0.0f;
                 int k = 0;
 
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples/4)*4; k += 4) {
                     float4 y_i     = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
                     float4 y_j     = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
@@ -285,7 +287,7 @@ namespace propr{
                     float4 wfull_i = *reinterpret_cast<float4*>(&d_Wfull[k + i * Wfull_stride]);
                     float4 wfull_j = *reinterpret_cast<float4*>(&d_Wfull[k + j * Wfull_stride]);
 
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float X_i      = __powf(reinterpret_cast<float*>(&y_i)[m]    , a);
                         float X_j      = __powf(reinterpret_cast<float*>(&y_j)[m]    , a);

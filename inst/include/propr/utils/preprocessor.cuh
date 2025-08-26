@@ -11,6 +11,7 @@
     #define PROPR_DEVICE
 #endif
 
+
 #define PROPR_INLINE       inline
 #define PROPR_FORCE_INLINE __forceinline__
 
@@ -24,3 +25,7 @@
     #define PROPR_UNROLL
     #define PROPR_NO_UNROLL
 #endif  
+
+
+#define FETCH_FLOAT4(pointer) (reinterpret_cast<float4*>(&(pointer))[0])
+#define OFFSET(row, col, ld) ((row) * (ld) + (col))
