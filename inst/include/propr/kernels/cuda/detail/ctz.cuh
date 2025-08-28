@@ -29,7 +29,7 @@ namespace propr {
 
                 const int tidx = threadIdx.x;
                 const int col  = blockIdx.x;
-                const int nsubj_padded = (nsubjs + BLK_X - 1) / BLK_X;
+                const int nsubj_padded = ((nsubjs + BLK_X - 1) / BLK_X) * BLK_X;
                 int z_count       = 0;
                 __shared__ block_scan_storage_t partials;
                 for(int i = 0; i < nsubj_padded; i += BLK_X) {
