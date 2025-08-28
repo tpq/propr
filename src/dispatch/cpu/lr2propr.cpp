@@ -16,11 +16,6 @@ dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   NumericMatrix x_copy = clone(lr);
   NumericMatrix cov_tmp(nfeats, nfeats);
   dispatch::cpu::covRcpp(out, x_copy, 0);
-  //for (int i = 0; i < nfeats; ++i) {
-  //    for (int j = 0; j < nfeats; ++j) {
-  //        out(i, j) = cov_tmp(i, j);
-  //    }
-  //}
   
   NumericVector diag(nfeats);
   for(int j = 0; j < nfeats; j++){

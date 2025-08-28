@@ -140,32 +140,82 @@ namespace propr{
                       float* __restrict__ d_Yfull, offset_t Yfull_stride, 
                       float a,
                       float* __restrict__ d_variances,
-                      int nb_samples, int nb_genes) {
-                int i = blockIdx.x * blockDim.x + threadIdx.x;
-                int j = blockIdx.y * blockDim.y + threadIdx.y;
-                if (i >= nb_genes || j >= i) return;
+                      int nb_samples,
+                      int nb_samples_full,
+                      int nb_genes) {
 
-                float4 mu_m = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-                float2 acc  = make_float2(0.0f, 0.0f);
-                float C = 0.0f;
-                int n = 0, k = 0;
+                    int i = blockIdx.x * blockDim.x + threadIdx.x;
+                    int j = blockIdx.y * blockDim.y + threadIdx.y;
+                    if (i >= nb_genes || j >= i) return;
 
-                PROPR_UNROLL
-                for (; k < (nb_samples/4) * 4; k += 4) {
-                    float4 y_i     = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
-                    float4 y_j     = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
-                    float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
-                    float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
+                    float2 sum_full = make_float2(0.0f,0.0f); //compute mean of Yfull^a for columns i and j ---
+                    int k = 0;
 
                     PROPR_UNROLL
-                    for (int m = 0; m < 4; ++m) {
+                    for (; k + 4 <= nb_samples_full; k += 4) {
+                        float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
+                        float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
+                        for (int m=0;m<4;++m) {
+                            float Xf_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
+                            float Xf_j = __powf(reinterpret_cast<float*>(&yfull_j)[m], a);
+                            sum_full.x += Xf_i;
+                            sum_full.y += Xf_j;
+                        }
+                    }
+                    
+                    for (; k < nb_samples_full; ++k) {
+                        float Xf_i = __powf(d_Yfull[k + i * Yfull_stride], a);
+                        float Xf_j = __powf(d_Yfull[k + j * Yfull_stride], a);
+                        sum_full.x += Xf_i;
+                        sum_full.y += Xf_j;
+                    }
+
+                    float mu_full_i = (nb_samples_full > 0) ? (sum_full.x / static_cast<float>(nb_samples_full)) : 0.0f;
+                    float mu_full_j = (nb_samples_full > 0) ? (sum_full.y / static_cast<float>(nb_samples_full)) : 0.0f;
+
+                    float a_i = (mu_full_i != 0.0f) ? __frcp_rn(mu_full_i) : 0.0f;
+                    float a_j = (mu_full_j != 0.0f) ? __frcp_rn(mu_full_j) : 0.0f;
+                    float ai_sq = __fmul_rn(a_i, a_i);
+                    float aj_sq = __fmul_rn(a_j, a_j);
+                    float aij   = __fmul_rn(a_i, a_j);
+
+                    float4 mu_m = make_float4(0.0f, 0.0f, 0.0f, 0.0f); // mu_m.x = mean Xi, mu_m.y = mean Xj
+                    float C = 0.0f;
+                    float acc_x = 0.0f; // sum of Xi^2
+                    float acc_y = 0.0f; // sum of Xj^2
+                    int n = 0;
+                    k = 0;
+                    PROPR_UNROLL
+                    for (; k + 4 <= nb_samples; k += 4) {
+                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
+                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
+                        for (int m=0;m<4;++m) {
+                            n++;
+                            float inv_n = __frcp_rn(static_cast<float>(n));
+                            float X_i = __powf(reinterpret_cast<float*>(&y_i)[m], a);
+                            float X_j = __powf(reinterpret_cast<float*>(&y_j)[m], a);
+
+                            float prev_mu_i = mu_m.x;
+                            float dx_i = __fsub_rn(X_i, prev_mu_i);
+                            mu_m.x = __fmaf_rn(dx_i, inv_n, prev_mu_i);
+
+                            float prev_mu_j = mu_m.y;
+                            float dx_j = __fsub_rn(X_j, prev_mu_j);
+                            mu_m.y = __fmaf_rn(dx_j, inv_n, prev_mu_j);
+
+                            float dxj_muj = __fsub_rn(X_j, mu_m.y);
+                            C = __fmaf_rn(dx_i, dxj_muj, C);
+
+                            acc_x = __fmaf_rn(X_i, X_i, acc_x);
+                            acc_y = __fmaf_rn(X_j, X_j, acc_y);
+                        }
+                    }
+
+                    for (; k < nb_samples; ++k) {
                         n++;
                         float inv_n = __frcp_rn(static_cast<float>(n));
-                        
-                        float X_i      = __powf(reinterpret_cast<float*>(&y_i)[m], a);
-                        float X_j      = __powf(reinterpret_cast<float*>(&y_j)[m], a);
-                        float X_full_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
-                        float X_full_j = __powf(reinterpret_cast<float*>(&yfull_j)[m], a);
+                        float X_i = __powf(d_Y[k + i * Y_stride], a);
+                        float X_j = __powf(d_Y[k + j * Y_stride], a);
 
                         float prev_mu_i = mu_m.x;
                         float dx_i = __fsub_rn(X_i, prev_mu_i);
@@ -178,211 +228,210 @@ namespace propr{
                         float dxj_muj = __fsub_rn(X_j, mu_m.y);
                         C = __fmaf_rn(dx_i, dxj_muj, C);
 
-                        acc.x = __fmaf_rn(X_i, X_i, acc.x);
-                        acc.y = __fmaf_rn(X_j, X_j, acc.y);
-
-                        float dx_full_i = __fsub_rn(X_full_i, mu_m.z);
-                        mu_m.z = __fmaf_rn(dx_full_i, inv_n, mu_m.z);
-
-                        float dx_full_j = __fsub_rn(X_full_j, mu_m.w);
-                        mu_m.w = __fmaf_rn(dx_full_j, inv_n, mu_m.w);
+                        acc_x = __fmaf_rn(X_i, X_i, acc_x);
+                        acc_y = __fmaf_rn(X_j, X_j, acc_y);
                     }
-                }
 
-                for (; k < nb_samples; ++k) {
-                    n++;
-                    float inv_n = __frcp_rn(static_cast<float>(n));
-                    float X_i      = __powf(d_Y[k + i * Y_stride], a);
-                    float X_j      = __powf(d_Y[k + j * Y_stride], a);
-                    float X_full_i = __powf(d_Yfull[k + i * Yfull_stride], a);
-                    float X_full_j = __powf(d_Yfull[k + j * Yfull_stride], a);
+                    float n_mui_sq = __fmul_rn(n, __fmul_rn(mu_m.x, mu_m.x));
+                    float n_muj_sq = __fmul_rn(n, __fmul_rn(mu_m.y, mu_m.y));
+                    float sum_sq_i = __fsub_rn(acc_x, n_mui_sq);
+                    float sum_sq_j = __fsub_rn(acc_y, n_muj_sq);
 
-                    float prev_mu_i = mu_m.x;
-                    float dx_i = __fsub_rn(X_i, prev_mu_i);
-                    mu_m.x = __fmaf_rn(dx_i, inv_n, prev_mu_i);
+                    // combined numerator S = sum_sq_i/ mu_full_i^2 + sum_sq_j/mu_full_j^2 - 2*C/(mu_full_i*mu_full_j)
+                    float term1 = __fmul_rn(sum_sq_i, ai_sq);
+                    float term2 = __fmul_rn(sum_sq_j, aj_sq);
+                    float term3 = __fmul_rn(2.0f, __fmul_rn(aij, C));
+                    float S         = __fadd_rn(term1, __fsub_rn(term2, term3));
+                    float a_sq      = __fmul_rn(a, a);
+                    float denom     = (n > 1) ? __fmul_rn(a_sq, static_cast<float>(n - 1)) : 1.0f;
+                    float lrv_value = __fdiv_rn(S, denom);
 
-                    float prev_mu_j = mu_m.y;
-                    float dx_j = __fsub_rn(X_j, prev_mu_j);
-                    mu_m.y = __fmaf_rn(dx_j, inv_n, prev_mu_j);
-
-                    float dxj_muj = __fsub_rn(X_j, mu_m.y);
-                    C = __fmaf_rn(dx_i, dxj_muj, C);
-                    
-                    acc.x = __fmaf_rn(X_i, X_i, acc.x);
-                    acc.y = __fmaf_rn(X_j, X_j, acc.y);
-
-                    float dx_full_i = __fsub_rn(X_full_i, mu_m.z);
-                    mu_m.z = __fmaf_rn(dx_full_i, inv_n, mu_m.z);
-
-                    float dx_full_j = __fsub_rn(X_full_j, mu_m.w);
-                    mu_m.w = __fmaf_rn(dx_full_j, inv_n, mu_m.w);
-                }
-
-                float n_mui_sq = __fmul_rn(n, __fmul_rn(mu_m.x, mu_m.x));
-                float n_muj_sq = __fmul_rn(n, __fmul_rn(mu_m.y, mu_m.y));
-                
-                float sum_sq_i = __fsub_rn(acc.x, n_mui_sq);
-                float sum_sq_j = __fsub_rn(acc.y, n_muj_sq);
-
-                float a_i = (mu_m.z != 0.0f) ? __frcp_rn(mu_m.z) : 0.0f;
-                float a_j = (mu_m.w != 0.0f) ? __frcp_rn(mu_m.w) : 0.0f;
-
-                float ai_sq = __fmul_rn(a_i, a_i);
-                float aj_sq = __fmul_rn(a_j, a_j);
-                float aij = __fmul_rn(a_i, a_j);
-
-                float term1 = __fmul_rn(sum_sq_i, ai_sq);
-                float term2 = __fmul_rn(sum_sq_j, aj_sq);
-                float term3 = __fmul_rn(2.0f, __fmul_rn(aij, C));
-                
-                float S         = __fadd_rn(term1, __fsub_rn(term2, term3));
-                float a_sq      = __fmul_rn(a, a);
-                float denom     = __fmul_rn(a_sq, static_cast<float>(n - 1));
-                float lrv_value = __fdiv_rn(S, denom);
-
-                int pair_index = (i * (i - 1)) / 2 + j;
-                d_variances[pair_index] = lrv_value;
+                    int pair_index = (i * (i - 1)) / 2 + j;
+                    d_variances[pair_index] = lrv_value;
             }
 
-
-
-            __global__
-            void
-            lrv_alpha_weighted(float* __restrict__ d_Y    , offset_t Y_stride,
-                               float* __restrict__ d_Yfull, offset_t Yfull_stride,
-                               float* __restrict__ d_W    , offset_t W_stride,
-                               float* __restrict__ d_Wfull, offset_t Wfull_stride, 
-                               float a,
-                               float* __restrict__ d_variances,
-                               int nb_samples, int nb_genes) {
+            __global__ 
+            void 
+            lrv_alpha_weighted(
+                float* __restrict__ d_Y    , offset_t Y_stride,
+                float* __restrict__ d_Yfull, offset_t Yfull_stride,
+                float* __restrict__ d_W    , offset_t W_stride,
+                float* __restrict__ d_Wfull, offset_t Wfull_stride,
+                float a,
+                float* __restrict__ d_variances,
+                int nb_samples,
+                int nb_samples_full,
+                int nb_genes)
+            {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i >= nb_genes || j >= i) return;
 
-                float sum_w    = 0.0f;
-                float sum_w_sq = 0.0f;
-
-                float sum_wX_i = 0.0f;
-                float sum_wX_j = 0.0f;
-                
-                float sum_wX_i_sq = 0.0f;
-                float sum_wX_j_sq = 0.0f;
-
-                float sum_wX_iX_j = 0.0f;
-
-                float sum_w_full  = 0.0f;
-
-                float sum_w_full_X_full_i = 0.0f; 
+                // -------------------------
+                // 1) compute weighted sums on Yfull^a with weights Wfull (separate pass)
+                // -------------------------
+                float sum_w_full = 0.0f;
+                float sum_w_full_X_full_i = 0.0f;
                 float sum_w_full_X_full_j = 0.0f;
-                int k = 0;
 
+                int k = 0;
                 PROPR_UNROLL
-                for (; k < (nb_samples/4)*4; k += 4) {
-                    float4 y_i     = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
-                    float4 y_j     = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
+                for (; k + 4 <= nb_samples_full; k += 4) {
                     float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
                     float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
-                    float4 w_i     = *reinterpret_cast<float4*>(&d_W[k + i * W_stride]);
-                    float4 w_j     = *reinterpret_cast<float4*>(&d_W[k + j * W_stride]);
                     float4 wfull_i = *reinterpret_cast<float4*>(&d_Wfull[k + i * Wfull_stride]);
                     float4 wfull_j = *reinterpret_cast<float4*>(&d_Wfull[k + j * Wfull_stride]);
 
-                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
-                        float X_i      = __powf(reinterpret_cast<float*>(&y_i)[m]    , a);
-                        float X_j      = __powf(reinterpret_cast<float*>(&y_j)[m]    , a);
                         float X_full_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
                         float X_full_j = __powf(reinterpret_cast<float*>(&yfull_j)[m], a);
-                        
-                        float w      = __fmul_rn(reinterpret_cast<float*>(&w_i)[m]    , reinterpret_cast<float*>(&w_j)[m]);
-                        float w_full = __fmul_rn(reinterpret_cast<float*>(&wfull_i)[m], reinterpret_cast<float*>(&wfull_j)[m]);
-                        
-                        sum_w    = __fadd_rn(sum_w, w);
-                        sum_w_sq = __fmaf_rn(w, w, sum_w_sq);
-                        
-                        sum_wX_i = __fmaf_rn(w, X_i, sum_wX_i);
-                        sum_wX_j = __fmaf_rn(w, X_j, sum_wX_j);
-                        
-                        float X_i_sq = __fmul_rn(X_i, X_i);
-                        float X_j_sq = __fmul_rn(X_j, X_j);
-                        sum_wX_i_sq  = __fmaf_rn(w, X_i_sq, sum_wX_i_sq);
-                        sum_wX_j_sq  = __fmaf_rn(w, X_j_sq, sum_wX_j_sq);
-                        
-                        sum_wX_iX_j = __fmaf_rn(w, __fmul_rn(X_i, X_j), sum_wX_iX_j);
-                        
-                        sum_w_full          = __fadd_rn(sum_w_full, w_full);
+                        float w_full = __fmul_rn(reinterpret_cast<float*>(&wfull_i)[m],
+                                                reinterpret_cast<float*>(&wfull_j)[m]);
+
+                        sum_w_full = __fadd_rn(sum_w_full, w_full);
                         sum_w_full_X_full_i = __fmaf_rn(w_full, X_full_i, sum_w_full_X_full_i);
                         sum_w_full_X_full_j = __fmaf_rn(w_full, X_full_j, sum_w_full_X_full_j);
                     }
                 }
+                
+                for (; k < nb_samples_full; ++k) {
+                    float X_full_i = __powf(d_Yfull[k + i * Yfull_stride], a);
+                    float X_full_j = __powf(d_Yfull[k + j * Yfull_stride], a);
+                    float w_full   = __fmul_rn(d_Wfull[k + i * Wfull_stride],
+                                            d_Wfull[k + j * Wfull_stride]);
 
-                for (; k < nb_samples; ++k) {
-                    float X_i      = __powf(d_Y[k + i * Y_stride], a);
-                    float X_j      = __powf(d_Y[k + j * Y_stride], a);
-                    float X_full_i = d_Yfull[k + i * Yfull_stride];
-                    float X_full_j = d_Yfull[k + j * Yfull_stride];
-                    
-                    float w      = __fmul_rn(d_W    [k + i * W_stride    ], d_W    [k + j * W_stride    ]);
-                    float w_full = __fmul_rn(d_Wfull[k + i * Wfull_stride], d_Wfull[k + j * Wfull_stride]);
-                    
-                    sum_w    = __fadd_rn(sum_w, w);
-                    sum_w_sq = __fmaf_rn(w, w, sum_w_sq);
-                    
-                    sum_wX_i = __fmaf_rn(w, X_i, sum_wX_i);
-                    sum_wX_j = __fmaf_rn(w, X_j, sum_wX_j);
-                    
-                    float X_i_sq = __fmul_rn(X_i, X_i);
-                    float X_j_sq = __fmul_rn(X_j, X_j);
-                    sum_wX_i_sq  = __fmaf_rn(w, X_i_sq, sum_wX_i_sq);
-                    sum_wX_j_sq  = __fmaf_rn(w, X_j_sq, sum_wX_j_sq);
-                    
-                    sum_wX_iX_j = __fmaf_rn(w, __fmul_rn(X_i, X_j), sum_wX_iX_j);
-                    
                     sum_w_full = __fadd_rn(sum_w_full, w_full);
                     sum_w_full_X_full_i = __fmaf_rn(w_full, X_full_i, sum_w_full_X_full_i);
                     sum_w_full_X_full_j = __fmaf_rn(w_full, X_full_j, sum_w_full_X_full_j);
                 }
 
-                float inv_sum_w = __frcp_rn(sum_w);
-                float inv_sum_w_full = __frcp_rn(sum_w_full);
-                
-                float w_valid = __fdiv_rn(fminf(fabsf(sum_w), FLT_MAX), __fadd_rn(fabsf(sum_w), FLT_MIN));
-                
-                // float mu_i = __fmul_rn(sum_wX_i, __fmul_rn(inv_sum_w, w_valid));
-                // float mu_j = __fmul_rn(sum_wX_j, __fmul_rn(inv_sum_w, w_valid));
-                
-                float sum_wX_i_ratio = __fmul_rn(sum_wX_i, sum_wX_i);
-                float sum_wX_j_ratio = __fmul_rn(sum_wX_j, sum_wX_j);
-                
-                float sum_sq_i = __fsub_rn(sum_wX_i_sq, __fmul_rn(sum_wX_i_ratio, inv_sum_w));
-                float sum_sq_j = __fsub_rn(sum_wX_j_sq, __fmul_rn(sum_wX_j_ratio, inv_sum_w));
-                float C = __fsub_rn(sum_wX_iX_j, __fmul_rn(__fmul_rn(sum_wX_i, sum_wX_j), inv_sum_w));
-                
-                float wfull_valid = __fdiv_rn(fminf(fabsf(sum_w_full), FLT_MAX), __fadd_rn(fabsf(sum_w_full), FLT_MIN));
-                
-                float m_i = __fmul_rn(sum_w_full_X_full_i, __fmul_rn(inv_sum_w_full, wfull_valid));
-                float m_j = __fmul_rn(sum_w_full_X_full_j, __fmul_rn(inv_sum_w_full, wfull_valid));
-                
-                float m_i_valid = __fdiv_rn(fminf(fabsf(m_i), FLT_MAX), __fadd_rn(fabsf(m_i), FLT_MIN));
-                float m_j_valid = __fdiv_rn(fminf(fabsf(m_j), FLT_MAX), __fadd_rn(fabsf(m_j), FLT_MIN));
-                
-                float a_i = __fmul_rn(__frcp_rn(m_i), m_i_valid);
-                float a_j = __fmul_rn(__frcp_rn(m_j), m_j_valid);
-                
-                float a_i_sq = __fmul_rn(a_i, a_i);
-                float a_j_sq = __fmul_rn(a_j, a_j);
-                
-                float term1 = __fmul_rn(sum_sq_i, a_i_sq);
-                float term2 = __fmul_rn(sum_sq_j, a_j_sq);
-                float term3 = __fmul_rn(2.0f, __fmul_rn(__fmul_rn(a_i, a_j), C));
-                
+                // branchless compute mu_full_i, mu_full_j:
+                // inv_sum_w_full = 1/(sum_w_full + FLT_MIN)
+                float inv_sum_w_full = __frcp_rn(__fadd_rn(sum_w_full, FLT_MIN));
+                float mu_full_i = __fmul_rn(sum_w_full_X_full_i, inv_sum_w_full);
+                float mu_full_j = __fmul_rn(sum_w_full_X_full_j, inv_sum_w_full);
+
+                // create multiplicative masks in branchless way:
+                // mu_mask ~ mu/(mu + FLT_MIN) => ~1 if mu >> FLT_MIN, ~0 if mu==0
+                float mu_mask_i = __fdiv_rn(mu_full_i, __fadd_rn(mu_full_i, FLT_MIN));
+                float mu_mask_j = __fdiv_rn(mu_full_j, __fadd_rn(mu_full_j, FLT_MIN));
+
+                // -------------------------
+                // 2) pass over Y/W to compute weighted sums for X = Y^a
+                // -------------------------
+                float sum_w = 0.0f;
+                float sum_w_sq = 0.0f;
+
+                float sum_wX_i = 0.0f;
+                float sum_wX_j = 0.0f;
+
+                float sum_wX_i_sq = 0.0f;
+                float sum_wX_j_sq = 0.0f;
+
+                float sum_wX_iX_j = 0.0f;
+
+                k = 0;
+                for (; k + 4 <= nb_samples; k += 4) {
+                    float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
+                    float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
+                    float4 w_i = *reinterpret_cast<float4*>(&d_W[k + i * W_stride]);
+                    float4 w_j = *reinterpret_cast<float4*>(&d_W[k + j * W_stride]);
+
+                    for (int m = 0; m < 4; ++m) {
+                        float X_i = __powf(reinterpret_cast<float*>(&y_i)[m], a);
+                        float X_j = __powf(reinterpret_cast<float*>(&y_j)[m], a);
+                        float w   = __fmul_rn(reinterpret_cast<float*>(&w_i)[m],
+                                            reinterpret_cast<float*>(&w_j)[m]);
+
+                        float X_i_sq = __fmul_rn(X_i, X_i);
+                        float X_j_sq = __fmul_rn(X_j, X_j);
+                        float X_iX_j  = __fmul_rn(X_i, X_j);
+
+                        sum_w    = __fadd_rn(sum_w, w);
+                        sum_w_sq = __fmaf_rn(w, w, sum_w_sq);
+
+                        sum_wX_i = __fmaf_rn(w, X_i, sum_wX_i);
+                        sum_wX_j = __fmaf_rn(w, X_j, sum_wX_j);
+
+                        sum_wX_i_sq  = __fmaf_rn(w, X_i_sq, sum_wX_i_sq);
+                        sum_wX_j_sq  = __fmaf_rn(w, X_j_sq, sum_wX_j_sq);
+
+                        sum_wX_iX_j = __fmaf_rn(w, X_iX_j, sum_wX_iX_j);
+                    }
+                }
+                // tail
+                for (; k < nb_samples; ++k) {
+                    float X_i = __powf(d_Y[k + i * Y_stride], a);
+                    float X_j = __powf(d_Y[k + j * Y_stride], a);
+                    float w   = __fmul_rn(d_W[k + i * W_stride],
+                                        d_W[k + j * W_stride]);
+
+                    float X_i_sq = __fmul_rn(X_i, X_i);
+                    float X_j_sq = __fmul_rn(X_j, X_j);
+                    float X_iX_j  = __fmul_rn(X_i, X_j);
+
+                    sum_w    = __fadd_rn(sum_w, w);
+                    sum_w_sq = __fmaf_rn(w, w, sum_w_sq);
+
+                    sum_wX_i = __fmaf_rn(w, X_i, sum_wX_i);
+                    sum_wX_j = __fmaf_rn(w, X_j, sum_wX_j);
+
+                    sum_wX_i_sq  = __fmaf_rn(w, X_i_sq, sum_wX_i_sq);
+                    sum_wX_j_sq  = __fmaf_rn(w, X_j_sq, sum_wX_j_sq);
+
+                    sum_wX_iX_j = __fmaf_rn(w, X_iX_j, sum_wX_iX_j);
+                }
+
+                // -------------------------
+                // weighted central sums and denominator
+                // -------------------------
+                float inv_sum_w = __frcp_rn(__fadd_rn(sum_w, FLT_MIN));
+
+                // central sums (numerators)
+                float sum_sq_i = __fsub_rn(sum_wX_i_sq,
+                                        __fmul_rn(__fmul_rn(sum_wX_i, sum_wX_i), inv_sum_w));
+                float sum_sq_j = __fsub_rn(sum_wX_j_sq,
+                                        __fmul_rn(__fmul_rn(sum_wX_j, sum_wX_j), inv_sum_w));
+                float C = __fsub_rn(sum_wX_iX_j,
+                                    __fmul_rn(__fmul_rn(sum_wX_i, sum_wX_j), inv_sum_w));
+
+                // effective degrees-of-freedom term (weighted)
+                float denom_term = __fsub_rn(sum_w, __fmul_rn(sum_w_sq, inv_sum_w));
+
+                // positive-part: denom_pos = max(goo, 0)
+                float denom_pos = fmaxf(denom_term, 0.0f);
+
+                // denom_mask = denom_pos/(denom_pos + FLT_MIN) => ~1 if denom_pos >> FLT_MIN, ~0 if denom_pos == 0
+                float denom_mask = __fdiv_rn(denom_pos, __fadd_rn(denom_pos, FLT_MIN));
+
+                // mu masks computed earlier: mu_mask_i, mu_mask_j
+                float valid_mask = __fmul_rn(__fmul_rn(mu_mask_i, mu_mask_j), denom_mask);
+
+                // inverses for scaled numerator (guarded by FLT_MIN)
+                float inv_mu_full_i = __frcp_rn(__fadd_rn(mu_full_i, FLT_MIN));
+                float inv_mu_full_j = __frcp_rn(__fadd_rn(mu_full_j, FLT_MIN));
+
+                float inv_mu_full_i_sq = __fmul_rn(inv_mu_full_i, inv_mu_full_i);
+                float inv_mu_full_j_sq = __fmul_rn(inv_mu_full_j, inv_mu_full_j);
+                float inv_mu_full_ij   = __fmul_rn(inv_mu_full_i, inv_mu_full_j);
+
+                float term1 = __fmul_rn(sum_sq_i, inv_mu_full_i_sq);
+                float term2 = __fmul_rn(sum_sq_j, inv_mu_full_j_sq);
+                float term3 = __fmul_rn(2.0f, __fmul_rn(inv_mu_full_ij, C));
                 float numerator = __fadd_rn(term1, __fsub_rn(term2, term3));
-                float denominator_term = __fsub_rn(sum_w, __fmul_rn(sum_w_sq, inv_sum_w));
-                
-                float denom_valid = __fdiv_rn(fminf(denominator_term, FLT_MAX),  __fadd_rn(denominator_term, FLT_MIN));
-                float denominator = __fmul_rn(__fmul_rn(a, a), denominator_term);
-                float lrv_value   = __fmul_rn(__fdiv_rn(numerator, denominator), denom_valid);
-                
+
+                float a_sq = __fmul_rn(a, a);
+
+                // denom = a^2 * (denom_pos + FLT_MIN) => avoid /0; denom_pos + FLT_MIN >= FLT_MIN
+                float denom = __fmul_rn(a_sq, __fadd_rn(denom_pos, FLT_MIN));
+
+                // raw value (may be huge if denom FLT_MIN), but will be scaled down by valid_mask -> branchless zeroing
+                float raw = __fdiv_rn(numerator, denom);
+
+                // final branchless output
+                float lrv_value = __fmul_rn(raw, valid_mask);
+
+                // store
                 int pair_index = (i * (i - 1)) / 2 + j;
                 d_variances[pair_index] = lrv_value;
             }

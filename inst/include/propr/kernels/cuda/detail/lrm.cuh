@@ -2,6 +2,7 @@
 
 #include <cuda_runtime.h>
 #include <propr/data/types.h>
+#include <propr/utils/preprocessor.cuh>
 
 namespace propr {
     namespace detail {
@@ -19,7 +20,7 @@ namespace propr {
 
                 float4 accum = {0.0f, 0.0f, 0.0f, 0.0f};
                 int k = 0;
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples/4)*4; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
@@ -57,7 +58,7 @@ namespace propr {
                 // accum.x = w_sum, accum.y = mean
                 float2 accum = make_float2(0.0f, 0.0f);
                 int k = 0;
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k < (nb_samples/4)*4; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
@@ -65,7 +66,7 @@ namespace propr {
                     float4 w_i = *reinterpret_cast<float4*>(&d_W[k + i * d_W_stride]);
                     float4 w_j = *reinterpret_cast<float4*>(&d_W[k + j * d_W_stride]);
 
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float mean_old = accum.y;
                         float w_k      = (&w_i.x)[m] * (&w_j.x)[m];
@@ -124,11 +125,11 @@ namespace propr {
                 int N = 0, k = 0;
 
                 // --- full-group running means + T sum ---
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k + 3 < NT; k += 4) {
                     float4 yfull_i = *reinterpret_cast<float4*>(&d_Yfull[k + i * d_Yfull_stride]);
                     float4 yfull_j = *reinterpret_cast<float4*>(&d_Yfull[k + j * d_Yfull_stride]);
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float inv_N    = __frcp_rn(static_cast<float>(++N));
                         float X_full_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
@@ -148,11 +149,11 @@ namespace propr {
                 }
 
                 k = 0;
-                #pragma unroll
+                PROPR_UNROLL
                 for (; k + 3 < N1; k += 4) {
                     float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * d_Y_stride]);
                     float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * d_Y_stride]);
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float X_i = __powf(reinterpret_cast<float*>(&y_i)[m], a);
                         float X_j = __powf(reinterpret_cast<float*>(&y_j)[m], a);
@@ -200,12 +201,14 @@ namespace propr {
                 float sum_wx_full_i = 0.0f;
                 float sum_wx_full_j = 0.0f;
                 int k = 0;
+
+                PROPR_UNROLL
                 for (; k < (NT/4)*4; k += 4) {
                     float4 yfull_i4 = *reinterpret_cast<float4*>(&d_Yfull[k + i * Yfull_stride]);
                     float4 yfull_j4 = *reinterpret_cast<float4*>(&d_Yfull[k + j * Yfull_stride]);
                     float4 wfull_i4 = *reinterpret_cast<float4*>(&d_Wfull[k + i * Wfull_stride]);
                     float4 wfull_j4 = *reinterpret_cast<float4*>(&d_Wfull[k + j * Wfull_stride]);
-
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float y_i = reinterpret_cast<float*>(&yfull_i4)[m];
                         float y_j = reinterpret_cast<float*>(&yfull_j4)[m];
@@ -221,6 +224,7 @@ namespace propr {
                         sum_wx_full_j += w_ij * X_j;
                     }
                 }
+
                 for (; k < NT; ++k) {
                     float y_i = d_Yfull[k + i * Yfull_stride];
                     float y_j = d_Yfull[k + j * Yfull_stride];
@@ -250,12 +254,14 @@ namespace propr {
                 float sum_wx_current_j = 0.0f;   
 
                 k = 0;
+                PROPR_UNROLL
                 for (; k < (N1/4)*4; k += 4) {
                     float4 y_i4 = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
                     float4 y_j4 = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
                     float4 w_i4 = *reinterpret_cast<float4*>(&d_W[k + i * W_stride]);
                     float4 w_j4 = *reinterpret_cast<float4*>(&d_W[k + j * W_stride]);
-
+                    
+                    PROPR_UNROLL
                     for (int m = 0; m < 4; ++m) {
                         float y_i = reinterpret_cast<float*>(&y_i4)[m];
                         float y_j = reinterpret_cast<float*>(&y_j4)[m];

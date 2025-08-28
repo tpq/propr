@@ -83,7 +83,9 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
                                Rcpp::NumericMatrix& Yfull,
                                propr_context context) {
     int N_samples = Y.nrow();
+    int N_samples_full = Yfull.nrow();
     int N_genes = Y.ncol();
+
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
 
@@ -102,8 +104,9 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride,
         d_Yfull, Yfull_stride,
-        static_cast<float>(a), d_variances, N_samples, N_genes
+        static_cast<float>(a), d_variances, N_samples, N_samples_full, N_genes
     );
+    
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -123,6 +126,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
                                    Rcpp::NumericMatrix& Wfull,
                                    propr_context context) {
     int N_samples = Y.nrow();
+    int N_samples_full = Yfull.nrow();
     int N_genes = Y.ncol();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
     CHECK_VECTOR_SIZE(out, N_pairs);
@@ -143,7 +147,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
         d_Yfull, Yfull_stride, 
         d_W    , W_stride,
         d_Wfull, Wfull_stride,
-        static_cast<float>(a), d_variances, N_samples, N_genes
+        static_cast<float>(a), d_variances, N_samples, N_samples_full, N_genes
     );
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
