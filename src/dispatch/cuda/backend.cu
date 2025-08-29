@@ -1,17 +1,56 @@
 #include <Rcpp.h>
 #include <math.h>
+
+#include <propr/data/types.h>
+
 #include <propr/kernels/cuda/dispatch/backend.cuh>
+#include <propr/kernels/cuda/detail/backend.cuh>
+
+
+#include <propr/utils/rcpp_cuda.cuh>
 #include <propr/utils/rcpp_checks.h>
+#include <propr/utils/cuda_checks.h>
+
 
 using namespace Rcpp;
 using namespace propr;
 
 void dispatch::cuda::wtmRcpp(double& out, const NumericVector& x, const NumericVector& w, propr_context context){
-  Rcpp::stop("wtmRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+  const int BLK = 1024;
+  CHECK_VECTOR_SIZE(x, w.size());
+
+  const int n = x.size();
+  float* d_x = RcppVectorToDevice<float>(x, n);
+  float* d_w = RcppVectorToDevice<float>(w, n);
+  
+  float h_mean  = 0;
+  float *d_mean = nullptr;
+  CUDA_CHECK(cudaMalloc(&d_mean, sizeof(float)));
+  detail::cuda::wtm<BLK><<<1, BLK, 0, context.stream>>>(d_mean, d_x,d_w, n);
+  CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  CUDA_CHECK(cudaMemcpy(&h_mean, d_mean, sizeof(float), cudaMemcpyDeviceToHost));
+  out = h_mean;
+  CUDA_CHECK(cudaFree(d_x));
+  CUDA_CHECK(cudaFree(d_w));
 }
 
 void dispatch::cuda::wtvRcpp(double& out, const NumericVector& x, const NumericVector& w, propr_context context) {
-  Rcpp::stop("wtvRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+  const int BLK = 1024;
+  CHECK_VECTOR_SIZE(x, w.size());
+
+  const int n = x.size();
+  float* d_x = RcppVectorToDevice<float>(x, n);
+  float* d_w = RcppVectorToDevice<float>(w, n);
+  
+  float h_var  = 0;
+  float *d_var = nullptr;
+  CUDA_CHECK(cudaMalloc(&d_var, sizeof(float)));
+  detail::cuda::wtv<BLK><<<1, BLK, 0, context.stream>>>(d_var, d_x,d_w, n);
+  CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  CUDA_CHECK(cudaMemcpy(&h_var, d_var, sizeof(float), cudaMemcpyDeviceToHost));
+  out = h_var;
+  CUDA_CHECK(cudaFree(d_x));
+  CUDA_CHECK(cudaFree(d_w));
 }
 
 void centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_context context){

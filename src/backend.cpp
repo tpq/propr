@@ -14,14 +14,22 @@ using namespace propr;
 // [[Rcpp::export]]
 double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
     double result;
-    dispatch::cpu::wtmRcpp(result, x, w);
+    if (is_gpu_backend() || use_gpu) {
+        dispatch::cuda::wtmRcpp(result, x, w);
+    } else {
+        dispatch::cpu::wtmRcpp(result, x, w);
+    }
     return result;
 }
 
 // [[Rcpp::export]]
 double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
     double result;
-    dispatch::cpu::wtvRcpp(result, x, w);
+    if (is_gpu_backend() || use_gpu) {
+        dispatch::cuda::wtvRcpp(result, x, w); 
+    } else {
+        dispatch::cpu::wtvRcpp(result, x, w); 
+    }
     return result;
 }
 
@@ -29,7 +37,6 @@ double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
 Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-
     if (is_gpu_backend()) {
         dispatch::cuda::corRcpp(result, X);
     } else {
