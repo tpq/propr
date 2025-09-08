@@ -57,14 +57,33 @@ calculate_theta <-
     ##############################################################################
 
     if (weighted) {
-      # calculate weights using limma
+      # calculate weights using limma sample weights
       if (is.na(weights[1,1])) {
-        message("Alert: Calculating limma-based weights.")
+        message("Alert: Calculating Limma's reliability weights for samples.")
         packageCheck("limma")
-        design <-
+        
+	#use clr-transform of the counts for quality weights from limma: 
+	design <-
           stats::model.matrix(~ . + 0, data = as.data.frame(group))
-        v <- limma::voom(t(counts), design = design)
-        weights <- t(v$weights)
+        
+	if (any(counts == 0)) {
+      
+      		X <- as.matrix(counts + 1)  
+    	} else{
+      
+      		X <- as.matrix(counts)
+    	}
+   	logX <- log(X)
+   
+	z.geo = rowMeans(logX)
+	z.lr = as.matrix(sweep(logX, 1, z.geo, "-"))
+	lz.sr = t(z.lr + mean(z.geo)) #corresponds to log(z.sr) in updateF function
+
+	#use quality weights from limma:
+	aw = limma::arrayWeights(lz.sr, design) 
+
+	weights = t(sweep(matrix(1, nrow(lz.sr), ncol(lz.sr)), 2, aw, `*`)) #get the correct dimensions
+
       }
       if (nrow(weights) != nrow(counts) | ncol(weights) != ncol(counts)) {
         stop("The matrix dimensions of 'weights' must match the matrix dimensions 'counts'.")
