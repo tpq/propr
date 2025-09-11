@@ -37,7 +37,7 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     const size_t llt = static_cast<size_t>(W.ncol()) * (W.ncol() - 1) / 2;
     CHECK_VECTOR_SIZE(out, llt);
     offset_t W_stride;
-    auto *d_W = RcppMatrixToDevice<float, REALSXP>(Wl, W_stride);
+    auto *d_W = RcppMatrixToDevice<float>(Wl, W_stride);
     
     float* d_out = nullptr;
     offset_t dout_stride = nfeats;
@@ -82,15 +82,13 @@ propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W
     offset_t W_stride;
     auto *d_W = RcppMatrixToDevice<float, REALSXP>(Wl, W_stride);
     
-    float* d_out = nullptr;
-    offset_t dout_stride = nfeats;
+    float* d_out = nullptr; offset_t dout_stride = nfeats;
     CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
-
     
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
 
-    std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
+    // std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
     omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
 

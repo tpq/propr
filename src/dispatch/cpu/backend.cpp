@@ -20,7 +20,9 @@ dispatch::cpu::wtvRcpp(double& out, const NumericVector& x, NumericVector& w) {
 
 void
 centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
+
   CHECK_MATRIX_DIMS(out, in_X.nrow(), in_X.ncol());
+
   for (int j = 0; j < in_X.ncol(); ++j) {
     for (int i = 0; i < in_X.nrow(); ++i) {
       out(i, j) = in_X(i, j);
@@ -118,7 +120,7 @@ dispatch::cpu::alrRcpp(NumericMatrix& out, NumericMatrix & X,const int ivar){
   CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
-      out(i, j) = log(X(i, j));
+      out(i, j) = log(X(i, j)); // - log(out(i, ivar - 1))
     }
     out(i, _) = out(i, _) - out(i, ivar - 1);
   }
@@ -147,7 +149,7 @@ dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
-          out(i, j) = mat_tmp(i, j);
+        out(i, j) = mat_tmp(i, j);
       }
   }
 
@@ -191,15 +193,16 @@ dispatch::cpu::rhoRcpp(NumericMatrix& out, NumericMatrix& X, NumericMatrix& lr,i
   for(int i = 0; i < nfeats; i++){
     vars[i] = sum(pow(lr(_, i) - mean(lr(_, i)), 2.0)) / (nsubjs - 1);
   }
+
   for(int i = 0; i < nfeats; i++){
     for(int j = 0; j < nfeats; j++){
       if(i == (ivar - 1) || j == (ivar - 1)){
         if(i == (ivar - 1) && j == (ivar - 1)){
           out(i, j) = 1;
-        }else{
+        } else {
           out(i, j) = 0;
         }
-      }else{
+      } else {
         out(i, j) = 1 - out(i, j) / (vars[i] + vars[j]);
       }
     }
@@ -249,22 +252,26 @@ void
 dispatch::cpu::indexToCoord(List& out, IntegerVector V, const int N){
   std::vector<int> rows;
   std::vector<int> cols;
+
   for(int i = 0; i < V.length(); i++){
     int J = (V[i] - 1) / N + 1;
     cols.push_back(J);
+
     int I = (V[i] - 1) % N + 1;
     rows.push_back(I);
+
   }
   out["feat1"] = Rcpp::wrap(rows);
   out["feat2"] = Rcpp::wrap(cols);
 }
 
 void
-dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row,IntegerVector col, const int N){
+dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector col, const int N){
   CHECK_VECTOR_SIZE(out, row.length());
   if (row.length() != col.length()){
     stop("Input row and col vectors must have the same length.");
   }
+
   for (int i = 0; i < row.length(); ++i) {
       out[i] = (col[i] - 1) * N + row[i];
   }
@@ -327,6 +334,7 @@ dispatch::cpu::urtRcpp(NumericVector& out, NumericMatrix & X){
 void
 dispatch::cpu::labRcpp(List& out, int nfeats){
   int llt = nfeats * (nfeats - 1) / 2;
+  // TODO: move list creation out of dispatch logic
   out["Partner"] = Rcpp::IntegerVector(llt);
   out["Pair"] = Rcpp::IntegerVector(llt);
 
@@ -370,6 +378,7 @@ dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, 
   }
   CHECK_MATRIX_DIMS(out, nfeats, nfeats);
   std::memset( REAL(out), 0, sizeof(double) * out.size() );
+
   for (int counter = 0; counter < ni; counter++){
     out(i[counter]-1, j[counter]-1) = X[counter];
     out(j[counter]-1, i[counter]-1) = X[counter];
@@ -377,7 +386,6 @@ dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, 
 }
 
 void dispatch::cpu::ratiosRcpp(NumericMatrix& out, NumericMatrix & X){
-
   int nfeats = X.ncol();
   int nsamps = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
@@ -393,7 +401,10 @@ void dispatch::cpu::ratiosRcpp(NumericMatrix& out, NumericMatrix & X){
 
 // Function to recast results data frame as gene-gene matrix
 void
-dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out, DataFrame& results, int n, double diagonal){
+dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out, 
+                               DataFrame& results, 
+                               int n, 
+                               double diagonal){
   CHECK_MATRIX_DIMS(out, n, n);
   int npairs = results.nrows();
   for (int i = 0; i < npairs; i++){
@@ -402,6 +413,7 @@ dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out, DataFrame& results, int
     out(row, col) = results(i, 2);
     out(col, row) = results(i, 2);
   }
+  
   for (int i = 0; i < n; i++){
     out(i, i) = diagonal;
   }

@@ -12,12 +12,6 @@ namespace propr {
     namespace detail {
         namespace cuda {
             
-            struct UInt4Sum { // should be moved out
-                __device__ __forceinline__ uint4 operator()(const uint4& a, const uint4& b) const {
-                    return make_uint4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
-                }
-            };
-
             __global__ 
             void compute_odd_ratio_init(cub::ScanTileState<uint4> tile_state,
                                         int blocks_in_grid){
@@ -31,6 +25,13 @@ namespace propr {
                             unsigned char* __restrict__ G, offset_t g_stride,
                             offset_t n, 
                             uint4 *acc) {
+                
+                struct UInt4Sum {
+                    __device__ __forceinline__ uint4 operator()(const uint4& a, const uint4& b) const {
+                        return make_uint4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+                    }
+                };
+
                 using scan_op_t             = UInt4Sum;
                 using tile_prefix_op        = cub::TilePrefixCallbackOp<uint4, scan_op_t, cub::ScanTileState<uint4>>;
                 using device_scan_storage_t = typename tile_prefix_op::TempStorage;
