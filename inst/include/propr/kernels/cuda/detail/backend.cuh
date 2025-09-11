@@ -386,7 +386,12 @@ namespace propr {
 
             __global__
             void 
-            covRcpp(){
+            covRcpp(
+                const int norm_type,
+                float*__restrict__ out, offset_t out_stride,
+                float* __restrict__ x,  offset_t x_stride,
+                int rows, int cols
+            ){
 
             };
 
