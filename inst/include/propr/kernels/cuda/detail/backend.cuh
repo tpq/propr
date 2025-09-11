@@ -577,7 +577,6 @@ namespace propr {
                     out[i_vec[idx] - 1 + (j_vec[idx]-1) * out_stride ] = X[idx];
                     out[j_vec[idx] - 1 + (i_vec[idx]-1) * out_stride ] = X[idx];
                 }
-
             };
 
             __global__

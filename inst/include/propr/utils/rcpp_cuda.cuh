@@ -148,13 +148,15 @@ void copyToNumericVector(
     Rcpp::Vector<RTYPE>& h_dest,
     const size_t size
 ) {
+    using DstType = typename Rcpp::traits::storage_type<RTYPE>::type;
+    
     const size_t bytes = size * sizeof(T);
     T* h_temp = static_cast<T*>(std::malloc(bytes));
     if (!h_temp) throw std::bad_alloc();
 
     CUDA_CHECK(cudaMemcpy(h_temp, d_src, bytes, cudaMemcpyDeviceToHost));
     for (offset_t i = 0; i < size; ++i) {
-        h_dest[i] = static_cast<double>(h_temp[i]);
+        h_dest[i] = static_cast<DstType>(h_temp[i]);
     }
     std::free(h_temp);
 }

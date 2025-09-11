@@ -89,7 +89,7 @@ void centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_cont
     }
   }
 
-  delete centered_mat;
+  delete[] centered_mat;
   centered_mat = nullptr;
 
   CUDA_CHECK(cudaFree(d_x));
@@ -142,9 +142,44 @@ void dispatch::cuda::vlrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_
 }
 
 void dispatch::cuda::clrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context){
-  CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
-  Rcpp::stop("clrRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+    const int rows = X.nrow();
+    const int cols = X.ncol();
+    CHECK_MATRIX_DIMS(out, rows, cols);
+
+    offset_t d_out_stride; 
+    auto *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
+
+    offset_t d_x_stride;
+    auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
+
+    int block = 512;
+    int grid  = (cols + block - 1) / block;
+    propr::detail::cuda::clrRcpp<<<grid, block, 0, context.stream>>>(
+        d_out, d_out_stride, d_x, d_x_stride, static_cast<size_t>(rows), static_cast<size_t>(cols)
+    );
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+    float *out_host = new float[static_cast<size_t>(cols) * static_cast<size_t>(d_out_stride)];
+    CUDA_CHECK(cudaMemcpy(
+        out_host,
+        d_out,
+        static_cast<size_t>(cols) * static_cast<size_t>(d_out_stride) * sizeof(float),
+        cudaMemcpyDeviceToHost
+    ));
+
+    double *outptr = REAL(out);
+    for (size_t j = 0; j < static_cast<size_t>(cols); ++j) {
+        for (size_t i = 0; i < static_cast<size_t>(rows); ++i) {
+            outptr[i + j * static_cast<size_t>(rows)] =
+                static_cast<double>(out_host[i + j * static_cast<size_t>(d_out_stride)]);
+        }
+    }
+
+    delete [] out_host;
+    CUDA_CHECK(cudaFree(d_out));
+    CUDA_CHECK(cudaFree(d_x));
 }
+
 
 void dispatch::cuda::alrRcpp(NumericMatrix& out, const NumericMatrix & X, const int ivar, propr_context context){
   if(ivar == 0) Rcpp::stop("Select non-zero ivar for alrRcpp.");
@@ -175,14 +210,82 @@ void dispatch::cuda::indexPairs(std::vector<int>& out,
                                 propr_context context) {
 }
 
-void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context){
-    Rcpp::stop("indexToCoord is not implemented in CUDA. Falling back to CPU via dispatcher.");
+void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context) {
+    const size_t len = static_cast<size_t>(V.length());
+
+    IntegerVector rows(len);
+    IntegerVector cols(len);
+
+    if (len == 0) {
+        out["feat1"] = rows;
+        out["feat2"] = cols;
+        return;
+    }
+
+    int* d_V = RcppVectorToDevice<int, INTSXP>(V, len);
+
+    int *d_row = nullptr;
+    int *d_col = nullptr;
+    const size_t bytes = len * sizeof(int);
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_row), bytes));
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_col), bytes));
+    CUDA_CHECK(cudaMemset(d_row, 0, bytes));
+    CUDA_CHECK(cudaMemset(d_col, 0, bytes));
+
+    const int block = 512;
+    const int grid  = static_cast<int>((len + static_cast<size_t>(block) - 1) / static_cast<size_t>(block));
+
+    propr::detail::cuda::indexToCoord<<<grid, block, 0, context.stream>>>(
+        N, d_V, d_row, d_col, len
+    );
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+    copyToNumericVector<int, INTSXP>(d_row, rows, len);
+    copyToNumericVector<int, INTSXP>(d_col, cols, len);
+
+    out["feat1"] = rows;
+    out["feat2"] = cols;
+
+    CUDA_CHECK(cudaFree(d_V));
+    CUDA_CHECK(cudaFree(d_row));
+    CUDA_CHECK(cudaFree(d_col));
 }
 
-void dispatch::cuda::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector col, int N, propr_context context){
+
+void dispatch::cuda::coordToIndex(
+    IntegerVector& out,
+    IntegerVector row,
+    IntegerVector col,
+    int N,
+    propr_context context
+) {
     CHECK_VECTOR_SIZE(out, row.length());
-    Rcpp::stop("coordToIndex is not implemented in CUDA. Falling back to CPU via dispatcher.");
+
+    if (static_cast<size_t>(col.length()) != static_cast<size_t>(row.length())) {
+        Rcpp::stop("coordToIndex: 'row' and 'col' must have the same length");
+    }
+
+    const size_t len = static_cast<size_t>(row.length());
+    if (len == 0) return; 
+
+    int *d_out = RcppVectorToDevice<int, INTSXP>(out, len);
+    int *d_row = RcppVectorToDevice<int, INTSXP>(row, len);
+    int *d_col = RcppVectorToDevice<int, INTSXP>(col, len);
+
+    const int block = 512;
+    const int grid  = static_cast<int>((len + static_cast<size_t>(block) - 1) / static_cast<size_t>(block));
+    const int grid_safe = std::max(1, grid);
+
+    propr::detail::cuda::coordToIndex<<<grid, block, 0, context.stream>>>(
+        N, d_out, d_row, d_col, len
+    );
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    copyToNumericVector(d_out, out, len);
+    CUDA_CHECK(cudaFree(d_out));
+    CUDA_CHECK(cudaFree(d_row));
+    CUDA_CHECK(cudaFree(d_col));
 }
+
 
 void dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const NumericMatrix &lr, propr_context context){
     CHECK_MATRIX_DIMS(out, rho.nrow(), rho.ncol());
@@ -250,15 +353,104 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
 }
 
 void dispatch::cuda::half2mat(NumericMatrix& out, const NumericVector & X, propr_context context){
-    int nfeats = round(sqrt(2 * X.length() + 0.25) + 0.5); // Re-calculate nfeats from X.length()
+    int nfeats = static_cast<int>(std::round(std::sqrt(2.0 * static_cast<double>(X.size()) + 0.25) + 0.5));
     CHECK_MATRIX_DIMS(out, nfeats, nfeats);
-    Rcpp::stop("half2mat is not implemented in CUDA. Falling back to CPU via dispatcher.");
+    const size_t total_pairs = static_cast<size_t>(nfeats) * static_cast<size_t>(nfeats - 1) / 2;
+
+    if (static_cast<size_t>(X.size()) != total_pairs) {
+        Rcpp::stop("half2mat: length(X) != nfeats*(nfeats-1)/2 (recomputed nfeats=%d, expected pairs=%zu, got=%zu)",
+                   nfeats, total_pairs, static_cast<size_t>(X.size()));
+    }
+
+    offset_t d_out_stride;
+    float *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
+    float *d_X   = RcppVectorToDevice<float, REALSXP>(X, total_pairs);
+
+    const int block = 512;
+    const int grid  = static_cast<int>((total_pairs + static_cast<size_t>(block) - 1) / static_cast<size_t>(block));
+    propr::detail::cuda::half2mat<<<grid, block, 0, context.stream>>>(d_out, d_out_stride, d_X, static_cast<size_t>(nfeats));
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+    const size_t total_elems = static_cast<size_t>(d_out_stride) * static_cast<size_t>(nfeats);
+    const size_t total_bytes = total_elems * sizeof(float);
+    float *out_host = new float[total_elems];
+    CUDA_CHECK(cudaMemcpy(out_host, d_out, total_bytes, cudaMemcpyDeviceToHost));
+
+    double *outptr = REAL(out);
+    for (size_t col = 0; col < static_cast<size_t>(nfeats); ++col) {
+        for (size_t row = 0; row < static_cast<size_t>(nfeats); ++row) {
+            const size_t host_idx = row + col * static_cast<size_t>(d_out_stride);
+            const size_t r_idx    = row  + col * static_cast<size_t>(nfeats);
+            outptr[r_idx] = static_cast<double>(out_host[host_idx]);
+        }
+    }
+
+    delete[] out_host;
+
+    CUDA_CHECK(cudaFree(d_out));
+    CUDA_CHECK(cudaFree(d_X));
 }
 
-void dispatch::cuda::vector2mat(NumericMatrix& out, const NumericVector & X, const IntegerVector & i, const IntegerVector & j, int nfeats, propr_context context){
+
+void dispatch::cuda::vector2mat(
+    NumericMatrix& out,
+    const NumericVector & X,
+    const IntegerVector & i,
+    const IntegerVector & j,
+    int nfeats,
+    propr_context context
+){
+    int nX = X.length();
+    int ni = i.length();
+    int nj = j.length();
+    if (ni != nj) Rcpp::stop("i and j must be the same length.");
+    if (ni != nX) Rcpp::stop("i, j, and X must be the same length.");
     CHECK_MATRIX_DIMS(out, nfeats, nfeats);
-    Rcpp::stop("vector2mat is not implemented in CUDA. Falling back to CPU via dispatcher.");
+    offset_t d_out_stride;
+    auto *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
+    auto *d_X   = RcppVectorToDevice<float, REALSXP>(X, ni);
+    auto *d_i   = RcppVectorToDevice<int, INTSXP>(i, ni);
+    auto *d_j   = RcppVectorToDevice<int, INTSXP>(j, ni);
+
+    const int block = 512;
+    const int grid  = static_cast<int>((ni + block - 1) / block);
+
+    propr::detail::cuda::vector2mat<<<grid, block, 0, context.stream>>>(
+        d_out,
+        d_out_stride,
+        d_X,
+        d_i,
+        d_j,
+        ni
+    );
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+    const size_t total_elems = static_cast<size_t>(d_out_stride) * static_cast<size_t>(nfeats);
+    const size_t total_bytes = total_elems * sizeof(float);
+    float *out_host = new float[total_elems];
+    CUDA_CHECK(cudaMemcpy(
+        out_host,
+        d_out,
+        total_bytes,
+        cudaMemcpyDeviceToHost
+    ));
+
+    double *outptr = REAL(out);
+    for (size_t col = 0; col < static_cast<size_t>(nfeats); ++col) {
+        for (size_t row = 0; row < static_cast<size_t>(nfeats); ++row) {
+            const size_t host_idx = row + col * static_cast<size_t>(d_out_stride);
+            const size_t r_idx    = row + col * static_cast<size_t>(nfeats);
+            outptr[r_idx] = static_cast<double>(out_host[host_idx]);
+        }
+    }
+
+    delete[] out_host;
+    CUDA_CHECK(cudaFree(d_out));
+    CUDA_CHECK(cudaFree(d_X));
+    CUDA_CHECK(cudaFree(d_i));
+    CUDA_CHECK(cudaFree(d_j));
 }
+
 
 void dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, propr_context context){
     int nfeats = X.ncol();
@@ -288,7 +480,7 @@ void dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, pr
         outptr[i + j * nsamps] = static_cast<double>(out_host[i + j * d_out_stride]);
       }
     }
-    delete out_host;
+    delete[] out_host;
     CUDA_CHECK(cudaFree(d_out));
     CUDA_CHECK(cudaFree(d_x));
 }

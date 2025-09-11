@@ -56,8 +56,8 @@ include_directories(${CMAKE_SOURCE_DIR}/inst/include)
 
 set(PROPERTIES CUDA_ARCHITECTURES 90)
 set(CMAKE_CUDA_ARCHITECTURES 90)
-set(CUTLASS_NVCC_ARCHS "90")
 
+# set(CUTLASS_NVCC_ARCHS "90")
 # add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/cutlass)
 # include_directories(${CMAKE_SOURCE_DIR}/thirdparty/cutlass/include/)
 
