@@ -14,7 +14,7 @@ file(GLOB SRC_ROOT_FILES
 
 set(ALL_PROPR_SOURCES ${SRC_ROOT_FILES} ${PROPR_SOURCES})
 add_library(propr SHARED ${ALL_PROPR_SOURCES})
-target_link_libraries(propr  ${LIBS} CUDA::cublas CUDA::cudart nvidia::cutlass::cutlass)
+target_link_libraries(propr  ${LIBS} CUDA::cublas CUDA::cudart)
 target_include_directories(propr
         PRIVATE
         ${CMAKE_SOURCE_DIR}/thirdparty/cutlass/include

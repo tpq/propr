@@ -69,7 +69,7 @@ void centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_cont
 
   int block = 256;
   int grid = (X.ncol() + block - 1) / block;
-  propr::detail::cuda::centerNumericMatrix<<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, X.nrow(), X.ncol());
+  propr::detail::cuda::centerNumericMatrix<256><<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, X.nrow(), X.ncol());
   CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
   int ncols = X.ncol();
@@ -114,7 +114,7 @@ void dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
   dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
   
-  propr::detail::cuda::corRcpp<Config><<<grid, block, 0, context.stream>>>(d_X, d_out, nfeats, samples);
+  propr::detail::cuda::corRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_X, X_stride, nfeats, samples);
   CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
   auto h_full = new float[nfeats * nfeats];
@@ -127,13 +127,43 @@ void dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_
 
   delete h_full;
   h_full = nullptr;
-  CUDA_CHECK(cudaFree(d_W));
+  CUDA_CHECK(cudaFree(d_X));
   CUDA_CHECK(cudaFree(d_out));
 }
 
 void dispatch::cuda::covRcpp(NumericMatrix& out, const NumericMatrix & X, const int norm_type, propr_context context) {
   CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
-  Rcpp::stop("covRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+  using Config = propr::detail::cuda::cov_config;
+  int t = 128;
+  auto X_padded = rcpp::helpers::pad_matrix(X, 0, ((X.nrow() + t - 1)/t)*t - X.nrow(), 0, ((X.ncol() + t - 1)/t)*t - X.ncol());
+  int nfeats  = X_padded.ncol();
+  int samples = X_padded.nrow();
+
+  offset_t X_stride;
+  auto *d_X = RcppMatrixToDevice<float>(X_padded, X_stride);
+
+  float* d_out = nullptr;
+  offset_t dout_stride = nfeats;
+  CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+  
+  dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
+  dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
+  
+  propr::detail::cuda::covRcpp<Config><<<grid, block, 0, context.stream>>>(norm_type, d_out, dout_stride, d_X, X_stride, nfeats, samples);
+  CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+  auto h_full = new float[nfeats * nfeats];
+  CUDA_CHECK(cudaMemcpy(
+      h_full,
+      d_out,
+      nfeats * nfeats * sizeof(float),
+      cudaMemcpyDeviceToHost
+  ));
+
+  delete h_full;
+  h_full = nullptr;
+  CUDA_CHECK(cudaFree(d_X));
+  CUDA_CHECK(cudaFree(d_out));
 }
 
 void dispatch::cuda::vlrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context){
@@ -341,7 +371,7 @@ void dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, cons
 void dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
-    CHECK_VECTOR_SIZE(out, llt);
+    // CHECK_VECTOR_SIZE(out, llt);
 
     auto* d_out = RcppVectorToDevice<float>(out, llt);
     offset_t d_x_stride;
@@ -377,8 +407,8 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
   int llt = nfeats * (nfeats - 1) / 2;
 
   int *d_partner; int *d_pair;
-  CUDA_CHECK(cudaMalloc(&d_partner, sizeof(*d_partner)));
-  CUDA_CHECK(cudaMalloc(&d_pair, sizeof(*d_pair)));
+  CUDA_CHECK(cudaMalloc(&d_partner, sizeof(*d_partner) * llt));
+  CUDA_CHECK(cudaMalloc(&d_pair, sizeof(*d_pair) * llt));
 
   int block = 256;
   int grid = (llt + block - 1) / block;
@@ -392,7 +422,7 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
   Rcpp::IntegerVector pair_ref = out["Pair"];
 
   copyToNumericVector(d_partner,partner_ref, llt);
-  copyToNumericVector(pair_ref, pair_ref, llt);
+  copyToNumericVector(d_pair, pair_ref, llt);
 
   CUDA_CHECK(cudaFree(d_partner));
   CUDA_CHECK(cudaFree(d_pair));
@@ -504,20 +534,20 @@ void dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, pr
     int llt = nfeats * (nfeats - 1) / 2;
     CHECK_MATRIX_DIMS(out, nsamps, llt);
 
-    offset_t d_out_stride; auto *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
-    offset_t d_x_stride  ; auto *d_x   = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
+    offset_t d_out_stride; auto *d_out = RcppMatrixToDevice<float>(out, d_out_stride);
+    offset_t d_x_stride  ; auto *d_x   = RcppMatrixToDevice<float>(X, d_x_stride);
     
     int block = 256;
     int grid = (llt * nsamps + block - 1) / block;
-    propr::detail::cuda::ratiosRcpp<<<grid,block,0,context.stream>>>(d_out, d_out_stride, dx, d_x_stride, nfeat, nsamps);
+    propr::detail::cuda::ratiosRcpp<<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, nfeats, nsamps);
     CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    
+
     float *out_host = new float[llt * d_out_stride];
     CUDA_CHECK(cudaMemcpy(
-      out_host,
-      d_out,
-      llt * d_out_stride * sizeof(float),
-      cudaMemcpyDeviceToHost
+        out_host,
+        d_out,
+        llt * d_out_stride * sizeof(float),
+        cudaMemcpyDeviceToHost
     ));
 
     double *outptr = REAL(out);

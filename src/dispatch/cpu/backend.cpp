@@ -1,5 +1,8 @@
 #include <Rcpp.h>
+
 #include <math.h>
+#include <iostream>
+
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 #include <propr/utils/rcpp_checks.h>
 
@@ -20,9 +23,7 @@ dispatch::cpu::wtvRcpp(double& out, const NumericVector& x, NumericVector& w) {
 
 void
 centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
-
   CHECK_MATRIX_DIMS(out, in_X.nrow(), in_X.ncol());
-
   for (int j = 0; j < in_X.ncol(); ++j) {
     for (int i = 0; i < in_X.nrow(); ++i) {
       out(i, j) = in_X(i, j);
@@ -38,8 +39,7 @@ void
 dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix & X) {
   const int m = X.ncol();
   CHECK_MATRIX_DIMS(out, m, m);
-
-  NumericMatrix X_centered;
+  NumericMatrix X_centered(m,m);
   centerNumericMatrix(X, X_centered);
 
   NumericVector inv_sqrt_ss(m);
