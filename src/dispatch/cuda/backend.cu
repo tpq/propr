@@ -284,6 +284,7 @@ void dispatch::cuda::indexPairs(std::vector<int>& out,
                                 const String op,
                                 const double ref,
                                 propr_context context) {
+    Rcpp::stop("indexPairs is not implemented in CUDA. Falling back to CPU via dispatcher.");
 }
 
 void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context) {
@@ -408,11 +409,11 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
 
   int *d_partner; int *d_pair;
   CUDA_CHECK(cudaMalloc(&d_partner, sizeof(*d_partner) * llt));
-  CUDA_CHECK(cudaMalloc(&d_pair, sizeof(*d_pair) * llt));
+  CUDA_CHECK(cudaMalloc(&d_pair, sizeof(*d_pair) * llt ));
 
   int block = 256;
   int grid = (llt + block - 1) / block;
-  propr::detail::cuda::labRcpp<<<grid, block,0,context.stream>>>(d_partner, d_pair, llt);
+  propr::detail::cuda::labRcpp<<<grid, block,0,context.stream>>>(d_partner, d_pair, nfeats);
   CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
   out["Partner"] = Rcpp::IntegerVector(llt);

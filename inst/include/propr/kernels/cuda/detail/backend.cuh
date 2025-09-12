@@ -765,9 +765,9 @@ namespace propr {
                      size_t n){
 
                 offset_t total_pairs = (n * (n - 1)) / 2;
-
+                int gtid  = blockDim.x * blockIdx.x + threadIdx.x;
                 PROPR_UNROLL
-                for (offset_t k = blockDim.x * blockIdx.x + threadIdx.x; k < total_pairs; k += gridDim.x * blockDim.x) {
+                for (offset_t k = gtid; k < total_pairs; k += gridDim.x * blockDim.x) {
                     const double t = sqrt(1.0 + 8.0 * (double)k);
                     const offset_t i = static_cast<offset_t>(floor((1.0 + t) / 2.0));
                     const offset_t prev = i * (i - 1) / 2; 
