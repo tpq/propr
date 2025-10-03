@@ -50,7 +50,7 @@ Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu) 
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
 
-    if (is_gpu_backend() || use_gpu) {
+    if (use_gpu) {
         dispatch::cuda::covRcpp(result, X, norm_type);
     } else {
         dispatch::cpu::covRcpp(result, X, norm_type);
@@ -62,7 +62,7 @@ Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu) 
 Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-    if (is_gpu_backend() || use_gpu) {
+    if (use_gpu) {
         dispatch::cuda::vlrRcpp(result, X);
     } else {
         dispatch::cpu::vlrRcpp(result, X);

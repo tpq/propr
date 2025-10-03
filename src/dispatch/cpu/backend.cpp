@@ -40,7 +40,7 @@ dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix & X) {
   const int m = X.ncol();
   CHECK_MATRIX_DIMS(out, m, m);
   NumericMatrix X_centered(m,m);
-  centerNumericMatrix(X, X_centered);
+  centerNumericMatrix(X_centered, X);
 
   NumericVector inv_sqrt_ss(m);
   for (int i = 0; i < m; ++i) {
@@ -63,7 +63,7 @@ dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type
   const int df = n - 1 + norm_type;
 
   NumericMatrix X_centered_temp(n, m);
-  centerNumericMatrix(X, X_centered_temp);
+  centerNumericMatrix(X_centered_temp, X);
 
   for (int i = 0; i < m; ++i) {
     for (int j = 0; j <= i; ++j) {
@@ -75,7 +75,7 @@ dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type
 
 void
 dispatch::cpu::vlrRcpp(NumericMatrix& out, NumericMatrix & X){
-
+  // This is just a convuluted way of calculating var(l*,i - l*,j)
   int nfeats = X.ncol();
   CHECK_MATRIX_DIMS(out, nfeats, nfeats);
 
@@ -143,7 +143,7 @@ dispatch::cpu::symRcpp(NumericMatrix& out, NumericMatrix & X) {
 
 void
 dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
-  NumericMatrix mat_tmp(X.nrow(), X.ncol());
+  NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
@@ -176,7 +176,7 @@ dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
 void
 dispatch::cpu::rhoRcpp(NumericMatrix& out, NumericMatrix& X, NumericMatrix& lr,int ivar){
 
-  NumericMatrix mat_tmp(X.nrow(), X.ncol());
+  NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
   CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
@@ -282,7 +282,7 @@ dispatch::cpu::linRcpp(NumericMatrix& out, NumericMatrix & rho, NumericMatrix lr
   int N_samples = lr.nrow();
   CHECK_MATRIX_DIMS(out, rho.nrow(), rho.ncol());
 
-  NumericMatrix r_tmp(lr.nrow(), lr.ncol());
+  NumericMatrix r_tmp(lr.ncol(), lr.ncol());
   dispatch::cpu::corRcpp(r_tmp, lr);
 
   for(int i = 0; i < rho.nrow(); i++){
@@ -406,6 +406,8 @@ dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out,
                                int n, 
                                double diagonal){
   CHECK_MATRIX_DIMS(out, n, n);
+  std::memset(REAL(out), 0, sizeof(double) * out.size());
+  
   int npairs = results.nrows();
   for (int i = 0; i < npairs; i++){
     int row = int(results(i, 0)) - 1;
