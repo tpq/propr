@@ -361,7 +361,7 @@ void dispatch::cuda::indexPairs(std::vector<int>& out,
 }
 
 void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context) {
-    const size_t len = static_cast<size_t>(V.length());
+    const size_t len = V.length();
 
     IntegerVector rows(len);
     IntegerVector cols(len);
@@ -383,7 +383,7 @@ void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_conte
     CUDA_CHECK(cudaMemset(d_col, 0, bytes));
 
     const int block = 256;
-    const int grid  = static_cast<int>((len + static_cast<size_t>(block) - 1) / static_cast<size_t>(block));
+    const int grid  = (len + block - 1) / block;
 
     propr::detail::cuda::indexToCoord<<<grid, block, 0, context.stream>>>(
         N, d_V, d_row, d_col, len
@@ -415,7 +415,7 @@ void dispatch::cuda::coordToIndex(
         Rcpp::stop("coordToIndex: 'row' and 'col' must have the same length");
     }
 
-    const size_t len = static_cast<size_t>(row.length());
+    const size_t len = row.length();
     if (len == 0) return; 
 
     int *d_out = RcppVectorToDevice<int, INTSXP>(out, len);
@@ -423,7 +423,7 @@ void dispatch::cuda::coordToIndex(
     int *d_col = RcppVectorToDevice<int, INTSXP>(col, len);
 
     const int block = 256;
-    const int grid  = (len  block - 1) / block;
+    const int grid  = (len + block - 1) / block;
 
     propr::detail::cuda::coordToIndex<<<grid, block, 0, context.stream>>>(
         N, d_out, d_row, d_col, len
@@ -438,7 +438,48 @@ void dispatch::cuda::coordToIndex(
 
 void dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const NumericMatrix &lr, propr_context context){
     CHECK_MATRIX_DIMS(out, rho.nrow(), rho.ncol());
-    Rcpp::stop("linRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+
+    using Config = propr::detail::cuda::cov_config;
+    int nfeats  = lr.ncol();
+    int samples = lr.nrow();
+
+    offset_t lr_stride;
+    auto *d_lr = RcppMatrixToDevice<float>(lr, lr_stride);
+
+    offset_t rho_stride;
+    auto *d_rho = RcppMatrixToDevice<float>(rho, rho_stride);
+
+    float* d_out = nullptr;
+    offset_t dout_stride = nfeats;
+    CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+    
+    dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
+    dim3 grid((nfeats + Config::BLK_M - 1) / Config::BLK_M, (nfeats + Config::BLK_M - 1)/ Config::BLK_M);
+    
+    propr::detail::cuda::linRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_rho, rho_stride, d_lr, lr_stride, nfeats, samples);
+    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+    auto h_full = new float[nfeats * nfeats];
+    CUDA_CHECK(cudaMemcpy(
+        h_full,
+        d_out,
+        nfeats * dout_stride * sizeof(float),
+        cudaMemcpyDeviceToHost
+    ));
+
+    double *outptr = REAL(out);
+    for (size_t i = 0; i < nfeats; ++i) {
+            for (size_t j = 0; j < nfeats; ++j) {
+                outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
+            }
+        }
+
+    delete h_full;
+    h_full = nullptr;
+    CUDA_CHECK(cudaFree(d_out));
+    CUDA_CHECK(cudaFree(d_lr));
+    CUDA_CHECK(cudaFree(d_rho));
+
 }
 
 void dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
