@@ -13,7 +13,7 @@ namespace propr {
             void clrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void alrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X, int ivar = 0, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void symRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X, propr_context context=DEFAULT_GLOBAL_CONTEXT);
-            void phiRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix &X, bool sym = true, propr_context context=DEFAULT_GLOBAL_CONTEXT);
+            void phiRcpp(Rcpp::NumericMatrix& out, Rcpp::NumericMatrix &X, bool sym = true, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void rhoRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix &X,const Rcpp::NumericMatrix& lr, int ivar = 0, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void indexPairs(std::vector<int>& out, const Rcpp::NumericMatrix & X,Rcpp::String op = "==", double ref = 0, propr_context context=DEFAULT_GLOBAL_CONTEXT);
             void indexToCoord(Rcpp::List& out, const Rcpp::IntegerVector V, int N, propr_context context=DEFAULT_GLOBAL_CONTEXT);

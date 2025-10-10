@@ -174,9 +174,8 @@ Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector co
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, bool use_gpu) {
-    int n_rows = rho.nrow();
     int n_cols = rho.ncol();
-    Rcpp::NumericMatrix result(n_rows, n_cols);
+    Rcpp::NumericMatrix result(n_cols, n_cols);
     if (is_gpu_backend() || use_gpu) {
         dispatch::cuda::linRcpp(result, rho, lr);
     } else {

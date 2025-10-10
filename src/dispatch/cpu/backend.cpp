@@ -37,23 +37,23 @@ centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
 
 void
 dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix & X) {
-  const int m = X.ncol();
-  CHECK_MATRIX_DIMS(out, m, m);
-  NumericMatrix X_centered(m,m);
+  const int n = X.nrow();
+  const int p = X.ncol();
+  CHECK_MATRIX_DIMS(out, p, p);
+
+  NumericMatrix X_centered(n, p);          // <-- was (p, p)
   centerNumericMatrix(X_centered, X);
 
-  NumericVector inv_sqrt_ss(m);
-  for (int i = 0; i < m; ++i) {
+  NumericVector inv_sqrt_ss(p);
+  for (int i = 0; i < p; ++i)
     inv_sqrt_ss(i) = 1 / sqrt(sum(X_centered(_, i) * X_centered(_, i)));
-  }
-  for (int i = 0; i < m; ++i) {
+
+  for (int i = 0; i < p; ++i)
     for (int j = 0; j <= i; ++j) {
       out(i, j) = sum(X_centered(_,i) * X_centered(_,j)) * inv_sqrt_ss(i) * inv_sqrt_ss(j);
       out(j, i) = out(i, j);
     }
-  }
 }
-
 void
 dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type) {
 
@@ -277,31 +277,32 @@ dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector
   }
 }
 
-void
+void 
 dispatch::cpu::linRcpp(NumericMatrix& out, NumericMatrix & rho, NumericMatrix lr){
-  int N_samples = lr.nrow();
-  CHECK_MATRIX_DIMS(out, rho.nrow(), rho.ncol());
+  if (lr.ncol() != rho.ncol()) stop("linRcpp: lr.ncol() must equal rho.ncol()");
+  if (lr.nrow() < 2) stop("linRcpp: lr must have at least 2 rows");
 
-  NumericMatrix r_tmp(lr.ncol(), lr.ncol());
+  const int p = rho.ncol();
+  const int N_samples = lr.nrow();
+  CHECK_MATRIX_DIMS(out, p, p);
+
+  NumericMatrix r_tmp(p, p);
   dispatch::cpu::corRcpp(r_tmp, lr);
 
-  for(int i = 0; i < rho.nrow(); i++){
-    for(int j = 0; j < rho.ncol(); j++){
+  for (int i = 0; i < p; ++i)
+    for (int j = 0; j < p; ++j)
       out(i,j) = r_tmp(i,j);
-    }
-  }
 
-  for(int i = 1; i < rho.nrow(); i++){
-    for(int j = 0; j < i; j++){
-      // Calculate Z and variance of Z
+  for (int i = 1; i < p; ++i)
+    for (int j = 0; j < i; ++j) {
       double var_ij = (1 - pow(r_tmp(i, j), 2)) * pow(rho(i, j), 2) /
-      (1 - pow(rho(i, j), 2)) / pow(r_tmp(i, j), 2) / (N_samples - 2);
+                      (1 - pow(rho(i, j), 2)) / pow(r_tmp(i, j), 2) / (N_samples - 2);
       double z_ij = atanh(rho(i, j));
       out(j, i) = var_ij;
       out(i, j) = z_ij;
     }
-  }
 }
+
 
 void
 dispatch::cpu::lltRcpp(NumericVector& out, NumericMatrix & X){

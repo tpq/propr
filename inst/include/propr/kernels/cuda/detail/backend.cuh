@@ -691,15 +691,10 @@ namespace propr {
                     const int base_k = A_TILE_COL;
                     const int l = (i / A_TILE_ROW_STRIDE) * 4;
 
-                    ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                    ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                    ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                    ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
-
-                    As[0][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
-                    As[0][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
-                    As[0][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
-                    As[0][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
+                    As[0][A_TILE_COL + 0][row_m] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
+                    As[0][A_TILE_COL + 1][row_m] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
+                    As[0][A_TILE_COL + 2][row_m] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
+                    As[0][A_TILE_COL + 3][row_m] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
                 }
 
                 PROPR_UNROLL
@@ -1009,12 +1004,15 @@ namespace propr {
 
             };
 
+            template <class Config>
             __global__
-            void phiRcpp(float* __restrict__ out, offset_t out_stride,
-                         const float* __restrict__ x, offset_t x_stride,
-                         int rows, int cols){
-            
-
+            void phiRcpp(const bool sym,
+                         float* __restrict__ out, offset_t out_stride,
+                         const float* __restrict__   x, offset_t x_stride,
+                               float* __restrict__ row_sums,
+                               float* __restrict__ mu_sum,
+                               int rows, int cols,
+                               int *barrier){
             };
 
 
@@ -1539,7 +1537,7 @@ namespace propr {
                     return 0.5f * logf((1.0f + xc) / (1.0f - xc));
                 };
 
-                // Register tile for the output (kept in registers with unrolling)
+
                 float Creg[Config::TH_Y][Config::TH_X];
 
                 PROPR_UNROLL
