@@ -20,7 +20,7 @@ dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   NumericVector diag(nfeats);
   for(int j = 0; j < nfeats; j++){
     diag[j] = out(j, j);
-  }
+  }  
   for(int i = 0; i < nfeats; i++){
     for(int j = 0; j < nfeats; j++){
       out(i, j) = -2 * out(i, j) + diag[i] + diag[j];

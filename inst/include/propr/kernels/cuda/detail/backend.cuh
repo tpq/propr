@@ -37,6 +37,11 @@ namespace propr {
                 const static int TH_X  = 8;
             };
 
+            struct sym_config {
+                const static int TILE  = 32;
+                const static int BLK_N = 16;
+            };
+
 
             template<int BLK_X>
             __global__
@@ -141,7 +146,7 @@ namespace propr {
             void col_means(
                      float * __restrict__ out, offset_t out_stride,
                      float * __restrict__   x, offset_t x_stride,
-                     size_t rows, size_t cols) 
+                     int rows, int cols) 
             {
                 if constexpr (!col_major){
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -243,7 +248,7 @@ namespace propr {
             void centerNumericMatrix(
                 float* __restrict__ out, offset_t out_stride,
                 const float* __restrict__ x, offset_t x_stride,
-                size_t rows, size_t cols)
+                int rows, int cols)
             {
                 if constexpr (!col_major) {
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -873,7 +878,7 @@ namespace propr {
             void clrRcpp(
                 float* __restrict__ out, offset_t out_stride,
                 const float* __restrict__ x, offset_t x_stride,
-                size_t rows, size_t cols)
+                int rows, int cols)
             {
                 if constexpr (!col_major) {
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -957,7 +962,7 @@ namespace propr {
                 const int ivar,
                 float* __restrict__ out, offset_t out_stride,
                 const float* __restrict__ x, offset_t x_stride,
-                size_t rows, size_t cols)
+                int rows, int cols)
             {
                 const int ivar0 = ivar - 1;
 
@@ -996,9 +1001,26 @@ namespace propr {
                 }
             }
             
+            template <class Config>
             __global__
-            void symRcpp(){
+            void symRcpp(      float* __restrict__ out, offset_t out_stride,
+                         const float* __restrict__   x, offset_t x_stride,
+                         int rows, int cols){
+                
+                int r0 = blockIdx.x * Config::TILE + threadIdx.x;
+                int c0 = blockIdx.y * Config::TILE + threadIdx.y;
 
+                for (int dj = 0; dj < Config::TILE; dj += Config::BLK_N) {
+                    int r = r0;
+                    int c = c0 + dj;
+
+                    if (r < rows && c < cols) {
+                        bool can_mirror = (r < c) && (c < rows) && (r < cols);
+                        int idx_rc = r + c * x_stride;
+                        int idx_cr = c + r * x_stride;
+                        out[r + c * out_stride] = can_mirror ? x[idx_cr] : x[idx_rc];
+                    }
+                }
             };
 
             template <class Config>
@@ -1224,7 +1246,7 @@ namespace propr {
                     }
                 }
 
-                // --- accumulate row_sums and mu_sum directly from register-held M-values
+                // --- accumulate row_sums and mu_sum directly from M-values
                 auto accum_row_mu = [&](int r, int c, float mval){
                     if (r < M && c < M) {
                         atomicAdd(&row_sums[r], mval);
@@ -1333,8 +1355,8 @@ namespace propr {
 
             template <class Config>
             __global__ void
-            vlrRcpp(float* __restrict__ out, offset_t out_stride,
-                    const float* __restrict__ x, offset_t x_stride,
+            vlrRcpp(      float* __restrict__ out, offset_t out_stride,
+                    const float* __restrict__   x, offset_t   x_stride,
                     int rows, int cols)
             {
                 const int M = rows;

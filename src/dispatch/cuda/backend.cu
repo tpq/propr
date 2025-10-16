@@ -270,8 +270,40 @@ void dispatch::cuda::alrRcpp(NumericMatrix& out, const NumericMatrix & X, const 
 }
 
 void dispatch::cuda::symRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context) {
+  using Config = propr::detail::cuda::sym_config;
   CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
-  Rcpp::stop("symRcpp is not implemented in CUDA. Falling back to CPU via dispatcher.");
+  int nrow = X.nrow();
+  int ncol = X.ncol(); 
+  
+  offset_t X_stride; 
+  auto *d_X = RcppMatrixToDevice<float>(X, X_stride, 1);
+
+  offset_t dout_stride; 
+  auto *d_out = RcppMatrixToDevice<float>(out, dout_stride, 1);
+
+  dim3 block(Config::TILE, Config::BLK_N);
+  dim3 grid((nrow + Config::TILE - 1) / Config::TILE,
+            (ncol + Config::TILE - 1) / Config::TILE);
+            
+  propr::detail::cuda::symRcpp<Config>
+        <<<grid, block, 0, context.stream>>>(d_out, dout_stride,
+                                             d_X, X_stride,
+                                            nrow, ncol);
+  CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  auto h_full = new float[nrow * ncol ];
+  CUDA_CHECK(cudaMemcpy(h_full, d_out, nrow * ncol * sizeof(float), cudaMemcpyDeviceToHost));
+  double *outptr = REAL(out);
+  for (int j = 0; j < ncol; ++j) {
+    for (int i = 0; i < nrow; ++i) {
+        outptr[i + j * ncol] = h_full[i + j * ncol];
+    }
+  }
+
+  delete[] h_full;
+  h_full = nullptr;
+  
+  CUDA_CHECK(cudaFree(d_X  ));
+  CUDA_CHECK(cudaFree(d_out));
 }
 
 void dispatch::cuda::vlrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context){
@@ -317,7 +349,7 @@ void dispatch::cuda::vlrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_
 void dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, propr_context context) {
     using Config = propr::detail::cuda::cov_config;
     CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
-    int nfeats = X.ncol(); 
+    int nfeats  = X.ncol(); 
     int samples = X.nrow();
 
     size_t N = static_cast<size_t>(nfeats);
@@ -380,21 +412,21 @@ void dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sy
 }
 
 void dispatch::cuda::rhoRcpp(NumericMatrix& out, const NumericMatrix &X, const NumericMatrix &lr, const int ivar, propr_context context){
-  const int in_nrows = X.nrow();
-  const int in_ncols = X.ncol();
+//   const int in_nrows = X.nrow();
+//   const int in_ncols = X.ncol();
 
-  offset_t d_x_log_stride;
-  auto *d_x_log = RcppMatrixToDevice<float>(X, d_x_log_stride);
-  constexpr int block_1 = 512;
-  const int grid_1      = (in_nrows * d_x_log_stride + block_1 - 1) / block_1;
-  propr::detail::cuda::log_transform_inplace<<<grid_1, block_1, 0, context.stream>>>(d_x_log, in_nrows * d_x_log_stride);
+//   offset_t d_x_log_stride;
+//   auto *d_x_log = RcppMatrixToDevice<float>(X, d_x_log_stride);
+//   constexpr int block_1 = 512;
+//   const int grid_1      = (in_nrows * d_x_log_stride + block_1 - 1) / block_1;
+//   propr::detail::cuda::log_transform_inplace<<<grid_1, block_1, 0, context.stream>>>(d_x_log, in_nrows * d_x_log_stride);
 
 
-  constexpr int block_2 = 512;
-  constexpr int cols_per_block = 1024 / block_2;
-  const int grid_2 = (X.ncol() + block_2 - 1) / block_2;
-//   propr::detail::cuda::col_means<block_2, cols_per_block><<<grid_2, block_2, 0, context.stream>>>(d_out, d_out_stride, d_x_log, d_x_log_stride, X.nrow(), X.ncol());
-  CUDA_CHECK(cudaStreamSynchronize(context.stream));
+//   constexpr int block_2 = 512;
+//   constexpr int cols_per_block = 1024 / block_2;
+//   const int grid_2 = (X.ncol() + block_2 - 1) / block_2;
+// //   propr::detail::cuda::col_means<block_2, cols_per_block><<<grid_2, block_2, 0, context.stream>>>(d_out, d_out_stride, d_x_log, d_x_log_stride, X.nrow(), X.ncol());
+//   CUDA_CHECK(cudaStreamSynchronize(context.stream));
 }
 
 
@@ -403,7 +435,41 @@ void dispatch::cuda::indexPairs(std::vector<int>& out,
                                 const String op,
                                 const double ref,
                                 propr_context context) {
-    Rcpp::stop("indexPairs is not implemented in CUDA. Falling back to CPU via dispatcher.");
+  out.clear();
+  int nfeats = X.nrow();
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      if(op == "==" || op == "="){
+        if(X(i, j) == ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == ">"){
+        if(X(i, j) > ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == ">="){
+        if(X(i, j) >= ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == "<"){
+        if(X(i, j) < ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == "<="){
+        if(X(i, j) <= ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == "!="){
+        if(X(i, j) != ref){
+          out.push_back(j * nfeats + i + 1);
+        }
+      }else if(op == "all"){
+        out.push_back(j * nfeats + i + 1);
+      }else{
+        stop("Operator not found.");
+      }
+    }
+  }
 }
 
 void dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context) {
