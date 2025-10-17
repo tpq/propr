@@ -24,55 +24,6 @@ namespace propr {
     namespace detail {
         namespace cuda {
 
-            struct cov_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-            struct cor_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-            struct lin_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-
-            struct vlr_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-            struct phi_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-            struct rho_config { // TODO: move into trait like system
-                static constexpr int BLK_M = 128;
-                static constexpr int BLK_K = 8;
-                static constexpr int TH_Y  = 8;
-                static constexpr int TH_X  = 8;
-            };
-
-            struct sym_config {
-                static constexpr int TILE  = 32; // tile has to be integral multiple of BLK_N
-                static constexpr int BLK_N = 16;
-            };
-
-
             template<int BLK_X>
             __global__
             __launch_bounds__(BLK_X, 1)
