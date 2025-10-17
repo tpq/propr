@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <cooperative_groups.h>
 
 #include <cub/cub.cuh>
 
@@ -24,27 +25,57 @@ namespace propr {
         namespace cuda {
 
             struct cov_config { // TODO: move into trait like system
-                const static int BLK_M = 128;
-                const static int BLK_K = 8;
-                const static int TH_Y  = 8;
-                const static int TH_X  = 8;
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
             };
 
             struct cor_config { // TODO: move into trait like system
-                const static int BLK_M = 128;
-                const static int BLK_K = 8;
-                const static int TH_Y  = 8;
-                const static int TH_X  = 8;
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
+            };
+
+            struct lin_config { // TODO: move into trait like system
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
+            };
+
+
+            struct vlr_config { // TODO: move into trait like system
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
+            };
+
+            struct phi_config { // TODO: move into trait like system
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
+            };
+
+            struct rho_config { // TODO: move into trait like system
+                static constexpr int BLK_M = 128;
+                static constexpr int BLK_K = 8;
+                static constexpr int TH_Y  = 8;
+                static constexpr int TH_X  = 8;
             };
 
             struct sym_config {
-                const static int TILE  = 32;
-                const static int BLK_N = 16;
+                static constexpr int TILE  = 32; // tile has to be integral multiple of BLK_N
+                static constexpr int BLK_N = 16;
             };
 
 
             template<int BLK_X>
             __global__
+            __launch_bounds__(BLK_X, 1)
             void wtm(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
@@ -77,6 +108,7 @@ namespace propr {
 
             template<int BLK_X>
             __global__
+            __launch_bounds__(BLK_X, 1)
             void wtv(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
@@ -141,14 +173,15 @@ namespace propr {
             };
 
 
-            template<int BLK_X, int BLK_Y=1, bool col_major=true>
+            template<int BLK_X, int BLK_Y=1, bool row_major=false>
             __global__
+            __launch_bounds__(BLK_X, BLK_Y)
             void col_means(
                      float * __restrict__ out, offset_t out_stride,
                      float * __restrict__   x, offset_t x_stride,
                      int rows, int cols) 
             {
-                if constexpr (!col_major){
+                if constexpr (row_major){
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
                     if ((size_t)col >= cols) return;
                     float mean = 0.0;
@@ -243,14 +276,14 @@ namespace propr {
                 }
             };
 
-            template<int BLK_X, int BLK_Y = 1, bool col_major = false>
+            template<int BLK_X, int BLK_Y = 1, bool row_major = false>
             __global__
             void centerNumericMatrix(
                 float* __restrict__ out, offset_t out_stride,
                 const float* __restrict__ x, offset_t x_stride,
                 int rows, int cols)
             {
-                if constexpr (!col_major) {
+                if constexpr (row_major) {
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
                     if ((size_t)col >= cols) return;
 
@@ -328,7 +361,9 @@ namespace propr {
 
 
             template <class Config>
-            __global__ void corRcpp(
+            __global__ 
+            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            void corRcpp(
                 float* __restrict__ out,
                 offset_t out_stride,
                 const float* __restrict__ x,
@@ -619,7 +654,10 @@ namespace propr {
             
 
             template <class Config>
-            __global__ void covRcpp(
+            __global__ 
+            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            void 
+            covRcpp(
                 const int norm_type,
                 float* __restrict__ out,
                 offset_t out_stride,
@@ -873,14 +911,14 @@ namespace propr {
                 }
             }
 
-            template<int BLK_X, int BLK_Y = 1, bool col_major = false>
+            template<int BLK_X, int BLK_Y = 1, bool row_major = false>
             __global__
             void clrRcpp(
-                float* __restrict__ out, offset_t out_stride,
+                      float* __restrict__ out, offset_t out_stride,
                 const float* __restrict__ x, offset_t x_stride,
                 int rows, int cols)
             {
-                if constexpr (!col_major) {
+                if constexpr (row_major) {
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
                     if ((size_t)col >= cols) return;
 
@@ -956,7 +994,7 @@ namespace propr {
                 }
             }
 
-            template<int BLK_X, int BLK_Y = 1, bool col_major = false>
+            template<int BLK_X, int BLK_Y = 1, bool row_major = false>
             __global__
             void alrRcpp(
                 const int ivar,
@@ -966,7 +1004,7 @@ namespace propr {
             {
                 const int ivar0 = ivar - 1;
 
-                if constexpr (!col_major) {
+                if constexpr (row_major) {
                     const int col = blockDim.x * blockIdx.x + threadIdx.x;
                     if ((size_t)col >= cols) return;
 
@@ -1003,6 +1041,7 @@ namespace propr {
             
             template <class Config>
             __global__
+            __launch_bounds__(Config::TILE, Config::BLK_N)
             void symRcpp(      float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__   x, offset_t x_stride,
                          int rows, int cols){
@@ -1025,13 +1064,13 @@ namespace propr {
 
             template <class Config>
             __global__
+            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void phiRcpp(const bool sym,
                         float* __restrict__ out, offset_t out_stride,
                         const float* __restrict__   x, offset_t x_stride,
                             float* __restrict__ row_sums,
                             float* __restrict__ mu_sum,
-                            int rows, int cols,
-                            int *barrier)
+                            int rows, int cols)
             {
                 const int M = rows;
                 const int K = cols;
@@ -1238,9 +1277,9 @@ namespace propr {
                 const int c0 = Config::BLK_M * bx + c_block_col;
 
                 const float inv_denom = (K > 1 ? 1.0f / (float)(K - 1) : 1.0f);
-                #pragma unroll
+                PROPR_UNROLL
                 for (int yy = 0; yy < Config::TH_Y; ++yy) {
-                    #pragma unroll
+                    PROPR_UNROLL
                     for (int xx = 0; xx < Config::TH_X; ++xx) {
                         S[yy][xx] *= inv_denom;
                     }
@@ -1255,7 +1294,6 @@ namespace propr {
                 };
 
                 for (int i = 0; i < 4; ++i) {
-                    // rows covered by this thread's microtile
                     const int rr0 = r0 + i;
                     const int rr1 = r0 + 64 + i;
 
@@ -1279,28 +1317,8 @@ namespace propr {
                 }
 
                 // --- global barrier so all reductions are complete
-                __threadfence();
-                __syncthreads();
-                volatile int *v_barrier = barrier;
-                const int bid = by * gridDim.x + bx;
-                if (bx == 0 && by == 0){
-                    if (tid == 0) v_barrier[bid] = 1;
-                    __syncthreads();
-                    for (int peer_block = tid; peer_block < gridDim.x * gridDim.y; peer_block += blockDim.x * blockDim.y) {
-                        while (__ldcg(barrier + peer_block) == 0) { __threadfence_block(); }
-                    }
-                    __syncthreads();
-                    for (int peer_block = tid; peer_block < gridDim.x * gridDim.y; peer_block += blockDim.x * blockDim.y) {
-                        v_barrier[peer_block] = 0;
-                    }
-                } else {
-                    if (tid == 0) {
-                        v_barrier[bid] = 1;
-                        while (__ldcg(barrier + bid) == 1) { __threadfence_block(); }
-                    }
-                    __syncthreads();
-                }
-                __threadfence_block();
+                auto grid = cooperative_groups::this_grid(); 
+                grid.sync();
 
                 // --- compute v_i from reductions
                 const float invM   = (M > 0 ? 1.0f / (float)M : 0.0f);
@@ -1354,10 +1372,11 @@ namespace propr {
 
 
             template <class Config>
-            __global__ void
-            vlrRcpp(      float* __restrict__ out, offset_t out_stride,
-                    const float* __restrict__   x, offset_t   x_stride,
-                    int rows, int cols)
+            __global__ 
+            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            void vlrRcpp(float* __restrict__ out, offset_t out_stride,
+                         const float* __restrict__   x, offset_t   x_stride,
+                         int rows, int cols)
             {
                 const int M = rows;
                 const int K = cols;
@@ -1588,11 +1607,296 @@ namespace propr {
                 }
             }
 
-
+            template<class Config>
             __global__
-            void rhoRcpp() {
-                // rho based on vlr
-            };
+            void rhoRcpp( int ivar,
+                          float* __restrict__  out, offset_t out_stride,
+                    const float* __restrict__    x, offset_t   x_stride,
+                    const float* __restrict__   lr, offset_t  lr_stride,
+                    int rows, int cols) {
+                // might be interesting to investigate warp specialization
+                // half the warps compute vlr(x)
+                // half the warps compute var(lr)
+                // sync then compute ration
+                struct LdOrZeroRT {
+                    const bool apply_log;
+                    __device__ __forceinline__
+                    float operator()(const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) const {
+                        if (r < max_r && c < max_c) {
+                            float v = p[OFFSET(r, c, ld)];
+                            return apply_log ? __logf(v) : v;
+                        }
+                        return 0.0f;
+                    }
+                };
+
+                const int M = rows;
+                const int K = cols;
+
+                const float* A = x;
+                const float* B = x;
+                      float* C = out;
+
+                const int bx = blockIdx.x;
+                const int by = blockIdx.y;
+
+                const int tx = threadIdx.x;
+                const int ty = threadIdx.y;
+
+                const int THREAD_X_PER_BLOCK   = Config::BLK_M / Config::TH_X;
+                const int THREAD_Y_PER_BLOCK   = Config::BLK_M / Config::TH_Y;
+                const int THREAD_NUM_PER_BLOCK = THREAD_X_PER_BLOCK * THREAD_Y_PER_BLOCK;
+                const int tid = ty * THREAD_X_PER_BLOCK + tx;
+
+                __shared__ float As[Config::BLK_K][Config::BLK_M];
+                __shared__ float Bs[Config::BLK_K][Config::BLK_M];
+
+                __shared__ float LR_A[Config::BLK_K][Config::BLK_M];
+                __shared__ float LR_B[Config::BLK_K][Config::BLK_M];
+
+                float S [Config::TH_Y][Config::TH_X] = {0.0f};
+                float mu[Config::TH_Y][Config::TH_X] = {0.0f};
+
+                float mu_lr_i[Config::TH_Y] = {0.0f};
+                float mu_lr_j[Config::TH_X] = {0.0f};
+
+                float S_lr_i [Config::TH_Y] = {0.0f};
+                float S_lr_j [Config::TH_X] = {0.0f};
+
+                float frag_xi[2][Config::TH_Y];
+                float frag_xj[2][Config::TH_X];
+
+                float frag_lr_i[2][Config::TH_Y];
+                float frag_lr_j[2][Config::TH_X];
+
+                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
+                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
+
+                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
+                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
+
+                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
+                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
+
+                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
+                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
+
+                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
+                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
+
+                const float* LR_A_base = &lr[(Config::BLK_M * by) * lr_stride];
+                const float* LR_B_base = &lr[(Config::BLK_M * bx) * lr_stride];
+
+                const int warp_id = tid / 32;
+                const int lane_id = tid % 32;
+                const int a_tile_index =  (warp_id / 2) * 16 + (lane_id / 8) * 4;
+                const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
+
+                LdOrZeroRT ld_or_zero_lg{true};
+                LdOrZeroRT ld_or_zero{false};
+
+                auto store_if_in_bounds = [&](int r, int c, float v) {
+                    if (r < M && c < M) C[OFFSET(r, c, out_stride)] = v;
+                };
+
+                for (int tile_base = 0; tile_base < K; tile_base += Config::BLK_K) {
+                    const int k_tile = min(Config::BLK_K, K - tile_base);
+
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
+                        const int row_m = A_TILE_ROW_START + i;
+                        const int k0    = A_TILE_COL + 0;
+                        const int k1    = A_TILE_COL + 1;
+                        const int k2    = A_TILE_COL + 2;
+                        const int k3    = A_TILE_COL + 3;
+
+                        LR_A[k0][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k0, lr_stride, M, M);
+                        LR_A[k1][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k1, lr_stride, M, M);
+                        LR_A[k2][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k2, lr_stride, M, M);
+                        LR_A[k3][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k3, lr_stride, M, M);
+
+                        As[k0][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k0, x_stride, M, K);
+                        As[k1][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k1, x_stride, M, K);
+                        As[k2][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k2, x_stride, M, K);
+                        As[k3][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k3, x_stride, M, K);
+                    }
+
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
+                        const int row_k_local = B_TILE_ROW_START + i;
+                        const int row_k_abs   = tile_base + row_k_local;
+                        const int col_m       = B_TILE_COL;
+
+                        LR_B[row_k_local][col_m + 0] = ld_or_zero(LR_B_base, col_m + 0, row_k_abs, lr_stride, M, M);
+                        LR_B[row_k_local][col_m + 1] = ld_or_zero(LR_B_base, col_m + 1, row_k_abs, lr_stride, M, M);
+                        LR_B[row_k_local][col_m + 2] = ld_or_zero(LR_B_base, col_m + 2, row_k_abs, lr_stride, M, M);
+                        LR_B[row_k_local][col_m + 3] = ld_or_zero(LR_B_base, col_m + 3, row_k_abs, lr_stride, M, M);
+
+                        Bs[row_k_local][col_m + 0] = ld_or_zero_lg(B_base, col_m + 0, row_k_abs, x_stride, M, K);
+                        Bs[row_k_local][col_m + 1] = ld_or_zero_lg(B_base, col_m + 1, row_k_abs, x_stride, M, K);
+                        Bs[row_k_local][col_m + 2] = ld_or_zero_lg(B_base, col_m + 2, row_k_abs, x_stride, M, K);
+                        Bs[row_k_local][col_m + 3] = ld_or_zero_lg(B_base, col_m + 3, row_k_abs, x_stride, M, K);
+                    }
+                    __syncthreads();
+
+                    if (k_tile > 0) {
+                        FETCH_FLOAT4(frag_xi[0][0]) = FETCH_FLOAT4(As[0][a_tile_index]);
+                        FETCH_FLOAT4(frag_xi[0][4]) = FETCH_FLOAT4(As[0][a_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_xj[0][0]) = FETCH_FLOAT4(Bs[0][b_tile_index]);
+                        FETCH_FLOAT4(frag_xj[0][4]) = FETCH_FLOAT4(Bs[0][b_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_lr_i[0][0]) = FETCH_FLOAT4(LR_A[0][a_tile_index]);
+                        FETCH_FLOAT4(frag_lr_i[0][4]) = FETCH_FLOAT4(LR_A[0][a_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_lr_j[0][0]) = FETCH_FLOAT4(LR_B[0][b_tile_index]);
+                        FETCH_FLOAT4(frag_lr_j[0][4]) = FETCH_FLOAT4(LR_B[0][b_tile_index + 64]);
+                    }
+
+                    const int j_max = (k_tile > 0 ? k_tile - 1 : 0);
+
+                    PROPR_UNROLL
+                    for (int j = 0; j < j_max; ++j) {
+                        FETCH_FLOAT4(frag_xi[(j + 1) & 1][0]) = FETCH_FLOAT4(As[j + 1][a_tile_index]);
+                        FETCH_FLOAT4(frag_xi[(j + 1) & 1][4]) = FETCH_FLOAT4(As[j + 1][a_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_xj[(j + 1) & 1][0]) = FETCH_FLOAT4(Bs[j + 1][b_tile_index]);
+                        FETCH_FLOAT4(frag_xj[(j + 1) & 1][4]) = FETCH_FLOAT4(Bs[j + 1][b_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_lr_i[(j + 1) & 1][0]) = FETCH_FLOAT4(LR_A[j + 1][a_tile_index]);
+                        FETCH_FLOAT4(frag_lr_i[(j + 1) & 1][4]) = FETCH_FLOAT4(LR_A[j + 1][a_tile_index + 64]);
+
+                        FETCH_FLOAT4(frag_lr_j[(j + 1) & 1][0]) = FETCH_FLOAT4(LR_B[j + 1][b_tile_index]);
+                        FETCH_FLOAT4(frag_lr_j[(j + 1) & 1][4]) = FETCH_FLOAT4(LR_B[j + 1][b_tile_index + 64]);
+
+                        const int k_cur = tile_base + (j + 1);
+
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float a = frag_xi[j & 1][thread_y];
+                            PROPR_UNROLL
+                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                                const float b    = frag_xj[j & 1][thread_x];
+                                const float xval = a - b;
+
+                                const float old_mu = mu[thread_y][thread_x];
+                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_cur;
+                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                            }
+                        }
+
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float vi_old = mu_lr_i[thread_y];
+                            const float vi_val = frag_lr_i[j & 1][thread_y];
+                            mu_lr_i[thread_y] = vi_old + (vi_val - vi_old) / (float)k_cur;
+                            S_lr_i [thread_y] = S_lr_i[thread_y] + (vi_val - mu_lr_i[thread_y]) * (vi_val - vi_old);
+                        }
+                        PROPR_UNROLL
+                        for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                            const float vj_old = mu_lr_j[thread_x];
+                            const float vj_val = frag_lr_j[j & 1][thread_x];
+                            mu_lr_j[thread_x] = vj_old + (vj_val - vj_old) / (float)k_cur;
+                            S_lr_j [thread_x] = S_lr_j[thread_x] + (vj_val - mu_lr_j[thread_x]) * (vj_val - vj_old);
+                        }
+                    }
+
+                    
+                    if (k_tile > 0) {
+                        const int k_tail  = tile_base + k_tile;
+                        const int last_buf = (j_max & 1);
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float a = frag_xi[last_buf][thread_y];
+                            PROPR_UNROLL
+                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                                const float b    = frag_xj[last_buf][thread_x];
+                                const float xval = a - b;
+
+                                const float old_mu = mu[thread_y][thread_x];
+                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_tail;
+                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                            }
+                        }
+
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float vi_old = mu_lr_i[thread_y];
+                            const float vi_val = frag_lr_i[last_buf][thread_y];
+                            mu_lr_i[thread_y] = vi_old + (vi_val - vi_old) / (float)k_tail;
+                            S_lr_i [thread_y] = S_lr_i[thread_y] + (vi_val - mu_lr_i[thread_y]) * (vi_val - vi_old);
+                        }
+                        PROPR_UNROLL
+                        for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                            const float vj_old = mu_lr_j[thread_x];
+                            const float vj_val = frag_lr_j[last_buf][thread_x];
+                            mu_lr_j[thread_x] = vj_old + (vj_val - vj_old) / (float)k_tail;
+                            S_lr_j [thread_x] = S_lr_j[thread_x] + (vj_val - mu_lr_j[thread_x]) * (vj_val - vj_old);
+                        }
+                    }
+
+                    __syncthreads();
+                }
+
+                const int c_block_row = a_tile_index;
+                const int c_block_col = b_tile_index;
+                const float denom = (K > 1 ? (float)(K - 1) : 1.0f);
+
+                const int r0 = Config::BLK_M * by + c_block_row;
+                const int c0 = Config::BLK_M * bx + c_block_col;
+
+                const float var_i_rows[Config::TH_Y] = {
+                    S_lr_i[0]/denom, S_lr_i[1]/denom, S_lr_i[2]/denom, S_lr_i[3]/denom,
+                    S_lr_i[4]/denom, S_lr_i[5]/denom, S_lr_i[6]/denom, S_lr_i[7]/denom
+                };
+                const float var_j_cols[Config::TH_X] = {
+                    S_lr_j[0]/denom, S_lr_j[1]/denom, S_lr_j[2]/denom, S_lr_j[3]/denom,
+                    S_lr_j[4]/denom, S_lr_j[5]/denom, S_lr_j[6]/denom, S_lr_j[7]/denom
+                };
+
+                const int ivar0 = ivar - 1;
+                auto apply_rho_store = [&](int gi, int gj, float vlr, float vi, float vj) {
+                    float base = 1.0f - (vlr / (vi + vj));
+                    unsigned eqi    = (gi == ivar0);
+                    unsigned eqj    = (gj == ivar0);
+                    unsigned either = eqi | eqj;
+                    unsigned both   = eqi & eqj;
+                    float outv = base * (1.0f - (float)either) + (float)both;
+                    store_if_in_bounds(gi, gj, outv);
+                };
+
+                for (int i = 0; i < 4; ++i) {
+                    // top rows
+                    const int gi_top = r0 + i;
+                    // bottom rows
+                    const int gi_bot = r0 + 64 + i;
+
+                    // left cols
+                    int gj = c0;
+                    apply_rho_store(gi_top, gj + 0, S[i][0]     / denom, var_i_rows[i + 0], var_j_cols[0]);
+                    apply_rho_store(gi_top, gj + 1, S[i][1]     / denom, var_i_rows[i + 0], var_j_cols[1]);
+                    apply_rho_store(gi_top, gj + 2, S[i][2]     / denom, var_i_rows[i + 0], var_j_cols[2]);
+                    apply_rho_store(gi_top, gj + 3, S[i][3]     / denom, var_i_rows[i + 0], var_j_cols[3]);
+
+                    apply_rho_store(gi_bot, gj + 0, S[i + 4][0] / denom, var_i_rows[i + 4], var_j_cols[0]);
+                    apply_rho_store(gi_bot, gj + 1, S[i + 4][1] / denom, var_i_rows[i + 4], var_j_cols[1]);
+                    apply_rho_store(gi_bot, gj + 2, S[i + 4][2] / denom, var_i_rows[i + 4], var_j_cols[2]);
+                    apply_rho_store(gi_bot, gj + 3, S[i + 4][3] / denom, var_i_rows[i + 4], var_j_cols[3]);
+
+                    // right cols (+64)
+                    gj = c0 + 64;
+                    apply_rho_store(gi_top, gj + 0, S[i][4]     / denom, var_i_rows[i + 0], var_j_cols[4]);
+                    apply_rho_store(gi_top, gj + 1, S[i][5]     / denom, var_i_rows[i + 0], var_j_cols[5]);
+                    apply_rho_store(gi_top, gj + 2, S[i][6]     / denom, var_i_rows[i + 0], var_j_cols[6]);
+                    apply_rho_store(gi_top, gj + 3, S[i][7]     / denom, var_i_rows[i + 0], var_j_cols[7]);
+
+                    apply_rho_store(gi_bot, gj + 0, S[i + 4][4] / denom, var_i_rows[i + 4], var_j_cols[4]);
+                    apply_rho_store(gi_bot, gj + 1, S[i + 4][5] / denom, var_i_rows[i + 4], var_j_cols[5]);
+                    apply_rho_store(gi_bot, gj + 2, S[i + 4][6] / denom, var_i_rows[i + 4], var_j_cols[6]);
+                    apply_rho_store(gi_bot, gj + 3, S[i + 4][7] / denom, var_i_rows[i + 4], var_j_cols[7]);
+                }
+            }
+
 
             __global__
             void indexToCoord(
@@ -1625,7 +1929,9 @@ namespace propr {
 
             template <class Config>
             __global__
-            void linRcpp(float* __restrict__ out, offset_t out_stride,
+            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            void 
+            linRcpp(float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__ rho, int rho_stride,
                          const float* __restrict__ x, offset_t x_stride,
                          int rows, int cols){
@@ -1999,11 +2305,9 @@ namespace propr {
 
             __global__
             void vector2mat(
-                float*      __restrict__ out, 
-                offset_t    out_stride,
+                float*      __restrict__ out,  offset_t    out_stride,
                 const float* __restrict__ X,
-                const int* __restrict__ i_vec,
-                const int* __restrict__ j_vec,
+                const int* __restrict__ i_vec, const int* __restrict__ j_vec,
                 size_t ni
             ){
                 // TODO: Check f4 perf
@@ -2039,7 +2343,7 @@ namespace propr {
 
             __global__
             void results2matRcpp(
-                float*        __restrict__ out   , offset_t out_stride,
+                      float* __restrict__     out, offset_t     out_stride,
                 const float* __restrict__ results, offset_t results_stride,
                 float diagonal, size_t n){
                 offset_t total_pairs = n * (n - 1) / 2;

@@ -353,7 +353,7 @@ void dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sy
     int samples = X.nrow();
 
     size_t N = static_cast<size_t>(nfeats);
-    size_t M = static_cast<size_t>(samples);
+    //size_t M = static_cast<size_t>(samples);
 
     offset_t X_stride; 
     auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
