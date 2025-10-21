@@ -7,7 +7,6 @@
 #'  discovery rate (FDR). The default is 0.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. 
-#' @param weights A custom matrix of weights.
 #' @param shrink A logical value indicating whether to apply shrinkage
 #' 
 #' @return A \code{propd} object containing the computed theta values,
@@ -35,7 +34,6 @@ propd <- function(counts,
                   alpha = NA,
                   p = 0,
                   weighted = FALSE,
-                  weights = as.matrix(NA),
                   shrink = FALSE) {
   ##############################################################################
   ### CLEAN UP ARGS
@@ -52,15 +50,7 @@ propd <- function(counts,
   if (length(group) != nrow(counts))
     stop("Too many or too few group labels.")
 
-  # set weighted to TRUE if weights are provided
-  if (!is.na(weights[1,1])) {
-    weighted <- TRUE
-    # error if permutation is requested
-    if (p > 0) {
-      stop("Permutation is not available with custom weights yet.")
-    }
-  }
-
+  # Throw error if scenario not supported
   if (shrink && weighted) {
     stop("Shrinkage is not available for weighted computation yet.")
   }
@@ -68,16 +58,6 @@ propd <- function(counts,
   # Special handling for equivalent args
   if (identical(alpha, 0))
     alpha <- NA
-
-  ##############################################################################
-  ### OPTIONALLY REPLACE ZEROS AND SET UP propd OBJECT
-  ##############################################################################
-
-  if (is.na(alpha)) {
-    ct <- simple_zero_replacement(counts)
-  } else{
-    ct <- counts
-  }
 
   # Initialize @active, @weighted
   result <- new("propd")
@@ -87,7 +67,7 @@ propd <- function(counts,
   result@dfz <- 0
 
   # Initialize @counts, @group, @alpha
-  result@counts <- as.data.frame(ct)
+  result@counts <- as.data.frame(counts)
   result@group <- as.character(group)
   result@alpha <- as.numeric(alpha)
   result@permutes <- data.frame()
@@ -103,7 +83,6 @@ propd <- function(counts,
       result@group,
       result@alpha,
       weighted = weighted,
-      weights = weights,
       shrink = shrink
     )
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
