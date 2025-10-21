@@ -1,32 +1,30 @@
 library(testthat)
 library(propr)
 
+fetch_weights <- function(counts, design){
+    #this function calculates the new default weights, i.e., sample reliability weights using limma
+    logX <- log(counts)
+    z.geo <- rowMeans(logX)
+    z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
+    lz.sr <- t(z.lr + mean(z.geo)) #corresponds to log(z.sr) in updateF function
+
+    #use quality weights from limma:
+    aw <- limma::arrayWeights(lz.sr, design) 
+    W <- t(sweep(matrix(1, nrow(lz.sr), ncol(lz.sr)), 2, aw, `*`)) #get the correct dimensions
+    return(W)
+}  
+
 # data
 keep <- iris$Species %in% c("setosa", "versicolor")
 counts <- iris[keep, 1:4] * 10
 group <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
 
-test_that("test that providing weights to propd works", {
-
-    # get weights
-    design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
-
-    # calculate propr 
-    pd_w <- propd(counts, group, weighted = TRUE)
-    pd_w2 <- propd(counts, group, weighted = TRUE, weights = W)
-
-    expect_equal(pd_w@weights, pd_w2@weights)
-    expect_equal(pd_w@results, pd_w2@results)
-})
 
 test_that("test that weights are properly incorporated to lrv", {
 
     # get weights
     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
+    W <- fetch_weights(counts,design)
 
     # calculate lrv using propr
     counts <- as.matrix(counts)
@@ -52,8 +50,7 @@ test_that("test that weights are properly incorporated to lrv", {
 test_that("test that weights are properly incorporated to lrm", {
     # get weights
     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
+    W <- fetch_weights(counts,design)
 
     # calculate lrm using propr
     counts <- as.matrix(counts)
@@ -76,8 +73,7 @@ test_that("test that weights are properly incorporated to lrm", {
 test_that("test that weights are properly incorporated to omega" ,{
     # get weights
     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
+    W <- fetch_weights(counts,design)
 
     # calculate omega using propr
     counts <- as.matrix(counts)
@@ -98,8 +94,7 @@ test_that("test that weights are properly incorporated to omega" ,{
 test_that("test that weights are properly incorporated to theta", {
     # get weights
     design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
-    v <- limma::voom(t(counts), design = design)
-    W <- t(v$weights)
+    W <- fetch_weights(counts,design)
 
     # calculate theta using propr
     counts <- as.matrix(counts)

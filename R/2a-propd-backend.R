@@ -9,7 +9,6 @@
 #' @param only A character vector specifying the type of theta to calculate.
 #' @param weighted A logical value indicating whether weighted calculations
 #'  should be performed. 
-#' @param weights A weight matrix.
 #' @param shrink A logical value indicating whether to apply shrinkage
 #'
 #' @return A data frame containing the computed theta values and
@@ -34,7 +33,6 @@ calculate_theta <-
            lrv = NA,
            only = "all",
            weighted = FALSE,
-           weights = as.matrix(NA),
            shrink = FALSE) {
 
     # count matrix
@@ -56,16 +54,34 @@ calculate_theta <-
     ### Use weights
     ##############################################################################
 
+    # calculate weights using limma sample weights
     if (weighted) {
-      # calculate weights using limma
-      if (is.na(weights[1,1])) {
-        message("Alert: Calculating limma-based weights.")
-        packageCheck("limma")
-        design <-
-          stats::model.matrix(~ . + 0, data = as.data.frame(group))
-        v <- limma::voom(t(counts), design = design)
-        weights <- t(v$weights)
+      message("Alert: Calculating Limma's reliability weights for samples.")
+      packageCheck("limma")
+      
+      #use clr-transform of the counts for quality weights from limma: 
+      design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
+
+      # limma requires a pseudocount of +1 if zeros are present
+      if (any(counts == 0)) {    
+        X <- as.matrix(counts + 1)  
+      } else{
+        X <- as.matrix(counts)
       }
+
+      # calculate geometric mean
+      logX <- log(X)
+      z.geo <- rowMeans(logX)
+
+      # calculate clr-transformed data
+      z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
+      # scale counts by mean of geometric mean, this rescales data to similar magnitude as original counts
+      lz.sr <- t(z.lr + mean(z.geo)) #corresponds to log(z.sr) in updateF function
+
+      # use quality weights from limma:
+      aw <- limma::arrayWeights(lz.sr, design) 
+      weights <- t(sweep(matrix(1, nrow(lz.sr), ncol(lz.sr)), 2, aw, `*`)) #get the correct dimensions
+
       if (nrow(weights) != nrow(counts) | ncol(weights) != ncol(counts)) {
         stop("The matrix dimensions of 'weights' must match the matrix dimensions 'counts'.")
       }
@@ -82,6 +98,16 @@ calculate_theta <-
       ps <- lapply(groups, function(g) sum(g) - 1)
       names(ps) <- paste0("p", 1:ngrp)
       p <- length(group) - 1
+    }
+
+    ##############################################################################
+    ### Handle zeros
+    ##############################################################################
+
+    # Replace zeros if any
+    # Logratio and theta cannot be computed with zeros
+    if (any(ct == 0) && !is.na(alpha)) {
+      ct <- simple_zero_replacement(ct)
     }
 
     ##############################################################################

@@ -69,9 +69,10 @@ setActive <-
 #'  moderated F-statistic using the limma-voom method. Supports
 #'  weighted and alpha transformed theta values.
 #' @export
+#check consequences for downward compatibility when replacing moderated=FALSE by moderated=TRUE
+
 updateF <- function(propd,
-                    moderated = FALSE,
-                    moderated_trend = FALSE,
+                    moderated = TRUE,
                     ivar = "clr") {
   # Check that active theta is theta_d? propd@active
   if (!propd@active == "theta_d") {
@@ -79,11 +80,11 @@ updateF <- function(propd,
   }
 
   if (moderated) {
-    packageCheck("limma")
+    propr:::packageCheck("limma")
 
     # A reference is needed for moderation
     propd@counts # Zeros replaced unless alpha provided...
-    use <- index_reference(propd@counts, ivar)
+    use <- propr:::index_reference(propd@counts, ivar)
 
     # Establish data with regard to a reference Z
     if (any(propd@counts == 0)) {
@@ -102,20 +103,58 @@ updateF <- function(propd,
     z <- exp(z.geo)
 
     # Fit limma-voom to reference-based data
-    message("Alert: Calculating weights with regard to reference.")
+    message("Alert: Calculating prior degrees of freedom with regard to reference.") #voom weights no longer needed
     z.sr <-
       t(exp(z.lr) * mean(z)) # scale counts by mean of reference
     design <-
       stats::model.matrix(~ . + 0, data = as.data.frame(propd@group))
     v <- limma::voom(z.sr, design = design)
-    param <- limma::lmFit(v, design)
-    param <- limma::eBayes(param, trend=moderated_trend)
+    param <- limma::lmFit(v, design) #check if weights should be used
+    param <- limma::eBayes(param,trend=TRUE) #we here fit limma trend genewise with respect to reference, only needed for z.df, not z.s2
     z.df <- param$df.prior
-    propd@dfz <- param$df.prior
-    z.s2 <- param$s2.prior
+    propd@dfz <- param$df.prior #same as z.df
+    #z.s2 <- param$s2.prior #this is no longer needed!
 
+    #new way of calculating z.s2 directly from logratios:
+    #pooled lrv within groups:
+	
+    plrv=(propd@results$p1*propd@results$lrv1+propd@results$p2*propd@results$lrv2)/propd@results$p
+    #raw count log geometric averages:
+    avs=apply(logX,2,mean)
+    #Calculate pairwise log geometric mean adding both genewise avs
+    #(do this in the exponent for vectorization of calculations):
+    Z=log(exp(avs)%*%t(exp(avs)))
+    #write as vector in same format as pairwise results:
+    add=Z[upper.tri(Z)]
+    nbins=min(20,ncol(logX))
+    As=sort(add)
+    B=round(length(add)/nbins)
+    se=rep(0,nbins+1) #sequence of bin boundaries for entries in As, 20 is arbitrary but works
+    se[1]=As[1]-0.1 #smaller than min(As) so we can use > later 
+    for (i in 1:(nbins-1)){
+	se[i+1]=As[B*i]
+    }
+    se[nbins+1]=As[length(As)] #max(As)
+    L=list()
+    for (i in 1:(length(se)-1)){
+	L[[i]]=which(add>se[i] & add<=se[i+1])
+    }
+    S=rep(0,length(L))
+    for (i in 1:length(L)){
+	S[i]=mean(plrv[L[[i]]]^(1/4)) #similar to limma trend use sqrt(sd) for fit
+    }
+    #now map S^4 back to the original pairs:
+    S2=rep(0,length(add))
+    for (i in 1:length(L)){
+	S2[L[[i]]]=S[i]^4
+    }
+
+
+    #no longer needed:
     # Calculate simple moderation term based only on LRV
-    mod <- z.df * z.s2 / propd@results$lrv
+    #mod <- z.df * z.s2 / propd@results$lrv
+    
+    mod <- z.df * S2 / propd@results$lrv #moderation term based on ratio mean-variance trend
 
     # Moderate F-statistic
     propd@Fivar <- ivar # used by updateCutoffs

@@ -14,15 +14,7 @@
 \usage{
 \S4method{show}{propd}(object)
 
-propd(
-  counts,
-  group,
-  alpha = NA,
-  p = 0,
-  weighted = FALSE,
-  weights = as.matrix(NA),
-  shrink = FALSE
-)
+propd(counts, group, alpha = NA, p = 0, weighted = FALSE, shrink = FALSE)
 
 setDisjointed(propd)
 
@@ -30,7 +22,7 @@ setEmergent(propd)
 
 setActive(propd, what = "theta_d")
 
-updateF(propd, moderated = FALSE, ivar = "clr")
+updateF(propd, moderated = TRUE, ivar = "clr")
 }
 \arguments{
 \item{object}{A \code{propd} object.}
@@ -49,8 +41,6 @@ discovery rate (FDR). The default is 0.}
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed.}
 
-\item{weights}{A custom matrix of weights.}
-
 \item{shrink}{A logical value indicating whether to apply shrinkage}
 
 \item{propd}{A \code{propd} object.}
@@ -61,6 +51,10 @@ should be performed.}
 whether to calculate a moderated F-statistic.}
 
 \item{ivar}{See \code{propr} method.}
+
+\item{moderated_trend}{For \code{updateF}, a boolean. Toggles
+whether to incorporate mean-variance trend in the moderated 
+F-statistic. Default is FALSE.}
 }
 \value{
 A \code{propd} object containing the computed theta values,
