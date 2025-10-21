@@ -51,10 +51,6 @@ should be performed.}
 whether to calculate a moderated F-statistic.}
 
 \item{ivar}{See \code{propr} method.}
-
-\item{moderated_trend}{For \code{updateF}, a boolean. Toggles
-whether to incorporate mean-variance trend in the moderated 
-F-statistic. Default is FALSE.}
 }
 \value{
 A \code{propd} object containing the computed theta values,

@@ -57,9 +57,6 @@ setActive <-
 #' @rdname propd
 #' @param moderated For \code{updateF}, a boolean. Toggles
 #'  whether to calculate a moderated F-statistic.
-#' @param moderated_trend For \code{updateF}, a boolean. Toggles
-#'  whether to incorporate mean-variance trend in the moderated 
-#'  F-statistic. Default is FALSE.
 #' @param ivar See \code{propr} method.
 #' @section Functions:
 #' \code{updateF:}
@@ -69,120 +66,198 @@ setActive <-
 #'  moderated F-statistic using the limma-voom method. Supports
 #'  weighted and alpha transformed theta values.
 #' @export
-#check consequences for downward compatibility when replacing moderated=FALSE by moderated=TRUE
-
-updateF <- function(propd,
-                    moderated = TRUE,
-                    ivar = "clr") {
-  # Check that active theta is theta_d? propd@active
+updateF <- function(propd, moderated = TRUE, ivar = "clr") {
+  # Validate inputs
   if (!propd@active == "theta_d") {
     stop("Make theta_d the active theta.")
   }
-
+  
   if (moderated) {
-    propr:::packageCheck("limma")
+    message("Alert: Calculating moderated F-statistics using voom approach, with trend = ", propd@weighted)
 
-    # A reference is needed for moderation
-    propd@counts # Zeros replaced unless alpha provided...
-    use <- propr:::index_reference(propd@counts, ivar)
-
-    # Establish data with regard to a reference Z
-    if (any(propd@counts == 0)) {
-      message("Alert: Building reference set with ivar and counts offset by 1.")
-      X <- as.matrix(propd@counts + 1)  # TODO this should be checked, if we still want to do this
-    } else{
-      message("Alert: Building reference set with ivar and counts.")
-      X <- as.matrix(propd@counts)
-    }
-    logX <- log(X)
-    z.set <- logX[, use, drop = FALSE]
-    z.geo <- rowMeans(z.set)
-    if (any(exp(z.geo) == 0))
-      stop("Zeros present in reference set.")
-    z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
-    z <- exp(z.geo)
-
-    # Fit limma-voom to reference-based data
-    message("Alert: Calculating prior degrees of freedom with regard to reference.") #voom weights no longer needed
-    z.sr <-
-      t(exp(z.lr) * mean(z)) # scale counts by mean of reference
-    design <-
-      stats::model.matrix(~ . + 0, data = as.data.frame(propd@group))
-    v <- limma::voom(z.sr, design = design)
-    param <- limma::lmFit(v, design) #check if weights should be used
-    param <- limma::eBayes(param,trend=TRUE) #we here fit limma trend genewise with respect to reference, only needed for z.df, not z.s2
-    z.df <- param$df.prior
-    propd@dfz <- param$df.prior #same as z.df
-    #z.s2 <- param$s2.prior #this is no longer needed!
-
-    #new way of calculating z.s2 directly from logratios:
-    #pooled lrv within groups:
-	
-    plrv=(propd@results$p1*propd@results$lrv1+propd@results$p2*propd@results$lrv2)/propd@results$p
-    #raw count log geometric averages:
-    avs=apply(logX,2,mean)
-    #Calculate pairwise log geometric mean adding both genewise avs
-    #(do this in the exponent for vectorization of calculations):
-    Z=log(exp(avs)%*%t(exp(avs)))
-    #write as vector in same format as pairwise results:
-    add=Z[upper.tri(Z)]
-    nbins=min(20,ncol(logX))
-    As=sort(add)
-    B=round(length(add)/nbins)
-    se=rep(0,nbins+1) #sequence of bin boundaries for entries in As, 20 is arbitrary but works
-    se[1]=As[1]-0.1 #smaller than min(As) so we can use > later 
-    for (i in 1:(nbins-1)){
-	se[i+1]=As[B*i]
-    }
-    se[nbins+1]=As[length(As)] #max(As)
-    L=list()
-    for (i in 1:(length(se)-1)){
-	L[[i]]=which(add>se[i] & add<=se[i+1])
-    }
-    S=rep(0,length(L))
-    for (i in 1:length(L)){
-	S[i]=mean(plrv[L[[i]]]^(1/4)) #similar to limma trend use sqrt(sd) for fit
-    }
-    #now map S^4 back to the original pairs:
-    S2=rep(0,length(add))
-    for (i in 1:length(L)){
-	S2[L[[i]]]=S[i]^4
-    }
-
-
-    #no longer needed:
-    # Calculate simple moderation term based only on LRV
-    #mod <- z.df * z.s2 / propd@results$lrv
+    # use limma package
+    packageCheck("limma")
     
-    mod <- z.df * S2 / propd@results$lrv #moderation term based on ratio mean-variance trend
+    # Set ivar for updateCutoffs
+    propd@Fivar <- ivar
 
-    # Moderate F-statistic
-    propd@Fivar <- ivar # used by updateCutoffs
-    N <- length(propd@group) # population-level metric (i.e., N)
+    # Prepare reference data
+    ref_data <- prepare_reference_data(propd@counts, ivar)
+
+    # Fit limma model to get degrees of freedom
+    limma_params <- fit_limma_model(
+      ref_data$z.lr, 
+      ref_data$z, 
+      propd@group, 
+      propd@weighted)
+      
+    z.df <- limma_params$df.prior
+    propd@dfz <- z.df
+    
+    if (propd@weighted) {
+      # Calculate variance estimates using new binning approach
+      S2 <- calculate_variance_estimates(propd, ref_data$logX)
+    } else {
+      S2 <- limma_params$s2.prior
+    }
+      
+    # Calculate moderation term
+    mod <- z.df * S2 / propd@results$lrv
+      
+    # Calculate F-statistics
+    f_results <- calculate_f_statistics(propd, mod, z.df, moderated = TRUE)
+
+  } else {
+    message("Alert: Calculating F-statistics without moderation.")
+    propd@Fivar <- NA
+    f_results <- calculate_f_statistics(propd, NULL, NULL, moderated = FALSE)
+  }
+  
+  # Store results
+  propd@results$theta_mod <- f_results$theta_mod
+  propd@results$Fstat <- f_results$Fstat
+  
+  # Calculate p-values and FDR
+  p_results <- calculate_p_values(propd, f_results$Fstat)
+  propd@results$Pval <- p_results$Pval
+  propd@results$FDR <- p_results$FDR
+  
+  return(propd)
+}
+
+
+# Helper function to prepare reference data
+prepare_reference_data <- function(counts, ivar) {
+  use <- index_reference(counts, ivar)
+  
+  # Handle zeros by adding offset
+  if (any(counts == 0)) {
+    message("Alert: Building reference set with ivar and counts offset by 1.")
+    X <- as.matrix(counts + 1)
+  } else {
+    message("Alert: Building reference set with ivar and counts.")
+    X <- as.matrix(counts)
+  }
+  
+  # Transform to log scale
+  logX <- log(X)
+  z.set <- logX[, use, drop = FALSE]
+  z.geo <- rowMeans(z.set)
+  
+  if (any(exp(z.geo) == 0)) {
+    stop("Zeros present in reference set.")
+  }
+  
+  z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
+  z <- exp(z.geo)
+  
+  return(list(
+    logX = logX,
+    z.lr = z.lr,
+    z = z,
+    use = use
+  ))
+}
+
+# Helper function to calculate variance estimates using binning approach
+calculate_variance_estimates <- function(propd, logX) {
+  # Pooled log-ratio variance within groups
+  plrv <- (propd@results$p1 * propd@results$lrv1 + 
+           propd@results$p2 * propd@results$lrv2) / propd@results$p
+  
+  # Raw count log geometric averages
+  avs <- apply(logX, 2, mean)
+  
+  # Calculate pairwise log geometric mean
+  Z <- log(exp(avs) %*% t(exp(avs)))
+  add <- Z[upper.tri(Z)]
+  
+  # Create bins for variance estimation
+  nbins <- min(20, ncol(logX))
+  As <- sort(add)
+  B <- round(length(add) / nbins)
+  
+  # Define bin boundaries
+  se <- rep(0, nbins + 1)
+  se[1] <- As[1] - 0.1  # Slightly smaller than min for > comparison
+  for (i in 1:(nbins - 1)) {
+    se[i + 1] <- As[B * i]
+  }
+  se[nbins + 1] <- As[length(As)]
+  
+  # Assign pairs to bins
+  L <- list()
+  for (i in 1:(length(se) - 1)) {
+    L[[i]] <- which(add > se[i] & add <= se[i + 1])
+  }
+  
+  # Calculate smoothed variance estimates
+  S <- rep(0, length(L))
+  for (i in 1:length(L)) {
+    S[i] <- mean(plrv[L[[i]]]^(1/4))  # Similar to limma trend
+  }
+  
+  # Map variance estimates back to original pairs
+  S2 <- rep(0, length(add))
+  for (i in 1:length(L)) {
+    S2[L[[i]]] <- S[i]^4
+  }
+  
+  return(S2)
+}
+
+# Helper function to fit limma model and extract parameters
+fit_limma_model <- function(z.lr, z, group, moderated_trend = FALSE) {
+  if (moderated_trend) {
+    message("Alert: Calculating prior degrees of freedom with regard to reference.")
+  } else {
+    message("Alert: Calculating weights with regard to reference.")
+  }
+  
+  # Scale counts by mean of reference
+  z.sr <- t(exp(z.lr) * mean(z))
+  
+  # Create design matrix
+  design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
+  
+  # Fit limma-voom model
+  v <- limma::voom(z.sr, design = design)
+  param <- limma::lmFit(v, design)
+  param <- limma::eBayes(param, trend = moderated_trend)
+  
+  return(list(
+    df.prior = param$df.prior,
+    s2.prior = param$s2.prior
+  ))
+}
+
+# Helper function to calculate F-statistics
+calculate_f_statistics <- function(propd, mod, z.df, moderated = TRUE) {
+  N <- length(propd@group)
+  
+  if (moderated) {
     Fprime <- (1 - propd@results$theta) * (N + z.df) /
-      ((N) * propd@results$theta + mod)
+              ((N) * propd@results$theta + mod)
     Fstat <- (N + z.df - 2) * Fprime
     theta_mod <- 1 / (1 + Fprime)
-
-  } else{
-    propd@Fivar <- NA # used by updateCutoffs
-    N <- length(propd@group) # population-level metric (i.e., N)
-    Fstat <-
-      (N - 2) * (1 - propd@results$theta) / propd@results$theta
+  } else {
+    Fstat <- (N - 2) * (1 - propd@results$theta) / propd@results$theta
     theta_mod <- as.numeric(NA)
   }
+  
+  return(list(
+    Fstat = Fstat,
+    theta_mod = theta_mod
+  ))
+}
 
-  propd@results$theta_mod <- theta_mod
-  propd@results$Fstat <- Fstat
-
-  # Calculate unadjusted p-value (d1 = K - 1; d2 = N - K)
+# Helper function to calculate p-values and FDR
+calculate_p_values <- function(propd, Fstat) {
   K <- length(unique(propd@group))
-  N <-
-    length(propd@group) + propd@dfz # population-level metric (i.e., N)
-  propd@results$Pval <-
-    stats::pf(Fstat, K - 1, N - K, lower.tail = FALSE)
-  propd@results$FDR <-
-    stats::p.adjust(propd@results$Pval, method = "BH")
-
-  return(propd)
+  N <- length(propd@group) + propd@dfz
+  
+  Pval <- stats::pf(Fstat, K - 1, N - K, lower.tail = FALSE)
+  FDR <- stats::p.adjust(Pval, method = "BH")
+  
+  return(list(Pval = Pval, FDR = FDR))
 }
