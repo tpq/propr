@@ -1,7 +1,7 @@
 library(testthat)
 library(propr)
 
-fetch_weights=function(counts, design){
+fetch_weights <- function(counts, design){
     #this function calculates the new default weights, i.e., sample reliability weights using limma
     logX <- log(counts)
     z.geo <- rowMeans(logX)
