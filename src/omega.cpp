@@ -14,7 +14,7 @@ NumericVector omega(NumericMatrix & W){
 
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
-      Wij = W(_, i) * W(_, j);
+      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
       n = sum(Wij);
       result(counter) = n - sum(pow(Wij, 2)) / n;
       counter += 1;
@@ -36,7 +36,7 @@ NumericVector Omega(NumericMatrix & W){
 
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
-      Wij = W(_, i) * W(_, j);
+      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
       result(counter) = sum(Wij);
       counter += 1;
     }

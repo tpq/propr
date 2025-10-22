@@ -1,3 +1,11 @@
+# propr 5.1.8
+---------------------
+* Use feature-wise permutation for propr()
+* Fix bug when calling updateCutoffs with func
+* Use harmonic mean when calculating weighted lrv and lrm
+* Add trend=TRUE flag for updateF to use mean-variance trend in limma moderation
+* Use sample weights for limma when calculating weighted theta in propd()
+
 # propr 5.1.7
 ---------------------
 * Added option to shrink the covariance matrix before computing the propd theta

@@ -51,7 +51,7 @@ test_that("getAdjacencyFstat works properly", {
 
         # get propd object
         pr <- propd(x, as.character(y), p=10)
-        pr <- updateF(pr)
+        pr <- updateF(pr, moderated=F)
 
         # get adjacency matrix
         adj <- getAdjacencyFstat(pr, fdr_adjusted=fdr_adjusted)
@@ -74,7 +74,7 @@ test_that("getAdjacencyFstat and getSignificantResultsFstat return coherent resu
 
         # get propd object
         pr <- propd(x, as.character(y), p=10)
-        pr <- updateF(pr)
+        pr <- updateF(pr, moderated=F)
 
         # get adjacency matrix
         adj <- getAdjacencyFstat(pr, fdr=fdr)

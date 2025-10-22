@@ -17,7 +17,8 @@ propr(
   select = NA,
   symmetrize = FALSE,
   alpha = NA,
-  p = 0
+  p = 0,
+  permutation_option = c("feature-wise", "sample-wise")
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ will symmetrize the matrix; otherwise, it will return the original matrix.}
 
 \item{p}{The number of permutations to perform for calculating the false
 discovery rate (FDR). The default is 0.}
+
+\item{permutation_option}{A character string indicating if permute the data
+sample-wise or feature-wise. Default is "feature-wise"}
 }
 \value{
 A propr object containing the Propr matrix, associated log-ratio

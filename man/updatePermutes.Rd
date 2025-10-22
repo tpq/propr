@@ -4,12 +4,20 @@
 \alias{updatePermutes}
 \title{Create permuted data}
 \usage{
-updatePermutes(object, p = 100)
+updatePermutes(
+  object,
+  p = 100,
+  permutation_option = c("feature-wise", "sample-wise")
+)
 }
 \arguments{
 \item{object}{A \code{propr} or \code{propd} object.}
 
 \item{p}{The number of permutations to perform. Default is 100.}
+
+\item{permutation_option}{A character string indicating if permute the data
+sample-wise or feature-wise. Default is "feature-wise". Note that this flag
+is only relevant for \code{propr} objects.}
 }
 \value{
 A \code{propr} or \code{propd} object with the permutes slot updated.

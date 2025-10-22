@@ -53,11 +53,19 @@ test_that("active theta_e matches calculation using theta_d", {
   # when weighted
   groups <- lapply(unique(group), function(g) g == group)
   ngrp <- length(unique(group))
-  # calculate weights
+  # calculate weights, now according to sample reliability weights from limma
   design <-
     stats::model.matrix(~ . + 0, data = as.data.frame(group))
-  v <- limma::voom(t(pd@counts), design = design)
-  W <- t(v$weights)
+
+  logX <- log(pd@counts)
+  z.geo <- rowMeans(logX)
+  z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
+  lz.sr <- t(z.lr + mean(z.geo)) #corresponds to log(z.sr) in updateF function
+
+  #use quality weights from limma:
+  aw <- limma::arrayWeights(lz.sr, design) 
+  W <- t(sweep(matrix(1, nrow(lz.sr), ncol(lz.sr)), 2, aw, `*`)) #get the correct dimensions
+  
   ps <- lapply(groups, function(g) propr:::omega(W[g,]))
   names(ps) <- paste0("p", 1:ngrp)
   p <- propr:::omega(W)
