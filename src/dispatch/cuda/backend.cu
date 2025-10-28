@@ -292,12 +292,9 @@ dispatch::cuda::symRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
   dim3 block(Config::TILE, Config::BLK_N);
   dim3 grid((nrow + Config::TILE - 1) / Config::TILE,
             (ncol + Config::TILE - 1) / Config::TILE);
-            
-  propr::detail::cuda::symRcpp<Config>
-        <<<grid, block, 0, context.stream>>>(d_out, dout_stride,
-                                             d_X, X_stride,
-                                            nrow, ncol);
+  propr::detail::cuda::symRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_X, X_stride, nrow, ncol);
   CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  CUDA_CHECK(cudaPeekAtLastError());
   auto h_full = new float[nrow * ncol ];
   CUDA_CHECK(cudaMemcpy(h_full, d_out, nrow * ncol * sizeof(float), cudaMemcpyDeviceToHost));
   double *outptr = REAL(out);

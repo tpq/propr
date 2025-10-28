@@ -104,7 +104,7 @@ Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
     int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
 
-    if (is_gpu_backend() || use_gpu) {
+    if (is_gpu_backend() || use_gpu) {        
         dispatch::cuda::symRcpp(result, X);
     } else {
         dispatch::cpu::symRcpp(result, X);

@@ -26,7 +26,7 @@ namespace propr {
 
             template<int BLK_X>
             __global__
-            __launch_bounds__(BLK_X, 1)
+            //__launch_bounds__(BLK_X, 1)
             void wtm(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
@@ -59,7 +59,7 @@ namespace propr {
 
             template<int BLK_X>
             __global__
-            __launch_bounds__(BLK_X, 1)
+            //__launch_bounds__(BLK_X, 1)
             void wtv(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
@@ -112,7 +112,6 @@ namespace propr {
 
                 float4 result  = block_reduce_t(partials).Reduce(make_float4(sum_w_local,mean_local,s_local,sum_w2_local), Combiner{}); 
                 __syncthreads();
-
                 if (threadIdx.x == 0) {
                     float denom = result.x * result.x - result.w;
                     if (denom > 0.0f) {
@@ -126,7 +125,7 @@ namespace propr {
 
             template<int BLK_X, int BLK_Y=1, bool row_major=false>
             __global__
-            __launch_bounds__(BLK_X, BLK_Y)
+            //__launch_bounds__(BLK_X, BLK_Y)
             void col_means(
                      float * __restrict__ out, offset_t out_stride,
                      float * __restrict__   x, offset_t x_stride,
@@ -199,9 +198,9 @@ namespace propr {
 
             template <typename T>
             __global__
-            void log_transform(T*   __restrict__ out,
-                            const T* __restrict__ X,
-                            size_t N) 
+            void log_transform(      T*   __restrict__ out,
+                               const T* __restrict__ X,
+                               size_t N) 
             {
                 const int tid     = blockIdx.x * blockDim.x  + threadIdx.x;
                 const int stride  = blockDim.x * gridDim.x;
@@ -215,8 +214,7 @@ namespace propr {
 
             template <typename T>
             __global__
-            void log_transform_inplace(T* __restrict__ inout, size_t N) 
-            {
+            void log_transform_inplace(T* __restrict__ inout, size_t N)  {
                 const int tid     = blockIdx.x * blockDim.x  + threadIdx.x;
                 const int stride  = blockDim.x * gridDim.x;
                 const int chunk_size = (N + stride - 1) / stride;
@@ -313,7 +311,7 @@ namespace propr {
 
             template <class Config>
             __global__ 
-            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void corRcpp(
                 float* __restrict__ out,
                 offset_t out_stride,
@@ -322,13 +320,18 @@ namespace propr {
                 int rows,
                 int cols
             ) {
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
+
                 const int M = rows; 
                 const int K = cols; 
 
                 const float* A = x;
                 const float* B = x;
                       float* C = out;
-
+                
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;
                 // if (bx > by) return; // (optional) upper triangle only
@@ -606,7 +609,6 @@ namespace propr {
 
             template <class Config>
             __global__ 
-            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void 
             covRcpp(
                 const int norm_type,
@@ -617,6 +619,11 @@ namespace propr {
                 int rows,
                 int cols
             ) {
+                // assert(rows % 128 == 0 && out_stride %4 == 0);
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
                 const int M = rows;
                 const int K = cols;
                 const float* A = x;
@@ -949,8 +956,8 @@ namespace propr {
             __global__
             void alrRcpp(
                 const int ivar,
-                float* __restrict__ out, offset_t out_stride,
-                const float* __restrict__ x, offset_t x_stride,
+                      float* __restrict__ out, offset_t out_stride,
+                const float* __restrict__   x, offset_t x_stride,
                 int rows, int cols)
             {
                 const int ivar0 = ivar - 1;
@@ -992,7 +999,7 @@ namespace propr {
             
             template <class Config>
             __global__
-            __launch_bounds__(Config::TILE, Config::BLK_N)
+            //__launch_bounds__(Config::TILE, Config::BLK_N)
             void symRcpp(      float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__   x, offset_t x_stride,
                          int rows, int cols){
@@ -1015,14 +1022,18 @@ namespace propr {
 
             template <class Config>
             __global__
-            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void phiRcpp(const bool sym,
                         float* __restrict__ out, offset_t out_stride,
                         const float* __restrict__   x, offset_t x_stride,
-                            float* __restrict__ row_sums,
-                            float* __restrict__ mu_sum,
-                            int rows, int cols)
+                              float* __restrict__ row_sums,
+                              float* __restrict__ mu_sum,
+                              int rows, int cols)
             {
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
                 const int M = rows;
                 const int K = cols;
 
@@ -1324,11 +1335,15 @@ namespace propr {
 
             template <class Config>
             __global__ 
-            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void vlrRcpp(float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__   x, offset_t   x_stride,
                          int rows, int cols)
             {
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
                 const int M = rows;
                 const int K = cols;
 
@@ -1565,6 +1580,11 @@ namespace propr {
                     const float* __restrict__    x, offset_t   x_stride,
                     const float* __restrict__   lr, offset_t  lr_stride,
                     int rows, int cols) {
+                
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
                 // might be interesting to investigate warp specialization
                 // half the warps compute vlr(x)
                 // half the warps compute var(lr)
@@ -1880,12 +1900,17 @@ namespace propr {
 
             template <class Config>
             __global__
-            __launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void 
             linRcpp(float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__ rho, int rho_stride,
                          const float* __restrict__ x, offset_t x_stride,
                          int rows, int cols){
+                
+                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
                 const int M = rows;      // features (nfeats)
                 const int K = cols;      // samples  (N_samples)
 
