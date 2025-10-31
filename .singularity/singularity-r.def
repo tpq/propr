@@ -1,0 +1,103 @@
+BootStrap: docker
+From: nvcr.io/nvidia/nvhpc:25.3-devel-cuda_multi-ubuntu22.04
+
+%labels
+    Maintainer Ziyad AlBanoby <ziyad.albanoby@bsc.es>
+    R_Version 4.4.3
+    HPC_SDK_Base nvcr.io/nvidia/nvhpc:25.3-devel-cuda_multi-ubuntu22.04
+
+%environment
+    # Ensure locale is correct (inherited from Ubuntu 22.04)
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+
+    # R version variable (for convenience)
+    export R_VERSION=4.4.3
+
+    # Place for host‐installed R packages
+    export R_LIBS_SITE=/library:${R_LIBS_SITE}
+
+%post
+    set -e
+
+    ############################################################
+    # 1) Install OS‐level dependencies & locale (Ubuntu 22.04) #
+    ############################################################
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        wget \
+        software-properties-common \
+        dirmngr \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev \
+        libcairo2-dev \
+        libxt-dev \
+        libopenblas-dev \
+        locales \
+        ca-certificates \
+        gnupg
+
+    # Configure default locale (just in case)
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+    locale-gen en_US.UTF-8
+    /usr/sbin/update-locale LANG=en_US.UTF-8
+
+    ##################################################
+    # 2) Install R 4.4.3 (exactly as in your original)
+    ##################################################
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
+        | tee /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+
+    add-apt-repository \
+        "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+    apt-get update
+
+    apt-get install -y --no-install-recommends \
+        r-base=${R_VERSION}* \
+        r-base-core=${R_VERSION}* \
+        r-base-dev=${R_VERSION}* \
+        r-recommended=${R_VERSION}* \
+        r-base-html=${R_VERSION}* \
+        r-doc-html=${R_VERSION}* \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev \
+        libcairo2-dev \
+        libxt-dev \
+        libopenblas-dev
+
+    # Add a default CRAN mirror
+    echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), \
+          download.file.method = 'libcurl')" \
+        >> /usr/lib/R/etc/Rprofile.site
+
+    # Create a directory for host R libraries
+    mkdir -p /library
+    echo "R_LIBS_SITE=/library:\${R_LIBS_SITE}" \
+        >> /usr/lib/R/etc/Renviron.site
+
+    #################################################
+    # 3) Clean up APT to reduce final image size
+    #################################################
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    # By default, if someone does `singularity run this.sif`, we drop into R
+    exec R "${@}"
+
+%apprun R
+    exec R "${@}"
+
+%apprun Rscript
+    exec Rscript "${@}"
+
+%test
+    # Verify R version
+    R --quiet -e "stopifnot(getRversion() == '${R_VERSION}')"
+    # Verify NVIDIA compilers are present (inherited from base image)
+    which nvcc || (echo "nvcc not in PATH" && exit 1)
+    which nvc++ || (echo "nvc++ not in PATH" && exit 1)
+    echo "R and NVIDIA HPC SDK are installed."

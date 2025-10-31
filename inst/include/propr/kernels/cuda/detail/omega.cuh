@@ -131,8 +131,8 @@ void omega_kernel(
 
     const int warp_id = tid / 32;
     const int lane_id = tid % 32;
-    const int a_tile_index =  warp_id/2*16 + lane_id/8*4;
-    const int b_tile_index =  warp_id%2*32 + lane_id%8*4;
+    const int a_tile_index =  (warp_id / 2) * 16 + (lane_id / 8) * 4;
+    const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
     
     PROPR_UNROLL
     for ( int i = 0 ; i < Config::BLK_M ; i += A_TILE_ROW_STRIDE) {
