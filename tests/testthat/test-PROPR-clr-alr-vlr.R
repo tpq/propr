@@ -65,3 +65,29 @@ test_that("vlr shows subcompositional coherence", {
     VLR.alr
   )
 })
+
+
+test_that("propr:::clrRcpp CPU vs GPU", {
+  cpu_clr <- tryCatch(
+    propr:::clrRcpp(matX),
+    error = function(e) skip("propr:::clrRcpp not available")
+  )
+  gpu_clr <- tryCatch(
+    propr:::clrRcpp(matX, use_gpu = TRUE),
+    error = function(e) skip("propr:::clrRcpp GPU variant not available")
+  )
+  expect_equal(cpu_clr, gpu_clr, tolerance = tol)
+})
+
+
+test_that("propr:::alrRcpp CPU vs GPU", {
+  cpu_alr <- tryCatch(
+    propr:::alrRcpp(matX, ivar = 5),
+    error = function(e) skip("propr:::alrRcpp not available")
+  )
+  gpu_alr <- tryCatch(
+    propr:::alrRcpp(matX, ivar = 5, use_gpu = TRUE),
+    error = function(e) skip("propr:::alrRcpp GPU variant not available")
+  )
+  expect_equal(cpu_alr, gpu_alr, tolerance = tol)
+})
