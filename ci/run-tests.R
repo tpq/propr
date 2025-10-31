@@ -23,6 +23,12 @@ ensure(c("remotes","testthat","xml2"))
 message("Installing package dependencies (cached in .r-lib)...")
 remotes::install_deps(dependencies = TRUE, upgrade = "never")
 
+message("Installing 'propr' from local source ...")
+# remotes::install_local(start_wd, upgrade = "never", force = TRUE)
+install.packages(start_wd, repos = NULL, type = "source")
+
+
+
 # --- Absolute path for JUnit output ---
 junit_dir  <- file.path(start_wd, "ci_artifacts")
 junit_file <- file.path(junit_dir, "junit.xml")

@@ -195,9 +195,12 @@ dispatch::cuda::clrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
     offset_t d_x_stride;
     auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
 
-    int block = 256;
-    int grid  = (cols + block - 1) / block;
-    propr::detail::cuda::clrRcpp<256><<<grid, block, 0, context.stream>>>(
+    constexpr int BLK_X = 128;
+    constexpr int BLK_Y = 4;
+    int block = BLK_X * BLK_Y;
+    int grid  = (rows + BLK_Y - 1) / BLK_Y;
+
+    propr::detail::cuda::clrRcpp<BLK_X, BLK_Y, false><<<grid, block, 0, context.stream>>>(
         d_out, d_out_stride, d_x, d_x_stride, rows, cols
     );
     CUDA_CHECK(cudaStreamSynchronize(context.stream));

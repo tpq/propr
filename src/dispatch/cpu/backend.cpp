@@ -35,25 +35,41 @@ centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
   }
 }
 
-void
-dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix & X) {
+void 
+dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix& X) {
   const int n = X.nrow();
   const int p = X.ncol();
   CHECK_MATRIX_DIMS(out, p, p);
 
-  NumericMatrix X_centered(n, p);          // <-- was (p, p)
+  NumericMatrix X_centered(n, p);
   centerNumericMatrix(X_centered, X);
 
   NumericVector inv_sqrt_ss(p);
-  for (int i = 0; i < p; ++i)
-    inv_sqrt_ss(i) = 1 / sqrt(sum(X_centered(_, i) * X_centered(_, i)));
+  for (int i = 0; i < p; ++i) {
+    double ss = sum(X_centered(_, i) * X_centered(_, i));
+    if (!R_finite(ss) || ss <= 0.0) {
+      inv_sqrt_ss[i] = 0.0;
+      std::cout << "PRINTING nans 1" << std::endl;
+    } else {
+      inv_sqrt_ss[i] = 1.0 / std::sqrt(ss);
+    }
+  }
 
-  for (int i = 0; i < p; ++i)
+  for (int i = 0; i < p; ++i) {
     for (int j = 0; j <= i; ++j) {
-      out(i, j) = sum(X_centered(_,i) * X_centered(_,j)) * inv_sqrt_ss(i) * inv_sqrt_ss(j);
+      if (R_IsNA(inv_sqrt_ss[i]) || R_IsNA(inv_sqrt_ss[j])) {
+        std::cout << "PRINTING nans 2" << std::endl;
+        out(i, j) = 0.0;
+      } else {
+        double num = sum(X_centered(_, i) * X_centered(_, j));
+        out(i, j) = num * inv_sqrt_ss[i] * inv_sqrt_ss[j];
+      }
       out(j, i) = out(i, j);
     }
+  }
 }
+
+
 void
 dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type) {
 

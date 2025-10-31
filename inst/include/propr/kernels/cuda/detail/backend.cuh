@@ -320,7 +320,7 @@ namespace propr {
                 int rows,
                 int cols
             ) {
-                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
@@ -566,17 +566,17 @@ namespace propr {
 
                 PROPR_UNROLL
                 for (int i = 0; i < Config::TH_Y; ++i) {
-                    invsig_a[i] = (Sa[i] > eps) ? rsqrtf(Sa[i]) : 0.0f;
+                    invsig_a[i] = (Sa[i] > eps) ? rsqrtf(Sa[i]) : PROPR_R_NA_REAL;
                 }
                 PROPR_UNROLL
                 for (int j = 0; j < Config::TH_X; ++j) {
-                    invsig_b[j] = (Sb[j] > eps) ? rsqrtf(Sb[j]) : 0.0f;
+                    invsig_b[j] = (Sb[j] > eps) ? rsqrtf(Sb[j]) : PROPR_R_NA_REAL;
                 }
 
                 // Helper to compute r(i,j) with clamping
                 auto corr_val = [&](int i, int j) -> float {
                     float r = accum[i][j] * invsig_a[i] * invsig_b[j];
-                    r = fmaxf(-1.0f, fminf(1.0f, r)); // Clamp tiny FP drift outside [-1,1]
+                    //r = fmaxf(-1.0f, fminf(1.0f, r)); // Clamp tiny FP drift outside [-1,1]
                     return r;
                 };
 
@@ -876,78 +876,51 @@ namespace propr {
                 const float* __restrict__ x, offset_t x_stride,
                 int rows, int cols)
             {
-                if constexpr (row_major) {
-                    const int col = blockDim.x * blockIdx.x + threadIdx.x;
-                    if ((size_t)col >= cols) return;
+                constexpr int WARPS_X = BLK_X / PROPR_WARP_SIZE;
+                const int tx    = threadIdx.x % BLK_X;      // 0 .. BLK_X-1
+                const int ty    = threadIdx.x / BLK_X;      // 0 .. BLK_Y-1
+                const int lane  = tx & (PROPR_WARP_SIZE - 1);
+                const int warpX = tx / PROPR_WARP_SIZE;
 
-                    // mean of log2(x) down rows
-                    float mean = 0.0f;
-                    for (size_t r = 0; r < rows; ++r) {
-                        float v = log2f(x[r * x_stride + col]);
-                        mean += (v - mean) / (float)(r + 1);
+                const int row = blockIdx.x * BLK_Y + ty;
+                const bool active_row = (row < rows);
+
+                __shared__ float s_warp_sums[BLK_Y * WARPS_X];
+                __shared__ float s_means[BLK_Y];
+
+                float local = 0.0f;
+                if (active_row) {
+                    for (int c = tx; c < cols; c += BLK_X) {
+                        local += logf(x[row + c * x_stride]);
                     }
-                    for (size_t r = 0; r < rows; ++r) {
-                        float v = x[r * x_stride + col];
-                        out[r * out_stride + col] = (v - mean);
+                }
+
+                unsigned mask = 0xFFFFFFFFu;
+                for (int off = PROPR_WARP_SIZE/2; off > 0; off >>= 1) {
+                    local += __shfl_down_sync(mask, local, off);
+                }
+
+                if (lane == 0) {
+                    s_warp_sums[ty * WARPS_X + warpX] = local;
+                }
+                __syncthreads();
+
+                if (warpX == 0) {
+                    float partial = (lane < WARPS_X) ? s_warp_sums[ty * WARPS_X + lane] : 0.0f;
+                    for (int off = PROPR_WARP_SIZE/2; off > 0; off >>= 1) {
+                        partial += __shfl_down_sync(mask, partial, off);
                     }
-                } else {
-                    constexpr int cols_per_block = BLK_Y;
-                    constexpr int warps_x = BLK_X / PROPR_WARP_SIZE;
+                    if (lane == 0) {
+                        s_means[ty] = active_row ? (partial / (float)cols) : 0.0f;
+                    }
+                }
+                __syncthreads();
 
-                    const int tx = threadIdx.x % BLK_X;
-                    const int ty = threadIdx.x / BLK_X;
-                    const int lane = tx & (PROPR_WARP_SIZE - 1);
-                    const int warp_x = tx / PROPR_WARP_SIZE;
-
-                    __shared__ float s_warp_sums[warps_x * BLK_Y];
-                    __shared__ float s_means[BLK_Y];
-
-                    for (int base_col = blockIdx.x * cols_per_block;
-                        base_col < (int)cols;
-                        base_col += gridDim.x * cols_per_block)
-                    {
-                        const int col = base_col + ty;
-                        const bool active_col = (col < (int)cols);
-
-                        // 1) reduction of sum(log2(x)) down rows
-                        float local = 0.0f;
-                        if (active_col) {
-                            for (int r = tx; r < (int)rows; r += BLK_X) {
-                                local += log2f(x[r + col * x_stride]);
-                            }
-                        }
-
-                        unsigned mask = 0xFFFFFFFFu;
-                        PROPR_UNROLL
-                        for (int offset = PROPR_WARP_SIZE / 2; offset > 0; offset /= 2) {
-                            local += __shfl_down_sync(mask, local, offset);
-                        }
-
-                        if (lane == 0) {
-                            s_warp_sums[ty * warps_x + warp_x] = local;
-                        }
-                        __syncthreads();
-
-                        if (warp_x == 0) {
-                            float partial = (lane < warps_x) ? s_warp_sums[ty * warps_x + lane] : 0.0f;
-                            PROPR_UNROLL
-                            for (int offset = PROPR_WARP_SIZE / 2; offset > 0; offset /= 2) {
-                                partial += __shfl_down_sync(mask, partial, offset);
-                            }
-                            if (lane == 0) {
-                                s_means[ty] = active_col ? (partial / (float)rows) : 0.0f;
-                            }
-                        }
-                        __syncthreads();
-
-                        if (active_col) {
-                            const float m = s_means[ty];
-                            for (int r = tx; r < (int)rows; r += BLK_X) {
-                                float v = x[r + col * x_stride];
-                                out[r + col * out_stride] = (v - m);
-                            }
-                        }
-                        __syncthreads();
+                if (active_row) {
+                    const float m = s_means[ty];
+                    for (int c = tx; c < cols; c += BLK_X) {
+                        float v = logf(x[row + c * x_stride]);
+                        out[row + c * out_stride] = v - m;
                     }
                 }
             }
@@ -967,8 +940,8 @@ namespace propr {
                     if ((size_t)col >= cols) return;
 
                     for (size_t r = 0; r < rows; ++r) {
-                        float num = log2f(x[r * x_stride + col]);
-                        float den = log2f(x[r * x_stride + ivar0]);
+                        float num = __logf(x[r * x_stride + col]);
+                        float den = __logf(x[r * x_stride + ivar0]);
                         out[r * out_stride + col] = (num - den);
                     }
                 } else {
@@ -987,8 +960,8 @@ namespace propr {
 
                         if (active_col) {
                             for (int r = tx; r < (int)rows; r += BLK_X) {
-                                float num = log2f(x[r + col   * x_stride]);
-                                float den = log2f(x[r + ivar0 * x_stride]);
+                                float num = __logf(x[r + col   * x_stride]);
+                                float den = __logf(x[r + ivar0 * x_stride]);
                                 out[r + col * out_stride] = (num - den);
                             }
                         }
