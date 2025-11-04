@@ -576,7 +576,6 @@ namespace propr {
                 // Helper to compute r(i,j) with clamping
                 auto corr_val = [&](int i, int j) -> float {
                     float r = accum[i][j] * invsig_a[i] * invsig_b[j];
-                    //r = fmaxf(-1.0f, fminf(1.0f, r)); // Clamp tiny FP drift outside [-1,1]
                     return r;
                 };
 
@@ -1654,10 +1653,10 @@ namespace propr {
                         const int k2    = A_TILE_COL + 2;
                         const int k3    = A_TILE_COL + 3;
 
-                        LR_A[k0][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k0, lr_stride, M, M);
-                        LR_A[k1][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k1, lr_stride, M, M);
-                        LR_A[k2][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k2, lr_stride, M, M);
-                        LR_A[k3][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k3, lr_stride, M, M);
+                        LR_A[k0][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k0, lr_stride, M, K);
+                        LR_A[k1][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k1, lr_stride, M, K);
+                        LR_A[k2][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k2, lr_stride, M, K);
+                        LR_A[k3][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k3, lr_stride, M, K);
 
                         As[k0][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k0, x_stride, M, K);
                         As[k1][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k1, x_stride, M, K);
@@ -1671,10 +1670,10 @@ namespace propr {
                         const int row_k_abs   = tile_base + row_k_local;
                         const int col_m       = B_TILE_COL;
 
-                        LR_B[row_k_local][col_m + 0] = ld_or_zero(LR_B_base, col_m + 0, row_k_abs, lr_stride, M, M);
-                        LR_B[row_k_local][col_m + 1] = ld_or_zero(LR_B_base, col_m + 1, row_k_abs, lr_stride, M, M);
-                        LR_B[row_k_local][col_m + 2] = ld_or_zero(LR_B_base, col_m + 2, row_k_abs, lr_stride, M, M);
-                        LR_B[row_k_local][col_m + 3] = ld_or_zero(LR_B_base, col_m + 3, row_k_abs, lr_stride, M, M);
+                        LR_B[row_k_local][col_m + 0] = ld_or_zero(LR_B_base, col_m + 0, row_k_abs, lr_stride, M, K);
+                        LR_B[row_k_local][col_m + 1] = ld_or_zero(LR_B_base, col_m + 1, row_k_abs, lr_stride, M, K);
+                        LR_B[row_k_local][col_m + 2] = ld_or_zero(LR_B_base, col_m + 2, row_k_abs, lr_stride, M, K);
+                        LR_B[row_k_local][col_m + 3] = ld_or_zero(LR_B_base, col_m + 3, row_k_abs, lr_stride, M, K);
 
                         Bs[row_k_local][col_m + 0] = ld_or_zero_lg(B_base, col_m + 0, row_k_abs, x_stride, M, K);
                         Bs[row_k_local][col_m + 1] = ld_or_zero_lg(B_base, col_m + 1, row_k_abs, x_stride, M, K);

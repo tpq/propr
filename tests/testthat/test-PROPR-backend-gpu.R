@@ -144,7 +144,7 @@ test_that("phiRcpp CPU vs GPU", {
 test_that("rhoRcpp CPU vs GPU", {
   message("=== TEST: rhoRcpp CPU vs GPU ===")
 
-    skip(message=">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WARN:FAILING")
+    # skip(message=">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WARN:FAILING")
 
   lr <- tryCatch(propr:::clrRcpp(matX), error = function(e) skip("clrRcpp not present for preparing rhoRcpp test"))
   vals <- call_cpu_gpu(
