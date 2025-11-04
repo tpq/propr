@@ -1315,7 +1315,7 @@ namespace propr {
                          const float* __restrict__   x, offset_t   x_stride,
                          int rows, int cols)
             {
-                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
@@ -1465,8 +1465,7 @@ namespace propr {
 
                                 const float old_mu = mu[thread_y][thread_x];
                                 mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_cur;
-                                S [thread_y][thread_x] = S[thread_y][thread_x]
-                                                    + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
                             }
                         }
                     }
@@ -1532,6 +1531,7 @@ namespace propr {
                     store_if_in_bounds(r0 + i,      c0 + 1,       S[i][1]    / denom);
                     store_if_in_bounds(r0 + i,      c0 + 2,       S[i][2]    / denom);
                     store_if_in_bounds(r0 + i,      c0 + 3,       S[i][3]    / denom);
+
                     store_if_in_bounds(r0 + i,      c0 + 64 + 0,  S[i][4]    / denom);
                     store_if_in_bounds(r0 + i,      c0 + 64 + 1,  S[i][5]    / denom);
                     store_if_in_bounds(r0 + i,      c0 + 64 + 2,  S[i][6]    / denom);
@@ -1541,6 +1541,7 @@ namespace propr {
                     store_if_in_bounds(r0 + 64 + i, c0 + 1,       S[i + 4][1] / denom);
                     store_if_in_bounds(r0 + 64 + i, c0 + 2,       S[i + 4][2] / denom);
                     store_if_in_bounds(r0 + 64 + i, c0 + 3,       S[i + 4][3] / denom);
+                    
                     store_if_in_bounds(r0 + 64 + i, c0 + 64 + 0,  S[i + 4][4] / denom);
                     store_if_in_bounds(r0 + 64 + i, c0 + 64 + 1,  S[i + 4][5] / denom);
                     store_if_in_bounds(r0 + 64 + i, c0 + 64 + 2,  S[i + 4][6] / denom);

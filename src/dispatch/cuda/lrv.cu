@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <propr/context.h>
+#include <propr/utils/cuda_helpers.cuh>
 #include <propr/utils/rcpp_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
 
@@ -29,8 +30,9 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
 
+    
     detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_variances, N_samples, N_genes
     );
@@ -60,7 +62,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
 
     detail::cuda::lrv_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, Y_stride, 
@@ -99,7 +101,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
 
     detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride,
@@ -140,7 +142,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
 
     detail::cuda::lrv_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride, 

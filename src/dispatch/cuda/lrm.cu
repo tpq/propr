@@ -5,6 +5,8 @@
 #include <propr/utils/rcpp_checks.h>
 #include <propr/utils/cuda_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
+#include <propr/utils/cuda_helpers.cuh>
+
 
 #include <propr/kernels/cuda/dispatch/lrm.cuh>
 #include <propr/kernels/cuda/detail/lrm.cuh>
@@ -24,7 +26,7 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes, blockDim.x),  propr::ceil_div(N_genes, blockDim.y));
 
     propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_mean, N_samples, N_genes
@@ -56,7 +58,7 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
 
     propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_W, stride_W, d_mean, N_samples, N_genes
@@ -90,7 +92,7 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
 
     propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_Yfull, stride_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
@@ -128,7 +130,7 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
-    dim3 gridDim((N_genes + blockDim.x - 1) / blockDim.x, (N_genes + blockDim.y - 1) / blockDim.y);
+    dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
 
     propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , stride_Y, 

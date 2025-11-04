@@ -4,6 +4,7 @@
 #include <propr/utils/rcpp_checks.h>
 #include <propr/utils/cuda_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
+#include <propr/utils/cuda_helpers.cuh>
 
 #include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
 #include <propr/kernels/cuda/detail/ctz.cuh>
@@ -37,8 +38,8 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     CUDA_CHECK(cudaMalloc(&d_result, llt * sizeof(int)));
 
     dim3 blockDim2(16, 16);
-    dim3 gridDim2((nfeats + blockDim2.x - 1) / blockDim2.x,
-                  (nfeats + blockDim2.y - 1) / blockDim2.y);
+    dim3 gridDim2(propr::ceil_div(nfeats,blockDim2.x), propr::ceil_div(nfeats,blockDim2.y));
+    
     detail::cuda::count_joint_zeros<<<gridDim2, blockDim2, 0, context.stream>>>(
         d_zeroes, 1, nfeats, d_result
     );
