@@ -56,14 +56,14 @@ dispatch::cuda::getOR(NumericVector& out,
     );
 
     uint4 *d_acc;
-    CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
-    CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
+    PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
     detail::cuda::compute_odd_ratio_init<<<numInitBlocks, blockSize>>>(
         tile_state, numBlocks
     );
-    CUDA_CHECK(cudaDeviceSynchronize());
-    CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+    PROPR_CUDA_CHECK(cudaGetLastError());
     
     detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
         tile_state,
@@ -72,12 +72,12 @@ dispatch::cuda::getOR(NumericVector& out,
         n,
         d_acc
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaDeviceSynchronize());
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
 
     uint4 h_acc;
-    CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaFree(d_acc));
+    PROPR_CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
+    PROPR_CUDA_CHECK(cudaFree(d_acc));
 
     int h_a = h_acc.x;
     int h_b = h_acc.y;
@@ -95,8 +95,8 @@ dispatch::cuda::getOR(NumericVector& out,
     out[6] = R_NaN;
     out[7] = R_NaN;
     
-    CUDA_CHECK(cudaFree(d_G));
-    CUDA_CHECK(cudaFree(d_A));
+    PROPR_CUDA_CHECK(cudaFree(d_G));
+    PROPR_CUDA_CHECK(cudaFree(d_A));
 }
 
 void
@@ -133,14 +133,14 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     );
 
     uint4 *d_acc;
-    CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
-    CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
+    PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
     detail::cuda::compute_odd_ratio_init<<<numInitBlocks, blockSize>>>(
         tile_state, numBlocks
     );
-    CUDA_CHECK(cudaDeviceSynchronize());
-    CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+    PROPR_CUDA_CHECK(cudaGetLastError());
     
     detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
         tile_state,
@@ -149,12 +149,12 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
         n,
         d_acc
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaDeviceSynchronize());
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
 
     uint4 h_acc;
-    CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaFree(d_acc));
+    PROPR_CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
+    PROPR_CUDA_CHECK(cudaFree(d_acc));
 
     int h_a = h_acc.x;
     int h_b = h_acc.y;
@@ -172,13 +172,13 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     out[6] = R_NaN;
     out[7] = R_NaN;
     
-    CUDA_CHECK(cudaFree(d_G));
-    CUDA_CHECK(cudaFree(d_A));
+    PROPR_CUDA_CHECK(cudaFree(d_G));
+    PROPR_CUDA_CHECK(cudaFree(d_A));
 }
 
 void
 dispatch::cuda::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p, propr::propr_context context) {
-    CHECK_MATRIX_DIMS(out, p, 8);
+    PROPR_CHECK_MATRIX_DIMS(out, p, 8);
     int ncol = A.ncol();
     NumericVector or_tmp(8);
     for (int i = 0; i < p; ++i) {
@@ -194,8 +194,8 @@ void
 dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, propr::propr_context context) {
     const int n = permuted.size();
     double* d_permuted;
-    CUDA_CHECK(cudaMalloc(&d_permuted, n * sizeof(double)));
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMalloc(&d_permuted, n * sizeof(double)));
+    PROPR_CUDA_CHECK(cudaMemcpy(
         d_permuted, permuted.begin(), n * sizeof(double),
         cudaMemcpyHostToDevice
     ));
@@ -214,8 +214,8 @@ dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, 
         }
     );
 
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    CUDA_CHECK(cudaFree(d_permuted));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaFree(d_permuted));
 
     double fdr_over = static_cast<double>(result.x) / n;
     double fdr_under = static_cast<double>(result.y) / n;
@@ -227,18 +227,18 @@ void
 dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_context context) {
     using T  = char;
     size_t n = Gk.size();
-    CHECK_MATRIX_DIMS(out, n, n);
+    PROPR_CHECK_MATRIX_DIMS(out, n, n);
 
     T   *d_G = RcppVectorToDevice<T, INTSXP>(Gk, n);
     int *d_C  = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_C, n * n * sizeof(*d_C)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_C, n * n * sizeof(*d_C)));
 
     cublasHandle_t handle;
     cublasCreate(&handle);
     float alpha = 1.0f, beta = 0.0f;
 
     // C = G * G^T
-    CUBLAS_CHECK(cublasGemmEx(handle,
+    PROPR_CUBLAS_CHECK(cublasGemmEx(handle,
                  CUBLAS_OP_N, CUBLAS_OP_T,
                  n, n, 1,
                  &alpha,
@@ -252,7 +252,7 @@ dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_c
     
     std::vector<float> h_out;
     h_out.resize(static_cast<size_t>(n) * n);
-    CUDA_CHECK(cudaMemcpy(h_out.data(), d_C, n*n*sizeof(*d_C), cudaMemcpyDeviceToHost));
+    PROPR_CUDA_CHECK(cudaMemcpy(h_out.data(), d_C, n*n*sizeof(*d_C), cudaMemcpyDeviceToHost));
     for (int idx = 0; idx < n * n; ++idx) out(idx / n, idx % n) = int(h_out[idx]);
     cublasDestroy(handle);
     cudaFree(d_G);
@@ -267,7 +267,7 @@ dispatch::cuda::graflex(NumericVector& out, const IntegerMatrix& A, const Intege
     NumericVector actual_tmp(8);
     dispatch::cuda::getOR(actual_tmp, A, G_tmp);
 
-    CHECK_VECTOR_SIZE(out, actual_tmp.length());
+    PROPR_CHECK_VECTOR_SIZE(out, actual_tmp.length());
     for (int i = 0; i < actual_tmp.length(); ++i) {
         out[i] = actual_tmp[i];
     }

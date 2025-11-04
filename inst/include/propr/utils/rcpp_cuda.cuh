@@ -56,8 +56,8 @@ inline OutT* RcppMatrixToDevice(
     const size_t  total_bytes  = total_elems * sizeof(OutT);
 
     OutT* d_ptr = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
-    CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
+    PROPR_CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
 
     OutT* h_buf = static_cast<OutT*>(std::malloc(total_bytes));
     if (!h_buf) throw std::bad_alloc();
@@ -79,7 +79,7 @@ inline OutT* RcppMatrixToDevice(
         }
     }
 
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
+    PROPR_CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
     std::free(h_buf);
 
     memory_stride = slow_padded;
@@ -110,8 +110,8 @@ inline OutT* RcppMatrixPermToDevice(
     const size_t  total_bytes = total_elems * sizeof(OutT);
 
     OutT* d_ptr = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
-    CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_ptr, total_bytes));
+    PROPR_CUDA_CHECK(cudaMemset(d_ptr, 0, total_bytes));
 
     OutT* h_buf = static_cast<OutT*>(std::malloc(total_bytes));
     if (!h_buf) throw std::bad_alloc();
@@ -133,7 +133,7 @@ inline OutT* RcppMatrixPermToDevice(
         }
     }
 
-    CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
+    PROPR_CUDA_CHECK(cudaMemcpy(d_ptr, h_buf, total_bytes, cudaMemcpyHostToDevice));
     std::free(h_buf);
 
     memory_stride = slow_padded;
@@ -154,7 +154,7 @@ void copyToNumericVector(
     T* h_temp = static_cast<T*>(std::malloc(bytes));
     if (!h_temp) throw std::bad_alloc();
 
-    CUDA_CHECK(cudaMemcpy(h_temp, d_src, bytes, cudaMemcpyDeviceToHost));
+    PROPR_CUDA_CHECK(cudaMemcpy(h_temp, d_src, bytes, cudaMemcpyDeviceToHost));
     for (offset_t i = 0; i < size; ++i) {
         h_dest[i] = static_cast<DstType>(h_temp[i]);
     }
@@ -168,16 +168,16 @@ T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, size_t size) {
     CastOperator<T, typename Rcpp::Vector<RTYPE>::stored_type> CastOp;
     T* d_ptr     = nullptr;
     const size_t bytes = size * sizeof(T);
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_ptr), bytes));
+    PROPR_CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_ptr), bytes));
     if constexpr (std::is_same_v<T, SrcType>) {
-        CUDA_CHECK(cudaMemcpy(d_ptr,
+        PROPR_CUDA_CHECK(cudaMemcpy(d_ptr,
                               static_cast<const void*>(h_src.begin()),
                               bytes,
                               cudaMemcpyHostToDevice));
     } else {
         T* h_temp = static_cast<T*>(std::malloc(bytes));
         for (int i = 0; i < size; ++i) h_temp[i] = static_cast<T>(h_src[i]);
-        CUDA_CHECK(cudaMemcpy(d_ptr, h_temp, bytes, cudaMemcpyHostToDevice));
+        PROPR_CUDA_CHECK(cudaMemcpy(d_ptr, h_temp, bytes, cudaMemcpyHostToDevice));
         std::free(h_temp);
     }
 

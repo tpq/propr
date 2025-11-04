@@ -7,7 +7,7 @@ using namespace propr;
 
 void
 dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G) {
-  CHECK_VECTOR_SIZE(out, 8);
+  PROPR_CHECK_VECTOR_SIZE(out, 8);
   int ncol = A.ncol();
   double a = 0, b = 0, c = 0, d = 0;
 
@@ -37,7 +37,7 @@ dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMa
 
 void
 dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm) {
-  CHECK_VECTOR_SIZE(out, 8); // Check if output vector has correct size
+  PROPR_CHECK_VECTOR_SIZE(out, 8); // Check if output vector has correct size
 
   int ncol = A.ncol();
   double a = 0, b = 0, c = 0, d = 0;
@@ -68,7 +68,7 @@ dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const Integ
 
 void
 dispatch::cpu::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p) {
-  CHECK_MATRIX_DIMS(out, p, 8);
+  PROPR_CHECK_MATRIX_DIMS(out, p, 8);
   int ncol = A.ncol();
   NumericVector or_tmp(8);
   for (int i = 0; i < p; ++i) {
@@ -102,7 +102,7 @@ dispatch::cpu::getFDR(List& out, double actual, const NumericVector& permuted) {
 void
 dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
   int n = Gk.size();
-  CHECK_MATRIX_DIMS(out, n, n);
+  PROPR_CHECK_MATRIX_DIMS(out, n, n);
 
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
@@ -122,7 +122,7 @@ dispatch::cpu::graflex(NumericVector& out, const IntegerMatrix& A, const Integer
   NumericVector actual_tmp(8);
   dispatch::cpu::getOR(actual_tmp, A, G_tmp);
 
-  CHECK_VECTOR_SIZE(out, actual_tmp.length());
+  PROPR_CHECK_VECTOR_SIZE(out, actual_tmp.length());
   for (int i = 0; i < actual_tmp.length(); ++i) {
       out[i] = actual_tmp[i];
   }

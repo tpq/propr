@@ -23,7 +23,7 @@ dispatch::cpu::wtvRcpp(double& out, const NumericVector& x, NumericVector& w) {
 
 void
 centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
-  CHECK_MATRIX_DIMS(out, in_X.nrow(), in_X.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, in_X.nrow(), in_X.ncol());
   for (int j = 0; j < in_X.ncol(); ++j) {
     for (int i = 0; i < in_X.nrow(); ++i) {
       out(i, j) = in_X(i, j);
@@ -39,7 +39,7 @@ void
 dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix& X) {
   const int n = X.nrow();
   const int p = X.ncol();
-  CHECK_MATRIX_DIMS(out, p, p);
+  PROPR_CHECK_MATRIX_DIMS(out, p, p);
 
   NumericMatrix X_centered(n, p);
   centerNumericMatrix(X_centered, X);
@@ -75,7 +75,7 @@ dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type
 
   const int n = X.nrow();
   const int m = X.ncol();
-  CHECK_MATRIX_DIMS(out, m, m);
+  PROPR_CHECK_MATRIX_DIMS(out, m, m);
   const int df = n - 1 + norm_type;
 
   NumericMatrix X_centered_temp(n, m);
@@ -93,7 +93,7 @@ void
 dispatch::cpu::vlrRcpp(NumericMatrix& out, NumericMatrix & X){
   // This is just a convuluted way of calculating var(l*,i - l*,j)
   int nfeats = X.ncol();
-  CHECK_MATRIX_DIMS(out, nfeats, nfeats);
+  PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
 
   NumericMatrix X_log(X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
@@ -119,7 +119,7 @@ dispatch::cpu::vlrRcpp(NumericMatrix& out, NumericMatrix & X){
 
 void
 dispatch::cpu::clrRcpp(NumericMatrix& out, NumericMatrix & X) {
-  CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
       out(i, j) = log(X(i, j));
@@ -133,7 +133,7 @@ dispatch::cpu::alrRcpp(NumericMatrix& out, NumericMatrix & X,const int ivar){
   if(ivar == 0) {
     stop("Select non-zero ivar.");
   }
-  CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
       out(i, j) = log(X(i, j)); // - log(out(i, ivar - 1))
@@ -144,7 +144,7 @@ dispatch::cpu::alrRcpp(NumericMatrix& out, NumericMatrix & X,const int ivar){
 
 void
 dispatch::cpu::symRcpp(NumericMatrix& out, NumericMatrix & X) {
-  CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
       out(i,j) = X(i,j);
@@ -162,7 +162,7 @@ dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
   NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
-  CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
         out(i, j) = mat_tmp(i, j);
@@ -195,7 +195,7 @@ dispatch::cpu::rhoRcpp(NumericMatrix& out, NumericMatrix& X, NumericMatrix& lr,i
   NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
-  CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
           out(i, j) = mat_tmp(i, j);
@@ -283,7 +283,7 @@ dispatch::cpu::indexToCoord(List& out, IntegerVector V, const int N){
 
 void
 dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector col, const int N){
-  CHECK_VECTOR_SIZE(out, row.length());
+  PROPR_CHECK_VECTOR_SIZE(out, row.length());
   if (row.length() != col.length()){
     stop("Input row and col vectors must have the same length.");
   }
@@ -300,7 +300,7 @@ dispatch::cpu::linRcpp(NumericMatrix& out, NumericMatrix & rho, NumericMatrix lr
 
   const int p = rho.ncol();
   const int N_samples = lr.nrow();
-  CHECK_MATRIX_DIMS(out, p, p);
+  PROPR_CHECK_MATRIX_DIMS(out, p, p);
 
   NumericMatrix r_tmp(p, p);
   dispatch::cpu::corRcpp(r_tmp, lr);
@@ -324,7 +324,7 @@ void
 dispatch::cpu::lltRcpp(NumericVector& out, NumericMatrix & X){
   int nfeats = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
-  CHECK_VECTOR_SIZE(out, llt);
+  PROPR_CHECK_VECTOR_SIZE(out, llt);
   int counter = 0;
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
@@ -338,7 +338,7 @@ void
 dispatch::cpu::urtRcpp(NumericVector& out, NumericMatrix & X){
   int nfeats = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
-  CHECK_VECTOR_SIZE(out, llt);
+  PROPR_CHECK_VECTOR_SIZE(out, llt);
   int counter = 0;
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
@@ -371,7 +371,7 @@ dispatch::cpu::labRcpp(List& out, int nfeats){
 void
 dispatch::cpu::half2mat(NumericMatrix& out, NumericVector X){
   int nfeats = sqrt(2 * X.length() + .25) + .5;
-  CHECK_MATRIX_DIMS(out, nfeats, nfeats);
+  PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
   int counter = 0;
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
@@ -393,7 +393,7 @@ dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, 
   if (ni != nX){
     stop("i, j, and X must be the same length.");
   }
-  CHECK_MATRIX_DIMS(out, nfeats, nfeats);
+  PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
   std::memset( REAL(out), 0, sizeof(double) * out.size() );
 
   for (int counter = 0; counter < ni; counter++){
@@ -406,7 +406,7 @@ void dispatch::cpu::ratiosRcpp(NumericMatrix& out, NumericMatrix & X){
   int nfeats = X.ncol();
   int nsamps = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
-  CHECK_MATRIX_DIMS(out, nsamps, llt);
+  PROPR_CHECK_MATRIX_DIMS(out, nsamps, llt);
   int counter = 0;
   for(int i = 1; i < nfeats; i++){
     for(int j = 0; j < i; j++){
@@ -422,7 +422,7 @@ dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out,
                                DataFrame& results, 
                                int n, 
                                double diagonal){
-  CHECK_MATRIX_DIMS(out, n, n);
+  PROPR_CHECK_MATRIX_DIMS(out, n, n);
   std::memset(REAL(out), 0, sizeof(double) * out.size());
   
   int npairs = results.nrows();

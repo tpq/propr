@@ -14,13 +14,14 @@ using namespace Rcpp;
 using namespace propr;
 
 
-int dispatch::cuda::count_less_than(Rcpp::NumericVector& x,
-                                    double cutoff,
-                                    propr::propr_context context) {
+int 
+dispatch::cuda::count_less_than(Rcpp::NumericVector& x,
+                                double cutoff,
+                                propr::propr_context context) {
     const int n = x.size();
     double* d_x = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
+    PROPR_CUDA_CHECK(cudaMemcpy(
         d_x, x.begin(), n * sizeof(double),
         cudaMemcpyHostToDevice
     ));
@@ -33,18 +34,19 @@ int dispatch::cuda::count_less_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v < cutoff; }
     );
 
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    CUDA_CHECK(cudaFree(d_x));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
 
-int dispatch::cuda::count_greater_than(Rcpp::NumericVector& x,
-                                       double cutoff,
-                                       propr::propr_context context) {
+int 
+dispatch::cuda::count_greater_than(Rcpp::NumericVector& x,
+                                   double cutoff,
+                                   propr::propr_context context) {
     const int n = x.size();
     double* d_x = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
+    PROPR_CUDA_CHECK(cudaMemcpy(
         d_x, x.begin(), n * sizeof(double),
         cudaMemcpyHostToDevice
     ));
@@ -57,8 +59,8 @@ int dispatch::cuda::count_greater_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v > cutoff; }
     );
 
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    CUDA_CHECK(cudaFree(d_x));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
 
@@ -67,8 +69,8 @@ int dispatch::cuda::count_less_equal_than(Rcpp::NumericVector& x,
                                           propr::propr_context context) {
     const int n = x.size();
     double* d_x = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
+    PROPR_CUDA_CHECK(cudaMemcpy(
         d_x, x.begin(), n * sizeof(double),
         cudaMemcpyHostToDevice
     ));
@@ -81,8 +83,8 @@ int dispatch::cuda::count_less_equal_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v <= cutoff; }
     );
 
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    CUDA_CHECK(cudaFree(d_x));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
 
@@ -91,8 +93,8 @@ int dispatch::cuda::count_greater_equal_than(Rcpp::NumericVector& x,
                                              propr::propr_context context) {
     const int n = x.size();
     double* d_x = nullptr;
-    CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMalloc(&d_x, n * sizeof(double)));
+    PROPR_CUDA_CHECK(cudaMemcpy(
         d_x, x.begin(), n * sizeof(double),
         cudaMemcpyHostToDevice
     ));
@@ -105,7 +107,7 @@ int dispatch::cuda::count_greater_equal_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v >= cutoff; }
     );
 
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
-    CUDA_CHECK(cudaFree(d_x));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }

@@ -12,7 +12,7 @@ dispatch::cpu::ctzRcpp(NumericVector& out, NumericMatrix & X){
     int nfeats = X.ncol();
     int nsubjs = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
-    CHECK_VECTOR_SIZE(out, llt);
+    PROPR_CHECK_VECTOR_SIZE(out, llt);
     NumericVector zeroes(nfeats);
     for(int i = 0; i < nfeats; i++){
         for(int j = 0; j < nsubjs; j++){

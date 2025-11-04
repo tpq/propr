@@ -6,7 +6,7 @@
 #include <cuda_runtime.h>
 
 
-#define CUDA_CHECK(call) \
+#define PROPR_CUDA_CHECK(call) \
     do { \
         cudaError_t err = call; \
         if (err != cudaSuccess) { \
@@ -16,7 +16,7 @@
     } while (0)
 
 
-#define CUBLAS_CHECK(call)                                                                        \
+#define PROPR_CUBLAS_CHECK(call)                                                                  \
   do {                                                                                            \
     cublasStatus_t status = (call);                                                               \
     if (status != CUBLAS_STATUS_SUCCESS) {                                                        \

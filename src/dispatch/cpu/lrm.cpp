@@ -16,7 +16,7 @@ dispatch::cpu::lrm(NumericVector& out,
 	NumericMatrix X = clone(Y);
 	int nfeats      = X.ncol();
 	int llt = nfeats * (nfeats - 1) / 2;
-	CHECK_VECTOR_SIZE(out, llt)
+	PROPR_CHECK_VECTOR_SIZE(out, llt)
 	int counter = 0;
 
 	if (!R_IsNA(a)) {

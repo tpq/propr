@@ -18,12 +18,12 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
-    CHECK_VECTOR_SIZE(out, N_pairs);
+    PROPR_CHECK_VECTOR_SIZE(out, N_pairs);
     float* d_Y;
     offset_t stride; d_Y = RcppMatrixToDevice<float>(Y, stride);
 
     float* d_mean;
-    CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
     dim3 gridDim(propr::ceil_div(N_genes, blockDim.x),  propr::ceil_div(N_genes, blockDim.y));
@@ -31,12 +31,12 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_mean, N_samples, N_genes
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     copyToNumericVector(d_mean, out, N_pairs);
-    CUDA_CHECK(cudaFree(d_Y));
-    CUDA_CHECK(cudaFree(d_mean));
+    PROPR_CUDA_CHECK(cudaFree(d_Y));
+    PROPR_CUDA_CHECK(cudaFree(d_mean));
 }
 
 void
@@ -47,7 +47,7 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
-    CHECK_VECTOR_SIZE(out, N_pairs);
+    PROPR_CHECK_VECTOR_SIZE(out, N_pairs);
 
     
     offset_t stride_Y; float* d_Y = RcppMatrixToDevice<float>(Y, stride_Y);
@@ -55,7 +55,7 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
 
 
     float* d_mean;
-    CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_mean, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
     dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
@@ -63,13 +63,13 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_W, stride_W, d_mean, N_samples, N_genes
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     copyToNumericVector(d_mean, out, N_pairs);
-    CUDA_CHECK(cudaFree(d_Y));
-    CUDA_CHECK(cudaFree(d_W));
-    CUDA_CHECK(cudaFree(d_mean));
+    PROPR_CUDA_CHECK(cudaFree(d_Y));
+    PROPR_CUDA_CHECK(cudaFree(d_W));
+    PROPR_CUDA_CHECK(cudaFree(d_mean));
 }
 
 void
@@ -82,14 +82,14 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     int N_genes = Y.ncol();
     int NT      = Yfull.nrow();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
-    CHECK_VECTOR_SIZE(out, N_pairs);
+    PROPR_CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y; float* d_Yfull;
     offset_t stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y);
     offset_t stride_Yfull; d_Yfull = RcppMatrixToDevice<float>(Yfull, stride_Yfull);
 
     float* d_means;
-    CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
     dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
@@ -97,13 +97,13 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_Yfull, stride_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     copyToNumericVector(d_means, out, N_pairs);
-    CUDA_CHECK(cudaFree(d_Y));
-    CUDA_CHECK(cudaFree(d_Yfull));
-    CUDA_CHECK(cudaFree(d_means));
+    PROPR_CUDA_CHECK(cudaFree(d_Y));
+    PROPR_CUDA_CHECK(cudaFree(d_Yfull));
+    PROPR_CUDA_CHECK(cudaFree(d_means));
 }
 
 void
@@ -118,7 +118,7 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     int N_genes = Y.ncol();
     int NT = Yfull.nrow();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
-    CHECK_VECTOR_SIZE(out, N_pairs);
+    PROPR_CHECK_VECTOR_SIZE(out, N_pairs);
 
     float* d_Y, * d_W, * d_Yfull, * d_Wfull;
     offset_t stride_Y    ; d_Y     = RcppMatrixToDevice<float>(Y, stride_Y); 
@@ -127,7 +127,7 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     offset_t stride_Wfull; d_Wfull = RcppMatrixToDevice<float>(Wfull, stride_Wfull);
 
     float* d_means;
-    CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_means, N_pairs * sizeof(float)));
 
     dim3 blockDim(16, 16);
     dim3 gridDim(propr::ceil_div(N_genes, blockDim.x), propr::ceil_div(N_genes, blockDim.y));
@@ -139,14 +139,14 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
         d_Wfull, stride_Wfull, 
         N1, NT, static_cast<float>(a), d_means, N_genes
     );
-    CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaGetLastError());
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     copyToNumericVector(d_means, out, N_pairs);
 
-    CUDA_CHECK(cudaFree(d_Y));
-    CUDA_CHECK(cudaFree(d_W));
-    CUDA_CHECK(cudaFree(d_Yfull));
-    CUDA_CHECK(cudaFree(d_Wfull));
-    CUDA_CHECK(cudaFree(d_means));
+    PROPR_CUDA_CHECK(cudaFree(d_Y));
+    PROPR_CUDA_CHECK(cudaFree(d_W));
+    PROPR_CUDA_CHECK(cudaFree(d_Yfull));
+    PROPR_CUDA_CHECK(cudaFree(d_Wfull));
+    PROPR_CUDA_CHECK(cudaFree(d_means));
 }

@@ -13,9 +13,8 @@ namespace propr {
             using R = std::make_unsigned_t<std::common_type_t<A,B>>;
             R ra = static_cast<R>(a);
             R rb = static_cast<R>(b);
-            if (rb == 0) return 0;              // or: assert(false)
-            if (ra == 0) return 0;              // avoids underflow in (ra-1)
-            return 1 + ((ra - 1) / rb);         // overflow-safe vs (ra + rb - 1)
+            if (rb == 0 || ra == 0) return 0;
+            return 1 + ((ra - 1) / rb);
         }
 }
 

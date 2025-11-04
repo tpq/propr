@@ -11,7 +11,7 @@ using namespace propr;
 void
 dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
-  CHECK_MATRIX_DIMS(out, nfeats, nfeats);
+  PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
 
   NumericMatrix x_copy = clone(lr);
   NumericMatrix cov_tmp(nfeats, nfeats);
@@ -34,7 +34,7 @@ dispatch::cpu::lr2phi(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
   dispatch::cpu::lr2vlr(mat_tmp, x_copy);
-  CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
@@ -56,7 +56,7 @@ dispatch::cpu::lr2rho(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
   dispatch::cpu::lr2vlr(mat_tmp, x_copy);
-  CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
           out(i, j) = mat_tmp(i, j);
@@ -84,7 +84,7 @@ dispatch::cpu::lr2phs(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
   int nfeats = lr.ncol();
   NumericMatrix mat_tmp(nfeats, nfeats);
   dispatch::cpu::lr2rho(mat_tmp, lr);
-  CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
+  PROPR_CHECK_MATRIX_DIMS(out, mat_tmp.nrow(), mat_tmp.ncol());
   for (int i = 0; i < mat_tmp.nrow(); ++i) {
       for (int j = 0; j < mat_tmp.ncol(); ++j) {
           out(i, j) = mat_tmp(i, j);

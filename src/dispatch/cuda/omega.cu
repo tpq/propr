@@ -30,22 +30,22 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     int samples = Wl.nrow();
 
     const size_t llt = static_cast<size_t>(W.ncol()) * (W.ncol() - 1) / 2;
-    CHECK_VECTOR_SIZE(out, llt);
+    PROPR_CHECK_VECTOR_SIZE(out, llt);
     offset_t W_stride;
     auto *d_W = RcppMatrixToDevice<float>(Wl, W_stride);
     
     float* d_out = nullptr;
     offset_t dout_stride = nfeats;
-    CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
     
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
     
     omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMemcpy(
         h_full->data(),
         d_out,
         nfeats * nfeats * sizeof(float),
@@ -59,8 +59,8 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
             out_ptr[counter++] = static_cast<double>(v);
         }
     }
-    CUDA_CHECK(cudaFree(d_W));
-    CUDA_CHECK(cudaFree(d_out));
+    PROPR_CUDA_CHECK(cudaFree(d_W));
+    PROPR_CUDA_CHECK(cudaFree(d_out));
 }
  
 void 
@@ -73,22 +73,22 @@ propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W
     int samples = Wl.nrow();
 
     const size_t llt = static_cast<size_t>(W.ncol()) * (W.ncol() - 1) / 2;
-    CHECK_VECTOR_SIZE(out, llt);
+    PROPR_CHECK_VECTOR_SIZE(out, llt);
     offset_t W_stride;
     auto *d_W = RcppMatrixToDevice<float, REALSXP>(Wl, W_stride);
     
     float* d_out = nullptr; offset_t dout_stride = nfeats;
-    CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+    PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
     
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
 
     // std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
     omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
-    CUDA_CHECK(cudaMemcpy(
+    PROPR_CUDA_CHECK(cudaMemcpy(
         h_full->data(),
         d_out,
         nfeats * nfeats * sizeof(float),
@@ -103,6 +103,6 @@ propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W
             out_ptr[counter++] = static_cast<double>(v);
         }
     }
-    CUDA_CHECK(cudaFree(d_W));
-    CUDA_CHECK(cudaFree(d_out));
+    PROPR_CUDA_CHECK(cudaFree(d_W));
+    PROPR_CUDA_CHECK(cudaFree(d_out));
 }

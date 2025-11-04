@@ -51,7 +51,7 @@ void
 propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W) {
     int nfeats = W.ncol();
     int llt    = nfeats * (nfeats - 1) / 2;
-    CHECK_VECTOR_SIZE(out, llt);
+    PROPR_CHECK_VECTOR_SIZE(out, llt);
     int counter = 0;
 
     NumericVector Wij(nfeats);
