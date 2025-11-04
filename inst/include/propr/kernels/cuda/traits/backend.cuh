@@ -1,12 +1,19 @@
+#pragma once
+
+#include <cub/cub.cuh>
+#include <cuda_runtime.h>
+
 namespace propr {
     namespace cuda {
             namespace traits {
-            
             struct common_config {
                 inline static constexpr int BLK_M = 128;
                 inline static constexpr int BLK_K = 8;
                 inline static constexpr int TH_Y  = 8;
                 inline static constexpr int TH_X  = 8;
+
+                const static cub::CacheLoadModifier  LoadModifer  = cub::LOAD_CG;
+                const static cub::CacheStoreModifier StoreModifer = cub::STORE_CG;
             };
 
             struct cov_config : common_config {};

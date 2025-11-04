@@ -9,6 +9,7 @@
 #include <propr/context.h>
 #include <propr/kernels/cuda/dispatch/omega.cuh>
 #include <propr/kernels/cuda/detail/omega.cuh>
+#include <propr/kernels/cuda/traits/omega.cuh>
 
 
 #include <propr/utils/rcpp_checks.h>
@@ -21,7 +22,7 @@ using namespace propr;
 
 void 
 propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, propr_context context) {
-  using Config = omega_global_config;
+  using Config = propr::cuda::traits::omega_global_config;
 
     int t = 128;
     auto Wl = rcpp::helpers::pad_matrix(W, 0, ((W.nrow() + t - 1)/t)*t - W.nrow(), 0, ((W.ncol() + t - 1)/t)*t - W.ncol());
@@ -64,7 +65,7 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
  
 void 
 propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W, propr_context context) {
-    using Config = omega_population_config;
+    using Config = propr::cuda::traits::omega_population_config;
 
     int t = 128;
     auto Wl = rcpp::helpers::pad_matrix(W, 0, ((W.nrow() + t - 1)/t)*t - W.nrow(), 0, ((W.ncol() + t - 1)/t)*t - W.ncol());

@@ -6,72 +6,9 @@
 #include <propr/utils/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
-struct omega_global_config {
-    const static int NUM_ACC = 2;
-
-    const static int BLK_M = 128;
-    const static int BLK_K = 8;
-    const static int TH_Y  = 8;
-    const static int TH_X  = 8;
-
-    static const cub::CacheLoadModifier  LoadModifer  = cub::LOAD_CG;
-    static const cub::CacheStoreModifier StoreModifer = cub::STORE_CG;
-
-    PROPR_DEVICE 
-    static 
-    PROPR_INLINE 
-    void update(const int tidx,const int tidy, 
-                float acc[NUM_ACC][TH_Y][TH_X], 
-                const float& a,const float& b) {
-        float n = 2.0f * (a / (a + b + FLT_EPSILON)) * b;
-        acc[0][tidy][tidx] += n; 
-        acc[1][tidy][tidx] += n * n;
-    }
-
-     PROPR_DEVICE 
-     static 
-     PROPR_INLINE 
-     float finalize(const int tidx,const int tidy,
-                    const float acc[NUM_ACC][TH_Y][TH_X]) {
-        float n = acc[0][tidy][tidx];
-        float s = acc[1][tidy][tidx];
-        return n - s / (n + FLT_EPSILON);
-    }
-};
 
 
-struct omega_population_config {
-    const static int NUM_ACC = 1;
-
-    const static int BLK_M = 128;
-    const static int BLK_K = 8;
-    const static int TH_Y  = 8;
-    const static int TH_X  = 8;
-
-
-    static const cub::CacheLoadModifier  LoadModifer  = cub::LOAD_CG;
-    static const cub::CacheStoreModifier StoreModifer = cub::STORE_CG;
-
-    PROPR_DEVICE 
-    static 
-    PROPR_INLINE 
-    void  update(const int tidx, const int tidy,
-                 float acc[NUM_ACC][TH_Y][TH_X], 
-                 const float& a, const float& b) {
-        float n = 2.0f * (a / (a + b + FLT_EPSILON)) * b;
-        acc[0][tidy][tidx] += n;
-    }
-
-     PROPR_DEVICE 
-     static 
-     PROPR_INLINE 
-     float finalize(const int tidx, const int tidy,
-                    const float acc[NUM_ACC][TH_Y][TH_X]) {
-        return acc[0][tidy][tidx];
-    }
-};
-
-
+using namespace propr::cuda::internal;
 
 
 template <class Config> 
@@ -137,8 +74,8 @@ void omega_kernel(
     PROPR_UNROLL
     for ( int i = 0 ; i < Config::BLK_M ; i += A_TILE_ROW_STRIDE) {
         int ldg_index = i / A_TILE_ROW_STRIDE * 4;
-        propr::cuda::internal::store<float4>(&ldg_a_reg[ldg_index],  
-            propr::cuda::internal::load<float4>(&A[OFFSET( A_TILE_ROW_START + i,  A_TILE_COL, K )])
+        thread::store<Config::StoreModifer,float4>(&ldg_a_reg[ldg_index],  
+            thread::load<Config::LoadModifer,float4>(&A[OFFSET( A_TILE_ROW_START + i,  A_TILE_COL, K )])
         );
 
         As[0][A_TILE_COL  ][A_TILE_ROW_START + i] = ldg_a_reg[ldg_index  ];
@@ -159,15 +96,15 @@ void omega_kernel(
     }
     __syncthreads();
     
-    propr::cuda::internal::store<float4>(&frag_a[0][0], 
-        propr::cuda::internal::load<float4>(&As[0][0][a_tile_index]));
-    propr::cuda::internal::store<float4>(&frag_a[0][4], 
-        propr::cuda::internal::load<float4>(&As[0][0][a_tile_index + 64]));
+    thread::store<Config::StoreModifer,float4>(&frag_a[0][0], 
+        thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index]));
+    thread::store<Config::StoreModifer,float4>(&frag_a[0][4], 
+        thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index + 64]));
     
-    propr::cuda::internal::store<float4>(&frag_b[0][0], 
-        propr::cuda::internal::load<float4>(&Bs[0][0][b_tile_index]));
-    propr::cuda::internal::store<float4>(&frag_b[0][4],
-         propr::cuda::internal::load<float4>(&Bs[0][0][b_tile_index + 64]));
+    thread::store<Config::StoreModifer,float4>(&frag_b[0][0], 
+        thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index]));
+    thread::store<Config::StoreModifer,float4>(&frag_b[0][4],
+         thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index + 64]));
     
     int write_stage_idx = 1;
     int tile_idx = 0;
@@ -178,8 +115,8 @@ void omega_kernel(
             PROPR_UNROLL
             for ( int i = 0 ; i < Config::BLK_M ; i += A_TILE_ROW_STRIDE) {
                 int ldg_index = i / A_TILE_ROW_STRIDE * 4;
-                propr::cuda::internal::store<float4>(&ldg_a_reg[ldg_index], 
-                    propr::cuda::internal::load<float4>(&A[OFFSET(A_TILE_ROW_START + i,  A_TILE_COL + tile_idx, K )] )
+                thread::store<Config::StoreModifer,float4>(&ldg_a_reg[ldg_index], 
+                    thread::load<Config::LoadModifer,float4>(&A[OFFSET(A_TILE_ROW_START + i,  A_TILE_COL + tile_idx, K )] )
                 );
             }
             PROPR_UNROLL
@@ -199,17 +136,17 @@ void omega_kernel(
 
         PROPR_UNROLL
         for(int j=0; j < Config::BLK_K - 1; ++j){
-            propr::cuda::internal::store<float4>(&frag_a[(j+1)%2][0],  
-                propr::cuda::internal::load<float4>(&As[load_stage_idx][(j+1)][a_tile_index]));
-            propr::cuda::internal::store<float4>(&frag_a[(j+1)%2][4],  
-                propr::cuda::internal::load<float4>(&As[load_stage_idx][(j+1)][a_tile_index + 64])
+            thread::store<Config::StoreModifer,float4>(&frag_a[(j+1)%2][0],  
+                thread::load<Config::LoadModifer,float4>(&As[load_stage_idx][(j+1)][a_tile_index]));
+            thread::store<Config::StoreModifer,float4>(&frag_a[(j+1)%2][4],  
+                thread::load<Config::LoadModifer,float4>(&As[load_stage_idx][(j+1)][a_tile_index + 64])
             );
 
-            propr::cuda::internal::store<float4>(&frag_b[(j+1)%2][0],  
-                propr::cuda::internal::load<float4>(&Bs[load_stage_idx][(j+1)][b_tile_index])
+            thread::store<Config::StoreModifer,float4>(&frag_b[(j+1)%2][0],  
+                thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx][(j+1)][b_tile_index])
             );
-            propr::cuda::internal::store<float4>(&frag_b[(j+1)%2][4],  
-                propr::cuda::internal::load<float4>(&Bs[load_stage_idx][(j+1)][b_tile_index + 64])
+            thread::store<Config::StoreModifer,float4>(&frag_b[(j+1)%2][4],  
+                thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx][(j+1)][b_tile_index + 64])
             );
             PROPR_UNROLL
             for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
@@ -234,23 +171,23 @@ void omega_kernel(
             PROPR_UNROLL
             for ( int i = 0 ; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
                 int ldg_index = i / B_TILE_ROW_STRIDE * 4;
-                propr::cuda::internal::store<float4>(&Bs[write_stage_idx][B_TILE_ROW_START + i][B_TILE_COL], 
-                    propr::cuda::internal::load<float4>(&ldg_b_reg[ldg_index])
+                thread::store<Config::StoreModifer,float4>(&Bs[write_stage_idx][B_TILE_ROW_START + i][B_TILE_COL], 
+                    thread::load<Config::LoadModifer,float4>(&ldg_b_reg[ldg_index])
                 );
             }
             __syncthreads();
             write_stage_idx ^= 1;
         }
 
-        propr::cuda::internal::store<float4>(&frag_a[0][0],
-            propr::cuda::internal::load<float4>(&As[load_stage_idx^1][0][a_tile_index]));
-        propr::cuda::internal::store<float4>(&frag_a[0][4],
-            propr::cuda::internal::load<float4>(&As[load_stage_idx^1][0][a_tile_index + 64]));
+        thread::store<Config::StoreModifer,float4>(&frag_a[0][0],
+            thread::load<Config::LoadModifer,float4>(&As[load_stage_idx^1][0][a_tile_index]));
+        thread::store<Config::StoreModifer,float4>(&frag_a[0][4],
+            thread::load<Config::LoadModifer,float4>(&As[load_stage_idx^1][0][a_tile_index + 64]));
         
-        propr::cuda::internal::store<float4>(&frag_b[0][0],
-            propr::cuda::internal::load<float4>(&Bs[load_stage_idx^1][0][b_tile_index]));
-        propr::cuda::internal::store<float4>(&frag_b[0][4],
-            propr::cuda::internal::load<float4>(&Bs[load_stage_idx^1][0][b_tile_index + 64]));
+        thread::store<Config::StoreModifer,float4>(&frag_b[0][0],
+            thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx^1][0][b_tile_index]));
+        thread::store<Config::StoreModifer,float4>(&frag_b[0][4],
+            thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx^1][0][b_tile_index + 64]));
 
         PROPR_UNROLL
         for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
@@ -295,10 +232,10 @@ void omega_kernel(
             Config::finalize(i + 4, 7, accum)
         );
 
-        propr::cuda::internal::store<float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col,      M)], propr::cuda::internal::load<float4>(&tmp0));
-        propr::cuda::internal::store<float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col + 64, M)], propr::cuda::internal::load<float4>(&tmp1));
-        propr::cuda::internal::store<float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col,      M)], propr::cuda::internal::load<float4>(&tmp2));
-        propr::cuda::internal::store<float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col + 64, M)], propr::cuda::internal::load<float4>(&tmp3));
+        thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col,      M)], thread::load<Config::LoadModifer,float4>(&tmp0));
+        thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col + 64, M)], thread::load<Config::LoadModifer,float4>(&tmp1));
+        thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col,      M)], thread::load<Config::LoadModifer,float4>(&tmp2));
+        thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col + 64, M)], thread::load<Config::LoadModifer,float4>(&tmp3));
     }
 
 }

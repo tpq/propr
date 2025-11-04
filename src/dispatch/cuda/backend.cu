@@ -422,7 +422,8 @@ dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, pr
   CUDA_CHECK(cudaFree(mu_sum));
 }
 
-void dispatch::cuda::rhoRcpp(NumericMatrix& out, const NumericMatrix &X, const NumericMatrix &lr, const int ivar, propr_context context){
+void 
+dispatch::cuda::rhoRcpp(NumericMatrix& out, const NumericMatrix &X, const NumericMatrix &lr, const int ivar, propr_context context){
     using Config = propr::cuda::traits::rho_config;
     size_t nfeats  = lr.ncol();
     size_t samples = lr.nrow();

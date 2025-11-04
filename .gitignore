@@ -5,3 +5,4 @@ inst/doc
 .r-lib
 .ci
 ci_artifacts
+bin
