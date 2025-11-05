@@ -44,8 +44,18 @@ if (CMAKE_CUDA_COMPILER)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -g -lineinfo")
     message("CUDA           : FOUND")
     find_package(CUDAToolkit REQUIRED)
+    execute_process(
+        COMMAND nvidia-smi --query-gpu=compute_cap --format=csv
+        COMMAND tail -n 1
+        COMMAND tr -d .
+        OUTPUT_VARIABLE NV_CC
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    message("Detected Compute Capability : " ${NV_CC})
+    set(PROPERTIES CUDA_ARCHITECTURES ${NV_CC})
+    set(CMAKE_CUDA_ARCHITECTURES ${NV_CC})
 else ()
-    message("CUDA           : NOT FOUND")
+    message(FATAL_ERROR "CUDA           : NOT FOUND")
 endif ()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -53,9 +63,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif ()
 message("Install Prefix : " ${CMAKE_INSTALL_PREFIX})
 include_directories(${CMAKE_SOURCE_DIR}/inst/include)
-
-set(PROPERTIES CUDA_ARCHITECTURES 90)
-set(CMAKE_CUDA_ARCHITECTURES 90)
 
 # set(CUTLASS_NVCC_ARCHS "90")
 # add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/cutlass)
