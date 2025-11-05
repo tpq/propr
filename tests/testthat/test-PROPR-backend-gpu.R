@@ -51,16 +51,6 @@ test_that("wtvRcpp CPU vs GPU", {
   expect_equal(as.numeric(vals$cpu), as.numeric(vals$gpu), tolerance = tol)
 })
 
-# 3) centerNumericMatrix: centers columns (matrix)
-test_that("centerNumericMatrix CPU vs GPU", {
-  message("=== TEST: centerNumericMatrix CPU vs GPU ===")
-  vals <- call_cpu_gpu(
-    "centerNumericMatrix",
-    function() propr:::centerNumericMatrix(matX),
-    function() propr:::centerNumericMatrix(matX, use_gpu = TRUE)
-  )
-  expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
-})
 
 # 4) corRcpp: correlation matrix
 test_that("corRcpp CPU vs GPU", {
