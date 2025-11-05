@@ -15,6 +15,7 @@ dispatch::cpu::lrm(NumericVector& out,
 {
 	NumericMatrix X = clone(Y);
 	int nfeats      = X.ncol();
+	int fullfeats   = Yfull.ncol();
 	int llt = nfeats * (nfeats - 1) / 2;
 	PROPR_CHECK_VECTOR_SIZE(out, llt)
 	int counter = 0;
@@ -46,22 +47,23 @@ dispatch::cpu::lrm(NumericVector& out,
 				stop("User must provide valid Wfull argument for weighted alpha-transformation.");
 			}
 
-			Rcpp::NumericVector Wij(X.nrow());
-			Rcpp::NumericVector Wfullij(Wfull.nrow());
-			Rcpp::NumericVector Xiscaled(X.nrow());
-			Rcpp::NumericVector Xjscaled(X.nrow());
-			Rcpp::NumericVector Xz(X.nrow());
-			Rcpp::NumericVector Xfullz(Xfull_copy.nrow());
+			Rcpp::NumericVector Wij(nfeats);
+      		Rcpp::NumericVector Wfullij(fullfeats);
+      		Rcpp::NumericVector Xiscaled(nfeats);
+      		Rcpp::NumericVector Xjscaled(nfeats);
+      		Rcpp::NumericVector Xz(nfeats);
+      		Rcpp::NumericVector Xfullz(fullfeats);
 
             double mean_Xfull_i, mean_Xfull_j, Mz_sum_val;
 
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
-					Wij = W(_, i) * W(_, j);
-					Wfullij = Wfull(_, i) * Wfull(_, j);
+					Wij     = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+          			Wfullij = 2 * Wfull(_, i) * Wfull(_, j) / (Wfull(_, i) + Wfull(_, j));
 
                     dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull_copy(_, i), Wfullij);
                     dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull_copy(_, j), Wfullij);
+
 					Xiscaled = X(_, i) / mean_Xfull_i;
 					Xjscaled = X(_, j) / mean_Xfull_j;
 
@@ -77,8 +79,8 @@ dispatch::cpu::lrm(NumericVector& out,
 				}
 			}
 		} else {
-			Rcpp::NumericVector Xz(X.nrow());
-			Rcpp::NumericVector Xfullz(Yfull.nrow());
+			Rcpp::NumericVector Xz(nfeats);
+			Rcpp::NumericVector Xfullz(fullfeats);
 			double N1 = X.nrow();
 			double NT = Yfull.nrow();
 			for (int i = 1; i < nfeats; i++) {
@@ -96,11 +98,11 @@ dispatch::cpu::lrm(NumericVector& out,
 	}
 	else { // Weighted and non-weighted, non-transformed
 		if (weighted) {
-			Rcpp::NumericVector Wij(X.nrow());
+			Rcpp::NumericVector Wij(nfeats);
             double lrm_val;
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
-					Wij = W(_, i) * W(_, j);
+					Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
                     dispatch::cpu::wtmRcpp(lrm_val, log(X(_, i) / X(_, j)), Wij);
 					out(counter) = lrm_val;
 					counter += 1;

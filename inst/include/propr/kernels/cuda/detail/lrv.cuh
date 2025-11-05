@@ -363,8 +363,7 @@ namespace propr{
                 for (; k < nb_samples; ++k) {
                     float X_i = __powf(d_Y[k + i * Y_stride], a);
                     float X_j = __powf(d_Y[k + j * Y_stride], a);
-                    float w   = __fmul_rn(d_W[k + i * W_stride],
-                                        d_W[k + j * W_stride]);
+                    float w   = __fmul_rn(d_W[k + i * W_stride], d_W[k + j * W_stride]);
 
                     float X_i_sq = __fmul_rn(X_i, X_i);
                     float X_j_sq = __fmul_rn(X_j, X_j);

@@ -17,6 +17,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 				  Rcpp::NumericMatrix Wfull) {
 	NumericMatrix X = clone(Y);
 	int nfeats        = X.ncol();
+	int fullfeats     = Yfull.ncol();
 	int llt           = nfeats * (nfeats - 1) / 2;
 	PROPR_CHECK_VECTOR_SIZE(out, llt);
 	int counter = 0;
@@ -50,50 +51,45 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 				stop("User must provide valid Wfull argument for weighted alpha-transformation.");
 			}
 
-			NumericVector Wij(X.nrow());
-			NumericVector Wfullij(Wfull.nrow());
-			NumericVector Xiscaled(X.nrow());
-			NumericVector Xjscaled(X.nrow());
-
             double mean_X_i, mean_X_j, mean_Xfull_i, mean_Xfull_j;
+			// Mean-center the within-group values as a fraction of the across-group means
+			// Calculate sum(W * [i - j]^2)
+			// Divide sum(W * [i - j]^2) by (p * a^2)
+			Rcpp::NumericVector Wij(nfeats);
+     		Rcpp::NumericVector Wfullij(fullfeats);
+     		Rcpp::NumericVector Xiscaled(nfeats);
+     		Rcpp::NumericVector Xjscaled(nfeats);
 
-			for (int i = 1; i < nfeats; i++) {
-				for (int j = 0; j < i; j++) {
-					Wij = W(_, i) * W(_, j);
-					Wfullij = Wfull(_, i) * Wfull(_, j);
+			for(int i = 1; i < nfeats; i++){
+				for(int j = 0; j < i; j++){
+					Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+					Wfullij = 2 * Wfull(_, i) * Wfull(_, j) / (Wfull(_, i) + Wfull(_, j));
 
-                    dispatch::cpu::wtmRcpp(mean_X_i, X(_, i), Wij);
-                    dispatch::cpu::wtmRcpp(mean_X_j, X(_, j), Wij);
-                    dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull_copy(_, i), Wfullij);
-                    dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull_copy(_, j), Wfullij);
+					dispatch::cpu::wtmRcpp(mean_X_i, X(_, i), Wij);
+					dispatch::cpu::wtmRcpp(mean_X_j, X(_, j), Wij);
+					dispatch::cpu::wtmRcpp(mean_Xfull_i,Xfull_copy(_, i), Wfullij);
+					dispatch::cpu::wtmRcpp(mean_Xfull_j,Xfull_copy(_, j), Wfullij);
 
 					Xiscaled = (X(_, i) - mean_X_i) / mean_Xfull_i;
 					Xjscaled = (X(_, j) - mean_X_j) / mean_Xfull_j;
-
-					double sum_sq_diff_weighted;
-                    sum_sq_diff_weighted = sum(Wij * pow(Xiscaled - Xjscaled, 2));
-
-					double sum_Wij_sq_val;
-                    sum_Wij_sq_val = sum(pow(Wij, 2));
-
-					out(counter) = sum_sq_diff_weighted / (pow(a, 2) * (sum(Wij) - sum_Wij_sq_val / sum(Wij)));
+					out(counter) = sum(Wij * pow(Xiscaled - Xjscaled, 2)) / (pow(a, 2) * (sum(Wij) - sum(pow(Wij, 2)) / sum(Wij)));
 					counter += 1;
 				}
 			}
 		} else {
-			NumericVector Xiscaled(X.nrow());
-			NumericVector Xjscaled(X.nrow());
+			Rcpp::NumericVector Xiscaled(nfeats);
+			Rcpp::NumericVector Xjscaled(nfeats);
 			double N1 = X.nrow();
 
-            double mean_Yfull_i, mean_Yfull_j;
+            double mean_Xfull_i, mean_Xfull_j;
 
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
-                    mean_Yfull_i = mean(Yfull(_, i));
-                    mean_Yfull_j = mean(Yfull(_, j));
+                    mean_Xfull_i = mean(Xfull_copy(_, i));
+                    mean_Xfull_j = mean(Xfull_copy(_, j));
 
-					Xiscaled = (X(_, i) - mean(X(_, i))) / mean_Yfull_i;
-					Xjscaled = (X(_, j) - mean(X(_, j))) / mean_Yfull_j;
+					Xiscaled = (X(_, i) - mean(X(_, i))) / mean_Xfull_i;
+					Xjscaled = (X(_, j) - mean(X(_, j))) / mean_Xfull_j;
 
 					out(counter) = sum(pow(Xiscaled - Xjscaled, 2)) /(pow(a, 2) * (N1 - 1));
 					counter += 1;
@@ -106,7 +102,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
             double wtv_val;
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
-					Wij = W(_, i) * W(_, j);
+					Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
 					dispatch::cpu::wtvRcpp(wtv_val, log(X(_, i) / X(_, j)), Wij);
 					out(counter) = wtv_val;
 					counter += 1;
