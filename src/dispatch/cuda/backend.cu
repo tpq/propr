@@ -103,42 +103,61 @@ centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_context c
   PROPR_CUDA_CHECK(cudaFree(d_out));
 }
 
-void 
+
+void
 dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context) {
   PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
   using Config = propr::cuda::traits::cor_config;
-  int nfeats  = X.ncol();
-  int samples = X.nrow();
+  int M = X.ncol();   // features
+  int K = X.nrow();   // samples
 
-  offset_t X_stride;
-  auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
+  int M_pad = round_up(M, Config::BLK_M);
+  int K_pad = round_up(K, Config::BLK_K);
+
+  offset_t X_stride_src;
+  float *d_X_src = RcppMatrixToDevice<float>(X, X_stride_src);
+
+  float *d_X = nullptr;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_X, size_t(M_pad) * size_t(K_pad) * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemsetAsync(d_X, 0, size_t(M_pad) * size_t(K_pad) * sizeof(float), context.stream));
+
+  size_t src_pitch = size_t(X_stride_src) * sizeof(float);
+  size_t dst_pitch = size_t(K_pad) * sizeof(float);
+  size_t width     = size_t(K) * sizeof(float);
+  size_t height    = size_t(M);
+  PROPR_CUDA_CHECK(cudaMemcpy2DAsync( d_X, dst_pitch, d_X_src, src_pitch, width, height, cudaMemcpyDeviceToDevice, context.stream));
 
   float* d_out = nullptr;
-  offset_t dout_stride = nfeats;
-  PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
-  
+  offset_t dout_stride = M_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_out, size_t(M_pad) * size_t(M_pad) * sizeof(*d_out)));
+  PROPR_CUDA_CHECK(cudaMemsetAsync(d_out, 0, size_t(M_pad) * size_t(M_pad) * sizeof(*d_out), context.stream));
+
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
-  dim3 grid(ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
-  propr::detail::cuda::corRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_X, X_stride, nfeats, samples);
+  dim3 grid(M_pad / Config::BLK_M, M_pad / Config::BLK_M);
+
+  propr::detail::cuda::corRcpp<Config><<<grid, block, 0, context.stream>>>( d_out, dout_stride, d_X, K_pad, /*rows=*/M, /*cols=*/K);
   PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-   auto h_full = new float[nfeats * dout_stride];
-  PROPR_CUDA_CHECK(cudaMemcpy(
-      h_full,
-      d_out,
-      nfeats * dout_stride * sizeof(float),
-      cudaMemcpyDeviceToHost
-  ));
+  auto h_full = new float[size_t(M) * size_t(M)];
+  PROPR_CUDA_CHECK(cudaMemcpy2D(
+    h_full, 
+    size_t(M) * sizeof(float),
+    d_out, 
+    size_t(dout_stride) * sizeof(float),
+    size_t(M) * sizeof(float), 
+    size_t(M),
+    cudaMemcpyDeviceToHost)
+  );
 
-   double *outptr = REAL(out);
-   for (size_t i = 0; i < nfeats; ++i) {
-        for (size_t j = 0; j < nfeats; ++j) {
-            outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
-        }
+  double *outptr = REAL(out);
+  for (int i = 0; i < M; ++i) {
+    for (int j = 0; j < M; ++j) {
+      outptr[i + j * M] = h_full[i * M + j];
     }
-
+  }
   delete[] h_full;
   h_full = nullptr;
+  PROPR_CUDA_CHECK(cudaFree(d_X_src));
   PROPR_CUDA_CHECK(cudaFree(d_X));
   PROPR_CUDA_CHECK(cudaFree(d_out));
 }
@@ -146,42 +165,57 @@ dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
 void 
 dispatch::cuda::covRcpp(NumericMatrix& out, const NumericMatrix & X, const int norm_type, propr_context context) {
   PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
+
   using Config = propr::cuda::traits::cov_config;
-  int nfeats  = X.ncol();
-  int samples = X.nrow();
+  int nfeats  = X.ncol();   // M
+  int samples = X.nrow();   // K
+  int M= X.ncol();
+  int K= X.nrow();
 
-  offset_t X_stride;
-  auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
+  const int M_pad = propr::round_up(nfeats,  Config::BLK_M); // Pad rows to BLK_M so every block writes a full 128x128 tile with no if guards
+  const int K_pad = propr::round_up(samples, Config::BLK_K); // Pad columns to BLK_K so the last tile can read a full BLK_K 'k-chunk' safely
 
+  offset_t X_stride_pad = K_pad;
+  float* d_Xpad = nullptr;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_Xpad, (size_t)M_pad * X_stride_pad * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemset(d_Xpad, 0, (size_t)M_pad * X_stride_pad * sizeof(float)));
+
+  offset_t X_stride_orig;
+  const float* d_X = RcppMatrixToDevice<float>(X, X_stride_orig); // returns row-major; X_stride_orig == samples
+  PROPR_CUDA_CHECK(cudaMemcpy2D(
+      d_Xpad,                         // dst base
+      X_stride_pad * sizeof(float),   // dst pitch in bytes
+      d_X,                            // src base
+      X_stride_orig * sizeof(float),  // src pitch in bytes
+      K * sizeof(float),              // width in bytes (valid columns)
+      M,                              // number of rows
+      cudaMemcpyDeviceToDevice));
+  PROPR_CUDA_CHECK(cudaFree((void*)d_X));
+  
   float* d_out = nullptr;
-  offset_t dout_stride = nfeats;
-  PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
-  
+  offset_t dout_stride = M_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemset(d_out, 0, (size_t)M_pad * dout_stride * sizeof(float)));
+
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
-  dim3 grid(ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
-  
-  propr::detail::cuda::covRcpp<Config><<<grid, block, 0, context.stream>>>(norm_type, d_out, dout_stride, d_X, X_stride, nfeats, samples);
+  dim3 grid(M_pad / Config::BLK_M, M_pad / Config::BLK_M);
+
+  propr::detail::cuda::covRcpp<Config><<<grid, block, 0, context.stream>>>(
+    norm_type, d_out, dout_stride, d_Xpad, X_stride_pad, /*rows*/ M_pad, /*cols*/ K
+  );
+
   PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-   auto h_full = new float[nfeats * dout_stride];
-  PROPR_CUDA_CHECK(cudaMemcpy(
-      h_full,
-      d_out,
-      nfeats * dout_stride * sizeof(float),
-      cudaMemcpyDeviceToHost
-  ));
+  auto h_full = std::vector<float>((size_t)M_pad * dout_stride);
+  PROPR_CUDA_CHECK(cudaMemcpy(h_full.data(), d_out,
+                              (size_t)M_pad * dout_stride * sizeof(float),
+                              cudaMemcpyDeviceToHost));
+  double* outptr = REAL(out);
+  for (int i = 0; i < nfeats; ++i)
+    for (int j = 0; j < nfeats; ++j)
+      outptr[i + j * nfeats] = h_full[i * dout_stride + j];
 
-   double *outptr = REAL(out);
-   for (size_t i = 0; i < nfeats; ++i) {
-        for (size_t j = 0; j < nfeats; ++j) {
-            outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
-        }
-    }
-
-
-  delete[] h_full;
-  h_full = nullptr;
-  PROPR_CUDA_CHECK(cudaFree(d_X));
+  PROPR_CUDA_CHECK(cudaFree(d_Xpad));
   PROPR_CUDA_CHECK(cudaFree(d_out));
 }
 
@@ -316,40 +350,50 @@ dispatch::cuda::symRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
 }
 
 void 
-dispatch::cuda::vlrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_context context){
-  PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
+dispatch::cuda::vlrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X, propr_context context){
   using Config = propr::cuda::traits::vlr_config;
-  int nfeats  = X.ncol();
-  int samples = X.nrow();
 
-  offset_t X_stride;
-  auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
+  int M = X.ncol();   // features
+  int K = X.nrow();   // samples
+
+  int M_pad = ((M + Config::BLK_M - 1) / Config::BLK_M) * Config::BLK_M; // multiple of 128
+  int K_pad = ((K + 4 - 1) / 4) * 4;
+
+  int padTop = 0, padLeft = 0;
+  int padBottom = M_pad - M;
+  int padRight  = K_pad - K;
+  Rcpp::NumericMatrix X_pad = rcpp::helpers::pad_matrix(X, padTop, padBottom, padLeft, padRight, 1.0);
+
+  offset_t X_stride; 
+  float *d_X = RcppMatrixToDevice<float>(X_pad, X_stride);
 
   float* d_out = nullptr;
-  offset_t dout_stride = nfeats;
-  PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
-  
+  offset_t dout_stride = M_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(*d_out)));
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
-  dim3 grid(ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
+  dim3 grid(ceil_div(M_pad, Config::BLK_M), ceil_div(M_pad, Config::BLK_M));
 
-  propr::detail::cuda::vlrRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_X, X_stride, nfeats, samples);
+  propr::detail::cuda::vlrRcpp<Config><<<grid, block, 0, context.stream>>>( d_out, dout_stride, d_X, X_stride, M, K);
+  PROPR_CUDA_CHECK(cudaGetLastError());
   PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
-  auto h_full = new float[nfeats * nfeats];
-  PROPR_CUDA_CHECK(cudaMemcpy(
-      h_full,
-      d_out,
-      nfeats * dout_stride * sizeof(float),
-      cudaMemcpyDeviceToHost
-  ));
+  float * h_full =  new float[(size_t)M * M];
+  PROPR_CUDA_CHECK(cudaMemcpy2D(
+      h_full,                              // dst
+      (size_t)M * sizeof(float),           // dst pitch (bytes)
+      d_out,                               // src
+      (size_t)dout_stride * sizeof(float), // src pitch (bytes)
+      (size_t)M * sizeof(float),           // width in bytes
+      (size_t)M,                           // height (rows)
+      cudaMemcpyDeviceToHost));
 
-   double *outptr = REAL(out);
-   for (int i = 0; i < nfeats; ++i) {
-        for (int j = 0; j < nfeats; ++j) {
-            outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
-        }
-    }
-
+  PROPR_CHECK_MATRIX_DIMS(out, M, M);
+  double *outptr = REAL(out);
+  for (int j = 0; j < M; ++j) {
+      for (int i = 0; i < M; ++i) {
+          outptr[i + j * M] = h_full[i * M + j];
+      }
+  }
   delete[] h_full;
   h_full = nullptr;
   PROPR_CUDA_CHECK(cudaFree(d_X));
@@ -423,48 +467,74 @@ dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, pr
   PROPR_CUDA_CHECK(cudaFree(mu_sum));
 }
 
-void 
-dispatch::cuda::rhoRcpp(NumericMatrix& out, const NumericMatrix &X, const NumericMatrix &lr, const int ivar, propr_context context){
-    using Config = propr::cuda::traits::rho_config;
-    size_t nfeats  = lr.ncol();
-    size_t samples = lr.nrow();
+void dispatch::cuda::rhoRcpp(NumericMatrix& out,
+                             const NumericMatrix &X,
+                             const NumericMatrix &lr,
+                             const int ivar,
+                             propr_context context)
+{
+  using Config = propr::cuda::traits::rho_config;
+  const int nfeats  = lr.ncol();   // M
+  const int samples = lr.nrow();   // K
 
-    offset_t lr_stride;
-    auto *d_lr = RcppMatrixToDevice<float>(lr, lr_stride);
+  const int M_pad = propr::round_up(nfeats,  Config::BLK_M);
+  const int K_pad = propr::round_up(samples, Config::BLK_K);
 
-    offset_t x_stride;
-    auto *d_x = RcppMatrixToDevice<float>(X, x_stride);
+  offset_t x_stride_orig;
+  const float* d_x_in = RcppMatrixToDevice<float>(X, x_stride_orig);
 
-    float* d_out = nullptr;
-    offset_t dout_stride = nfeats;
-    PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
-    
-    dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
-    dim3 grid(ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
-    
-    propr::detail::cuda::rhoRcpp<Config><<<grid, block, 0, context.stream>>>(ivar, d_out, dout_stride, d_x, x_stride, d_lr, lr_stride, nfeats, samples);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  float* d_x = nullptr;
+  offset_t x_stride = K_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_x, (size_t)M_pad * x_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemset(d_x, 0, (size_t)M_pad * x_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemcpy2D(
+      d_x, x_stride * sizeof(float),
+      d_x_in, x_stride_orig * sizeof(float),
+      samples * sizeof(float), nfeats,
+      cudaMemcpyDeviceToDevice));
+  PROPR_CUDA_CHECK(cudaFree((void*)d_x_in));
 
-    auto h_full = new float[nfeats * nfeats];
-    PROPR_CUDA_CHECK(cudaMemcpy(
-        h_full,
-        d_out,
-        nfeats * dout_stride * sizeof(float),
-        cudaMemcpyDeviceToHost
-    ));
+  offset_t lr_stride_orig;
+  const float* d_lr_in = RcppMatrixToDevice<float>(lr, lr_stride_orig);
 
-    double *outptr = REAL(out);
-    for (size_t i = 0; i < nfeats; ++i) {
-            for (size_t j = 0; j < nfeats; ++j) {
-                outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
-            }
-        }
+  float* d_lr = nullptr;
+  offset_t lr_stride = K_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_lr, (size_t)M_pad * lr_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemset(d_lr, 0, (size_t)M_pad * lr_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemcpy2D(
+      d_lr, lr_stride * sizeof(float),
+      d_lr_in, lr_stride_orig * sizeof(float),
+      samples * sizeof(float), nfeats,
+      cudaMemcpyDeviceToDevice));
+  PROPR_CUDA_CHECK(cudaFree((void*)d_lr_in));
 
-    delete[] h_full;
-    h_full = nullptr;
-    PROPR_CUDA_CHECK(cudaFree(d_out));
-    PROPR_CUDA_CHECK(cudaFree(d_lr));
-    PROPR_CUDA_CHECK(cudaFree(d_x));
+  float* d_out = nullptr;
+  offset_t dout_stride = M_pad;
+  PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(float)));
+  PROPR_CUDA_CHECK(cudaMemset(d_out, 0, (size_t)M_pad * dout_stride * sizeof(float)));
+
+  dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
+  dim3 grid(M_pad / Config::BLK_M, M_pad / Config::BLK_M);
+
+  propr::detail::cuda::rhoRcpp<Config><<<grid, block, 0, context.stream>>>(
+      ivar, d_out, dout_stride, d_x, x_stride, d_lr, lr_stride,
+      /*rows*/ M_pad, /*cols*/ samples /* true K */
+  );
+  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+
+  auto h_full = std::vector<float>((size_t)M_pad * dout_stride);
+  PROPR_CUDA_CHECK(cudaMemcpy(h_full.data(), d_out,
+                              (size_t)M_pad * dout_stride * sizeof(float),
+                              cudaMemcpyDeviceToHost));
+
+  double* outptr = REAL(out);
+  for (int i = 0; i < nfeats; ++i)
+    for (int j = 0; j < nfeats; ++j)
+      outptr[i + j * nfeats] = h_full[i * dout_stride + j];
+
+  PROPR_CUDA_CHECK(cudaFree(d_out));
+  PROPR_CUDA_CHECK(cudaFree(d_lr));
+  PROPR_CUDA_CHECK(cudaFree(d_x));
 }
 
 

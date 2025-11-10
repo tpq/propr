@@ -311,116 +311,94 @@ namespace propr {
                 }
             };
 
-
             template <class Config>
-            __global__ 
-            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            __global__
             void corRcpp(
-                float* __restrict__ out,
-                offset_t out_stride,
-                const float* __restrict__ x,
-                offset_t x_stride,
-                int rows,
-                int cols
+                float* __restrict__ out, offset_t out_stride,
+                float* __restrict__ x  ,  offset_t x_stride,
+                int rows, int cols
             ) {
-                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
-                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
-                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
-
+                static_assert((Config::BLK_K % 4)            == 0, "BLK_K must be multiple of 4 (float4).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
                 const int M = rows; 
                 const int K = cols; 
 
-                const float* A = x;
-                const float* B = x;
-                      float* C = out;
+                float* A = x;
+                float* B = x;
+                    float* C = out;
                 
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;
-                // if (bx > by) return; // (optional) upper triangle only
 
                 const int tx = threadIdx.x;
                 const int ty = threadIdx.y;
 
-                const int THREAD_X_PER_BLOCK = Config::BLK_M / Config::TH_X;
-                const int THREAD_Y_PER_BLOCK = Config::BLK_M / Config::TH_Y;
+                const int THREAD_X_PER_BLOCK = Config::BLK_M / Config::TH_X;  // 16
+                const int THREAD_Y_PER_BLOCK = Config::BLK_M / Config::TH_Y;  // 16
                 const int THREAD_NUM_PER_BLOCK = THREAD_X_PER_BLOCK * THREAD_Y_PER_BLOCK;
                 const int tid = ty * THREAD_X_PER_BLOCK + tx;
 
                 __shared__ float As[2][Config::BLK_K][Config::BLK_M];
                 __shared__ float Bs[2][Config::BLK_K][Config::BLK_M];
 
-                float Sa[Config::TH_Y] = {0.0f};   // running S for A lanes (sum of squared deviations)
-                float Sb[Config::TH_X] = {0.0f};   // running S for B lanes
-                float mu_a[Config::TH_Y] = {0.0f}; // running mean for A lanes
-                float mu_b[Config::TH_X] = {0.0f}; // running mean for B lanes
-                float accum[Config::TH_Y][Config::TH_X] = {0.0f}; // running cross term
+                float Sa[Config::TH_Y] = {0.0f};
+                float Sb[Config::TH_X] = {0.0f};
+                float mu_a[Config::TH_Y] = {0.0f};
+                float mu_b[Config::TH_X] = {0.0f};
+                float accum[Config::TH_Y][Config::TH_X] = {0.0f};
 
                 float frag_a[2][Config::TH_Y];
                 float frag_b[2][Config::TH_X];
 
                 const int ldg_num_a = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
-                const int ldg_num_b = Config::BLK_K * Config::BLK_M / (THREAD_NUM_PER_BLOCK * 4);
+                const int ldg_num_b = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
                 float ldg_a_reg[4 * ldg_num_a];
                 float ldg_b_reg[4 * ldg_num_b];
 
-                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
-                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
-
-                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
-
-                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
-                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
-
-                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
-
-                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
-                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
+                const int A_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int B_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int A_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_THREADS_PER_ROW;
+                const int B_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_THREADS_PER_ROW;
 
                 const int warp_id = tid / 32;
                 const int lane_id = tid % 32;
                 const int a_tile_index = (warp_id / 2) * 16 + (lane_id / 8) * 4;
                 const int b_tile_index = (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
-                auto ld_or_zero = [](const float* __restrict__ p,
-                                    int r, int c, int ld,
-                                    int max_r, int max_c) {
-                    return (r >= 0 && r < max_r && c >= 0 && c < max_c) ? p[OFFSET(r, c, ld)] : 0.0f;
-                };
+                float* A_base = &A[(Config::BLK_M * by) * x_stride];
+                float* B_base = &B[(Config::BLK_M * bx) * x_stride];
 
-                auto store_if_in_bounds = [&](int r, int c, float v) {
-                    if (r < M && c < M) {
-                        C[OFFSET(r, c, out_stride)] = v;
+                {
+                    const int a_m0 = tid / A_THREADS_PER_ROW;
+                    const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
+
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                        const int m = a_m0 + i;
+                        const int l = (i / A_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_a_reg[l], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4, x_stride)]));
+                        As[0][a_k4 + 0][m] = ldg_a_reg[l + 0];
+                        As[0][a_k4 + 1][m] = ldg_a_reg[l + 1];
+                        As[0][a_k4 + 2][m] = ldg_a_reg[l + 2];
+                        As[0][a_k4 + 3][m] = ldg_a_reg[l + 3];
                     }
-                };
-
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                    const int row_m = A_TILE_ROW_START + i;
-                    const int base_k = A_TILE_COL;
-                    const int l = (i / A_TILE_ROW_STRIDE) * 4;
-
-                    ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                    ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                    ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                    ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
-
-                    As[0][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
-                    As[0][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
-                    As[0][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
-                    As[0][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
                 }
+                {
+                    const int b_n0 = tid / B_THREADS_PER_ROW;
+                    const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
 
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                    const int row_k = B_TILE_ROW_START + i;
-                    const int col_m = B_TILE_COL;
-                    Bs[0][row_k][col_m + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                        const int n = b_n0 + i;
+                        const int l = (i / B_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_b_reg[l], thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4, x_stride)]));
+                        Bs[0][b_k4 + 0][n] = ldg_b_reg[l + 0];
+                        Bs[0][b_k4 + 1][n] = ldg_b_reg[l + 1];
+                        Bs[0][b_k4 + 2][n] = ldg_b_reg[l + 2];
+                        Bs[0][b_k4 + 3][n] = ldg_b_reg[l + 3];
+                    }
                 }
                 __syncthreads();
 
@@ -435,27 +413,24 @@ namespace propr {
                 do {
                     tile_idx += Config::BLK_K;
                     if (tile_idx < K) {
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int row_m = A_TILE_ROW_START + i;
-                            const int base_k = A_TILE_COL + tile_idx;
-                            const int l = (i / A_TILE_ROW_STRIDE) * 4;
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
 
-                            ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                            ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                            ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                            ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                            const int m = a_m0 + i;
+                            const int l = (i / A_ROW_STRIDE) * 4;
+                            thread::store<Config::StoreModifer,float4>(&ldg_a_reg[l], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4 + tile_idx, x_stride)]));
                         }
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k = tile_idx + B_TILE_ROW_START + i;
-                            const int col_m = B_TILE_COL;
 
-                            ldg_b_reg[l + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
+
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                            const int n = b_n0 + i;
+                            const int l = (i / B_ROW_STRIDE) * 4;
+                            thread::store<Config::StoreModifer,float4>(&ldg_b_reg[l], thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4 + tile_idx, x_stride)]));
                         }
                     }
 
@@ -476,7 +451,6 @@ namespace propr {
 
                         const float n = float(tile_base + (j + 1));
 
-                        // Update mu_b and Sb first (independent of thread_y)
                         PROPR_UNROLL
                         for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
                             const float b = frag_b[j & 1][thread_x];
@@ -485,8 +459,6 @@ namespace propr {
                             Sb[thread_x] += db * (b - mu_b_new);
                             mu_b[thread_x] = mu_b_new;
                         }
-
-                        // Update mu_a, Sa, and compute cross term
                         PROPR_UNROLL
                         for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
                             const float a = frag_a[j & 1][thread_y];
@@ -504,21 +476,32 @@ namespace propr {
                     }
 
                     if (tile_idx < K) {
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
+
                         PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int l = (i / A_TILE_ROW_STRIDE) * 4;
-                            const int row_m = A_TILE_ROW_START + i;
-                            As[write_stage_idx][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
-                            As[write_stage_idx][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
-                            As[write_stage_idx][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
-                            As[write_stage_idx][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
+                        for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                            const int m = a_m0 + i;
+                            const int l = (i / A_ROW_STRIDE) * 4;
+                            As[write_stage_idx][a_k4 + 0][m] = ldg_a_reg[l + 0];
+                            As[write_stage_idx][a_k4 + 1][m] = ldg_a_reg[l + 1];
+                            As[write_stage_idx][a_k4 + 2][m] = ldg_a_reg[l + 2];
+                            As[write_stage_idx][a_k4 + 3][m] = ldg_a_reg[l + 3];
                         }
+
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
+
                         PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k = B_TILE_ROW_START + i;
-                            thread::store<Config::StoreModifer,float4>(&Bs[write_stage_idx][row_k][B_TILE_COL], thread::load<Config::LoadModifer,float4>(&ldg_b_reg[l]));
+                        for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                            const int n = b_n0 + i;
+                            const int l = (i / B_ROW_STRIDE) * 4;
+                            Bs[write_stage_idx][b_k4 + 0][n] = ldg_b_reg[l + 0];
+                            Bs[write_stage_idx][b_k4 + 1][n] = ldg_b_reg[l + 1];
+                            Bs[write_stage_idx][b_k4 + 2][n] = ldg_b_reg[l + 2];
+                            Bs[write_stage_idx][b_k4 + 3][n] = ldg_b_reg[l + 3];
                         }
+
                         __syncthreads();
                         write_stage_idx ^= 1;
                     }
@@ -535,7 +518,6 @@ namespace propr {
                             Sb[thread_x] += db * (b - mu_b_new);
                             mu_b[thread_x] = mu_b_new;
                         }
-
                         PROPR_UNROLL
                         for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
                             const float a = frag_a[last_buf][thread_y];
@@ -576,66 +558,48 @@ namespace propr {
                     invsig_b[j] = (Sb[j] > eps) ? rsqrtf(Sb[j]) : PROPR_R_NA_REAL;
                 }
 
-                // Helper to compute r(i,j) with clamping
                 auto corr_val = [&](int i, int j) -> float {
-                    float r = accum[i][j] * invsig_a[i] * invsig_b[j];
-                    return r;
+                    return accum[i][j] * invsig_a[i] * invsig_b[j];
                 };
 
                 const int r0 = Config::BLK_M * by + c_block_row;
                 const int c0 = Config::BLK_M * bx + c_block_col;
 
+                PROPR_UNROLL
                 for (int i = 0; i < 4; ++i) {
-                    store_if_in_bounds(r0 + i, c0 + 0, corr_val(i, 0));
-                    store_if_in_bounds(r0 + i, c0 + 1, corr_val(i, 1));
-                    store_if_in_bounds(r0 + i, c0 + 2, corr_val(i, 2));
-                    store_if_in_bounds(r0 + i, c0 + 3, corr_val(i, 3));
+                    float4 tmp0 = make_float4(corr_val(i    , 0), corr_val(i    , 1), corr_val(i    , 2), corr_val(i    , 3));
+                    float4 tmp1 = make_float4(corr_val(i    , 4), corr_val(i    , 5), corr_val(i    , 6), corr_val(i    , 7));
+                    float4 tmp2 = make_float4(corr_val(i + 4, 0), corr_val(i + 4, 1), corr_val(i + 4, 2), corr_val(i + 4, 3));
+                    float4 tmp3 = make_float4(corr_val(i + 4, 4), corr_val(i + 4, 5), corr_val(i + 4, 6), corr_val(i + 4, 7));
 
-                    store_if_in_bounds(r0 + i, c0 + 64 + 0, corr_val(i, 4));
-                    store_if_in_bounds(r0 + i, c0 + 64 + 1, corr_val(i, 5));
-                    store_if_in_bounds(r0 + i, c0 + 64 + 2, corr_val(i, 6));
-                    store_if_in_bounds(r0 + i, c0 + 64 + 3, corr_val(i, 7));
-
-                    store_if_in_bounds(r0 + 64 + i, c0 + 0, corr_val(i + 4, 0));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 1, corr_val(i + 4, 1));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 2, corr_val(i + 4, 2));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 3, corr_val(i + 4, 3));
-
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 0, corr_val(i + 4, 4));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 1, corr_val(i + 4, 5));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 2, corr_val(i + 4, 6));
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 3, corr_val(i + 4, 7));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i     , c0 +  0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp0));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i     , c0 + 64, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp1));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i, c0 +  0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp2));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i, c0 + 64, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp3));
                 }
             }
-            
+
 
             template <class Config>
-            __global__ 
-            void 
-            covRcpp(
+            __global__ void covRcpp(
                 const int norm_type,
-                float* __restrict__ out,
-                offset_t out_stride,
-                const float* __restrict__ x,
-                offset_t x_stride,
-                int rows,
-                int cols
+                float* __restrict__ out, offset_t out_stride,
+                float* __restrict__ x, offset_t x_stride,
+                int rows, int cols /* K (true) */
             ) {
-                // assert(rows % 128 == 0 && out_stride %4 == 0);
-                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
-                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
-                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+                static_assert((Config::BLK_K % 4) == 0, "BLK_K multiple of 4 for float4 loads.");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
                 const int M = rows;
-                const int K = cols;
-                const float* A = x;
-                const float* B = x;
+                const int K = cols; 
+
+                float* A = x;
+                float* B = x;
                 float* C = out;
 
-                const int bx = blockIdx.x;
-                const int by = blockIdx.y;
-                const int tx = threadIdx.x;
-                const int ty = threadIdx.y;
+                const int bx = blockIdx.x, by = blockIdx.y;
+                const int tx = threadIdx.x, ty = threadIdx.y;
 
                 const int THREAD_X_PER_BLOCK = Config::BLK_M / Config::TH_X;
                 const int THREAD_Y_PER_BLOCK = Config::BLK_M / Config::TH_Y;
@@ -648,68 +612,61 @@ namespace propr {
                 float mu_a[Config::TH_Y] = {0.0f};
                 float mu_b[Config::TH_X] = {0.0f};
                 float accum[Config::TH_Y][Config::TH_X] = {0.0f};
-                float frag_a[2][Config::TH_Y] = {0.0f};
-                float frag_b[2][Config::TH_X] = {0.0f};
+                float frag_a[2][Config::TH_Y];
+                float frag_b[2][Config::TH_X];
+
+                const int A_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int B_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int A_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_THREADS_PER_ROW;
+                const int B_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_THREADS_PER_ROW;
 
                 const int ldg_num_a = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
-                const int ldg_num_b = Config::BLK_K * Config::BLK_M / (THREAD_NUM_PER_BLOCK * 4);
-
+                const int ldg_num_b = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
                 float ldg_a_reg[4 * ldg_num_a];
                 float ldg_b_reg[4 * ldg_num_b];
 
-                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
-                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
-
-                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
-
-                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
-                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
-
-                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
-
-                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
-                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
+                float* A_base = &A[(Config::BLK_M * by) * x_stride];
+                float* B_base = &B[(Config::BLK_M * bx) * x_stride];
 
                 const int warp_id = tid / 32;
                 const int lane_id = tid % 32;
-
                 const int a_tile_index = (warp_id / 2) * 16 + (lane_id / 8) * 4;
                 const int b_tile_index = (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
-                auto ld_or_zero = [](const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) {
-                    return (r >= 0 && r < max_r && c >= 0 && c < max_c) ? p[OFFSET(r, c, ld)] : 0.0f;
-                };
+                {
+                    const int a_m0 = tid / A_THREADS_PER_ROW;
+                    const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
 
-                auto store_if_in_bounds = [&](int r, int c, float v) {
-                    if (r < M && c < M) {
-                        C[OFFSET(r, c, out_stride)] = v;
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                        const int m = a_m0 + i;
+                        const int l = (i / A_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_a_reg[l], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4, x_stride)]));
+                        As[0][a_k4 + 0][m] = ldg_a_reg[l + 0];
+                        As[0][a_k4 + 1][m] = ldg_a_reg[l + 1];
+                        As[0][a_k4 + 2][m] = ldg_a_reg[l + 2];
+                        As[0][a_k4 + 3][m] = ldg_a_reg[l + 3];
                     }
-                };
-
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                    const int row_m = A_TILE_ROW_START + i;
-                    const int base_k = A_TILE_COL;
-                    As[0][A_TILE_COL + 0][row_m] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                    As[0][A_TILE_COL + 1][row_m] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                    As[0][A_TILE_COL + 2][row_m] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                    As[0][A_TILE_COL + 3][row_m] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
                 }
+                {
+                    const int b_n0 = tid / B_THREADS_PER_ROW;
+                    const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
 
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                    const int row_k = B_TILE_ROW_START + i;
-                    const int col_m = B_TILE_COL;
-                    Bs[0][row_k][col_m + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                        const int n = b_n0 + i;
+                        const int l = (i / B_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_b_reg[l], thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4, x_stride)]));
+                        Bs[0][b_k4 + 0][n] = ldg_b_reg[l + 0];
+                        Bs[0][b_k4 + 1][n] = ldg_b_reg[l + 1];
+                        Bs[0][b_k4 + 2][n] = ldg_b_reg[l + 2];
+                        Bs[0][b_k4 + 3][n] = ldg_b_reg[l + 3];
+                    }
                 }
 
                 __syncthreads();
 
+                // Shared -> regs (unchanged)
                 thread::store<Config::StoreModifer,float4>(&frag_a[0][0], thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index]));
                 thread::store<Config::StoreModifer,float4>(&frag_a[0][4], thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index + 64]));
                 thread::store<Config::StoreModifer,float4>(&frag_b[0][0], thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index]));
@@ -721,37 +678,34 @@ namespace propr {
                 do {
                     tile_idx += Config::BLK_K;
                     if (tile_idx < K) {
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int row_m = A_TILE_ROW_START + i;
-                            const int base_k = A_TILE_COL + tile_idx;
-                            const int l = (i / A_TILE_ROW_STRIDE) * 4;
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
 
-                            ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                            ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                            ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                            ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                            const int m = a_m0 + i;
+                            const int l = (i / A_ROW_STRIDE) * 4;
+                             thread::store<Config::StoreModifer,float4>(&ldg_a_reg[l], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4 + tile_idx, x_stride)]));
                         }
 
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k = tile_idx + B_TILE_ROW_START + i;
-                            const int col_m = B_TILE_COL;
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
 
-                            ldg_b_reg[l + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                            const int n = b_n0 + i;
+                            const int l = (i / B_ROW_STRIDE) * 4;
+                            thread::store<Config::StoreModifer,float4>(&ldg_b_reg[l], thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4 + tile_idx, x_stride)]));
                         }
                     }
 
                     const int load_stage_idx = write_stage_idx ^ 1;
                     const int tile_base = tile_idx - Config::BLK_K;
-                    const int rem = K - tile_base;
-                    const int k_tile = (rem < Config::BLK_K ? rem : Config::BLK_K);
-                    const int j_max = (k_tile > 0 ? k_tile - 1 : 0);
+                    const int rem      = K - tile_base;
+                    const int k_tile   = (rem < Config::BLK_K ? rem : Config::BLK_K);
+                    const int j_max    = (k_tile > 0 ? k_tile - 1 : 0);
 
+                    // Compute on current tile (unchanged)
                     PROPR_UNROLL
                     for (int j = 0; j < j_max; ++j) {
                         thread::store<Config::StoreModifer,float4>(&frag_a[(j + 1) & 1][0], thread::load<Config::LoadModifer,float4>(&As[load_stage_idx][(j + 1)][a_tile_index]));
@@ -773,7 +727,6 @@ namespace propr {
                             const float a = frag_a[j & 1][thread_y];
                             float da = a - mu_a[thread_y];
                             mu_a[thread_y] += da / n;
-
                             PROPR_UNROLL
                             for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
                                 const float b = frag_b[j & 1][thread_x];
@@ -783,23 +736,31 @@ namespace propr {
                     }
 
                     if (tile_idx < K) {
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int l = (i / A_TILE_ROW_STRIDE) * 4;
-                            const int row_m = A_TILE_ROW_START + i;
+                        // Commit regs -> shared (scatter), **fixed B** (no float4 store here)
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
 
-                            As[write_stage_idx][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
-                            As[write_stage_idx][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
-                            As[write_stage_idx][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
-                            As[write_stage_idx][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += A_ROW_STRIDE) {
+                            const int m = a_m0 + i;
+                            const int l = (i / A_ROW_STRIDE) * 4;
+                            As[write_stage_idx][a_k4 + 0][m] = ldg_a_reg[l + 0];
+                            As[write_stage_idx][a_k4 + 1][m] = ldg_a_reg[l + 1];
+                            As[write_stage_idx][a_k4 + 2][m] = ldg_a_reg[l + 2];
+                            As[write_stage_idx][a_k4 + 3][m] = ldg_a_reg[l + 3];
                         }
 
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k = B_TILE_ROW_START + i;
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
 
-                            thread::store<Config::StoreModifer,float4>(&Bs[write_stage_idx][row_k][B_TILE_COL], thread::load<Config::LoadModifer,float4>(&ldg_b_reg[l]));
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += B_ROW_STRIDE) {
+                            const int n = b_n0 + i;
+                            const int l = (i / B_ROW_STRIDE) * 4;
+                            Bs[write_stage_idx][b_k4 + 0][n] = ldg_b_reg[l + 0];
+                            Bs[write_stage_idx][b_k4 + 1][n] = ldg_b_reg[l + 1];
+                            Bs[write_stage_idx][b_k4 + 2][n] = ldg_b_reg[l + 2];
+                            Bs[write_stage_idx][b_k4 + 3][n] = ldg_b_reg[l + 3];
                         }
 
                         __syncthreads();
@@ -816,13 +777,11 @@ namespace propr {
                             float db = b - mu_b[thread_x];
                             mu_b[thread_x] += db / n_tail;
                         }
-
                         PROPR_UNROLL
                         for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
                             const float a = frag_a[last_buf][thread_y];
                             float da = a - mu_a[thread_y];
                             mu_a[thread_y] += da / n_tail;
-
                             PROPR_UNROLL
                             for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
                                 const float b = frag_b[last_buf][thread_x];
@@ -848,26 +807,40 @@ namespace propr {
                 const int r0 = Config::BLK_M * by + c_block_row;
                 const int c0 = Config::BLK_M * bx + c_block_col;
 
+                PROPR_UNROLL
                 for (int i = 0; i < 4; ++i) {
-                    // Top 4 rows
-                    store_if_in_bounds(r0 + i, c0 + 0, accum[i][0] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 1, accum[i][1] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 2, accum[i][2] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 3, accum[i][3] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 64 + 0, accum[i][4] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 64 + 1, accum[i][5] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 64 + 2, accum[i][6] / denom);
-                    store_if_in_bounds(r0 + i, c0 + 64 + 3, accum[i][7] / denom);
+                    float4 tmp0 = make_float4(
+                         accum[i][0] / denom,
+                         accum[i][1] / denom,
+                         accum[i][2] / denom,
+                         accum[i][3] / denom
+                    );
 
-                    // Bottom 4 rows (+64)
-                    store_if_in_bounds(r0 + 64 + i, c0 + 0, accum[i + 4][0] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 1, accum[i + 4][1] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 2, accum[i + 4][2] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 3, accum[i + 4][3] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 0, accum[i + 4][4] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 1, accum[i + 4][5] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 2, accum[i + 4][6] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 3, accum[i + 4][7] / denom);
+                    float4 tmp1 = make_float4(
+                        accum[i][4] / denom,
+                        accum[i][5] / denom,
+                        accum[i][6] / denom,
+                        accum[i][7] / denom
+                    );
+
+                    float4 tmp2 = make_float4(
+                        accum[i + 4][0] / denom,
+                        accum[i + 4][1] / denom,
+                        accum[i + 4][2] / denom,
+                        accum[i + 4][3] / denom
+                    );
+
+                    float4 tmp3 = make_float4(
+                        accum[i + 4][4] / denom,
+                        accum[i + 4][5] / denom,
+                        accum[i + 4][6] / denom,
+                        accum[i + 4][7] / denom
+                    );
+
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col,      M)], thread::load<Config::LoadModifer,float4>(&tmp0));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col + 64, M)], thread::load<Config::LoadModifer,float4>(&tmp1));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col,      M)], thread::load<Config::LoadModifer,float4>(&tmp2));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + 64 + i, Config::BLK_M * bx + c_block_col + 64, M)], thread::load<Config::LoadModifer,float4>(&tmp3));
                 }
             }
 
@@ -1222,7 +1195,6 @@ namespace propr {
                     }
                 }
 
-                // --- accumulate row_sums and mu_sum directly from M-values
                 auto accum_row_mu = [&](int r, int c, float mval){
                     if (r < M && c < M) {
                         atomicAdd(&row_sums[r], mval);
@@ -1304,27 +1276,25 @@ namespace propr {
                     compute_phi_and_store(rr1, c0 + 64 + 2,  S[i + 4][6]);
                     compute_phi_and_store(rr1, c0 + 64 + 3,  S[i + 4][7]);
                 }
-
             }
 
-
             template <class Config>
-            __global__ 
-            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
-            void vlrRcpp(float* __restrict__ out, offset_t out_stride,
-                         const float* __restrict__   x, offset_t   x_stride,
-                         int rows, int cols)
+            __global__
+            void 
+            vlrRcpp(float* __restrict__ out,  offset_t out_stride, 
+                        float* __restrict__ x, offset_t x_stride, 
+                        int rows, int cols)
             {
                 static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
-                const int M = rows;
-                const int K = cols;
+                const int M = rows;  // true M (nfeats)
+                const int K = cols;  // true K (samples)
 
-                const float* A = x;
-                const float* B = x;
-                    float* C = out;
+                float* A = x;
+                float* B = x;  
+                float* C = out;
 
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;
@@ -1342,70 +1312,63 @@ namespace propr {
 
                 float S [Config::TH_Y][Config::TH_X] = {0.0f};
                 float mu[Config::TH_Y][Config::TH_X] = {0.0f};
-                
-                __syncthreads();
 
                 float frag_a[2][Config::TH_Y];
                 float frag_b[2][Config::TH_X];
 
+                const int A_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int B_THREADS_PER_ROW = Config::BLK_K / 4;
+
+                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_THREADS_PER_ROW;
+                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_THREADS_PER_ROW;
+
                 const int ldg_num_a = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
-                const int ldg_num_b = Config::BLK_K * Config::BLK_M / (THREAD_NUM_PER_BLOCK * 4);
+                const int ldg_num_b = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
                 float ldg_a_reg[4 * ldg_num_a];
                 float ldg_b_reg[4 * ldg_num_b];
-
-                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
-                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
-
-                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
-
-                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
-                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
-
-                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
-
-                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
-                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
 
                 const int warp_id = tid / 32;
                 const int lane_id = tid % 32;
                 const int a_tile_index =  (warp_id / 2) * 16 + (lane_id / 8) * 4;
                 const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
+                float* A_base = A + (by * Config::BLK_M) * x_stride;
+                float* B_base = B + (bx * Config::BLK_M) * x_stride;
 
-                auto ld_or_zero = [](const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) {
-                    return (r < max_r && c < max_c) ? __logf(p[OFFSET(r, c, ld)]) : 0.0f;
-                };
+                {
+                    const int a_m0 = tid / A_THREADS_PER_ROW;
+                    const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
 
-                auto store_if_in_bounds = [&](int r, int c, float v) {
-                    if (r < M && c < M) C[OFFSET(r, c, out_stride)] = v;
-                };
-
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                    const int row_m  = A_TILE_ROW_START + i;
-                    const int base_k = A_TILE_COL;
-                    As[0][A_TILE_COL + 0][row_m] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);;
-                    As[0][A_TILE_COL + 1][row_m] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);;
-                    As[0][A_TILE_COL + 2][row_m] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);;
-                    As[0][A_TILE_COL + 3][row_m] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);;
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
+                        const int m   = a_m0 + i;
+                        const int idx = (i / A_TILE_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_a_reg[idx], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4, x_stride)]));
+                        As[0][a_k4 + 0][m] = __logf(ldg_a_reg[idx + 0]);
+                        As[0][a_k4 + 1][m] = __logf(ldg_a_reg[idx + 1]);
+                        As[0][a_k4 + 2][m] = __logf(ldg_a_reg[idx + 2]);
+                        As[0][a_k4 + 3][m] = __logf(ldg_a_reg[idx + 3]);
+                    }
                 }
+                {
+                    const int b_n0 = tid / B_THREADS_PER_ROW;
+                    const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
 
-                PROPR_UNROLL
-                for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                    const int row_k = B_TILE_ROW_START + i;
-                    const int col_m = B_TILE_COL;
-                    Bs[0][row_k][col_m + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                    Bs[0][row_k][col_m + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                    PROPR_UNROLL
+                    for (int i = 0; i < Config::BLK_M; i += B_TILE_ROW_STRIDE) {
+                        const int n   = b_n0 + i;
+                        const int idx = (i / B_TILE_ROW_STRIDE) * 4;
+                        thread::store<Config::StoreModifer,float4>(&ldg_b_reg[idx],thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4, x_stride)]));
+                        Bs[0][b_k4 + 0][n] = __logf(ldg_b_reg[idx + 0]);
+                        Bs[0][b_k4 + 1][n] = __logf(ldg_b_reg[idx + 1]);
+                        Bs[0][b_k4 + 2][n] = __logf(ldg_b_reg[idx + 2]);
+                        Bs[0][b_k4 + 3][n] = __logf(ldg_b_reg[idx + 3]);
+                    }
                 }
                 __syncthreads();
 
                 thread::store<Config::StoreModifer,float4>(&frag_a[0][0], thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index]));
                 thread::store<Config::StoreModifer,float4>(&frag_a[0][4], thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index + 64]));
-
                 thread::store<Config::StoreModifer,float4>(&frag_b[0][0], thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index]));
                 thread::store<Config::StoreModifer,float4>(&frag_b[0][4], thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index + 64]));
 
@@ -1414,28 +1377,26 @@ namespace propr {
 
                 do {
                     tile_idx += Config::BLK_K;
+
                     if (tile_idx < K) {
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
+
                         PROPR_UNROLL
                         for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int row_m  = A_TILE_ROW_START + i;
-                            const int base_k = A_TILE_COL + tile_idx;
-                            const int l      = (i / A_TILE_ROW_STRIDE) * 4;
-
-                            ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
-                            ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
-                            ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
-                            ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
+                            const int m   = a_m0 + i;
+                            const int idx = (i / A_TILE_ROW_STRIDE) * 4;
+                            thread::store<Config::StoreModifer,float4>(&ldg_a_reg[idx], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4 + tile_idx, x_stride)]));
                         }
-                        PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l      = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k  = tile_idx + B_TILE_ROW_START + i;
-                            const int col_m  = B_TILE_COL;
 
-                            ldg_b_reg[l + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
-                            ldg_b_reg[l + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
+
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += B_TILE_ROW_STRIDE) {
+                            const int n   = b_n0 + i;
+                            const int idx = (i / B_TILE_ROW_STRIDE) * 4;
+                            thread::store<Config::StoreModifer,float4>(&ldg_b_reg[idx], thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4 + tile_idx, x_stride)]));
                         }
                     }
 
@@ -1471,28 +1432,38 @@ namespace propr {
                     }
 
                     if (tile_idx < K) {
+                        const int a_m0 = tid / A_THREADS_PER_ROW;
+                        const int a_k4 = (tid % A_THREADS_PER_ROW) * 4;
+
                         PROPR_UNROLL
                         for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                            const int l     = (i / A_TILE_ROW_STRIDE) * 4;
-                            const int row_m = A_TILE_ROW_START + i;
+                            const int m   = a_m0 + i;
+                            const int idx = (i / A_TILE_ROW_STRIDE) * 4;
+                            As[write_stage_idx][a_k4 + 0][m] = __logf(ldg_a_reg[idx + 0]);
+                            As[write_stage_idx][a_k4 + 1][m] = __logf(ldg_a_reg[idx + 1]);
+                            As[write_stage_idx][a_k4 + 2][m] = __logf(ldg_a_reg[idx + 2]);
+                            As[write_stage_idx][a_k4 + 3][m] = __logf(ldg_a_reg[idx + 3]);
+                        }
 
-                            As[write_stage_idx][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
-                            As[write_stage_idx][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
-                            As[write_stage_idx][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
-                            As[write_stage_idx][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
-                        }
+                        const int b_n0 = tid / B_THREADS_PER_ROW;
+                        const int b_k4 = (tid % B_THREADS_PER_ROW) * 4;
+
                         PROPR_UNROLL
-                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                            const int l     = (i / B_TILE_ROW_STRIDE) * 4;
-                            const int row_k = B_TILE_ROW_START + i;
-                            thread::store<Config::StoreModifer,float4>(&Bs[write_stage_idx][row_k][B_TILE_COL], thread::load<Config::LoadModifer,float4>(&ldg_b_reg[l]));
+                        for (int i = 0; i < Config::BLK_M; i += B_TILE_ROW_STRIDE) {
+                            const int n   = b_n0 + i;
+                            const int idx = (i / B_TILE_ROW_STRIDE) * 4;
+                            Bs[write_stage_idx][b_k4 + 0][n] = __logf(ldg_b_reg[idx + 0]);
+                            Bs[write_stage_idx][b_k4 + 1][n] = __logf(ldg_b_reg[idx + 1]);
+                            Bs[write_stage_idx][b_k4 + 2][n] = __logf(ldg_b_reg[idx + 2]);
+                            Bs[write_stage_idx][b_k4 + 3][n] = __logf(ldg_b_reg[idx + 3]);
                         }
+
                         __syncthreads();
                         write_stage_idx ^= 1;
                     }
 
                     if (k_tile > 0) {
-                        const int k_tail  = tile_base + k_tile;
+                        const int k_tail = tile_base + k_tile;
                         const int last_buf = (j_max & 1);
                         PROPR_UNROLL
                         for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
@@ -1504,8 +1475,7 @@ namespace propr {
 
                                 const float old_mu = mu[thread_y][thread_x];
                                 mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_tail;
-                                S [thread_y][thread_x] = S[thread_y][thread_x]
-                                                    + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
                             }
                         }
                     }
@@ -1513,7 +1483,6 @@ namespace propr {
                     if (tile_idx < K) {
                         thread::store<Config::StoreModifer,float4>(&frag_a[0][0], thread::load<Config::LoadModifer,float4>(&As[(write_stage_idx ^ 1)][0][a_tile_index]));
                         thread::store<Config::StoreModifer,float4>(&frag_a[0][4], thread::load<Config::LoadModifer,float4>(&As[(write_stage_idx ^ 1)][0][a_tile_index + 64]));
-
                         thread::store<Config::StoreModifer,float4>(&frag_b[0][0], thread::load<Config::LoadModifer,float4>(&Bs[(write_stage_idx ^ 1)][0][b_tile_index]));
                         thread::store<Config::StoreModifer,float4>(&frag_b[0][4], thread::load<Config::LoadModifer,float4>(&Bs[(write_stage_idx ^ 1)][0][b_tile_index + 64]));
                     }
@@ -1523,262 +1492,201 @@ namespace propr {
                 const int c_block_col = b_tile_index;
                 const float denom = (K > 1 ? (float)(K - 1) : 1.0f);
 
-                const int r0 = Config::BLK_M * by + c_block_row;
-                const int c0 = Config::BLK_M * bx + c_block_col;
+                const int r0 = by * Config::BLK_M + c_block_row;
+                const int c0 = bx * Config::BLK_M + c_block_col;
 
+                PROPR_UNROLL
                 for (int i = 0; i < 4; ++i) {
-                    store_if_in_bounds(r0 + i,      c0 + 0,       S[i][0]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 1,       S[i][1]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 2,       S[i][2]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 3,       S[i][3]    / denom);
+                    float4 tmp0 = make_float4( S[i][0] / denom, S[i][1] / denom, S[i][2] / denom, S[i][3] / denom);
+                    float4 tmp1 = make_float4( S[i][4] / denom, S[i][5] / denom, S[i][6] / denom, S[i][7] / denom);
+                    float4 tmp2 = make_float4( S[i + 4][0] / denom, S[i + 4][1] / denom, S[i + 4][2] / denom, S[i + 4][3] / denom);
+                    float4 tmp3 = make_float4( S[i + 4][4] / denom, S[i + 4][5] / denom, S[i + 4][6] / denom, S[i + 4][7] / denom);
 
-                    store_if_in_bounds(r0 + i,      c0 + 64 + 0,  S[i][4]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 64 + 1,  S[i][5]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 64 + 2,  S[i][6]    / denom);
-                    store_if_in_bounds(r0 + i,      c0 + 64 + 3,  S[i][7]    / denom);
-
-                    store_if_in_bounds(r0 + 64 + i, c0 + 0,       S[i + 4][0] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 1,       S[i + 4][1] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 2,       S[i + 4][2] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 3,       S[i + 4][3] / denom);
-                    
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 0,  S[i + 4][4] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 1,  S[i + 4][5] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 2,  S[i + 4][6] / denom);
-                    store_if_in_bounds(r0 + 64 + i, c0 + 64 + 3,  S[i + 4][7] / denom);
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i, c0 +  0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp0));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i, c0 + 64, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp1));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i,c0 +  0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp2));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i,c0 + 64, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp3));
                 }
             }
+
 
             template<class Config>
             __global__
             void rhoRcpp( int ivar,
                           float* __restrict__  out, offset_t out_stride,
-                    const float* __restrict__    x, offset_t   x_stride,
-                    const float* __restrict__   lr, offset_t  lr_stride,
-                    int rows, int cols) {
-                
-                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
-                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
-                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+                    const float* __restrict__    x, offset_t   x_stride,   // (M_pad x K_pad)
+                    const float* __restrict__   lr, offset_t  lr_stride,   // (M_pad x K_pad)
+                    int rows, int cols )                                   // rows=M_pad, cols=K(true)
+            {
+                static_assert((Config::BLK_K % 4)            == 0, "BLK_K multiple of 4 for float4 loads.");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
-                // might be interesting to investigate warp specialization
-                // half the warps compute vlr(x)
-                // half the warps compute var(lr)
-                // sync then compute ration
-                struct LdOrZeroRT {
-                    const bool apply_log;
-                    __device__ __forceinline__
-                    float operator()(const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) const {
-                        if (r < max_r && c < max_c) {
-                            float v = p[OFFSET(r, c, ld)];
-                            return apply_log ? __logf(v) : v;
-                        }
-                        return 0.0f;
-                    }
-                };
+                const int M = rows;       // padded
+                const int K = cols;       // true K
 
-                const int M = rows;
-                const int K = cols;
+                const float* A = x;       // log(X) is applied during load
+                const float* B = x;       // same
+                const float* LR = lr;
 
-                const float* A = x;
-                const float* B = x;
-                      float* C = out;
+                float* C = out;
 
-                const int bx = blockIdx.x;
-                const int by = blockIdx.y;
-
-                const int tx = threadIdx.x;
-                const int ty = threadIdx.y;
+                const int bx = blockIdx.x, by = blockIdx.y;
+                const int tx = threadIdx.x, ty = threadIdx.y;
 
                 const int THREAD_X_PER_BLOCK   = Config::BLK_M / Config::TH_X;
                 const int THREAD_Y_PER_BLOCK   = Config::BLK_M / Config::TH_Y;
                 const int THREAD_NUM_PER_BLOCK = THREAD_X_PER_BLOCK * THREAD_Y_PER_BLOCK;
                 const int tid = ty * THREAD_X_PER_BLOCK + tx;
 
-                __shared__ float As[Config::BLK_K][Config::BLK_M];
-                __shared__ float Bs[Config::BLK_K][Config::BLK_M];
-
+                __shared__ float As  [Config::BLK_K][Config::BLK_M];
+                __shared__ float Bs  [Config::BLK_K][Config::BLK_M];
                 __shared__ float LR_A[Config::BLK_K][Config::BLK_M];
                 __shared__ float LR_B[Config::BLK_K][Config::BLK_M];
 
                 float S [Config::TH_Y][Config::TH_X] = {0.0f};
                 float mu[Config::TH_Y][Config::TH_X] = {0.0f};
+                float mu_lr_i[Config::TH_Y] = {0.0f}, mu_lr_j[Config::TH_X] = {0.0f};
+                float S_lr_i [Config::TH_Y] = {0.0f}, S_lr_j [Config::TH_X] = {0.0f};
 
-                float mu_lr_i[Config::TH_Y] = {0.0f};
-                float mu_lr_j[Config::TH_X] = {0.0f};
-
-                float S_lr_i [Config::TH_Y] = {0.0f};
-                float S_lr_j [Config::TH_X] = {0.0f};
-
-                float frag_xi[2][Config::TH_Y];
-                float frag_xj[2][Config::TH_X];
-
+                float frag_xi [2][Config::TH_Y];
+                float frag_xj [2][Config::TH_X];
                 float frag_lr_i[2][Config::TH_Y];
                 float frag_lr_j[2][Config::TH_X];
 
-                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
-                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
+                const int A_THREADS_PER_ROW = Config::BLK_K / 4;
+                const int ROW_STRIDE        = THREAD_NUM_PER_BLOCK / A_THREADS_PER_ROW;
 
-                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
-
-                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
-                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
-
-                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
-                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
-
-                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
-                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
-
-                const float* LR_A_base = &lr[(Config::BLK_M * by) * lr_stride];
-                const float* LR_B_base = &lr[(Config::BLK_M * bx) * lr_stride];
+                const float* A_base    = &A[(Config::BLK_M * by) * x_stride];
+                const float* B_base    = &B[(Config::BLK_M * bx) * x_stride];
+                const float* LR_A_base = &LR[(Config::BLK_M * by) * lr_stride];
+                const float* LR_B_base = &LR[(Config::BLK_M * bx) * lr_stride];
 
                 const int warp_id = tid / 32;
                 const int lane_id = tid % 32;
                 const int a_tile_index =  (warp_id / 2) * 16 + (lane_id / 8) * 4;
                 const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
-                LdOrZeroRT ld_or_zero_lg{true};
-                LdOrZeroRT ld_or_zero{false};
-
-                auto store_if_in_bounds = [&](int r, int c, float v) {
-                    if (r < M && c < M) C[OFFSET(r, c, out_stride)] = v;
-                };
-
+                PROPR_NO_UNROLL
                 for (int tile_base = 0; tile_base < K; tile_base += Config::BLK_K) {
                     const int k_tile = min(Config::BLK_K, K - tile_base);
 
-                    PROPR_UNROLL
-                    for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
-                        const int row_m = A_TILE_ROW_START + i;
-                        const int k0    = A_TILE_COL + 0;
-                        const int k1    = A_TILE_COL + 1;
-                        const int k2    = A_TILE_COL + 2;
-                        const int k3    = A_TILE_COL + 3;
-
-                        LR_A[k0][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k0, lr_stride, M, K);
-                        LR_A[k1][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k1, lr_stride, M, K);
-                        LR_A[k2][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k2, lr_stride, M, K);
-                        LR_A[k3][row_m] = ld_or_zero(LR_A_base, row_m, tile_base + k3, lr_stride, M, K);
-
-                        As[k0][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k0, x_stride, M, K);
-                        As[k1][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k1, x_stride, M, K);
-                        As[k2][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k2, x_stride, M, K);
-                        As[k3][row_m] = ld_or_zero_lg(A_base, row_m, tile_base + k3, x_stride, M, K);
-                    }
+                    const int m0  = tid / A_THREADS_PER_ROW;
+                    const int k4  = (tid % A_THREADS_PER_ROW) * 4;
 
                     PROPR_UNROLL
-                    for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
-                        const int row_k_local = B_TILE_ROW_START + i;
-                        const int row_k_abs   = tile_base + row_k_local;
-                        const int col_m       = B_TILE_COL;
+                    for (int i = 0; i < Config::BLK_M; i += ROW_STRIDE) {
+                        const int m = m0 + i;
+                        float4 xa = *(const float4*)&A_base[OFFSET(m, tile_base + k4, x_stride)];
+                        As  [k4 + 0][m] = __logf(xa.x);
+                        As  [k4 + 1][m] = __logf(xa.y);
+                        As  [k4 + 2][m] = __logf(xa.z);
+                        As  [k4 + 3][m] = __logf(xa.w);
 
-                        LR_B[row_k_local][col_m + 0] = ld_or_zero(LR_B_base, col_m + 0, row_k_abs, lr_stride, M, K);
-                        LR_B[row_k_local][col_m + 1] = ld_or_zero(LR_B_base, col_m + 1, row_k_abs, lr_stride, M, K);
-                        LR_B[row_k_local][col_m + 2] = ld_or_zero(LR_B_base, col_m + 2, row_k_abs, lr_stride, M, K);
-                        LR_B[row_k_local][col_m + 3] = ld_or_zero(LR_B_base, col_m + 3, row_k_abs, lr_stride, M, K);
+                        float4 xb = *(const float4*)&B_base[OFFSET(m, tile_base + k4, x_stride)];
+                        Bs  [k4 + 0][m] = __logf(xb.x);
+                        Bs  [k4 + 1][m] = __logf(xb.y);
+                        Bs  [k4 + 2][m] = __logf(xb.z);
+                        Bs  [k4 + 3][m] = __logf(xb.w);
 
-                        Bs[row_k_local][col_m + 0] = ld_or_zero_lg(B_base, col_m + 0, row_k_abs, x_stride, M, K);
-                        Bs[row_k_local][col_m + 1] = ld_or_zero_lg(B_base, col_m + 1, row_k_abs, x_stride, M, K);
-                        Bs[row_k_local][col_m + 2] = ld_or_zero_lg(B_base, col_m + 2, row_k_abs, x_stride, M, K);
-                        Bs[row_k_local][col_m + 3] = ld_or_zero_lg(B_base, col_m + 3, row_k_abs, x_stride, M, K);
+                        // LR arrays: no log
+                        float4 la = *(const float4*)&LR_A_base[OFFSET(m, tile_base + k4, lr_stride)];
+                        LR_A[k4 + 0][m] = la.x;
+                        LR_A[k4 + 1][m] = la.y;
+                        LR_A[k4 + 2][m] = la.z;
+                        LR_A[k4 + 3][m] = la.w;
+
+                        float4 lb = *(const float4*)&LR_B_base[OFFSET(m, tile_base + k4, lr_stride)];
+                        LR_B[k4 + 0][m] = lb.x;
+                        LR_B[k4 + 1][m] = lb.y;
+                        LR_B[k4 + 2][m] = lb.z;
+                        LR_B[k4 + 3][m] = lb.w;
                     }
+
                     __syncthreads();
 
                     if (k_tile > 0) {
-                        thread::store<Config::StoreModifer,float4>(&frag_xi[0][0], thread::load<Config::LoadModifer,float4>(&As[0][a_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_xi[0][4], thread::load<Config::LoadModifer,float4>(&As[0][a_tile_index + 64]));
-
-                        thread::store<Config::StoreModifer,float4>(&frag_xj[0][0], thread::load<Config::LoadModifer,float4>(&Bs[0][b_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_xj[0][4], thread::load<Config::LoadModifer,float4>(&Bs[0][b_tile_index + 64]));
-
+                        thread::store<Config::StoreModifer,float4>(&frag_xi[0][0],   thread::load<Config::LoadModifer,float4>(&As  [0][a_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xi[0][4],   thread::load<Config::LoadModifer,float4>(&As  [0][a_tile_index + 64]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xj[0][0],   thread::load<Config::LoadModifer,float4>(&Bs  [0][b_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xj[0][4],   thread::load<Config::LoadModifer,float4>(&Bs  [0][b_tile_index + 64]));
                         thread::store<Config::StoreModifer,float4>(&frag_lr_i[0][0], thread::load<Config::LoadModifer,float4>(&LR_A[0][a_tile_index]));
                         thread::store<Config::StoreModifer,float4>(&frag_lr_i[0][4], thread::load<Config::LoadModifer,float4>(&LR_A[0][a_tile_index + 64]));
-
                         thread::store<Config::StoreModifer,float4>(&frag_lr_j[0][0], thread::load<Config::LoadModifer,float4>(&LR_B[0][b_tile_index]));
                         thread::store<Config::StoreModifer,float4>(&frag_lr_j[0][4], thread::load<Config::LoadModifer,float4>(&LR_B[0][b_tile_index + 64]));
                     }
 
                     const int j_max = (k_tile > 0 ? k_tile - 1 : 0);
 
-                    PROPR_UNROLL
+                    PROPR_NO_UNROLL
                     for (int j = 0; j < j_max; ++j) {
-                        thread::store<Config::StoreModifer,float4>(&frag_xi[(j + 1) & 1][0], thread::load<Config::LoadModifer,float4>(&As[j + 1][a_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_xi[(j + 1) & 1][4], thread::load<Config::LoadModifer,float4>(&As[j + 1][a_tile_index + 64]));
-
-                        thread::store<Config::StoreModifer,float4>(&frag_xj[(j + 1) & 1][0], thread::load<Config::LoadModifer,float4>(&Bs[j + 1][b_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_xj[(j + 1) & 1][4], thread::load<Config::LoadModifer,float4>(&Bs[j + 1][b_tile_index + 64]));
-
-                        thread::store<Config::StoreModifer,float4>(&frag_lr_i[(j + 1) & 1][0], thread::load<Config::LoadModifer,float4>(&LR_A[j + 1][a_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_lr_i[(j + 1) & 1][4], thread::load<Config::LoadModifer,float4>(&LR_A[j + 1][a_tile_index + 64]));
-
-                        thread::store<Config::StoreModifer,float4>(&frag_lr_j[(j + 1) & 1][0], thread::load<Config::LoadModifer,float4>(&LR_B[j + 1][b_tile_index]));
-                        thread::store<Config::StoreModifer,float4>(&frag_lr_j[(j + 1) & 1][4], thread::load<Config::LoadModifer,float4>(&LR_B[j + 1][b_tile_index + 64]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xi[(j + 1)&1][0],   thread::load<Config::LoadModifer,float4>(&As  [j + 1][a_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xi[(j + 1)&1][4],   thread::load<Config::LoadModifer,float4>(&As  [j + 1][a_tile_index + 64]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xj[(j + 1)&1][0],   thread::load<Config::LoadModifer,float4>(&Bs  [j + 1][b_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_xj[(j + 1)&1][4],   thread::load<Config::LoadModifer,float4>(&Bs  [j + 1][b_tile_index + 64]));
+                        thread::store<Config::StoreModifer,float4>(&frag_lr_i[(j + 1)&1][0], thread::load<Config::LoadModifer,float4>(&LR_A[j + 1][a_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_lr_i[(j + 1)&1][4], thread::load<Config::LoadModifer,float4>(&LR_A[j + 1][a_tile_index + 64]));
+                        thread::store<Config::StoreModifer,float4>(&frag_lr_j[(j + 1)&1][0], thread::load<Config::LoadModifer,float4>(&LR_B[j + 1][b_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_lr_j[(j + 1)&1][4], thread::load<Config::LoadModifer,float4>(&LR_B[j + 1][b_tile_index + 64]));
 
                         const int k_cur = tile_base + (j + 1);
 
                         PROPR_UNROLL
-                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
-                            const float a = frag_xi[j & 1][thread_y];
+                        for (int ry = 0; ry < Config::TH_Y; ++ry) {
+                            const float a = frag_xi[j & 1][ry];
                             PROPR_UNROLL
-                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
-                                const float b    = frag_xj[j & 1][thread_x];
+                            for (int rx = 0; rx < Config::TH_X; ++rx) {
+                                const float b    = frag_xj[j & 1][rx];
                                 const float xval = a - b;
-
-                                const float old_mu = mu[thread_y][thread_x];
-                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_cur;
-                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                                const float old_mu = mu[ry][rx];
+                                mu[ry][rx] = old_mu + (xval - old_mu) / (float)k_cur;
+                                S [ry][rx] = S[ry][rx] + (xval - mu[ry][rx]) * (xval - old_mu);
                             }
                         }
 
                         PROPR_UNROLL
-                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
-                            const float vi_old = mu_lr_i[thread_y];
-                            const float vi_val = frag_lr_i[j & 1][thread_y];
-                            mu_lr_i[thread_y] = vi_old + (vi_val - vi_old) / (float)k_cur;
-                            S_lr_i [thread_y] = S_lr_i[thread_y] + (vi_val - mu_lr_i[thread_y]) * (vi_val - vi_old);
+                        for (int ry = 0; ry < Config::TH_Y; ++ry) {
+                            const float vi_old = mu_lr_i[ry];
+                            const float vi_val = frag_lr_i[j & 1][ry];
+                            mu_lr_i[ry] = vi_old + (vi_val - vi_old) / (float)k_cur;
+                            S_lr_i [ry] = S_lr_i[ry] + (vi_val - mu_lr_i[ry]) * (vi_val - vi_old);
                         }
                         PROPR_UNROLL
-                        for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
-                            const float vj_old = mu_lr_j[thread_x];
-                            const float vj_val = frag_lr_j[j & 1][thread_x];
-                            mu_lr_j[thread_x] = vj_old + (vj_val - vj_old) / (float)k_cur;
-                            S_lr_j [thread_x] = S_lr_j[thread_x] + (vj_val - mu_lr_j[thread_x]) * (vj_val - vj_old);
+                        for (int rx = 0; rx < Config::TH_X; ++rx) {
+                            const float vj_old = mu_lr_j[rx];
+                            const float vj_val = frag_lr_j[j & 1][rx];
+                            mu_lr_j[rx] = vj_old + (vj_val - vj_old) / (float)k_cur;
+                            S_lr_j [rx] = S_lr_j[rx] + (vj_val - mu_lr_j[rx]) * (vj_val - vj_old);
                         }
                     }
 
-                    
                     if (k_tile > 0) {
                         const int k_tail  = tile_base + k_tile;
                         const int last_buf = (j_max & 1);
                         PROPR_UNROLL
-                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
-                            const float a = frag_xi[last_buf][thread_y];
+                        for (int ry = 0; ry < Config::TH_Y; ++ry) {
+                            const float a = frag_xi[last_buf][ry];
                             PROPR_UNROLL
-                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
-                                const float b    = frag_xj[last_buf][thread_x];
+                            for (int rx = 0; rx < Config::TH_X; ++rx) {
+                                const float b    = frag_xj[last_buf][rx];
                                 const float xval = a - b;
-
-                                const float old_mu = mu[thread_y][thread_x];
-                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_tail;
-                                S [thread_y][thread_x] = S[thread_y][thread_x] + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                                const float old_mu = mu[ry][rx];
+                                mu[ry][rx] = old_mu + (xval - old_mu) / (float)k_tail;
+                                S [ry][rx] = S[ry][rx] + (xval - mu[ry][rx]) * (xval - old_mu);
                             }
                         }
-
-                        PROPR_UNROLL
-                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
-                            const float vi_old = mu_lr_i[thread_y];
-                            const float vi_val = frag_lr_i[last_buf][thread_y];
-                            mu_lr_i[thread_y] = vi_old + (vi_val - vi_old) / (float)k_tail;
-                            S_lr_i [thread_y] = S_lr_i[thread_y] + (vi_val - mu_lr_i[thread_y]) * (vi_val - vi_old);
+                        for (int ry = 0; ry < Config::TH_Y; ++ry) {
+                            const float vi_old = mu_lr_i[ry];
+                            const float vi_val = frag_lr_i[last_buf][ry];
+                            mu_lr_i[ry] = vi_old + (vi_val - vi_old) / (float)k_tail;
+                            S_lr_i [ry] = S_lr_i[ry] + (vi_val - mu_lr_i[ry]) * (vi_val - vi_old);
                         }
                         PROPR_UNROLL
-                        for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
-                            const float vj_old = mu_lr_j[thread_x];
-                            const float vj_val = frag_lr_j[last_buf][thread_x];
-                            mu_lr_j[thread_x] = vj_old + (vj_val - vj_old) / (float)k_tail;
-                            S_lr_j [thread_x] = S_lr_j[thread_x] + (vj_val - mu_lr_j[thread_x]) * (vj_val - vj_old);
+                        for (int rx = 0; rx < Config::TH_X; ++rx) {
+                            const float vj_old = mu_lr_j[rx];
+                            const float vj_val = frag_lr_j[last_buf][rx];
+                            mu_lr_j[rx] = vj_old + (vj_val - vj_old) / (float)k_tail;
+                            S_lr_j [rx] = S_lr_j[rx] + (vj_val - mu_lr_j[rx]) * (vj_val - vj_old);
                         }
                     }
 
@@ -1802,48 +1710,50 @@ namespace propr {
                 };
 
                 const int ivar0 = ivar - 1;
-                auto apply_rho_store = [&](int gi, int gj, float vlr, float vi, float vj) {
-                    float base = 1.0f - (vlr / (vi + vj));
-                    unsigned eqi    = (gi == ivar0);
-                    unsigned eqj    = (gj == ivar0);
-                    unsigned either = eqi | eqj;
-                    unsigned both   = eqi & eqj;
-                    float outv = base * (1.0f - (float)either) + (float)both;
-                    store_if_in_bounds(gi, gj, outv);
-                };
-
+                PROPR_UNROLL
                 for (int i = 0; i < 4; ++i) {
-                    // top rows
-                    const int gi_top = r0 + i;
-                    // bottom rows
-                    const int gi_bot = r0 + 64 + i;
+                    int gi_top = r0 + i, gi_bot = r0 + 64 + i;
 
-                    // left cols
                     int gj = c0;
-                    apply_rho_store(gi_top, gj + 0, S[i][0]     / denom, var_i_rows[i + 0], var_j_cols[0]);
-                    apply_rho_store(gi_top, gj + 1, S[i][1]     / denom, var_i_rows[i + 0], var_j_cols[1]);
-                    apply_rho_store(gi_top, gj + 2, S[i][2]     / denom, var_i_rows[i + 0], var_j_cols[2]);
-                    apply_rho_store(gi_top, gj + 3, S[i][3]     / denom, var_i_rows[i + 0], var_j_cols[3]);
+                    // top, cols 0..3
+                    float4 tmp0 = make_float4(
+                        (1.0f - ((S[i][0] / denom) / (var_i_rows[i + 0] + var_j_cols[0]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 0) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 0) == ivar0)),
+                        (1.0f - ((S[i][1] / denom) / (var_i_rows[i + 0] + var_j_cols[1]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 1) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 1) == ivar0)),
+                        (1.0f - ((S[i][2] / denom) / (var_i_rows[i + 0] + var_j_cols[2]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 2) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 2) == ivar0)),
+                        (1.0f - ((S[i][3] / denom) / (var_i_rows[i + 0] + var_j_cols[3]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 3) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 3) == ivar0))
+                    );
 
-                    apply_rho_store(gi_bot, gj + 0, S[i + 4][0] / denom, var_i_rows[i + 4], var_j_cols[0]);
-                    apply_rho_store(gi_bot, gj + 1, S[i + 4][1] / denom, var_i_rows[i + 4], var_j_cols[1]);
-                    apply_rho_store(gi_bot, gj + 2, S[i + 4][2] / denom, var_i_rows[i + 4], var_j_cols[2]);
-                    apply_rho_store(gi_bot, gj + 3, S[i + 4][3] / denom, var_i_rows[i + 4], var_j_cols[3]);
-
-                    // right cols (+64)
+                    // bottom, cols 0..3
+                    float4 tmp1 = make_float4(
+                        (1.0f - ((S[i + 4][0] / denom) / (var_i_rows[i + 4] + var_j_cols[0]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 0) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 0) == ivar0)),
+                        (1.0f - ((S[i + 4][1] / denom) / (var_i_rows[i + 4] + var_j_cols[1]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 1) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 1) == ivar0)),
+                        (1.0f - ((S[i + 4][2] / denom) / (var_i_rows[i + 4] + var_j_cols[2]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 2) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 2) == ivar0)),
+                        (1.0f - ((S[i + 4][3] / denom) / (var_i_rows[i + 4] + var_j_cols[3]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 3) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 3) == ivar0))
+                    );
+                    
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(gi_top, gj + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp0));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(gi_bot, gj + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp1));
+                    
                     gj = c0 + 64;
-                    apply_rho_store(gi_top, gj + 0, S[i][4]     / denom, var_i_rows[i + 0], var_j_cols[4]);
-                    apply_rho_store(gi_top, gj + 1, S[i][5]     / denom, var_i_rows[i + 0], var_j_cols[5]);
-                    apply_rho_store(gi_top, gj + 2, S[i][6]     / denom, var_i_rows[i + 0], var_j_cols[6]);
-                    apply_rho_store(gi_top, gj + 3, S[i][7]     / denom, var_i_rows[i + 0], var_j_cols[7]);
+                    // top, cols 4..7
+                    float4 tmp2 = make_float4(
+                        (1.0f - ((S[i][4]     / denom) / (var_i_rows[i + 0] + var_j_cols[4]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 0) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 0) == ivar0)),
+                        (1.0f - ((S[i][5]     / denom) / (var_i_rows[i + 0] + var_j_cols[5]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 1) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 1) == ivar0)),
+                        (1.0f - ((S[i][6]     / denom) / (var_i_rows[i + 0] + var_j_cols[6]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 2) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 2) == ivar0)),
+                        (1.0f - ((S[i][7]     / denom) / (var_i_rows[i + 0] + var_j_cols[7]))) * (1.0f - (float)((gi_top == ivar0) | ((gj + 3) == ivar0))) + (float)((gi_top == ivar0) & ((gj + 3) == ivar0))
+                    );
 
-                    apply_rho_store(gi_bot, gj + 0, S[i + 4][4] / denom, var_i_rows[i + 4], var_j_cols[4]);
-                    apply_rho_store(gi_bot, gj + 1, S[i + 4][5] / denom, var_i_rows[i + 4], var_j_cols[5]);
-                    apply_rho_store(gi_bot, gj + 2, S[i + 4][6] / denom, var_i_rows[i + 4], var_j_cols[6]);
-                    apply_rho_store(gi_bot, gj + 3, S[i + 4][7] / denom, var_i_rows[i + 4], var_j_cols[7]);
+                    // bottom, cols 4..7
+                    float4 tmp3 = make_float4(
+                        (1.0f - ((S[i + 4][4] / denom) / (var_i_rows[i + 4] + var_j_cols[4]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 0) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 0) == ivar0)),
+                        (1.0f - ((S[i + 4][5] / denom) / (var_i_rows[i + 4] + var_j_cols[5]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 1) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 1) == ivar0)),
+                        (1.0f - ((S[i + 4][6] / denom) / (var_i_rows[i + 4] + var_j_cols[6]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 2) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 2) == ivar0)),
+                        (1.0f - ((S[i + 4][7] / denom) / (var_i_rows[i + 4] + var_j_cols[7]))) * (1.0f - (float)((gi_bot == ivar0) | ((gj + 3) == ivar0))) + (float)((gi_bot == ivar0) & ((gj + 3) == ivar0))
+                    );
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(gi_top, gj + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp2));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(gi_bot, gj + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp3));
                 }
             }
-
 
             __global__
             void indexToCoord(
@@ -1883,7 +1793,7 @@ namespace propr {
                          const float* __restrict__ x, offset_t x_stride,
                          int rows, int cols){
                 
-                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
