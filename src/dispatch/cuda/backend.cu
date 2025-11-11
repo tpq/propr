@@ -67,16 +67,18 @@ dispatch::cuda::wtvRcpp(double& out, const NumericVector& x, const NumericVector
 
 void 
 centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_context context){
+  using Config = propr::cuda::traits::centerNumericMatrix_config;
+
   PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   
   offset_t d_out_stride; offset_t d_x_stride;
   auto *d_x   = RcppMatrixToDevice<float, REALSXP, true>(X  , d_x_stride  );
   auto *d_out = RcppMatrixToDevice<float, REALSXP, true>(out, d_out_stride);
 
-  int block = 256;
-  int grid = ceil_div(X.ncol(), block);
+  int block = Config::BLK_X;
+  int grid= propr::ceil_div(X.ncol(), block);
 
-  propr::detail::cuda::centerNumericMatrix<256><<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, X.nrow(), X.ncol());
+  propr::detail::cuda::centerNumericMatrix<Config::BLK_X><<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, X.nrow(), X.ncol());
   PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
   int ncols = X.ncol();
@@ -234,7 +236,7 @@ dispatch::cuda::clrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
     constexpr int BLK_X = 128;
     constexpr int BLK_Y = 4;
     int block = BLK_X * BLK_Y;
-    int grid  = ceil_div(rows, BLK_Y);
+    int grid = propr::ceil_div(rows, BLK_Y);
     propr::detail::cuda::clrRcpp<BLK_X, BLK_Y, false><<<grid, block, 0, context.stream>>>(
         d_out, d_out_stride, d_x, d_x_stride, rows, cols
     );
@@ -263,6 +265,7 @@ dispatch::cuda::clrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
 
 void 
 dispatch::cuda::alrRcpp(NumericMatrix& out, const NumericMatrix & X, const int ivar, propr_context context){
+    using Config = propr::cuda::traits::alrRcpp_config;
     if (ivar == 0) Rcpp::stop("Select non-zero ivar for alrRcpp.");
     const int nrows = X.nrow();
     const int ncols = X.ncol();
@@ -274,10 +277,10 @@ dispatch::cuda::alrRcpp(NumericMatrix& out, const NumericMatrix & X, const int i
     offset_t d_out_stride; auto *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
     offset_t d_x_stride  ; auto *d_x   = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
 
-    int block = 256;
-    int grid  = ceil_div(ncols, block);
+    int block = Config::BLK_X;
+    int grid = propr::ceil_div(ncols, block);
 
-    propr::detail::cuda::alrRcpp<256><<<grid, block, 0, context.stream>>>(
+    propr::detail::cuda::alrRcpp<Config::BLK_X><<<grid, block, 0, context.stream>>>(
         ivar,
         d_out,
         d_out_stride,
@@ -467,11 +470,12 @@ dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, pr
   PROPR_CUDA_CHECK(cudaFree(mu_sum));
 }
 
-void dispatch::cuda::rhoRcpp(NumericMatrix& out,
-                             const NumericMatrix &X,
-                             const NumericMatrix &lr,
-                             const int ivar,
-                             propr_context context)
+void 
+dispatch::cuda::rhoRcpp(NumericMatrix& out,
+                        const NumericMatrix &X,
+                        const NumericMatrix &lr,
+                        const int ivar,
+                        propr_context context)
 {
   using Config = propr::cuda::traits::rho_config;
   const int nfeats  = lr.ncol();   // M
@@ -583,6 +587,8 @@ dispatch::cuda::indexPairs(std::vector<int>& out,
 
 void 
 dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context context) {
+  using Config =  propr::cuda::traits::indexToCoord_config;
+
   const size_t len = V.length();
 
     IntegerVector rows(len);
@@ -604,8 +610,8 @@ dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context co
     PROPR_CUDA_CHECK(cudaMemset(d_row, 0, bytes));
     PROPR_CUDA_CHECK(cudaMemset(d_col, 0, bytes));
 
-    const int block = 256;
-    const int grid  = ceil_div(len,block);
+    const int block = Config::BLK_X;
+    const int grid = propr::ceil_div(len,block);
     propr::detail::cuda::indexToCoord<<<grid, block, 0, context.stream>>>(
         N, d_V, d_row, d_col, len
     );
@@ -623,15 +629,17 @@ dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context co
 }
 
 
-void dispatch::cuda::coordToIndex(
+void 
+dispatch::cuda::coordToIndex(
     IntegerVector& out,
     IntegerVector row,
     IntegerVector col,
     int N,
     propr_context context
 ) {
-    PROPR_CHECK_VECTOR_SIZE(out, row.length());
+    using Config = propr::cuda::traits::coordToIndex_config;
 
+    PROPR_CHECK_VECTOR_SIZE(out, row.length());
     if (static_cast<size_t>(col.length()) != static_cast<size_t>(row.length())) {
         Rcpp::stop("coordToIndex: 'row' and 'col' must have the same length");
     }
@@ -643,8 +651,8 @@ void dispatch::cuda::coordToIndex(
     int *d_row = RcppVectorToDevice<int, INTSXP>(row, len);
     int *d_col = RcppVectorToDevice<int, INTSXP>(col, len);
 
-    const int block = 256;
-    const int grid  = ceil_div(len,block);
+    const int block = Config::BLK_X;
+    const int grid  = propr::ceil_div(len, block);
     
     propr::detail::cuda::coordToIndex<<<grid, block, 0, context.stream>>>(
         N, d_out, d_row, d_col, len
@@ -706,6 +714,7 @@ dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const Num
 
 void 
 dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
+    using Config = propr::cuda::traits::lltRcpp_config;
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
     // PROPR_CHECK_VECTOR_SIZE(out, llt);
@@ -714,8 +723,8 @@ dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_conte
     offset_t d_x_stride;
     auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
     
-    int block = 256;
-    int grid = ceil_div(llt,block);
+    int block = Config::BLK_X;
+    int grid= propr::ceil_div(llt,block);
     propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
     PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
     copyToNumericVector(d_out, out, llt);
@@ -724,6 +733,7 @@ dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_conte
 }
 
 void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
+    using Config = propr::cuda::traits::urtRcpp_config;
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
     PROPR_CHECK_VECTOR_SIZE(out, llt);
@@ -731,8 +741,8 @@ void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_
     auto* d_out = RcppVectorToDevice<float>(out, llt);
     offset_t d_x_stride;
     auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
-    int block = 256;
-    int grid = ceil_div(llt, block);
+    int block = Config::BLK_X;
+    int grid= propr::ceil_div(llt, block);
     propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
     PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
     copyToNumericVector(d_out, out, llt);
@@ -741,14 +751,15 @@ void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_
 }
 
 void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
+  using Config = propr::cuda::traits::labRcpp_config;
   int llt = nfeats * (nfeats - 1) / 2;
 
   int *d_partner; int *d_pair;
   PROPR_CUDA_CHECK(cudaMalloc(&d_partner, sizeof(*d_partner) * llt));
   PROPR_CUDA_CHECK(cudaMalloc(&d_pair, sizeof(*d_pair) * llt ));
 
-  int block = 256;
-  int grid = ceil_div(llt, block);
+  int block = Config::BLK_X;
+  int grid= propr::ceil_div(llt, block);
   propr::detail::cuda::labRcpp<<<grid, block,0,context.stream>>>(d_partner, d_pair, nfeats);
   PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -767,6 +778,7 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
 
 void 
 dispatch::cuda::half2mat(NumericMatrix& out, const NumericVector & X, propr_context context){
+    using Config = propr::cuda::traits::half2mat_config;
     size_t nfeats = static_cast<int>(std::round(std::sqrt(2.0 * static_cast<double>(X.size()) + 0.25) + 0.5));
     PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
     const size_t total_pairs = nfeats * static_cast<size_t>(nfeats - 1) / 2;
@@ -780,8 +792,8 @@ dispatch::cuda::half2mat(NumericMatrix& out, const NumericVector & X, propr_cont
     float *d_out = RcppMatrixToDevice<float, REALSXP>(out, d_out_stride);
     float *d_X   = RcppVectorToDevice<float, REALSXP>(X, total_pairs);
 
-    const size_t block = 256;
-    const int grid     = static_cast<int>(ceil_div(total_pairs, block));
+    const size_t block = Config::BLK_X;
+    const int grid     = static_cast<int>(propr::ceil_div(total_pairs, block));
     propr::detail::cuda::half2mat<<<grid, block, 0, context.stream>>>(d_out, d_out_stride, d_X, nfeats);
     PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 
@@ -815,6 +827,8 @@ dispatch::cuda::vector2mat(
     int nfeats,
     propr_context context
 ){
+    using Config  = propr::cuda::traits::vector2mat_config;
+
     int nX = X.length();
     int ni = i.length();
     int nj = j.length();
@@ -827,8 +841,8 @@ dispatch::cuda::vector2mat(
     auto *d_i   = RcppVectorToDevice<int, INTSXP>(i, ni);
     auto *d_j   = RcppVectorToDevice<int, INTSXP>(j, ni);
 
-    const int block = 256;
-    const int grid  = ceil_div(ni,block);
+    const int block = Config::BLK_X;
+    const int grid = propr::ceil_div(ni,block);
 
     propr::detail::cuda::vector2mat<<<grid, block, 0, context.stream>>>(
         d_out,
@@ -867,7 +881,10 @@ dispatch::cuda::vector2mat(
 }
 
 
-void dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, propr_context context){
+void 
+dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, propr_context context){
+    using Config = propr::cuda::traits::ratiosRcpp_config;
+
     int nfeats = X.ncol();
     int nsamps = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
@@ -876,8 +893,8 @@ void dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, pr
     offset_t d_out_stride; auto *d_out = RcppMatrixToDevice<float>(out, d_out_stride);
     offset_t d_x_stride  ; auto *d_x   = RcppMatrixToDevice<float>(X, d_x_stride);
     
-    int block = 256;
-    int grid = ceil_div(llt * nsamps, block);
+    int block = Config::BLK_X;
+    int grid= propr::ceil_div(llt * nsamps, block);
     propr::detail::cuda::ratiosRcpp<<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, nfeats, nsamps);
     PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
 

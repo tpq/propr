@@ -10,6 +10,7 @@
 
 #include <propr/kernels/cuda/detail/lrv.cuh>
 #include <propr/kernels/cuda/dispatch/lrv.cuh>
+#include <propr/kernels/cuda/traits/lrv.cuh>
 
 
 using namespace Rcpp;
@@ -19,6 +20,7 @@ void
 dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
                           Rcpp::NumericMatrix &Y,
                           propr_context context) {
+    using Config = propr::cuda::traits::lrv_basic;
     int N_samples = Y.nrow();
     int N_genes   = Y.ncol();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
@@ -29,8 +31,8 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     float* d_variances;
     PROPR_CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
-    dim3 blockDim(16, 16);
-    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
+    dim3 blockDim(Config::BLK_X, Config::BLK_Y);
+    dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
     
     detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
@@ -49,6 +51,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
                              Rcpp::NumericMatrix &Y,
                              Rcpp::NumericMatrix &W,
                              propr_context context) {
+    using Config = propr::cuda::traits::lrv_weighted;
     int N_samples = Y.nrow();
     int N_genes = Y.ncol();
     size_t N_pairs = size_t(N_genes) * (N_genes - 1) / 2;
@@ -61,8 +64,8 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     float* d_variances;
     PROPR_CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
-    dim3 blockDim(16, 16);
-    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
+    dim3 blockDim(Config::BLK_X, Config::BLK_Y);
+    dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
     detail::cuda::lrv_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, Y_stride, 
@@ -84,6 +87,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
                                double a,
                                Rcpp::NumericMatrix& Yfull,
                                propr_context context) {
+    using Config = propr::cuda::traits::lrv_alpha;
     int N_samples = Y.nrow();
     int N_samples_full = Yfull.nrow();
     int N_genes = Y.ncol();
@@ -100,8 +104,8 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     float* d_variances;
     PROPR_CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
-    dim3 blockDim(16, 16);
-    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
+    dim3 blockDim(Config::BLK_X, Config::BLK_Y);
+    dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X), propr::ceil_div(N_genes, Config::BLK_Y));
 
     detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride,
@@ -127,6 +131,8 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
                                    Rcpp::NumericMatrix& Yfull,
                                    Rcpp::NumericMatrix& Wfull,
                                    propr_context context) {
+    using Config = propr::cuda::traits::lrv_alpha_weighted;
+
     int N_samples = Y.nrow();
     int N_samples_full = Yfull.nrow();
     int N_genes = Y.ncol();
@@ -141,8 +147,8 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     float* d_variances;
     PROPR_CUDA_CHECK(cudaMalloc(&d_variances, N_pairs * sizeof(float)));
 
-    dim3 blockDim(16, 16);
-    dim3 gridDim(propr::ceil_div(N_genes,blockDim.x), propr::ceil_div(N_genes,blockDim.y));
+    dim3 blockDim(Config::BLK_X, Config::BLK_Y);
+    dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
     detail::cuda::lrv_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride, 

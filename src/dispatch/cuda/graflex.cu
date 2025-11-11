@@ -14,19 +14,22 @@
 
 #include <propr/kernels/cuda/detail/graflex.cuh>
 #include <propr/kernels/cuda/dispatch/graflex.cuh>
+#include <propr/kernels/cuda/traits/graflex.cuh>
+
 
 
 using namespace Rcpp;
-using namespace propr;
+
 
 void
-dispatch::cuda::getOR(NumericVector& out, 
+propr::dispatch::cuda::getOR(NumericVector& out, 
                       const IntegerMatrix& A, 
                       const IntegerMatrix& G, 
-                      propr::propr_context context) {
+                      propr::propr_context context) 
+{
+    using Config = propr::cuda::traits::getOR_config;
 
     constexpr int MAX_PAIRS = std::numeric_limits<std::int32_t>::max();
-    const int blockSize     = 1024;
 
     using scan_tile_state_t = cub::ScanTileState<uint4>;
 
@@ -39,8 +42,8 @@ dispatch::cuda::getOR(NumericVector& out,
     const std::int32_t k = (n + Nmax - 1) / Nmax; // elements per thread
 
     const int numPairs      = int32_t(((int64_t(n) * (n - 1)) / 2) / k);
-    const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
-    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
+    const int numBlocks     = cub::DivideAndRoundUp(numPairs, Config::BLK_X);
+    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, Config::BLK_X);
         
     std::size_t device_partials_size{};
     scan_tile_state_t::AllocationSize(numBlocks, device_partials_size);
@@ -59,13 +62,13 @@ dispatch::cuda::getOR(NumericVector& out,
     PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
     PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
-    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
         tile_state, numBlocks
     );
     PROPR_CUDA_CHECK(cudaDeviceSynchronize());
     PROPR_CUDA_CHECK(cudaGetLastError());
     
-    detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
         tile_state,
         d_A, a_stride,
         d_G, g_stride,
@@ -100,9 +103,9 @@ dispatch::cuda::getOR(NumericVector& out,
 }
 
 void
-dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm, propr::propr_context context) {
+propr::dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm, propr::propr_context context) {
+    using Config = propr::cuda::traits::getORperm_config;
     constexpr int MAX_PAIRS = std::numeric_limits<std::int32_t>::max();
-    const int blockSize     = 1024;
 
     using scan_tile_state_t = cub::ScanTileState<uint4>;
     //TODO: donot forget to consider the number of elements per thread
@@ -116,8 +119,8 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     const std::int32_t k = (n + Nmax - 1) / Nmax; // elements per thread
 
     const int numPairs      = int32_t(((int64_t(n) * (n - 1)) / 2) / k);
-    const int numBlocks     = cub::DivideAndRoundUp(numPairs, blockSize);
-    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, blockSize);
+    const int numBlocks     = cub::DivideAndRoundUp(numPairs, Config::BLK_X);
+    const int numInitBlocks = cub::DivideAndRoundUp(numBlocks, Config::BLK_X);
         
     std::size_t device_partials_size{};
     scan_tile_state_t::AllocationSize(numBlocks, device_partials_size);
@@ -136,13 +139,13 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
     PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
     PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
-    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
         tile_state, numBlocks
     );
     PROPR_CUDA_CHECK(cudaDeviceSynchronize());
     PROPR_CUDA_CHECK(cudaGetLastError());
     
-    detail::cuda::compute_odd_ratio<blockSize><<<numBlocks, blockSize>>>(
+    detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
         tile_state,
         d_A, a_stride,
         d_G, g_stride,
@@ -177,13 +180,13 @@ dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, const Inte
 }
 
 void
-dispatch::cuda::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p, propr::propr_context context) {
+propr::dispatch::cuda::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p, propr::propr_context context) {
     PROPR_CHECK_MATRIX_DIMS(out, p, 8);
     int ncol = A.ncol();
     NumericVector or_tmp(8);
     for (int i = 0; i < p; ++i) {
         IntegerVector perm = sample(ncol, ncol, false) - 1;
-        dispatch::cuda::getORperm(or_tmp, A, G, perm);
+        propr::dispatch::cuda::getORperm(or_tmp, A, G, perm);
         for (int j = 0; j < 8; ++j) {
             out(i, j) = or_tmp[j];
         }
@@ -191,7 +194,7 @@ dispatch::cuda::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const Inte
 }
 
 void
-dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, propr::propr_context context) {
+propr::dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, propr::propr_context context) {
     const int n = permuted.size();
     double* d_permuted;
     PROPR_CUDA_CHECK(cudaMalloc(&d_permuted, n * sizeof(double)));
@@ -224,7 +227,7 @@ dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, 
 }
 
 void
-dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_context context) {
+propr::dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_context context) {
     using T  = char;
     size_t n = Gk.size();
     PROPR_CHECK_MATRIX_DIMS(out, n, n);
@@ -260,12 +263,12 @@ dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::propr_c
 }
 
 void
-dispatch::cuda::graflex(NumericVector& out, const IntegerMatrix& A, const IntegerVector& Gk, int p, propr::propr_context context) {
+propr::dispatch::cuda::graflex(NumericVector& out, const IntegerMatrix& A, const IntegerVector& Gk, int p, propr::propr_context context) {
     IntegerMatrix G_tmp(Gk.size(), Gk.size());
-    dispatch::cuda::getG(G_tmp, Gk);
+    propr::dispatch::cuda::getG(G_tmp, Gk);
 
     NumericVector actual_tmp(8);
-    dispatch::cuda::getOR(actual_tmp, A, G_tmp);
+    propr::dispatch::cuda::getOR(actual_tmp, A, G_tmp);
 
     PROPR_CHECK_VECTOR_SIZE(out, actual_tmp.length());
     for (int i = 0; i < actual_tmp.length(); ++i) {
@@ -274,10 +277,10 @@ dispatch::cuda::graflex(NumericVector& out, const IntegerMatrix& A, const Intege
 
     if (!std::isnan(actual_tmp(4))) {
         NumericMatrix permuted_tmp(p, 8);
-        dispatch::cuda::permuteOR(permuted_tmp, A, G_tmp, p);
+        propr::dispatch::cuda::permuteOR(permuted_tmp, A, G_tmp, p);
 
         List fdr_tmp; 
-        dispatch::cuda::getFDR(fdr_tmp, actual_tmp(4), permuted_tmp(_, 4));
+        propr::dispatch::cuda::getFDR(fdr_tmp, actual_tmp(4), permuted_tmp(_, 4));
         out(6) = as<double>(fdr_tmp["under"]);
         out(7) = as<double>(fdr_tmp["over"]);
     }   
