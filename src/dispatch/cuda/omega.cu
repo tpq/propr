@@ -42,7 +42,7 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
     
     omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
     PROPR_CUDA_CHECK(cudaMemcpy(
@@ -85,7 +85,7 @@ propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W
 
     // std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
     omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
     PROPR_CUDA_CHECK(cudaMemcpy(

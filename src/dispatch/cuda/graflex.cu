@@ -217,7 +217,7 @@ propr::dispatch::cuda::getFDR(List& out, double actual, const NumericVector& per
         }
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     PROPR_CUDA_CHECK(cudaFree(d_permuted));
 
     double fdr_over = static_cast<double>(result.x) / n;

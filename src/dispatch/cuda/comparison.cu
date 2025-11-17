@@ -34,7 +34,7 @@ dispatch::cuda::count_less_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v < cutoff; }
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
@@ -59,7 +59,7 @@ dispatch::cuda::count_greater_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v > cutoff; }
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
@@ -83,7 +83,7 @@ int dispatch::cuda::count_less_equal_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v <= cutoff; }
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }
@@ -107,7 +107,7 @@ int dispatch::cuda::count_greater_equal_than(Rcpp::NumericVector& x,
         [cutoff] __device__ (double v) { return v >= cutoff; }
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     return cnt;
 }

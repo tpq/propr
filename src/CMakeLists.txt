@@ -24,7 +24,7 @@ if (PROPR_BUILD_TESTS)
     target_link_libraries(propr Testthat::Testthat)
 endif()
 
-set_property(TARGET propr PROPERTY CUDA_ARCHITECTURES 90)
+set_property(TARGET propr PROPERTY CUDA_ARCHITECTURES ${NV_CC})
 set_target_properties(propr
         PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${R_INCLUDE}"

@@ -62,7 +62,6 @@ namespace propr {
 
             template<int BLK_X>
             __global__
-            //__launch_bounds__(BLK_X, 1)
             void wtv(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
@@ -322,8 +321,10 @@ namespace propr {
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
-                const int M = rows; 
-                const int K = cols; 
+                #pragma nv_diag_suppress 177
+                const int M = rows;
+                const int K = cols;
+                #pragma nv_diag_default 177
 
                 float* A = x;
                 float* B = x;
@@ -587,12 +588,14 @@ namespace propr {
                 float* __restrict__ x, offset_t x_stride,
                 int rows, int cols /* K (true) */
             ) {
-                static_assert((Config::BLK_K % 4) == 0, "BLK_K multiple of 4 for float4 loads.");
+                static_assert((Config::BLK_K % 4)            == 0, "BLK_K multiple of 4 for float4 loads.");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
+                #pragma nv_diag_suppress 177
                 const int M = rows;
-                const int K = cols; 
+                const int K = cols;
+                #pragma nv_diag_default 177
 
                 float* A = x;
                 float* B = x;
@@ -978,12 +981,14 @@ namespace propr {
                               float* __restrict__ mu_sum,
                               int rows, int cols)
             {
-                static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
+                #pragma nv_diag_suppress 177
                 const int M = rows;
                 const int K = cols;
+                #pragma nv_diag_default 177
 
                 const float* A = x;
                 const float* B = x;
@@ -1237,44 +1242,47 @@ namespace propr {
                     return rsum * invM - 0.5f * mu_val;
                 };
 
-                // --- finally: map M -> phi and store to C
-                auto compute_phi_and_store = [&](int r, int c, float Mrc){
-                    if (r >= M || c >= M) return;
-                    float val = 0.0f;
-                    if (r != c) {
-                        if (!sym) {
-                            float vj = v_of(c);
-                            val = Mrc / vj;
-                        } else {
-                            int k = (r < c ? r : c);
-                            float vk = v_of(k);
-                            val = Mrc / vk;
+                auto compute_phi4_and_store = [&](int r, int c_base, float m0, float m1, float m2, float m3) {
+                    if (r >= M) return;
+                    float4 out = make_float4(0.f, 0.f, 0.f, 0.f);
+                    float* out_arr = &out.x;
+                    float m[4] = { m0, m1, m2, m3 };
+                    PROPR_UNROLL
+                    for (int lane = 0; lane < 4; ++lane) {
+                        int c = c_base + lane;
+                        float val = 0.0f;
+                        if (c < M && r != c) {
+                            if (!sym) {
+                                float vj = v_of(c);
+                                val = m[lane] / vj;
+                            } else {
+                                int k = (r < c ? r : c);
+                                float vk = v_of(k);
+                                val = m[lane] / vk;
+                            }
+                        }
+                        out_arr[lane] = val;
+                    }
+
+                    if (c_base + 3 < M) {
+                        thread::store<Config::StoreModifer,float4>(&C[OFFSET(r, c_base, out_stride)], thread::load<Config::LoadModifer,float4>((float*)&out));
+                    } else {
+                        PROPR_UNROLL
+                        for (int lane = 0; lane < 4; ++lane) {
+                            int c = c_base + lane;
+                            if (c < M)  C[OFFSET(r, c, out_stride)] = out_arr[lane];
                         }
                     }
-                    C[OFFSET(r, c, out_stride)] = val;
                 };
+
 
                 for (int i = 0; i < 4; ++i) {
                     const int rr0 = r0 + i;
                     const int rr1 = r0 + 64 + i;
-
-                    compute_phi_and_store(rr0, c0 + 0,       S[i][0]);
-                    compute_phi_and_store(rr0, c0 + 1,       S[i][1]);
-                    compute_phi_and_store(rr0, c0 + 2,       S[i][2]);
-                    compute_phi_and_store(rr0, c0 + 3,       S[i][3]);
-                    compute_phi_and_store(rr0, c0 + 64 + 0,  S[i][4]);
-                    compute_phi_and_store(rr0, c0 + 64 + 1,  S[i][5]);
-                    compute_phi_and_store(rr0, c0 + 64 + 2,  S[i][6]);
-                    compute_phi_and_store(rr0, c0 + 64 + 3,  S[i][7]);
-
-                    compute_phi_and_store(rr1, c0 + 0,       S[i + 4][0]);
-                    compute_phi_and_store(rr1, c0 + 1,       S[i + 4][1]);
-                    compute_phi_and_store(rr1, c0 + 2,       S[i + 4][2]);
-                    compute_phi_and_store(rr1, c0 + 3,       S[i + 4][3]);
-                    compute_phi_and_store(rr1, c0 + 64 + 0,  S[i + 4][4]);
-                    compute_phi_and_store(rr1, c0 + 64 + 1,  S[i + 4][5]);
-                    compute_phi_and_store(rr1, c0 + 64 + 2,  S[i + 4][6]);
-                    compute_phi_and_store(rr1, c0 + 64 + 3,  S[i + 4][7]);
+                    compute_phi4_and_store(rr0, c0 + 0     , S[i][0]    , S[i][1]    , S[i][2]    , S[i][3]    );
+                    compute_phi4_and_store(rr0, c0 + 64 + 0, S[i][4]    , S[i][5]    , S[i][6]    , S[i][7]    );
+                    compute_phi4_and_store(rr1, c0 + 0     , S[i + 4][0], S[i + 4][1], S[i + 4][2], S[i + 4][3]);
+                    compute_phi4_and_store(rr1, c0 + 64 + 0, S[i + 4][4], S[i + 4][5], S[i + 4][6], S[i + 4][7]);
                 }
             }
 
@@ -1289,8 +1297,10 @@ namespace propr {
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
+                #pragma nv_diag_suppress 177
                 const int M = rows;  // true M (nfeats)
                 const int K = cols;  // true K (samples)
+                #pragma nv_diag_default 177
 
                 float* A = x;
                 float* B = x;  
@@ -1522,8 +1532,10 @@ namespace propr {
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "BLK_M % TH_Y == 0");
                 static_assert((Config::BLK_M % Config::TH_X) == 0, "BLK_M % TH_X == 0");
 
+                #pragma nv_diag_suppress 177
                 const int M = rows;       // padded
                 const int K = cols;       // true K
+                #pragma nv_diag_default 177
 
                 const float* A = x;       // log(X) is applied during load
                 const float* B = x;       // same
@@ -1784,14 +1796,14 @@ namespace propr {
                 }
             };
 
+
             template <class Config>
             __global__
-            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
             void 
             linRcpp(float* __restrict__ out, offset_t out_stride,
-                         const float* __restrict__ rho, int rho_stride,
-                         const float* __restrict__ x, offset_t x_stride,
-                         int rows, int cols){
+                    float* __restrict__ rho, int rho_stride,
+                    float* __restrict__ x, offset_t x_stride,
+                    int rows, int cols){
                 
                 static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
                 static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
@@ -1800,9 +1812,9 @@ namespace propr {
                 const int M = rows;      // features (nfeats)
                 const int K = cols;      // samples  (N_samples)
 
-                const float* A = x;
-                const float* B = x;
-                    float* C = out;
+                float* A = x;
+                float* B = x;
+                float* C = out;
 
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;
@@ -1843,15 +1855,15 @@ namespace propr {
                 const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
                 const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
 
-                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
-                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
+                float* A_base = &A[(Config::BLK_M * by) * x_stride];
+                float* B_base = &B[(Config::BLK_M * bx) * x_stride];
 
                 const int warp_id = tid / 32;
                 const int lane_id = tid % 32;
                 const int a_tile_index = (warp_id / 2) * 16 + (lane_id / 8) * 4;
                 const int b_tile_index = (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
-                auto ld_or_zero = [](const float* __restrict__ p,
+                auto ld_or_zero = [](float* __restrict__ p,
                                     int r, int c, int ld, int max_r, int max_c) {
                     return (r >= 0 && r < max_r && c >= 0 && c < max_c) ? p[OFFSET(r, c, ld)] : 0.0f;
                 };
@@ -2069,27 +2081,18 @@ namespace propr {
 
                 PROPR_UNROLL
                 for (int i = 0; i < 4; ++i) {
-                    store_if_in_bounds(r0 + i,       c0 + 0, Creg[i][0]);
-                    store_if_in_bounds(r0 + i,       c0 + 1, Creg[i][1]);
-                    store_if_in_bounds(r0 + i,       c0 + 2, Creg[i][2]);
-                    store_if_in_bounds(r0 + i,       c0 + 3, Creg[i][3]);
+                    float4 tmp0 = make_float4(Creg[i][0], Creg[i][1], Creg[i][2], Creg[i][3]);
+                    float4 tmp1 = make_float4(Creg[i + 4][0], Creg[i + 4][1], Creg[i + 4][2], Creg[i + 4][3]);
+                    float4 tmp2 = make_float4(Creg[i][4], Creg[i][5], Creg[i][6], Creg[i][7]);
+                    float4 tmp3 = make_float4(Creg[i + 4][4], Creg[i + 4][5], Creg[i + 4][6], Creg[i + 4][7]);
 
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 0, Creg[i + 4][0]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 1, Creg[i + 4][1]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 2, Creg[i + 4][2]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 3, Creg[i + 4][3]);
-
-                    store_if_in_bounds(r0 + i,       c0 + 64 + 0, Creg[i][4]);
-                    store_if_in_bounds(r0 + i,       c0 + 64 + 1, Creg[i][5]);
-                    store_if_in_bounds(r0 + i,       c0 + 64 + 2, Creg[i][6]);
-                    store_if_in_bounds(r0 + i,       c0 + 64 + 3, Creg[i][7]);
-
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 64 + 0, Creg[i + 4][4]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 64 + 1, Creg[i + 4][5]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 64 + 2, Creg[i + 4][6]);
-                    store_if_in_bounds(r0 + 64 + i,  c0 + 64 + 3, Creg[i + 4][7]);
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i, c0 +  0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp0));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i, c0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp1));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + i, c0 + 64 + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp2));
+                    thread::store<Config::StoreModifer,float4>(&C[OFFSET(r0 + 64 + i, c0 + 64 + 0, out_stride)], thread::load<Config::LoadModifer,float4>(&tmp3));
                 }
-            };
+            }
+
 
             __global__
             void lltRcpp(

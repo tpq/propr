@@ -41,7 +41,7 @@ if (CMAKE_CUDA_COMPILER)
     set(USE_CUDA ON)
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -g -lineinfo")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -lineinfo -O3 --use_fast_math --extra-device-vectorization")
     message("CUDA           : FOUND")
     find_package(CUDAToolkit REQUIRED)
     execute_process(

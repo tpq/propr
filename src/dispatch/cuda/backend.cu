@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <math.h>
+#include <iostream>
 
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>
@@ -38,7 +39,7 @@ dispatch::cuda::wtmRcpp(double& out, const NumericVector& x, const NumericVector
   float *d_mean = nullptr;
   PROPR_CUDA_CHECK(cudaMalloc(&d_mean, sizeof(float)));
   detail::cuda::wtm<BLK><<<1, BLK, 0, context.stream>>>(d_mean, d_x,d_w, n);
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
   PROPR_CUDA_CHECK(cudaMemcpy(&h_mean, d_mean, sizeof(float), cudaMemcpyDeviceToHost));
   out = h_mean;
   PROPR_CUDA_CHECK(cudaFree(d_x));
@@ -47,7 +48,7 @@ dispatch::cuda::wtmRcpp(double& out, const NumericVector& x, const NumericVector
 
 void 
 dispatch::cuda::wtvRcpp(double& out, const NumericVector& x, const NumericVector& w, propr_context context) {
-  const int BLK = 1024;
+  const int BLK = 512;
   PROPR_CHECK_VECTOR_SIZE(x, w.size());
 
   const int n = x.size();
@@ -58,7 +59,7 @@ dispatch::cuda::wtvRcpp(double& out, const NumericVector& x, const NumericVector
   float *d_var = nullptr;
   PROPR_CUDA_CHECK(cudaMalloc(&d_var, sizeof(float)));
   detail::cuda::wtv<BLK><<<1, BLK, 0, context.stream>>>(d_var, d_x,d_w, n);
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
   PROPR_CUDA_CHECK(cudaMemcpy(&h_var, d_var, sizeof(float), cudaMemcpyDeviceToHost));
   out = h_var;
   PROPR_CUDA_CHECK(cudaFree(d_x));
@@ -79,7 +80,7 @@ centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_context c
   int grid= propr::ceil_div(X.ncol(), block);
 
   propr::detail::cuda::centerNumericMatrix<Config::BLK_X><<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, X.nrow(), X.ncol());
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   int ncols = X.ncol();
   int nrows = X.nrow();
@@ -138,7 +139,7 @@ dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
   dim3 grid(M_pad / Config::BLK_M, M_pad / Config::BLK_M);
 
   propr::detail::cuda::corRcpp<Config><<<grid, block, 0, context.stream>>>( d_out, dout_stride, d_X, K_pad, /*rows=*/M, /*cols=*/K);
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   auto h_full = new float[size_t(M) * size_t(M)];
   PROPR_CUDA_CHECK(cudaMemcpy2D(
@@ -206,7 +207,7 @@ dispatch::cuda::covRcpp(NumericMatrix& out, const NumericMatrix & X, const int n
     norm_type, d_out, dout_stride, d_Xpad, X_stride_pad, /*rows*/ M_pad, /*cols*/ K
   );
 
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   auto h_full = std::vector<float>((size_t)M_pad * dout_stride);
   PROPR_CUDA_CHECK(cudaMemcpy(h_full.data(), d_out,
@@ -240,7 +241,7 @@ dispatch::cuda::clrRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
     propr::detail::cuda::clrRcpp<BLK_X, BLK_Y, false><<<grid, block, 0, context.stream>>>(
         d_out, d_out_stride, d_x, d_x_stride, rows, cols
     );
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     float *out_host = new float[cols * d_out_stride];
     PROPR_CUDA_CHECK(cudaMemcpy(
@@ -290,7 +291,7 @@ dispatch::cuda::alrRcpp(NumericMatrix& out, const NumericMatrix & X, const int i
         ncols
     );
 
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     const size_t total_cols = ncols;
     const size_t total_elems_per_col = d_out_stride;
@@ -334,8 +335,8 @@ dispatch::cuda::symRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
   dim3 grid(ceil_div(nrow, Config::TILE),ceil_div(nrow, Config::TILE));
   
   propr::detail::cuda::symRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_X, X_stride, nrow, ncol);
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
-  PROPR_CUDA_CHECK(cudaPeekAtLastError());
+  PROPR_STREAM_SYNCHRONIZE(context);
+
   auto h_full = new float[nrow * ncol ];
   PROPR_CUDA_CHECK(cudaMemcpy(h_full, d_out, nrow * ncol * sizeof(float), cudaMemcpyDeviceToHost));
   double *outptr = REAL(out);
@@ -359,8 +360,9 @@ dispatch::cuda::vlrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X,
   int M = X.ncol();   // features
   int K = X.nrow();   // samples
 
-  int M_pad = ((M + Config::BLK_M - 1) / Config::BLK_M) * Config::BLK_M; // multiple of 128
-  int K_pad = ((K + 4 - 1) / 4) * 4;
+  int M_pad = propr::round_up(M, Config::BLK_M);
+  int K_pad = propr::round_up(K,  4);
+  
 
   int padTop = 0, padLeft = 0;
   int padBottom = M_pad - M;
@@ -375,10 +377,9 @@ dispatch::cuda::vlrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X,
   PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(*d_out)));
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
   dim3 grid(ceil_div(M_pad, Config::BLK_M), ceil_div(M_pad, Config::BLK_M));
-
+  printf("launching vlrRcpp<<<(%d,%d)(%d,%d)>>>\n",grid.x, grid.y, block.x, block.y);
   propr::detail::cuda::vlrRcpp<Config><<<grid, block, 0, context.stream>>>( d_out, dout_stride, d_X, X_stride, M, K);
-  PROPR_CUDA_CHECK(cudaGetLastError());
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   float * h_full =  new float[(size_t)M * M];
   PROPR_CUDA_CHECK(cudaMemcpy2D(
@@ -416,7 +417,7 @@ dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, pr
     offset_t X_stride; 
     auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
 
-    offset_t dout_stride = nfeats;
+    offset_t dout_stride = propr::round_up(nfeats,4);
     float* d_out = nullptr;
 
     size_t d_out_elems = N * static_cast<size_t>(dout_stride);  // == N*N
@@ -448,7 +449,7 @@ dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, pr
 
     // std::cout << "<<<(" << grid.x << "," << grid.y << "),(" << block.x << "," << block.y << ")>>>"<< std::endl;
     PROPR_CUDA_CHECK(cudaLaunchCooperativeKernel(propr::detail::cuda::phiRcpp<Config>, grid, block, args, 0, context.stream));
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     auto h_full = new float[d_out_elems];
     PROPR_CUDA_CHECK(cudaMemcpy(h_full, d_out,
                         d_out_elems * sizeof(float),
@@ -524,7 +525,7 @@ dispatch::cuda::rhoRcpp(NumericMatrix& out,
       ivar, d_out, dout_stride, d_x, x_stride, d_lr, lr_stride,
       /*rows*/ M_pad, /*cols*/ samples /* true K */
   );
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   auto h_full = std::vector<float>((size_t)M_pad * dout_stride);
   PROPR_CUDA_CHECK(cudaMemcpy(h_full.data(), d_out,
@@ -615,7 +616,7 @@ dispatch::cuda::indexToCoord(List& out, IntegerVector V, int N, propr_context co
     propr::detail::cuda::indexToCoord<<<grid, block, 0, context.stream>>>(
         N, d_V, d_row, d_col, len
     );
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector<int, INTSXP>(d_row, rows, len);
     copyToNumericVector<int, INTSXP>(d_col, cols, len);
@@ -657,7 +658,7 @@ dispatch::cuda::coordToIndex(
     propr::detail::cuda::coordToIndex<<<grid, block, 0, context.stream>>>(
         N, d_out, d_row, d_col, len
     );
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     copyToNumericVector(d_out, out, len);
     PROPR_CUDA_CHECK(cudaFree(d_out));
     PROPR_CUDA_CHECK(cudaFree(d_row));
@@ -667,11 +668,14 @@ dispatch::cuda::coordToIndex(
 
 void 
 dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const NumericMatrix &lr, propr_context context){
-    // PROPR_CHECK_MATRIX_DIMS(out, rho.ncol(), rho.ncol());
 
     using Config = propr::cuda::traits::lin_config;
     size_t nfeats  = lr.ncol();
     size_t samples = lr.nrow();
+
+
+    const size_t M_pad = propr::round_up(nfeats,  Config::BLK_M);
+    const size_t K_pad = propr::round_up(samples, Config::BLK_K);
 
     offset_t lr_stride;
     auto *d_lr = RcppMatrixToDevice<float>(lr, lr_stride);
@@ -680,16 +684,16 @@ dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const Num
     auto *d_rho = RcppMatrixToDevice<float>(rho, rho_stride);
 
     float* d_out = nullptr;
-    offset_t dout_stride = nfeats;
-    PROPR_CUDA_CHECK(cudaMalloc(&d_out, nfeats * dout_stride * sizeof(*d_out)));
+    offset_t dout_stride = M_pad;
+    PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(*d_out)));
     
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
     
     propr::detail::cuda::linRcpp<Config><<<grid, block, 0, context.stream>>>(d_out, dout_stride, d_rho, rho_stride, d_lr, lr_stride, nfeats, samples);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
-    auto h_full = new float[nfeats * nfeats];
+    auto h_full = new float[M_pad * dout_stride];
     PROPR_CUDA_CHECK(cudaMemcpy(
         h_full,
         d_out,
@@ -709,7 +713,6 @@ dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const Num
     PROPR_CUDA_CHECK(cudaFree(d_out));
     PROPR_CUDA_CHECK(cudaFree(d_lr));
     PROPR_CUDA_CHECK(cudaFree(d_rho));
-
 }
 
 void 
@@ -726,7 +729,7 @@ dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_conte
     int block = Config::BLK_X;
     int grid= propr::ceil_div(llt,block);
     propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     copyToNumericVector(d_out, out, llt);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     PROPR_CUDA_CHECK(cudaFree(d_out));
@@ -744,7 +747,7 @@ void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_
     int block = Config::BLK_X;
     int grid= propr::ceil_div(llt, block);
     propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
     copyToNumericVector(d_out, out, llt);
     PROPR_CUDA_CHECK(cudaFree(d_x));
     PROPR_CUDA_CHECK(cudaFree(d_out));
@@ -761,7 +764,7 @@ void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
   int block = Config::BLK_X;
   int grid= propr::ceil_div(llt, block);
   propr::detail::cuda::labRcpp<<<grid, block,0,context.stream>>>(d_partner, d_pair, nfeats);
-  PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+  PROPR_STREAM_SYNCHRONIZE(context);
 
   out["Partner"] = Rcpp::IntegerVector(llt);
   out["Pair"] = Rcpp::IntegerVector(llt);
@@ -795,7 +798,7 @@ dispatch::cuda::half2mat(NumericMatrix& out, const NumericVector & X, propr_cont
     const size_t block = Config::BLK_X;
     const int grid     = static_cast<int>(propr::ceil_div(total_pairs, block));
     propr::detail::cuda::half2mat<<<grid, block, 0, context.stream>>>(d_out, d_out_stride, d_X, nfeats);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     const size_t total_elems = d_out_stride * nfeats;
     const size_t total_bytes = total_elems * sizeof(float);
@@ -852,7 +855,7 @@ dispatch::cuda::vector2mat(
         d_j,
         ni
     );
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     const size_t total_elems = static_cast<size_t>(d_out_stride) * static_cast<size_t>(nfeats);
     const size_t total_bytes = total_elems * sizeof(float);
@@ -896,7 +899,7 @@ dispatch::cuda::ratiosRcpp(NumericMatrix & out, const NumericMatrix & X, propr_c
     int block = Config::BLK_X;
     int grid= propr::ceil_div(llt * nsamps, block);
     propr::detail::cuda::ratiosRcpp<<<grid,block,0,context.stream>>>(d_out, d_out_stride, d_x, d_x_stride, nfeats, nsamps);
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     float *out_host = new float[llt * d_out_stride];
     PROPR_CUDA_CHECK(cudaMemcpy(

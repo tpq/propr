@@ -31,11 +31,10 @@ propr::dispatch::cuda::lrm_basic(NumericVector& out, NumericMatrix &Y, propr::pr
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X),  propr::ceil_div(N_genes, Config::BLK_Y));
 
-    propr::detail::cuda::lrm_basic<<<gridDim, blockDim, 0, context.stream>>>(
+    propr::detail::cuda::lrm_basic<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_mean, N_samples, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_mean, out, N_pairs);
     PROPR_CUDA_CHECK(cudaFree(d_Y));
@@ -64,11 +63,10 @@ propr::dispatch::cuda::lrm_weighted(NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X), propr::ceil_div(N_genes, Config::BLK_Y));
 
-    propr::detail::cuda::lrm_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    propr::detail::cuda::lrm_weighted<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_W, stride_W, d_mean, N_samples, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_mean, out, N_pairs);
     PROPR_CUDA_CHECK(cudaFree(d_Y));
@@ -100,11 +98,11 @@ propr::dispatch::cuda::lrm_alpha(NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X), propr::ceil_div(N_genes, Config::BLK_Y));
 
-    propr::detail::cuda::lrm_alpha<<<gridDim, blockDim, 0, context.stream>>>(
+    propr::detail::cuda::lrm_alpha<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride_Y, d_Yfull, stride_Yfull, N1, NT, static_cast<float>(a), d_means, N1, N_genes
     );
     PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_means, out, N_pairs);
     PROPR_CUDA_CHECK(cudaFree(d_Y));
@@ -140,15 +138,14 @@ propr::dispatch::cuda::lrm_alpha_weighted(NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X), propr::ceil_div(N_genes, Config::BLK_Y));
 
-    propr::detail::cuda::lrm_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    propr::detail::cuda::lrm_alpha_weighted<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , stride_Y, 
         d_Yfull, stride_Yfull,
         d_W    , stride_W,
         d_Wfull, stride_Wfull, 
         N1, NT, static_cast<float>(a), d_means, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_means, out, N_pairs);
 

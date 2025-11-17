@@ -41,6 +41,20 @@
   } while (0)
 
 
+#define PROPR_STREAM_SYNCHRONIZE(call) \
+    do { \
+        cudaError_t err_1 = cudaStreamSynchronize(context.stream); \
+        if (err_1 != cudaSuccess) { \
+            fprintf(stderr, "CUDA error at %s:%d - %s\n", __FILE__, __LINE__, cudaGetErrorString(err_1)); \
+            exit(EXIT_FAILURE); \
+        } \
+        cudaError_t err_2 = cudaPeekAtLastError(); \
+        if (err_2 != cudaSuccess) { \
+            fprintf(stderr, "CUDA error at %s:%d - %s\n", __FILE__, __LINE__, cudaGetErrorString(err_2)); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
+
 
 static void checkCublas(cublasStatus_t st, const char* msg) {
     if (st != CUBLAS_STATUS_SUCCESS) {

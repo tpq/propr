@@ -38,8 +38,7 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_variances, N_samples, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_variances, out, N_pairs);
     PROPR_CUDA_CHECK(cudaFree(d_Y));
@@ -72,8 +71,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
         d_W, W_stride, 
         d_variances, N_samples, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_variances, out, N_pairs);
 
@@ -113,8 +111,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
         static_cast<float>(a), d_variances, N_samples, N_samples_full, N_genes
     );
     
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_variances, out, N_pairs);
 
@@ -157,8 +154,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
         d_Wfull, Wfull_stride,
         static_cast<float>(a), d_variances, N_samples, N_samples_full, N_genes
     );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_variances, out, N_pairs);
 

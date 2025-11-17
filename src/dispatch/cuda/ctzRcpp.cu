@@ -36,7 +36,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
         d_X, X_stride, nsubjs, nfeats, d_zeroes
     );
     PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     int* d_result;
     PROPR_CUDA_CHECK(cudaMalloc(&d_result, llt * sizeof(int)));
@@ -48,7 +48,7 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
         d_zeroes, 1, nfeats, d_result
     );
     PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaStreamSynchronize(context.stream));
+    PROPR_STREAM_SYNCHRONIZE(context);
 
     copyToNumericVector(d_result, out, llt);
 
