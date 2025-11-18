@@ -35,7 +35,7 @@ dispatch::cuda::lrv_basic(Rcpp::NumericVector& out,
     dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
     
-    detail::cuda::lrv_basic<<<gridDim, blockDim, 0, context.stream>>>(
+    detail::cuda::lrv_basic<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, stride, d_variances, N_samples, N_genes
     );
     PROPR_STREAM_SYNCHRONIZE(context);
@@ -66,7 +66,7 @@ dispatch::cuda::lrv_weighted(Rcpp::NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
-    detail::cuda::lrv_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    detail::cuda::lrv_weighted<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y, Y_stride, 
         d_W, W_stride, 
         d_variances, N_samples, N_genes
@@ -105,7 +105,7 @@ void dispatch::cuda::lrv_alpha(Rcpp::NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes, Config::BLK_X), propr::ceil_div(N_genes, Config::BLK_Y));
 
-    detail::cuda::lrv_alpha<<<gridDim, blockDim, 0, context.stream>>>(
+    detail::cuda::lrv_alpha<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride,
         d_Yfull, Yfull_stride,
         static_cast<float>(a), d_variances, N_samples, N_samples_full, N_genes
@@ -147,7 +147,7 @@ dispatch::cuda::lrv_alpha_weighted(Rcpp::NumericVector& out,
     dim3 blockDim(Config::BLK_X, Config::BLK_Y);
     dim3 gridDim(propr::ceil_div(N_genes,Config::BLK_X), propr::ceil_div(N_genes,Config::BLK_Y));
 
-    detail::cuda::lrv_alpha_weighted<<<gridDim, blockDim, 0, context.stream>>>(
+    detail::cuda::lrv_alpha_weighted<Config><<<gridDim, blockDim, 0, context.stream>>>(
         d_Y    , Y_stride, 
         d_Yfull, Yfull_stride, 
         d_W    , W_stride,
