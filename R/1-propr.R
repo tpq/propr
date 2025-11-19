@@ -121,11 +121,16 @@ propr <- function(counts,
   ### OPTIONALLY REDUCE DATA SIZE BEFORE COMPUTING MATRIX
   ##############################################################################
 
-  if (!is.na(select)) {
+  if (length(select) == 1 && is.na(select)) {
+    # Do nothing - no output, no return value
+    invisible(NULL)
+  } else if (is.vector(select) && length(select) > 0) {
     message("Alert: Using 'select' may make permutation testing unreliable.")
-    counts <- counts[, select]
+    counts <- counts[, select, drop = FALSE]
     ct <- ct[, select]
     lr <- lr[, select]
+  } else {
+    stop("Error: 'select' must be NA or a vector of indices.")
   }
 
   ##############################################################################
