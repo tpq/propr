@@ -1286,6 +1286,406 @@ namespace propr {
                 }
             }
 
+
+            template <class Config>
+            __global__
+            void phiRcpp_stage1(const bool sym,
+                                float* __restrict__ out, offset_t out_stride,
+                                float* __restrict__ x,   offset_t x_stride,
+                                double* __restrict__ row_sums,
+                                double* __restrict__ mu_sum,
+                                int rows, int cols)
+            {
+                static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+                static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
+                static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
+
+                #pragma nv_diag_suppress 177
+                const int M = rows;
+                const int K = cols;
+                #pragma nv_diag_default 177
+
+                const float* A = x;
+                const float* B = x;
+                    float* C = out;
+
+                const int bx = blockIdx.x;
+                const int by = blockIdx.y;
+
+                const int tx = threadIdx.x;
+                const int ty = threadIdx.y;
+
+                const int THREAD_X_PER_BLOCK   = Config::BLK_M / Config::TH_X; 
+                const int THREAD_Y_PER_BLOCK   = Config::BLK_M / Config::TH_Y; 
+                const int THREAD_NUM_PER_BLOCK = THREAD_X_PER_BLOCK * THREAD_Y_PER_BLOCK;
+                const int tid = ty * THREAD_X_PER_BLOCK + tx;
+
+                __shared__ float As[2][Config::BLK_K][Config::BLK_M];
+                __shared__ float Bs[2][Config::BLK_K][Config::BLK_M];
+
+                float S [Config::TH_Y][Config::TH_X] = {0.0f};
+                float mu[Config::TH_Y][Config::TH_X] = {0.0f};
+
+                __syncthreads();
+
+                float frag_a[2][Config::TH_Y];
+                float frag_b[2][Config::TH_X];
+
+                const int ldg_num_a = Config::BLK_M * Config::BLK_K / (THREAD_NUM_PER_BLOCK * 4);
+                const int ldg_num_b = Config::BLK_K * Config::BLK_M / (THREAD_NUM_PER_BLOCK * 4);
+                float ldg_a_reg[4 * ldg_num_a];
+                float ldg_b_reg[4 * ldg_num_b];
+
+                const int A_TILE_THREAD_PER_ROW = Config::BLK_K / 4;
+                const int B_TILE_THREAD_PER_ROW = Config::BLK_M / 4;
+
+                const int A_TILE_ROW_START = tid / A_TILE_THREAD_PER_ROW;
+                const int B_TILE_ROW_START = tid / B_TILE_THREAD_PER_ROW;
+
+                const int A_TILE_COL = (tid % A_TILE_THREAD_PER_ROW) * 4;
+                const int B_TILE_COL = (tid % B_TILE_THREAD_PER_ROW) * 4;
+
+                const int A_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / A_TILE_THREAD_PER_ROW;
+                const int B_TILE_ROW_STRIDE = THREAD_NUM_PER_BLOCK / B_TILE_THREAD_PER_ROW;
+
+                const float* A_base = &A[(Config::BLK_M * by) * x_stride];
+                const float* B_base = &B[(Config::BLK_M * bx) * x_stride];
+
+                const int warp_id = tid / 32;
+                const int lane_id = tid % 32;
+                const int a_tile_index =  (warp_id / 2) * 16 + (lane_id / 8) * 4;
+                const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
+
+                auto ld_or_zero = [](const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) {
+                    return (r < max_r && c < max_c) ? __logf(p[OFFSET(r, c, ld)]) : 0.0f;
+                };
+
+                // --- load first A/B tiles into shared memory ---
+                PROPR_UNROLL
+                for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
+                    const int row_m  = A_TILE_ROW_START + i;
+                    const int base_k = A_TILE_COL;
+                    As[0][A_TILE_COL + 0][row_m] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
+                    As[0][A_TILE_COL + 1][row_m] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
+                    As[0][A_TILE_COL + 2][row_m] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
+                    As[0][A_TILE_COL + 3][row_m] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
+                }
+
+                PROPR_UNROLL
+                for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
+                    const int row_k = B_TILE_ROW_START + i;
+                    const int col_m = B_TILE_COL;
+                    Bs[0][row_k][col_m + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
+                    Bs[0][row_k][col_m + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
+                    Bs[0][row_k][col_m + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
+                    Bs[0][row_k][col_m + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                }
+                __syncthreads();
+
+                thread::store<Config::StoreModifer,float4>(&frag_a[0][0],
+                    thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index]));
+                thread::store<Config::StoreModifer,float4>(&frag_a[0][4],
+                    thread::load<Config::LoadModifer,float4>(&As[0][0][a_tile_index + 64]));
+
+                thread::store<Config::StoreModifer,float4>(&frag_b[0][0],
+                    thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index]));
+                thread::store<Config::StoreModifer,float4>(&frag_b[0][4],
+                    thread::load<Config::LoadModifer,float4>(&Bs[0][0][b_tile_index + 64]));
+
+                int write_stage_idx = 1;
+                int tile_idx = 0;
+
+                do {
+                    tile_idx += Config::BLK_K;
+                    if (tile_idx < K) {
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
+                            const int row_m  = A_TILE_ROW_START + i;
+                            const int base_k = A_TILE_COL + tile_idx;
+                            const int l      = (i / A_TILE_ROW_STRIDE) * 4;
+
+                            ldg_a_reg[l + 0] = ld_or_zero(A_base, row_m, base_k + 0, x_stride, M, K);
+                            ldg_a_reg[l + 1] = ld_or_zero(A_base, row_m, base_k + 1, x_stride, M, K);
+                            ldg_a_reg[l + 2] = ld_or_zero(A_base, row_m, base_k + 2, x_stride, M, K);
+                            ldg_a_reg[l + 3] = ld_or_zero(A_base, row_m, base_k + 3, x_stride, M, K);
+                        }
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
+                            const int l      = (i / B_TILE_ROW_STRIDE) * 4;
+                            const int row_k  = tile_idx + B_TILE_ROW_START + i;
+                            const int col_m  = B_TILE_COL;
+
+                            ldg_b_reg[l + 0] = ld_or_zero(B_base, col_m + 0, row_k, x_stride, M, K);
+                            ldg_b_reg[l + 1] = ld_or_zero(B_base, col_m + 1, row_k, x_stride, M, K);
+                            ldg_b_reg[l + 2] = ld_or_zero(B_base, col_m + 2, row_k, x_stride, M, K);
+                            ldg_b_reg[l + 3] = ld_or_zero(B_base, col_m + 3, row_k, x_stride, M, K);
+                        }
+                    }
+
+                    const int load_stage_idx = write_stage_idx ^ 1;
+                    const int tile_base = tile_idx - Config::BLK_K;
+                    const int rem       = K - tile_base;
+                    const int k_tile    = (rem < Config::BLK_K ? rem : Config::BLK_K);
+                    const int j_max     = (k_tile > 0 ? k_tile - 1 : 0);
+
+                    PROPR_UNROLL
+                    for (int j = 0; j < j_max; ++j) {
+                        thread::store<Config::StoreModifer,float4>(&frag_a[(j + 1) & 1][0],
+                            thread::load<Config::LoadModifer,float4>(&As[load_stage_idx][(j + 1)][a_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_a[(j + 1) & 1][4],
+                            thread::load<Config::LoadModifer,float4>(&As[load_stage_idx][(j + 1)][a_tile_index + 64]));
+
+                        thread::store<Config::StoreModifer,float4>(&frag_b[(j + 1) & 1][0],
+                            thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx][(j + 1)][b_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_b[(j + 1) & 1][4],
+                            thread::load<Config::LoadModifer,float4>(&Bs[load_stage_idx][(j + 1)][b_tile_index + 64]));
+
+                        const int k_cur = tile_base + (j + 1);
+
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float a = frag_a[j & 1][thread_y];
+                            PROPR_UNROLL
+                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                                const float b = frag_b[j & 1][thread_x];
+                                const float xval = a - b;
+
+                                const float old_mu = mu[thread_y][thread_x];
+                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_cur;
+                                S [thread_y][thread_x] = S[thread_y][thread_x]
+                                                        + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                            }
+                        }
+                    }
+
+                    if (tile_idx < K) {
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
+                            const int l     = (i / A_TILE_ROW_STRIDE) * 4;
+                            const int row_m = A_TILE_ROW_START + i;
+
+                            As[write_stage_idx][A_TILE_COL + 0][row_m] = ldg_a_reg[l + 0];
+                            As[write_stage_idx][A_TILE_COL + 1][row_m] = ldg_a_reg[l + 1];
+                            As[write_stage_idx][A_TILE_COL + 2][row_m] = ldg_a_reg[l + 2];
+                            As[write_stage_idx][A_TILE_COL + 3][row_m] = ldg_a_reg[l + 3];
+                        }
+                        PROPR_UNROLL
+                        for (int i = 0; i < Config::BLK_K; i += B_TILE_ROW_STRIDE) {
+                            const int l     = (i / B_TILE_ROW_STRIDE) * 4;
+                            const int row_k = B_TILE_ROW_START + i;
+                            thread::store<Config::StoreModifer,float4>(&Bs[write_stage_idx][row_k][B_TILE_COL],
+                                thread::load<Config::LoadModifer,float4>(&ldg_b_reg[l]));
+                        }
+                        __syncthreads();
+                        write_stage_idx ^= 1;
+                    }
+
+                    if (k_tile > 0) {
+                        const int k_tail   = tile_base + k_tile;
+                        const int last_buf = (j_max & 1);
+                        PROPR_UNROLL
+                        for (int thread_y = 0; thread_y < Config::TH_Y; ++thread_y) {
+                            const float a = frag_a[last_buf][thread_y];
+                            PROPR_UNROLL
+                            for (int thread_x = 0; thread_x < Config::TH_X; ++thread_x) {
+                                const float b = frag_b[last_buf][thread_x];
+                                const float xval = a - b;
+
+                                const float old_mu = mu[thread_y][thread_x];
+                                mu[thread_y][thread_x] = old_mu + (xval - old_mu) / (float)k_tail;
+                                S [thread_y][thread_x] = S[thread_y][thread_x]
+                                                        + (xval - mu[thread_y][thread_x]) * (xval - old_mu);
+                            }
+                        }
+                    }
+
+                    if (tile_idx < K) {
+                        thread::store<Config::StoreModifer,float4>(&frag_a[0][0],
+                            thread::load<Config::LoadModifer,float4>(&As[(write_stage_idx ^ 1)][0][a_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_a[0][4],
+                            thread::load<Config::LoadModifer,float4>(&As[(write_stage_idx ^ 1)][0][a_tile_index + 64]));
+
+                        thread::store<Config::StoreModifer,float4>(&frag_b[0][0],
+                            thread::load<Config::LoadModifer,float4>(&Bs[(write_stage_idx ^ 1)][0][b_tile_index]));
+                        thread::store<Config::StoreModifer,float4>(&frag_b[0][4],
+                            thread::load<Config::LoadModifer,float4>(&Bs[(write_stage_idx ^ 1)][0][b_tile_index + 64]));
+                    }
+                } while (tile_idx < K);
+
+                const int c_block_row = a_tile_index;
+                const int c_block_col = b_tile_index;
+
+                const int r0 = Config::BLK_M * by + c_block_row;
+                const int c0 = Config::BLK_M * bx + c_block_col;
+
+                // --- finalize variance S_ij = S / (K-1) and accumulate reductions ---
+                const float inv_denom = (K > 1 ? 1.0f / (float)(K - 1) : 1.0f);
+                PROPR_UNROLL
+                for (int yy = 0; yy < Config::TH_Y; ++yy) {
+                    PROPR_UNROLL
+                    for (int xx = 0; xx < Config::TH_X; ++xx) {
+                        S[yy][xx] *= inv_denom;
+                    }
+                }
+
+                auto accum_row_mu = [&](int r, int c, float mval){
+                    if (r < M && c < M) {
+                        atomicAdd(&row_sums[r], (double)mval);
+                        atomicAdd(mu_sum,       (double)mval);
+                    }
+                };
+
+                for (int i = 0; i < 4; ++i) {
+                    const int rr0 = r0 + i;
+                    const int rr1 = r0 + 64 + i;
+
+                    accum_row_mu(rr0, c0 + 0,       S[i][0]);
+                    accum_row_mu(rr0, c0 + 1,       S[i][1]);
+                    accum_row_mu(rr0, c0 + 2,       S[i][2]);
+                    accum_row_mu(rr0, c0 + 3,       S[i][3]);
+                    accum_row_mu(rr0, c0 + 64 + 0,  S[i][4]);
+                    accum_row_mu(rr0, c0 + 64 + 1,  S[i][5]);
+                    accum_row_mu(rr0, c0 + 64 + 2,  S[i][6]);
+                    accum_row_mu(rr0, c0 + 64 + 3,  S[i][7]);
+
+                    accum_row_mu(rr1, c0 + 0,       S[i + 4][0]);
+                    accum_row_mu(rr1, c0 + 1,       S[i + 4][1]);
+                    accum_row_mu(rr1, c0 + 2,       S[i + 4][2]);
+                    accum_row_mu(rr1, c0 + 3,       S[i + 4][3]);
+                    accum_row_mu(rr1, c0 + 64 + 0,  S[i + 4][4]);
+                    accum_row_mu(rr1, c0 + 64 + 1,  S[i + 4][5]);
+                    accum_row_mu(rr1, c0 + 64 + 2,  S[i + 4][6]);
+                    accum_row_mu(rr1, c0 + 64 + 3,  S[i + 4][7]);
+                }
+
+                auto store_S4 = [&](int r, int c_base, float m0, float m1, float m2, float m3)
+                {
+                    if (r >= M) return;
+                    float vals[4] = { m0, m1, m2, m3 };
+                    if (c_base + 3 < M) {
+                        thread::store<Config::StoreModifer,float4>(&C[OFFSET(r, c_base, out_stride)],thread::load<Config::LoadModifer,float4>((float*)&vals));
+                    } else {
+                        PROPR_UNROLL
+                        for (int lane = 0; lane < 4; ++lane) {
+                            int c = c_base + lane;
+                            if (c < M) {
+                                C[OFFSET(r, c, out_stride)] = vals[lane];
+                            }
+                        }
+                    }
+                };
+
+                for (int i = 0; i < 4; ++i) {
+                    const int rr0 = r0 + i;
+                    const int rr1 = r0 + 64 + i;
+
+                    store_S4(rr0, c0 + 0     , S[i][0]    , S[i][1]    , S[i][2]    , S[i][3]    );
+                    store_S4(rr0, c0 + 64 + 0, S[i][4]    , S[i][5]    , S[i][6]    , S[i][7]    );
+                    store_S4(rr1, c0 + 0     , S[i + 4][0], S[i + 4][1], S[i + 4][2], S[i + 4][3]);
+                    store_S4(rr1, c0 + 64 + 0, S[i + 4][4], S[i + 4][5], S[i + 4][6], S[i + 4][7]);
+                }
+            }
+
+
+            template <class Config>
+            __global__
+            void phiRcpp_stage2(const bool sym,
+                                float*  __restrict__ out, offset_t out_stride,
+                                double* __restrict__ row_sums,
+                                double* __restrict__ mu_sum,
+                                int rows /* M */)
+            {
+                const int M = rows;
+
+                const int bx = blockIdx.x;
+                const int by = blockIdx.y;
+
+                const int tx = threadIdx.x;
+                const int ty = threadIdx.y;
+
+                const int THREAD_X_PER_BLOCK   = Config::BLK_M / Config::TH_X; 
+                const int THREAD_Y_PER_BLOCK   = Config::BLK_M / Config::TH_Y; 
+                const int tid = ty * THREAD_X_PER_BLOCK + tx;
+
+                const int warp_id     = tid / 32;
+                const int lane_id     = tid % 32;
+
+                const int c_block_row = (warp_id / 2) * 16 + (lane_id / 8) * 4;
+                const int c_block_col = (warp_id % 2) * 32 + (lane_id % 8) * 4;
+
+                const int r0 = Config::BLK_M * by + c_block_row;
+                const int c0 = Config::BLK_M * bx + c_block_col;
+
+                float* C = out;
+
+                const double invM   = (M > 0 ? 1.0 / (double)M : 0.0);
+                const double mu_val = (*mu_sum) / ((double)M * (double)M);
+
+                auto v_of = [&](int idx)->double {
+                    double rsum = (idx < M ? row_sums[idx] : 0.0);
+                    return rsum * invM - 0.5 * mu_val;
+                };
+
+                auto compute_phi4_and_store_from_S = [&](int r, int c_base) {
+                    if (r >= M) return;
+
+                    float Svals[4] = {0.f, 0.f, 0.f, 0.f};
+
+                    // load S_ij (already scaled variance) from C
+                    PROPR_UNROLL
+                    for (int lane = 0; lane < 4; ++lane) {
+                        int c = c_base + lane;
+                        if (c < M) {
+                            Svals[lane] = C[OFFSET(r, c, out_stride)];
+                        }
+                    }
+
+                    float out_arr[4] = {0.f, 0.f, 0.f, 0.f};
+                    PROPR_UNROLL
+                    for (int lane = 0; lane < 4; ++lane) {
+                        int c = c_base + lane;
+                        double val = 0.0f;
+
+                        if (c < M && r != c) {
+                            double denom = 0.0f;
+                            if (!sym) {
+                                denom = v_of(c);
+                            } else {
+                                int k = (r < c ? r : c);
+                                denom = v_of(k);
+                            }
+                            if (denom != 0.0f) {
+                                val = Svals[lane] / denom;
+                            }
+                        }
+                        out_arr[lane] = static_cast<float>(val);
+                    }
+
+                    if (c_base + 3 < M) {
+                        float4 v = make_float4(out_arr[0], out_arr[1], out_arr[2], out_arr[3]);
+                        thread::store<Config::StoreModifer,float4>(&C[OFFSET(r, c_base, out_stride)],v);
+                    } else {
+                        PROPR_UNROLL
+                        for (int lane = 0; lane < 4; ++lane) {
+                            int c = c_base + lane;
+                            if (c < M) {
+                                C[OFFSET(r, c, out_stride)] = out_arr[lane];
+                            }
+                        }
+                    }
+                };
+
+                for (int i = 0; i < 4; ++i) {
+                    const int rr0 = r0 + i;
+                    const int rr1 = r0 + 64 + i;
+                    compute_phi4_and_store_from_S(rr0, c0 + 0     );
+                    compute_phi4_and_store_from_S(rr0, c0 + 64 + 0);
+                    compute_phi4_and_store_from_S(rr1, c0 + 0     );
+                    compute_phi4_and_store_from_S(rr1, c0 + 64 + 0);
+                }
+            }
+
+
             template <class Config>
             __global__
             void 

@@ -405,71 +405,196 @@ dispatch::cuda::vlrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X,
 }
 
 void 
-dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, propr_context context) {
-    using Config = propr::cuda::traits::phi_config;
-    PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
-    int nfeats  = X.ncol(); 
-    int samples = X.nrow();
+dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, propr_context context)
+{
+  using Config = propr::cuda::traits::phi_config;
 
-    size_t N = static_cast<size_t>(nfeats);
-    //size_t M = static_cast<size_t>(samples);
+  PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
+  int nfeats  = X.ncol(); 
+  int samples = X.nrow();
 
-    offset_t X_stride; 
-    auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
+  size_t N = static_cast<size_t>(nfeats);
 
-    offset_t dout_stride = propr::round_up(nfeats,4);
-    float* d_out = nullptr;
+  offset_t X_stride; 
+  auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
 
-    size_t d_out_elems = N * static_cast<size_t>(dout_stride);  // == N*N
-    PROPR_CUDA_CHECK(cudaMalloc(&d_out, d_out_elems * sizeof(*d_out)));
+  offset_t dout_stride = propr::round_up(nfeats,4);
+  float* d_out = nullptr;
 
-    float* row_sums = nullptr;
-    PROPR_CUDA_CHECK(cudaMalloc(&row_sums, N * sizeof(*row_sums)));
+  size_t d_out_elems = N * static_cast<size_t>(dout_stride);  // == N*N with rounding
+  PROPR_CUDA_CHECK(cudaMalloc(&d_out, d_out_elems * sizeof(*d_out)));
 
-    float* mu_sum = nullptr;
-    PROPR_CUDA_CHECK(cudaMalloc(&mu_sum, sizeof(*mu_sum)));
+  double* row_sums = nullptr;
+  PROPR_CUDA_CHECK(cudaMalloc(&row_sums, N * sizeof(*row_sums)));
 
-    int* gbar = nullptr;
-    dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
-    dim3 grid (ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
-    
-    size_t gbar_len = static_cast<size_t>(grid.x) * grid.y;
-    PROPR_CUDA_CHECK(cudaMalloc(&gbar, gbar_len * sizeof(*gbar)));
+  double* mu_sum = nullptr;
+  PROPR_CUDA_CHECK(cudaMalloc(&mu_sum, sizeof(*mu_sum)));
 
-    PROPR_CUDA_CHECK(cudaMemset(row_sums, 0, N * sizeof(*row_sums)));
-    PROPR_CUDA_CHECK(cudaMemset(mu_sum,   0, sizeof(*mu_sum)));
-    PROPR_CUDA_CHECK(cudaMemset(gbar,     0, gbar_len * sizeof(*gbar)));
+  PROPR_CUDA_CHECK(cudaMemset(row_sums, 0, N * sizeof(*row_sums)));
+  PROPR_CUDA_CHECK(cudaMemset(mu_sum,   0, sizeof(*mu_sum)));
 
-    void* args[] = {static_cast<void*>(const_cast<bool *>(&sym)),
-                    static_cast<void*>(&d_out), static_cast<void*>(&dout_stride),
-                    static_cast<void*>(&d_X)  , static_cast<void*>(&X_stride),
-                    static_cast<void*>(&row_sums), static_cast<void*>(&mu_sum),
-                    static_cast<void*>(&nfeats), static_cast<void*>(&samples),
-                };
+  dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
+  dim3 grid (ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
 
-    // std::cout << "<<<(" << grid.x << "," << grid.y << "),(" << block.x << "," << block.y << ")>>>"<< std::endl;
-    PROPR_CUDA_CHECK(cudaLaunchCooperativeKernel(propr::detail::cuda::phiRcpp<Config>, grid, block, args, 0, context.stream));
-    PROPR_STREAM_SYNCHRONIZE(context);
-    auto h_full = new float[d_out_elems];
-    PROPR_CUDA_CHECK(cudaMemcpy(h_full, d_out,
-                        d_out_elems * sizeof(float),
-                        cudaMemcpyDeviceToHost));
+  bool use_single_stage = false;
+  int dev = 0;
+  cudaDeviceProp prop;
 
+  PROPR_CUDA_CHECK(cudaGetDevice(&dev));
+  PROPR_CUDA_CHECK(cudaGetDeviceProperties(&prop, dev));
 
-   double *outptr = REAL(out);
-   for (int i = 0; i < nfeats; ++i) {
-        for (int j = 0; j < nfeats; ++j) {
-            outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
-        }
-    }
+  int coop_supported = 0;
+  PROPR_CUDA_CHECK(cudaDeviceGetAttribute(
+      &coop_supported, cudaDevAttrCooperativeLaunch, dev));
+
+  if (coop_supported) {
+      int maxBlocksPerSM = 0;
+      // Single-stage kernel
+      using KernelPtrT = void (*)(const bool,
+                                  float*, offset_t,
+                                  const float*, offset_t,
+                                  float*, float*, int, int);
+
+      KernelPtrT kernel_ptr = propr::detail::cuda::phiRcpp<Config>;
+
+      int blockSize = block.x * block.y;
+
+      cudaError_t occ_err =
+          cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxBlocksPerSM,(const void*)kernel_ptr, blockSize, 0);
+
+      if (occ_err == cudaSuccess && maxBlocksPerSM > 0) {
+          const int maxCoopBlocks = maxBlocksPerSM * prop.multiProcessorCount;
+          const int numBlocks     = grid.x * grid.y;
+          if (numBlocks <= maxCoopBlocks) use_single_stage = true;
+      }
+  }
+
+  if (use_single_stage) {
+      // -------- Single-stage cooperative--------
+      void* args[] = {
+          (void*)&sym,
+          (void*)&d_out,       (void*)&dout_stride,
+          (void*)&d_X,         (void*)&X_stride,
+          (void*)&row_sums,    (void*)&mu_sum,
+          (void*)&nfeats,      (void*)&samples
+      };
+
+      PROPR_CUDA_CHECK(cudaLaunchCooperativeKernel(
+          (void*)propr::detail::cuda::phiRcpp<Config>,
+          grid, block, args, 0, context.stream));
+
+      PROPR_STREAM_SYNCHRONIZE(context);
+  } else {
+      // -------- Two-stage non-cooperative path --------
+      // Stage 1: compute S_ij, row_sums, mu_sum, and store S_ij in d_out
+      propr::detail::cuda::phiRcpp_stage1<Config><<<grid, block, 0, context.stream>>>(
+          sym,
+          d_out, dout_stride,
+          d_X,   X_stride,
+          row_sums,
+          mu_sum,
+          nfeats,   // rows (M)
+          samples   // cols (K)
+      );
+      PROPR_CUDA_CHECK(cudaGetLastError());
+      PROPR_STREAM_SYNCHRONIZE(context);
+
+      // Stage 2: turn S_ij in d_out into phi_ij in-place
+      propr::detail::cuda::phiRcpp_stage2<Config><<<grid, block, 0, context.stream>>>(
+          sym,
+          d_out, dout_stride,
+          row_sums,
+          mu_sum,
+          nfeats   // M
+      );
+      PROPR_CUDA_CHECK(cudaGetLastError());
+      PROPR_STREAM_SYNCHRONIZE(context);
+  }
+
+  auto h_full = new float[d_out_elems];
+  PROPR_CUDA_CHECK(cudaMemcpy(h_full, d_out, d_out_elems * sizeof(float), cudaMemcpyDeviceToHost));
+  double *outptr = REAL(out);
+  for (int i = 0; i < nfeats; ++i) {
+      for (int j = 0; j < nfeats; ++j) {
+          outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
+      }
+  }
 
   delete[] h_full;
   h_full = nullptr;
-  
-  PROPR_CUDA_CHECK(cudaFree(d_X  ));
+
+  PROPR_CUDA_CHECK(cudaFree(d_X));
   PROPR_CUDA_CHECK(cudaFree(d_out));
+  PROPR_CUDA_CHECK(cudaFree(row_sums));
   PROPR_CUDA_CHECK(cudaFree(mu_sum));
 }
+
+// void 
+// dispatch::cuda::phiRcpp(NumericMatrix& out, NumericMatrix &X, const bool sym, propr_context context) {
+//     using Config = propr::cuda::traits::phi_config;
+//     PROPR_CHECK_MATRIX_DIMS(out, X.ncol(), X.ncol());
+//     int nfeats  = X.ncol(); 
+//     int samples = X.nrow();
+
+//     size_t N = static_cast<size_t>(nfeats);
+//     //size_t M = static_cast<size_t>(samples);
+
+//     offset_t X_stride; 
+//     auto *d_X = RcppMatrixToDevice<float>(X, X_stride);
+
+//     offset_t dout_stride = propr::round_up(nfeats,4);
+//     float* d_out = nullptr;
+
+//     size_t d_out_elems = N * static_cast<size_t>(dout_stride);  // == N*N
+//     PROPR_CUDA_CHECK(cudaMalloc(&d_out, d_out_elems * sizeof(*d_out)));
+
+//     float* row_sums = nullptr;
+//     PROPR_CUDA_CHECK(cudaMalloc(&row_sums, N * sizeof(*row_sums)));
+
+//     float* mu_sum = nullptr;
+//     PROPR_CUDA_CHECK(cudaMalloc(&mu_sum, sizeof(*mu_sum)));
+
+//     int* gbar = nullptr;
+//     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
+//     dim3 grid (ceil_div(nfeats, Config::BLK_M), ceil_div(nfeats, Config::BLK_M));
+    
+//     size_t gbar_len = static_cast<size_t>(grid.x) * grid.y;
+//     PROPR_CUDA_CHECK(cudaMalloc(&gbar, gbar_len * sizeof(*gbar)));
+
+//     PROPR_CUDA_CHECK(cudaMemset(row_sums, 0, N * sizeof(*row_sums)));
+//     PROPR_CUDA_CHECK(cudaMemset(mu_sum,   0, sizeof(*mu_sum)));
+//     PROPR_CUDA_CHECK(cudaMemset(gbar,     0, gbar_len * sizeof(*gbar)));
+
+//     void* args[] = {static_cast<void*>(const_cast<bool *>(&sym)),
+//                     static_cast<void*>(&d_out), static_cast<void*>(&dout_stride),
+//                     static_cast<void*>(&d_X)  , static_cast<void*>(&X_stride),
+//                     static_cast<void*>(&row_sums), static_cast<void*>(&mu_sum),
+//                     static_cast<void*>(&nfeats), static_cast<void*>(&samples),
+//                 };
+
+//     // std::cout << "<<<(" << grid.x << "," << grid.y << "),(" << block.x << "," << block.y << ")>>>"<< std::endl;
+//     PROPR_CUDA_CHECK(cudaLaunchCooperativeKernel(propr::detail::cuda::phiRcpp<Config>, grid, block, args, 0, context.stream));
+//     PROPR_STREAM_SYNCHRONIZE(context);
+//     auto h_full = new float[d_out_elems];
+//     PROPR_CUDA_CHECK(cudaMemcpy(h_full, d_out,
+//                         d_out_elems * sizeof(float),
+//                         cudaMemcpyDeviceToHost));
+
+
+//    double *outptr = REAL(out);
+//    for (int i = 0; i < nfeats; ++i) {
+//         for (int j = 0; j < nfeats; ++j) {
+//             outptr[i + j * nfeats] = h_full[i * dout_stride  + j];
+//         }
+//     }
+
+//   delete[] h_full;
+//   h_full = nullptr;
+  
+//   PROPR_CUDA_CHECK(cudaFree(d_X  ));
+//   PROPR_CUDA_CHECK(cudaFree(d_out));
+//   PROPR_CUDA_CHECK(cudaFree(mu_sum));
+// }
 
 void 
 dispatch::cuda::rhoRcpp(NumericMatrix& out,
