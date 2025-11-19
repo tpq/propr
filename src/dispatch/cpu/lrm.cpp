@@ -20,25 +20,29 @@ dispatch::cpu::lrm(NumericVector& out,
 	PROPR_CHECK_VECTOR_SIZE(out, llt)
 	int counter = 0;
 
-	if (!R_IsNA(a)) {
+	if (!R_IsNA(a)) { // Weighted and non-weighted, alpha-transformed
+		//////////////////////////////////////////////////////
+    	// Check for valid Yfull argument
 		if (Yfull.nrow() == NumericMatrix(1, 1).nrow() &&
 			Yfull.ncol() == NumericMatrix(1, 1).ncol()) {
 			stop("User must provide valid Yfull argument for alpha-transformation.");
 		}
 
+		// Raise all of X to the a power
 		for (int i = 0; i < X.nrow(); i++) {
 			for (int j = 0; j < X.ncol(); j++) {
 				X(i, j) = pow(X(i, j), a);
 			}
 		}
 
-		NumericMatrix Xfull_copy = clone(Yfull);
-		int full_X_rows = Xfull_copy.nrow();
-		int full_X_cols = Xfull_copy.ncol();
+		NumericMatrix Xfull = clone(Yfull);
+		int full_X_rows = Xfull.nrow();
+		int full_X_cols = Xfull.ncol();
 
+		// Raise all of Xfull to the a power
 		for (int i = 0; i < full_X_rows; i++) {
 			for (int j = 0; j < full_X_cols; j++) {
-				Xfull_copy(i, j) = pow(Xfull_copy(i, j), a);
+				Xfull(i, j) = pow(Xfull(i, j), a);
 			}
 		}
 		if (weighted) {
@@ -47,6 +51,7 @@ dispatch::cpu::lrm(NumericVector& out,
 				stop("User must provide valid Wfull argument for weighted alpha-transformation.");
 			}
 
+			// Calculate alpha-transformed mean using the across-group means
 			Rcpp::NumericVector Wij(nfeats);
       		Rcpp::NumericVector Wfullij(fullfeats);
       		Rcpp::NumericVector Xiscaled(nfeats);
@@ -58,38 +63,35 @@ dispatch::cpu::lrm(NumericVector& out,
 
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
-					Wij     = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-          			Wfullij = 2 * Wfull(_, i) * Wfull(_, j) / (Wfull(_, i) + Wfull(_, j));
+					Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+					Wfullij = 2 * Wfull(_, i) * Wfull(_, j) / (Wfull(_, i) + Wfull(_, j));
 
-                    dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull_copy(_, i), Wfullij);
-                    dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull_copy(_, j), Wfullij);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_i, Xfull(_, i), Wfullij);
+                    dispatch::cpu::wtmRcpp(mean_Xfull_j, Xfull(_, j), Wfullij);
 
 					Xiscaled = X(_, i) / mean_Xfull_i;
 					Xjscaled = X(_, j) / mean_Xfull_j;
 
 					Xz = X(_, i) - X(_, j);
-					Xfullz = Xfull_copy(_, i) - Xfull_copy(_, j);
-
-                    dispatch::cpu::wtmRcpp(Mz_sum_val, Xiscaled - Xjscaled, Wij);
-					double Mz = Mz_sum_val;
-
+					Xfullz = Xfull(_, i) - Xfull(_, j);
+					double Mz = sum(Wij * (Xiscaled - Xjscaled) / sum(Wij));
 					double Cz = sum(Wij * Xz) / sum(Wij) + (sum(Wfullij * Xfullz) - sum(Wij * Xz)) / (sum(Wfullij) - sum(Wij));
 					out(counter) = (Cz / 2 + Mz) / a;
 					counter += 1;
 				}
 			}
 		} else {
+			// Calculate alpha-transformed mean using the across-group means
 			Rcpp::NumericVector Xz(nfeats);
 			Rcpp::NumericVector Xfullz(fullfeats);
 			double N1 = X.nrow();
-			double NT = Yfull.nrow();
-			for (int i = 1; i < nfeats; i++) {
-				for (int j = 0; j < i; j++) {
+			double NT = Xfull.nrow();
+			for(int i = 1; i < nfeats; i++){
+				for(int j = 0; j < i; j++){
 					Xz = X(_, i) - X(_, j);
-					Xfullz = Yfull(_, i) - Yfull(_, j);
-
-					double Mz = mean(X(_, i) / mean(Yfull(_, i)) - X(_, j) / mean(Yfull(_, j)));
-					double Cz = sum(Xz) / N1 + (sum(Xfullz) - sum(Xz)) / (NT - N1);
+					Xfullz = Xfull(_, i) - Xfull(_, j);
+					double Mz = mean(X(_, i) / mean(Xfull(_, i)) - mean(X(_, j) / mean(Xfull(_, j))));
+					double Cz = sum(Xz) / N1 + (sum(Xfullz) - sum(Xz)) /(NT - N1);
 					out(counter) = (Cz / 2 + Mz) / a;
 					counter += 1;
 				}
@@ -99,9 +101,9 @@ dispatch::cpu::lrm(NumericVector& out,
 	else { // Weighted and non-weighted, non-transformed
 		if (weighted) {
 			Rcpp::NumericVector Wij(nfeats);
-            double lrm_val;
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
+					double lrm_val;
 					Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
                     dispatch::cpu::wtmRcpp(lrm_val, log(X(_, i) / X(_, j)), Wij);
 					out(counter) = lrm_val;
