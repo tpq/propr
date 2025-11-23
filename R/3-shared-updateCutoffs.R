@@ -28,13 +28,20 @@ updateCutoffs <-
            tails = 'right',
            ncores = 1) {
 
+    NVTX_PUSH("updateCutoffs", 0)
+
     if (inherits(object, "propr")) {
-      updateCutoffs.propr(object, number_of_cutoffs, custom_cutoffs, tails, ncores)
+      res <- updateCutoffs.propr(object, number_of_cutoffs, custom_cutoffs, tails, ncores)
+      NVTX_POP()
+      return(res)
 
     } else if (inherits(object, "propd")) {
-      updateCutoffs.propd(object, number_of_cutoffs, custom_cutoffs, ncores)
+      res <- updateCutoffs.propd(object, number_of_cutoffs, custom_cutoffs, ncores)
+      NVTX_POP()
+      return(res)
 
     } else {
+      NVTX_POP()
       stop("Provided 'object' not recognized.")
     }
 
@@ -55,15 +62,20 @@ updateCutoffs.propr <-
            custom_cutoffs = NA, 
            tails = 'right', 
            ncores = 1) {
+
     if (identical(object@permutes, list(NULL))) {
       stop("Permutation testing is disabled.")
     }
+
+    NVTX_PUSH("updateCutoffs.propr", 0)
+
     if (object@metric == "phi") {
       warning("We recommend using the symmetric phi 'phs' for FDR permutation.")
     }
     object@tails <- tails
 
     # get cutoffs
+    NVTX_PUSH("get_cutoffs.propr", 0)
     if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       vals <- object@results$propr
       if (tails == 'right') {
@@ -75,32 +87,40 @@ updateCutoffs.propr <-
     } else {
       cutoffs <- custom_cutoffs
     }
+    NVTX_POP()  # get_cutoffs.propr
 
     # Set up FDR cutoff table
+    NVTX_PUSH("setup_FDR_table.propr", 0)
     FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
     colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
     FDR$cutoff <- cutoffs
+    NVTX_POP()  # setup_FDR_table.propr
 
     # count the permuted values greater or less than each cutoff
+    NVTX_PUSH("randcounts.propr", 0)
     if (ncores > 1) {
       FDR$randcounts <- getFdrRandcounts.propr.parallel(object, cutoffs, ncores)
-    } else{
+    } else {
       FDR$randcounts <- getFdrRandcounts.propr.run(object, cutoffs)
     }
+    NVTX_POP()  # randcounts.propr
 
     # count actual values greater or less than each cutoff
+    NVTX_PUSH("truecounts.propr", 0)
     vals <- object@results$propr
     if (tails == 'both') vals <- abs(vals)
     FDR$truecounts <- sapply(FDR$cutoff, function(cutoff) {
       countValuesBeyondThreshold(vals, cutoff, object@direct)
     })
+    NVTX_POP()  # truecounts.propr
 
     # calculate FDR
+    NVTX_PUSH("calc_FDR.propr", 0)
     FDR$FDR <- FDR$randcounts / FDR$truecounts
-
-    # Initialize @fdr
     object@fdr <- FDR
+    NVTX_POP()  # calc_FDR.propr
 
+    NVTX_POP()  # updateCutoffs.propr
     return(object)
   }
 
@@ -109,10 +129,14 @@ updateCutoffs.propr <-
 getFdrRandcounts.propr.parallel <- 
   function(object, cutoffs, ncores) {
 
+    NVTX_PUSH("getFdrRandcounts.propr.parallel", 0)
+
     # Set up the cluster
+    NVTX_PUSH("setup_cluster.propr", 0)
     packageCheck("parallel")
     cl <- parallel::makeCluster(ncores)
     # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
+    NVTX_POP()  # setup_cluster.propr
 
     # define function to parallelize
     getFdrRandcounts <- function(ct.k) {
@@ -133,17 +157,24 @@ getFdrRandcounts.propr.parallel <-
 
     # Each element of this list will be a vector whose elements
     # are the count of theta values less than the cutoff.
+    NVTX_PUSH("parLapply.propr", 0)
     randcounts <- parallel::parLapply(cl = cl,
                                       X = object@permutes,
                                       fun = getFdrRandcounts)
+    NVTX_POP()  # parLapply.propr
 
     # get the average randcounts across all permutations
+    NVTX_PUSH("aggregate_randcounts.propr", 0)
     randcounts <- apply(as.data.frame(randcounts), 1, sum)
     randcounts <- randcounts / length(object@permutes)
+    NVTX_POP()  # aggregate_randcounts.propr
 
     # Explicitly stop the cluster.
+    NVTX_PUSH("stop_cluster.propr", 0)
     parallel::stopCluster(cl)
+    NVTX_POP()  # stop_cluster.propr
 
+    NVTX_POP()  # getFdrRandcounts.propr.parallel
     return(randcounts)
   }
 
@@ -152,11 +183,15 @@ getFdrRandcounts.propr.parallel <-
 getFdrRandcounts.propr.run <-
   function(object, cutoffs) {
 
+    NVTX_PUSH("getFdrRandcounts.propr.run", 0)
+
     # create empty randcounts
     randcounts <- rep(0, length(cutoffs))
 
     # Calculate propr for each permutation -- NOTE: `select` and `subset` disable permutation testing
     p <- length(object@permutes)
+
+    NVTX_PUSH("permutation_loop.propr", 0)
     for (k in 1:p) {
       numTicks <- progress(k, p, numTicks)
 
@@ -173,12 +208,15 @@ getFdrRandcounts.propr.run <-
       if (object@tails == 'both') pkt <- abs(pkt)
 
       # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
-      for (cut in 1:length(cutoffs)){
+      for (cut in 1:length(cutoffs)) {
         randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], object@direct)
       }
     }
+    NVTX_POP()  # permutation_loop.propr
 
     randcounts <- randcounts / p  # averaged across permutations
+
+    NVTX_POP()  # getFdrRandcounts.propr.run
     return(randcounts)
   }
 
@@ -192,39 +230,51 @@ getFdrRandcounts.propr.run <-
 #' @export
 updateCutoffs.propd <-
   function(object, number_of_cutoffs = 100, custom_cutoffs = NA, ncores = 1) {
+
     if (identical(object@permutes, data.frame()))
       stop("Permutation testing is disabled.")
 
+    NVTX_PUSH("updateCutoffs.propd", 0)
+
     # get cutoffs
+    NVTX_PUSH("get_cutoffs.propd", 0)
     if (length(custom_cutoffs) == 1 && is.na(custom_cutoffs)) {
       cutoffs <- as.numeric(quantile(object@results$theta, seq(0, 1, length.out = number_of_cutoffs)))
     } else {
       cutoffs <- custom_cutoffs
     }
+    NVTX_POP()  # get_cutoffs.propd
 
     # Set up FDR cutoff table
+    NVTX_PUSH("setup_FDR_table.propd", 0)
     FDR <- as.data.frame(matrix(0, nrow = length(cutoffs), ncol = 4))
     colnames(FDR) <- c("cutoff", "randcounts", "truecounts", "FDR")
     FDR$cutoff <- cutoffs
+    NVTX_POP()  # setup_FDR_table.propd
 
     # Count the permuted values greater or less than each cutoff
+    NVTX_PUSH("randcounts.propd", 0)
     if (ncores > 1) {
       FDR$randcounts <- getFdrRandcounts.propd.parallel(object, cutoffs, ncores)
-    } else{
+    } else {
       FDR$randcounts <- getFdrRandcounts.propd.run(object, cutoffs)
     }
+    NVTX_POP()  # randcounts.propd
 
     # count actual values greater or less than each cutoff
+    NVTX_PUSH("truecounts.propd", 0)
     FDR$truecounts <- sapply(1:nrow(FDR), function(cut) {
-        countValuesBeyondThreshold(object@results$theta, FDR[cut, "cutoff"], direct=FALSE)
+      countValuesBeyondThreshold(object@results$theta, FDR[cut, "cutoff"], direct = FALSE)
     })
+    NVTX_POP()  # truecounts.propd
 
     # Calculate FDR
+    NVTX_PUSH("calc_FDR.propd", 0)
     FDR$FDR <- FDR$randcounts / FDR$truecounts
-
-    # Initialize @fdr
     object@fdr <- FDR
+    NVTX_POP()  # calc_FDR.propd
 
+    NVTX_POP()  # updateCutoffs.propd
     return(object)
   }
 
@@ -233,10 +283,14 @@ updateCutoffs.propd <-
 getFdrRandcounts.propd.parallel <- 
   function(object, cutoffs, ncores) {
 
+    NVTX_PUSH("getFdrRandcounts.propd.parallel", 0)
+
     # Set up the cluster
+    NVTX_PUSH("setup_cluster.propd", 0)
     packageCheck("parallel")
     cl <- parallel::makeCluster(ncores)
     # parallel::clusterEvalQ(cl, requireNamespace(propr, quietly = TRUE))
+    NVTX_POP()  # setup_cluster.propd
 
     # define functions to parallelize
     getFdrRandcountsMod <- function(k) {
@@ -254,7 +308,7 @@ getFdrRandcounts.propd.parallel <-
       )
       propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
       pkt <- propdi@results$theta_mod
-      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct = FALSE))
     }
     getFdrRandcounts <- function(k) {
       shuffle <- object@permutes[, k]
@@ -269,11 +323,12 @@ getFdrRandcounts.propd.parallel <-
           shrink = object@shrink
         )
       )
-      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct=FALSE))
+      sapply(cutoffs, function(cutoff) countValuesBeyondThreshold(pkt, cutoff, direct = FALSE))
     }
 
     # Each element of this list will be a vector whose elements
     # are the count of theta values less than the cutoff.
+    NVTX_PUSH("parLapply.propd", 0)
     if (object@active == "theta_mod") {
       func <- getFdrRandcountsMod
     } else {
@@ -282,14 +337,20 @@ getFdrRandcounts.propd.parallel <-
     randcounts <- parallel::parLapply(cl = cl,
                                       X = 1:ncol(object@permutes),
                                       fun = func)
+    NVTX_POP()  # parLapply.propd
 
     # get the average randcounts across all permutations
+    NVTX_PUSH("aggregate_randcounts.propd", 0)
     randcounts <- apply(as.data.frame(randcounts), 1, sum)
     randcounts <- randcounts / length(object@permutes)
+    NVTX_POP()  # aggregate_randcounts.propd
 
     # Explicitly stop the cluster.
+    NVTX_PUSH("stop_cluster.propd", 0)
     parallel::stopCluster(cl)
+    NVTX_POP()  # stop_cluster.propd
 
+    NVTX_POP()  # getFdrRandcounts.propd.parallel
     return(randcounts)
   }
 
@@ -298,28 +359,35 @@ getFdrRandcounts.propd.parallel <-
 getFdrRandcounts.propd.run <- 
   function(object, cutoffs) {
 
+    NVTX_PUSH("getFdrRandcounts.propd.run", 0)
+
     # create empty randcounts
     randcounts <- rep(0, length(cutoffs))
 
     # use calculateTheta to permute active theta
     p <- ncol(object@permutes)
+
+    NVTX_PUSH("permutation_loop.propd", 0)
     for (k in 1:p) {
       numTicks <- progress(k, p, numTicks)
 
       # calculate permuted theta values
       if (object@active == "theta_mod") {
         pkt <- suppressMessages(getPermutedThetaMod(object, k))
-      } else{
+      } else {
         pkt <- suppressMessages(getPermutedTheta(object, k))
       }
 
       # calculate the cumulative (across permutations) number of permuted values more or less than cutoff
-      for (cut in 1:length(cutoffs)){
-        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], direct=FALSE)
+      for (cut in 1:length(cutoffs)) {
+        randcounts[cut] <- randcounts[cut] + countValuesBeyondThreshold(pkt, cutoffs[cut], direct = FALSE)
       }
     }
+    NVTX_POP()  # permutation_loop.propd
 
     randcounts <- randcounts / p  # averaged across permutations
+
+    NVTX_POP()  # getFdrRandcounts.propd.run
     return(randcounts)
 }
 
@@ -328,6 +396,8 @@ getPermutedThetaMod <-
   function(object, k) {
 
     if (is.na(object@Fivar)) stop("Please re-run 'updateF' with 'moderation = TRUE'.")
+
+    NVTX_PUSH("getPermutedThetaMod", 0)
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- object@permutes[, k]
@@ -345,12 +415,16 @@ getPermutedThetaMod <-
     )
     propdi <- suppressMessages(updateF(propdi, moderated = TRUE, ivar = object@Fivar))
 
-    return(propdi@results$theta_mod)
+    res <- propdi@results$theta_mod
+    NVTX_POP()  # getPermutedThetaMod
+    return(res)
 }
 
 #' Get the theta values for a given permutation
 getPermutedTheta <- 
   function(object, k) {
+
+    NVTX_PUSH("getPermutedTheta", 0)
 
     # Tally k-th thetas that fall below each cutoff
     shuffle <- object@permutes[, k]
@@ -368,6 +442,7 @@ getPermutedTheta <-
       )
     )
 
+    NVTX_POP()  # getPermutedTheta
     return(pkt)
   }
 
@@ -381,13 +456,20 @@ getPermutedTheta <-
 #' @param cutoff A numeric value.
 #' @param direct A logical value. If \code{TRUE}, direct relationship is considered.
 #' @return The number of values greater or less than the threshold.
-countValuesBeyondThreshold <- function(values, cutoff, direct){
+countValuesBeyondThreshold <- function(values, cutoff, direct) {
+  NVTX_PUSH("countValuesBeyondThreshold", 0)
+
   if (is.na(cutoff)) {
+    NVTX_POP()
     return(NA)
   }
-  if (direct && cutoff >= 0){
-    return(count_greater_than(values, cutoff))
+
+  if (direct && cutoff >= 0) {
+    res <- count_greater_than(values, cutoff)
   } else {
-    return(count_less_than(values, cutoff))
+    res <- count_less_than(values, cutoff)
   }
+
+  NVTX_POP()
+  return(res)
 }

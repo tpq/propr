@@ -5,7 +5,10 @@
 #' @export
 setDisjointed <-
   function(propd) {
-    setActive(propd, what = "theta_d")
+    NVTX_PUSH("setDisjointed", 0)
+    res <- setActive(propd, what = "theta_d")
+    NVTX_POP()
+    return(res)
   }
 
 #' @rdname propd
@@ -15,11 +18,14 @@ setDisjointed <-
 #' @export
 setEmergent <-
   function(propd) {
+    NVTX_PUSH("setEmergent", 0)
     if (!all(table(propd@group) == table(propd@group)[1])) {
       warning("Emergent proportionality not yet validated for unequal group sizes.")
     }
 
-    setActive(propd, what = "theta_e")
+    res <- setActive(propd, what = "theta_e")
+    NVTX_POP()
+    return(res)
   }
 
 #' @rdname propd
@@ -33,10 +39,14 @@ setEmergent <-
 #' @export
 setActive <-
   function(propd, what = "theta_d") {
-    if (!inherits(propd, "propd"))
+    NVTX_PUSH("setActive", 0)
+    if (!inherits(propd, "propd")) {
+      NVTX_POP()
       stop("Please provide a 'propd' object.")
+    }
     if (!any(what == colnames(propd@results)) &
         what != propd@active) {
+      NVTX_POP()
       stop("Provided theta type not recognized.")
     }
 
@@ -51,6 +61,7 @@ setActive <-
     propd@active <- what
     message("Alert: Update FDR or F-stat manually.")
 
+    NVTX_POP()
     return(propd)
   }
 
@@ -67,12 +78,15 @@ setActive <-
 #'  weighted and alpha transformed theta values.
 #' @export
 updateF <- function(propd, moderated = TRUE, ivar = "clr") {
+  NVTX_PUSH("updateF", 0)
   # Validate inputs
   if (!propd@active == "theta_d") {
+    NVTX_POP()
     stop("Make theta_d the active theta.")
   }
   
   if (moderated) {
+    NVTX_PUSH("updateF_moderated", 0)
     message("Alert: Calculating moderated F-statistics using voom approach, with trend = ", propd@weighted)
 
     # use limma package
@@ -106,13 +120,16 @@ updateF <- function(propd, moderated = TRUE, ivar = "clr") {
       
     # Calculate F-statistics
     f_results <- calculate_f_statistics(propd, mod, z.df, moderated = TRUE)
-
+    NVTX_POP()
   } else {
+    NVTX_PUSH("updateF_unmoderated", 0)
     message("Alert: Calculating F-statistics without moderation.")
     propd@Fivar <- NA
     f_results <- calculate_f_statistics(propd, NULL, NULL, moderated = FALSE)
+    NVTX_POP()
   }
   
+  NVTX_PUSH("updateF_store_results", 0)
   # Store results
   propd@results$theta_mod <- f_results$theta_mod
   propd@results$Fstat <- f_results$Fstat
@@ -121,13 +138,16 @@ updateF <- function(propd, moderated = TRUE, ivar = "clr") {
   p_results <- calculate_p_values(propd, f_results$Fstat)
   propd@results$Pval <- p_results$Pval
   propd@results$FDR <- p_results$FDR
+  NVTX_POP()
   
+  NVTX_POP()
   return(propd)
 }
 
 
 # Helper function to prepare reference data
 prepare_reference_data <- function(counts, ivar) {
+  NVTX_PUSH("prepare_reference_data", 0)
   use <- index_reference(counts, ivar)
   
   # Handle zeros by adding offset
@@ -145,22 +165,26 @@ prepare_reference_data <- function(counts, ivar) {
   z.geo <- rowMeans(z.set)
   
   if (any(exp(z.geo) == 0)) {
+    NVTX_POP()
     stop("Zeros present in reference set.")
   }
   
   z.lr <- as.matrix(sweep(logX, 1, z.geo, "-"))
   z <- exp(z.geo)
   
-  return(list(
+  res <- list(
     logX = logX,
     z.lr = z.lr,
     z = z,
     use = use
-  ))
+  )
+  NVTX_POP()
+  return(res)
 }
 
 # Helper function to calculate variance estimates using binning approach
 calculate_variance_estimates <- function(propd, logX) {
+  NVTX_PUSH("calculate_variance_estimates", 0)
   # Pooled log-ratio variance within groups
   plrv <- (propd@results$p1 * propd@results$lrv1 + 
            propd@results$p2 * propd@results$lrv2) / propd@results$p
@@ -203,11 +227,13 @@ calculate_variance_estimates <- function(propd, logX) {
     S2[L[[i]]] <- S[i]^4
   }
   
+  NVTX_POP()
   return(S2)
 }
 
 # Helper function to fit limma model and extract parameters
 fit_limma_model <- function(z.lr, z, group, moderated_trend = FALSE) {
+  NVTX_PUSH("fit_limma_model", 0)
   if (moderated_trend) {
     message("Alert: Calculating prior degrees of freedom with regard to reference.")
   } else {
@@ -221,18 +247,23 @@ fit_limma_model <- function(z.lr, z, group, moderated_trend = FALSE) {
   design <- stats::model.matrix(~ . + 0, data = as.data.frame(group))
   
   # Fit limma-voom model
+  NVTX_PUSH("limma_voom_fit", 0)
   v <- limma::voom(z.sr, design = design)
   param <- limma::lmFit(v, design)
   param <- limma::eBayes(param, trend = moderated_trend)
+  NVTX_POP()
   
-  return(list(
+  res <- list(
     df.prior = param$df.prior,
     s2.prior = param$s2.prior
-  ))
+  )
+  NVTX_POP()
+  return(res)
 }
 
 # Helper function to calculate F-statistics
 calculate_f_statistics <- function(propd, mod, z.df, moderated = TRUE) {
+  NVTX_PUSH("calculate_f_statistics", 0)
   N <- length(propd@group)
   
   if (moderated) {
@@ -245,19 +276,24 @@ calculate_f_statistics <- function(propd, mod, z.df, moderated = TRUE) {
     theta_mod <- as.numeric(NA)
   }
   
-  return(list(
+  res <- list(
     Fstat = Fstat,
     theta_mod = theta_mod
-  ))
+  )
+  NVTX_POP()
+  return(res)
 }
 
 # Helper function to calculate p-values and FDR
 calculate_p_values <- function(propd, Fstat) {
+  NVTX_PUSH("calculate_p_values", 0)
   K <- length(unique(propd@group))
   N <- length(propd@group) + propd@dfz
   
   Pval <- stats::pf(Fstat, K - 1, N - K, lower.tail = FALSE)
   FDR <- stats::p.adjust(Pval, method = "BH")
   
-  return(list(Pval = Pval, FDR = FDR))
+  res <- list(Pval = Pval, FDR = FDR)
+  NVTX_POP()
+  return(res)
 }

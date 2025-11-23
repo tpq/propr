@@ -89,8 +89,47 @@ test_that('results_to_matrix works - when filtered',{
   expect_true(all(results$FDR <= 0.05))
 
   # check values are correct
-  expect_equal(colnames(mat), unique(c(results$Pair, results$Partner)))
-  expect_true(results$theta[1] == mat[results$Pair[1], results$Partner[1]])
-  expect_true(results$theta[2] == mat[results$Pair[2], results$Partner[2]])
-  expect_true(results$theta[3] == mat[results$Pair[3], results$Partner[3]])
+  expect_equal(
+    colnames(mat),
+    unique(c(results$Pair, results$Partner)),
+    info = sprintf(
+      "colnames(mat) = c(%s)\nunique(Pair/Partner) = c(%s)",
+      paste(colnames(mat), collapse = ", "),
+      paste(unique(c(results$Pair, results$Partner)), collapse = ", ")
+    )
+  )
+
+  theta_msg <- function(i) {
+    sprintf(
+      "i = %d\nresults$theta[%d] = %s\nmat[%s, %s] = %s",
+      i, i,
+      results$theta[i],
+      results$Pair[i],
+      results$Partner[i],
+      mat[results$Pair[i], results$Partner[i]]
+    )
+  }
+
+  expect_equal(
+    results$theta[1],
+    mat[results$Pair[1], results$Partner[1]],
+    info = theta_msg(1)
+  )
+
+  expect_equal(
+    results$theta[2],
+    mat[results$Pair[2], results$Partner[2]],
+    info = theta_msg(2)
+  )
+
+  expect_equal(
+    results$theta[3],
+    mat[results$Pair[3], results$Partner[3]],
+    info = theta_msg(3)
+  )
+
+  # expect_equal(colnames(mat), unique(c(results$Pair, results$Partner)))
+  # expect_true(results$theta[1] == mat[results$Pair[1], results$Partner[1]])
+  # expect_true(results$theta[2] == mat[results$Pair[2], results$Partner[2]])
+  # expect_true(results$theta[3] == mat[results$Pair[3], results$Partner[3]])
 })

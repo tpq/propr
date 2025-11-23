@@ -35,30 +35,44 @@ propd <- function(counts,
                   p = 0,
                   weighted = FALSE,
                   shrink = FALSE) {
+  NVTX_PUSH("propd", 0)
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
-
+  NVTX_PUSH("cleanup_args", 0)
   # Clean "count matrix"
   counts <- as_safe_matrix(counts)
 
   # Clean group
   if (inherits(group, "factor"))
     group <- as.character(group)
-  if (!inherits(group, "character"))
+  if (!inherits(group, "character")) {
+    NVTX_POP()  # cleanup_args
+    NVTX_POP()  # propd
     stop("Provide group labels as a character vector.")
-  if (length(group) != nrow(counts))
+  }
+  if (length(group) != nrow(counts)) {
+    NVTX_POP()  # cleanup_args
+    NVTX_POP()  # propd
     stop("Too many or too few group labels.")
+  }
 
   # Throw error if scenario not supported
   if (shrink && weighted) {
+    NVTX_POP()  # cleanup_args
+    NVTX_POP()  # propd
     stop("Shrinkage is not available for weighted computation yet.")
   }
 
   # Special handling for equivalent args
   if (identical(alpha, 0))
     alpha <- NA
+  NVTX_POP()  # cleanup_args
 
+  ##############################################################################
+  ### INITIALIZE RESULT OBJECT
+  ##############################################################################
+  NVTX_PUSH("initialize_result_object", 0)
   # Initialize @active, @weighted
   result <- new("propd")
   result@active <- "theta_d" # set theta_d active by default
@@ -71,11 +85,12 @@ propd <- function(counts,
   result@group <- as.character(group)
   result@alpha <- as.numeric(alpha)
   result@permutes <- data.frame()
+  NVTX_POP()  # initialize_result_object
 
   ##############################################################################
   ### CALCULATE THETA WITH OR WITHOUT WEIGHTS
   ##############################################################################
-
+  NVTX_PUSH("calculate_theta_block", 0)
   # Initialize @results
   result@results <-
     calculate_theta(
@@ -85,20 +100,31 @@ propd <- function(counts,
       weighted = weighted,
       shrink = shrink
     )
-  result@results$Zeros <- ctzRcpp(counts) # count number of zeros
-  result@results$theta <-
-    round(result@results$theta, 14) # round floats to 1
 
-  # permute data
-  if (p > 0) result <- updatePermutes(result, p)
+  NVTX_PUSH("post_theta_annotate", 0)
+  result@results$Zeros <- ctzRcpp(counts) # count number of zeros
+  result@results$theta <- round(result@results$theta, 14) # round floats to 1
+  NVTX_POP()  # post_theta_annotate
+  NVTX_POP()  # calculate_theta_block
+
+  ##############################################################################
+  ### PERMUTATIONS
+  ##############################################################################
+  NVTX_PUSH("permutations", 0)
+  if (p > 0) {
+    result <- updatePermutes(result, p)
+  }
+  NVTX_POP()  # permutations
 
   ##############################################################################
   ### GIVE HELPFUL MESSAGES TO USER
   ##############################################################################
-
+  NVTX_PUSH("user_messages", 0)
   message("Alert: Use 'setActive' to select a theta type.")
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
   message("Alert: Use 'updateF' to calculate F-stat.")
+  NVTX_POP()  # user_messages
 
+  NVTX_POP()  # propd
   return(result)
 }

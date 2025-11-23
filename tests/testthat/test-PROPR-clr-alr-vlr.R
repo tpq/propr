@@ -1,3 +1,4 @@
+options(propr.use_gpu = FALSE)
 library(testthat)
 library(propr)
 

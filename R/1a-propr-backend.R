@@ -214,6 +214,7 @@ logratio <- function(counts, ivar, alpha=NA) {
 #'
 #' @export
 pcor.bshrink <- function(ct, outtype = c("clr", "alr")) {
+  NVTX_PUSH("pcor.bshrink", 0)
   packageCheck("corpcor")
   outtype <- match.arg(outtype)
 
@@ -225,6 +226,7 @@ pcor.bshrink <- function(ct, outtype = c("clr", "alr")) {
   lambda <- attr(covB, "lambda")
 
   # convert basis covariance matrix to clr/alr covariance matrix
+  NVTX_PUSH("basis covariance matrix to clr/alr", 0)
   D  <- ncol(ct)
   if (outtype == "alr") {
     F   <- cbind(diag(rep(1, D - 1)), rep(-1, D - 1))
@@ -233,9 +235,12 @@ pcor.bshrink <- function(ct, outtype = c("clr", "alr")) {
     G   <- diag(rep(1, D)) - matrix(1 / D, D, D)
     cov <- G %*% covB %*% G
   }
+  NVTX_POP()
 
   # partial correlation
+  NVTX_PUSH("corpcor::cor2pcor", 0)
   pcor <- corpcor::cor2pcor(cov)
+  NVTX_POP()
 
   # make output to have same dimensions as input
   # alr partial correlation has one less dimension,
@@ -245,6 +250,6 @@ pcor.bshrink <- function(ct, outtype = c("clr", "alr")) {
     pcor <- rbind(pcor, 0)
     pcor[ncol(pcor), ncol(pcor)] <- 1
   }
-
+  NVTX_POP()
   return(list(matrix = pcor, lambda = lambda))
 }

@@ -40,16 +40,23 @@ selectRatios <-
            nclust = 2 * round(sqrt(ncol(counts))),
            nsearch = 3,
            ndenom = 4) {
+
+    NVTX_PUSH("selectRatios", 0)
+
     ##############################################################################
     ### CLEAN UP ARGS
     ##############################################################################
+    NVTX_PUSH("arg_cleanup", 0)
 
     packageCheck("fastcluster")
     packageCheck("vegan")
 
     if (any(apply(counts, 2, function(x)
-      all(x == 0))))
+      all(x == 0)))) {
+      NVTX_POP()  # arg_cleanup
+      NVTX_POP()  # selectRatios
       stop("Remove columns with all zeros")
+    }
 
     # Replace zeros if needed
     counts <- as_safe_matrix(counts)
@@ -62,12 +69,18 @@ selectRatios <-
       ndim <- min(dim(counts)) - 1
     }
 
-    if (nsearch > nclust)
+    if (nsearch > nclust) {
+      NVTX_POP()  # arg_cleanup
+      NVTX_POP()  # selectRatios
       stop("You cannot have more 'nsearch' than 'nclust'.")
+    }
+
+    NVTX_POP()  # arg_cleanup
 
     ##############################################################################
     ### CALCULATE Z
     ##############################################################################
+    NVTX_PUSH("calculate_Z", 0)
 
     # Calculate Z used to fit vegan model
     P <- counts / sum(counts)
@@ -80,37 +93,47 @@ selectRatios <-
     Y <- Y - mr %*% t(rep(1, ncol(P)))
     Z <- diag(sqrt(rm)) %*% Y %*% diag(sqrt(cm))
 
+    NVTX_POP()  # calculate_Z
+
     ##############################################################################
     ### RUN PROGRAM
     ##############################################################################
+    NVTX_PUSH("run_program", 0)
 
     # Find k ratios that explain most variance
     bmat <- vector("list", ndim)
     lrm <- NULL # do not delete -tpq
     for (k in 1:ndim) {
       # Phase I: Guess best DENOMINATOR based on CLR-transformed input
+      NVTX_PUSH("phase_I_denominator_search", 0)
       clr <- log(counts) - rowMeans(log(counts))
       cxv <- search_tree(clr, Z, nclust, nsearch, lrm)
       topOrAll <- min(ndenom, length(cxv))
       best <- names(cxv)[order(cxv, decreasing = TRUE)][1:topOrAll]
+      NVTX_POP()  # phase_I_denominator_search
 
       # Phase II: Guess best NUMERATOR based on ALR-transformed input
+      NVTX_PUSH("phase_II_numerator_search", 0)
       bmat[[k]] <- lapply(best, function(b) {
+        NVTX_PUSH("ALR_transform_and_search_tree", 0)
         # ALR-transform using the b-th best feature
         alr <- log(counts) - log(counts[, b])
         cxv <- search_tree(alr, Z, nclust, nsearch, lrm)
         explainedVar <- cxv[order(cxv, decreasing = TRUE)]
 
-        # Return
-        data.frame(
+        df <- data.frame(
           "k" = k,
           "Partner" = b,
           "Pair" = names(explainedVar),
           "var" = explainedVar,
           stringsAsFactors = FALSE
         )
+        NVTX_POP()  # ALR_transform_and_search_tree
+        df
       })
+      NVTX_POP()  # phase_II_numerator_search
 
+      NVTX_PUSH("update_lrm_and_progress", 0)
       # Record variance explained by each ratio
       bmat[[k]] <- do.call("rbind", bmat[[k]])
       ind <- order(bmat[[k]]$var, decreasing = TRUE)
@@ -123,19 +146,29 @@ selectRatios <-
 
       # Update progress bar
       numTicks <- progress(k, ndim, numTicks)
+      NVTX_POP()  # update_lrm_and_progress
     }
 
+    NVTX_POP()  # run_program
+
+    NVTX_PUSH("build_result", 0)
     # Get best ratio
     resm <- lapply(bmat, function(x)
       x[1, ])
 
-    list(
+    res <- list(
       "best" = do.call("rbind", resm),
       "all" = do.call("rbind", bmat),
       "Z" = Z,
       "Y" = lrm
     )
+    NVTX_POP()      # build_result
+
+    NVTX_POP()      # selectRatios
+    return(res)
   }
+
+
 
 #' Search Tree Function
 #'
@@ -160,11 +193,17 @@ search_tree <-
            nclust = ncol(data) / 10,
            nsearch = 1,
            lrm = NULL) {
+
+    NVTX_PUSH("search_tree", 0)
+
+    NVTX_PUSH("dist_hclust_cutree", 0)
     d <- stats::dist(t(data))
     h <- fastcluster::hclust(d)
     cuts <- stats::cutree(h, nclust)
+    NVTX_POP()  # dist_hclust_cutree
 
     # Calculate variance explained by CCA for each cluster
+    NVTX_PUSH("cluster_variance_phase1", 0)
     l1 <- sapply(1:nclust, function(cut) {
       index <- names(cuts)[cuts == cut]
       clrOfCut <- rowMeans(data[, index, drop = FALSE])
@@ -175,7 +214,9 @@ search_tree <-
       }, error = function(e)
         return(0))
     })
+    NVTX_POP()  # cluster_variance_phase1
 
+    NVTX_PUSH("cluster_variance_phase2", 0)
     cuts.best <- order(l1, decreasing = TRUE)[1:nsearch]
     trythese <- names(cuts)[cuts %in% cuts.best]
     l2 <- sapply(trythese, function(id) {
@@ -187,6 +228,8 @@ search_tree <-
       }, error = function(e)
         return(0))
     })
+    NVTX_POP()  # cluster_variance_phase2
 
+    NVTX_POP()  # search_tree
     return(l2)
   }

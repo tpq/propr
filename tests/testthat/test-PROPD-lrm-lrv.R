@@ -54,8 +54,8 @@ test_that("GPU and CPU propd results are numerically equivalent", {
     weighted = FALSE
   )
 
-  expect_s4_class(pd_cpu, "propr")
-  expect_s4_class(pd_gpu, "propr")
+  expect_s4_class(pd_cpu, "propd")
+  expect_s4_class(pd_gpu, "propd")
 
   expect_true(all(c("results") %in% slotNames(pd_cpu)))
   expect_true(all(c("results") %in% slotNames(pd_gpu)))

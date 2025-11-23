@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 options(warn = 1)
+testthat::set_max_fails(Inf)
+
 
 # --- Stable absolute paths (survive testthat's wd changes) ---
 start_wd <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
