@@ -3,7 +3,7 @@
 #include <propr/kernels/cpu/dispatch/lr2propr.hpp>
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 #include <propr/utils/rcpp_checks.h>
-#include <propr/utils/host_profiler.hpp>
+#include <propr/utils/host_exclusive_profiler.hpp>
 
 using namespace Rcpp;
 using namespace propr;
@@ -11,7 +11,7 @@ using namespace propr;
 
 void
 dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = lr.ncol();
   PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
 
@@ -32,7 +32,7 @@ dispatch::cpu::lr2vlr(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
 
 void
 dispatch::cpu::lr2phi(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = lr.ncol();
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
@@ -55,7 +55,7 @@ dispatch::cpu::lr2phi(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
 
 void
 dispatch::cpu::lr2rho(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = lr.ncol();
   NumericMatrix x_copy = clone(lr);
   NumericMatrix mat_tmp(nfeats, nfeats);
@@ -85,7 +85,7 @@ dispatch::cpu::lr2rho(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
 
 void
 dispatch::cpu::lr2phs(NumericMatrix& out, Rcpp::NumericMatrix &lr) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = lr.ncol();
   NumericMatrix mat_tmp(nfeats, nfeats);
   dispatch::cpu::lr2rho(mat_tmp, lr);

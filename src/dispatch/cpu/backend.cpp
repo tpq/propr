@@ -6,20 +6,20 @@
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 
 #include <propr/utils/rcpp_checks.h>
-#include <propr/utils/host_profiler.hpp>
+#include <propr/utils/host_exclusive_profiler.hpp>
 
 using namespace Rcpp;
 using namespace propr;
 
 void
 dispatch::cpu::wtmRcpp(double& out, const NumericVector& x, NumericVector& w){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   out =  sum(x * w) / sum(w); 
 }
 
 void
 dispatch::cpu::wtvRcpp(double& out, const NumericVector& x, NumericVector& w) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   double xbar;
   wtmRcpp(xbar, x, w);
   out = sum(w * pow(x - xbar, 2)) * (sum(w) / (pow(sum(w), 2) - sum(pow(w, 2))));
@@ -27,7 +27,7 @@ dispatch::cpu::wtvRcpp(double& out, const NumericVector& x, NumericVector& w) {
 
 void
 centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   PROPR_CHECK_MATRIX_DIMS(out, in_X.nrow(), in_X.ncol());
   for (int j = 0; j < in_X.ncol(); ++j) {
     for (int i = 0; i < in_X.nrow(); ++i) {
@@ -42,7 +42,7 @@ centerNumericMatrix(NumericMatrix& out, NumericMatrix & in_X){
 
 void 
 dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix& X) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   const int n = X.nrow();
   const int p = X.ncol();
   PROPR_CHECK_MATRIX_DIMS(out, p, p);
@@ -78,7 +78,7 @@ dispatch::cpu::corRcpp(NumericMatrix& out, NumericMatrix& X) {
 
 void
 dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   const int n = X.nrow();
   const int m = X.ncol();
   PROPR_CHECK_MATRIX_DIMS(out, m, m);
@@ -97,7 +97,7 @@ dispatch::cpu::covRcpp(NumericMatrix& out, NumericMatrix & X,const int norm_type
 
 void
 dispatch::cpu::vlrRcpp(NumericMatrix& out, NumericMatrix & X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   // This is just a convuluted way of calculating var(l*,i - l*,j)
   int nfeats = X.ncol();
   PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
@@ -126,7 +126,7 @@ dispatch::cpu::vlrRcpp(NumericMatrix& out, NumericMatrix & X){
 
 void
 dispatch::cpu::clrRcpp(NumericMatrix& out, NumericMatrix & X) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
@@ -138,7 +138,7 @@ dispatch::cpu::clrRcpp(NumericMatrix& out, NumericMatrix & X) {
 
 void
 dispatch::cpu::alrRcpp(NumericMatrix& out, NumericMatrix & X,const int ivar){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   if(ivar == 0) {
     stop("Select non-zero ivar.");
   }
@@ -153,7 +153,7 @@ dispatch::cpu::alrRcpp(NumericMatrix& out, NumericMatrix & X,const int ivar){
 
 void
 dispatch::cpu::symRcpp(NumericMatrix& out, NumericMatrix & X) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   PROPR_CHECK_MATRIX_DIMS(out, X.nrow(), X.ncol());
   for(int i = 0; i < X.nrow(); i++){
     for(int j = 0; j < X.ncol(); j++){
@@ -169,7 +169,7 @@ dispatch::cpu::symRcpp(NumericMatrix& out, NumericMatrix & X) {
 
 void
 dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
@@ -202,7 +202,7 @@ dispatch::cpu::phiRcpp(NumericMatrix& out, NumericMatrix& X, bool sym) {
 
 void
 dispatch::cpu::rhoRcpp(NumericMatrix& out, NumericMatrix& X, NumericMatrix& lr,int ivar){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   NumericMatrix mat_tmp(X.ncol(), X.ncol());
   dispatch::cpu::vlrRcpp(mat_tmp, X);
 
@@ -238,7 +238,7 @@ dispatch::cpu::rhoRcpp(NumericMatrix& out, NumericMatrix& X, NumericMatrix& lr,i
 
 void
 dispatch::cpu::indexPairs(std::vector<int>& out, NumericMatrix & X, const String op,const double ref) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   out.clear();
   int nfeats = X.nrow();
   for(int i = 1; i < nfeats; i++){
@@ -278,7 +278,7 @@ dispatch::cpu::indexPairs(std::vector<int>& out, NumericMatrix & X, const String
 
 void
 dispatch::cpu::indexToCoord(List& out, IntegerVector V, const int N){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   std::vector<int> rows;
   std::vector<int> cols;
 
@@ -296,7 +296,7 @@ dispatch::cpu::indexToCoord(List& out, IntegerVector V, const int N){
 
 void
 dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector col, const int N){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   PROPR_CHECK_VECTOR_SIZE(out, row.length());
   if (row.length() != col.length()){
     stop("Input row and col vectors must have the same length.");
@@ -309,7 +309,7 @@ dispatch::cpu::coordToIndex(IntegerVector& out, IntegerVector row, IntegerVector
 
 void 
 dispatch::cpu::linRcpp(NumericMatrix& out, NumericMatrix & rho, NumericMatrix lr){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   if (lr.ncol() != rho.ncol()) stop("linRcpp: lr.ncol() must equal rho.ncol()");
   if (lr.nrow() < 2) stop("linRcpp: lr must have at least 2 rows");
 
@@ -337,7 +337,7 @@ dispatch::cpu::linRcpp(NumericMatrix& out, NumericMatrix & rho, NumericMatrix lr
 
 void
 dispatch::cpu::lltRcpp(NumericVector& out, NumericMatrix & X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
   PROPR_CHECK_VECTOR_SIZE(out, llt);
@@ -352,7 +352,7 @@ dispatch::cpu::lltRcpp(NumericVector& out, NumericMatrix & X){
 
 void
 dispatch::cpu::urtRcpp(NumericVector& out, NumericMatrix & X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
   PROPR_CHECK_VECTOR_SIZE(out, llt);
@@ -367,7 +367,7 @@ dispatch::cpu::urtRcpp(NumericVector& out, NumericMatrix & X){
 
 void
 dispatch::cpu::labRcpp(List& out, int nfeats){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int llt = nfeats * (nfeats - 1) / 2;
   // TODO: move list creation out of dispatch logic
   out["Partner"] = Rcpp::IntegerVector(llt);
@@ -388,7 +388,7 @@ dispatch::cpu::labRcpp(List& out, int nfeats){
 
 void
 dispatch::cpu::half2mat(NumericMatrix& out, NumericVector X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = sqrt(2 * X.length() + .25) + .5;
   PROPR_CHECK_MATRIX_DIMS(out, nfeats, nfeats);
   int counter = 0;
@@ -403,7 +403,7 @@ dispatch::cpu::half2mat(NumericMatrix& out, NumericVector X){
 
 void
 dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, IntegerVector j, int nfeats) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nX = X.length();
   int ni = i.length();
   int nj = j.length();
@@ -423,7 +423,7 @@ dispatch::cpu::vector2mat(NumericMatrix& out, NumericVector X, IntegerVector i, 
 }
 
 void dispatch::cpu::ratiosRcpp(NumericMatrix& out, NumericMatrix & X){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = X.ncol();
   int nsamps = X.nrow();
   int llt = nfeats * (nfeats - 1) / 2;
@@ -443,7 +443,7 @@ dispatch::cpu::results2matRcpp(Rcpp::NumericMatrix& out,
                                DataFrame& results, 
                                int n, 
                                double diagonal){
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   PROPR_CHECK_MATRIX_DIMS(out, n, n);
   std::memset(REAL(out), 0, sizeof(double) * out.size());
   

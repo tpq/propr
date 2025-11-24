@@ -3,7 +3,7 @@
 
 #include <propr/utils/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/omega.hpp>
-#include <propr/utils/host_profiler.hpp>
+#include <propr/utils/host_exclusive_profiler.hpp>
 
 using namespace Rcpp;
 
@@ -31,7 +31,7 @@ NumericMatrix pad_matrix2(const NumericMatrix& mat,
 
 void
 propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = W.ncol();
   int llt = nfeats * (nfeats - 1) / 2;
   Rcpp::NumericVector result(llt);
@@ -50,7 +50,7 @@ propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 
 void
 propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W) {
-  PROPR_PROFILE_HOST("kernel"); 
+  PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
   int nfeats = W.ncol();
   int llt    = nfeats * (nfeats - 1) / 2;
   PROPR_CHECK_VECTOR_SIZE(out, llt);

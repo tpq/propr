@@ -3,7 +3,7 @@
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 #include <propr/kernels/cpu/dispatch/lrv.hpp>
 #include <propr/utils/rcpp_checks.h>
-#include <propr/utils/host_profiler.hpp>
+#include <propr/utils/host_exclusive_profiler.hpp>
 
 using namespace Rcpp;
 using namespace propr;
@@ -31,7 +31,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 		}
 
 		if (weighted) {
-			PROPR_PROFILE_HOST("kernel"); 
+			PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
 
 			for (int i = 0; i < X.nrow(); i++) {
 				for (int j = 0; j < X.ncol(); j++) {
@@ -79,7 +79,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 				}
 			}
 		} else {
-			PROPR_PROFILE_HOST("kernel"); 
+			PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
 			for (int i = 0; i < X.nrow(); i++) {
 				for (int j = 0; j < X.ncol(); j++) {
 					X(i, j) = pow(X(i, j), a);
@@ -115,7 +115,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 		}
 	} else { // Weighted and non-weighted, non-transformed
 		if (weighted) {
-			PROPR_PROFILE_HOST("kernel"); 
+			PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
 			NumericVector Wij(X.nrow());
             double wtv_val;
 			for (int i = 1; i < nfeats; i++) {
@@ -127,7 +127,7 @@ dispatch::cpu::lrv(Rcpp::NumericVector& out,
 				}
 			}
 		} else {
-			PROPR_PROFILE_HOST("kernel"); 
+			PROPR_PROFILE_HOST_EXCLUSIVE("kernel"); 
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
 					out(counter) = var(log(X(_, i) / X(_, j)));
