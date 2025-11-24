@@ -377,7 +377,7 @@ dispatch::cuda::vlrRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix & X,
   PROPR_CUDA_CHECK(cudaMalloc(&d_out, (size_t)M_pad * dout_stride * sizeof(*d_out)));
   dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
   dim3 grid(ceil_div(M_pad, Config::BLK_M), ceil_div(M_pad, Config::BLK_M));
-  printf("launching vlrRcpp<<<(%d,%d)(%d,%d)>>>\n",grid.x, grid.y, block.x, block.y);
+  // printf("launching vlrRcpp<<<(%d,%d)(%d,%d)>>>\n",grid.x, grid.y, block.x, block.y);
   propr::detail::cuda::vlrRcpp<Config><<<grid, block, 0, context.stream>>>( d_out, dout_stride, d_X, X_stride, M, K);
   PROPR_STREAM_SYNCHRONIZE(context);
 
@@ -841,19 +841,25 @@ dispatch::cuda::linRcpp(NumericMatrix& out, const NumericMatrix & rho, const Num
 }
 
 void 
-dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
+dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_context context)
+{
     using Config = propr::cuda::traits::lltRcpp_config;
     int nfeats = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;
-    // PROPR_CHECK_VECTOR_SIZE(out, llt);
+
+    PROPR_CHECK_VECTOR_SIZE(out, llt);
 
     auto* d_out = RcppVectorToDevice<float>(out, llt);
     offset_t d_x_stride;
     auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
-    
+
     int block = Config::BLK_X;
-    int grid= propr::ceil_div(llt,block);
-    propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
+    int grid  = propr::ceil_div(llt, block);
+
+    propr::detail::cuda::lltRcpp<<<grid, block, 0, context.stream>>>(
+        d_out, nfeats, d_x, d_x_stride
+    );
+
     PROPR_STREAM_SYNCHRONIZE(context);
     copyToNumericVector(d_out, out, llt);
     PROPR_CUDA_CHECK(cudaFree(d_x));
@@ -863,15 +869,18 @@ dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_conte
 void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
     using Config = propr::cuda::traits::urtRcpp_config;
     int nfeats = X.nrow();
-    int llt = nfeats * (nfeats - 1) / 2;
-    PROPR_CHECK_VECTOR_SIZE(out, llt);
+    int llt    = nfeats * (nfeats - 1) / 2;
 
     auto* d_out = RcppVectorToDevice<float>(out, llt);
     offset_t d_x_stride;
-    auto *d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
+    auto* d_x = RcppMatrixToDevice<float, REALSXP>(X, d_x_stride);
+
     int block = Config::BLK_X;
-    int grid= propr::ceil_div(llt, block);
-    propr::detail::cuda::lltRcpp<<<grid, block,0,context.stream>>>(d_out, llt, d_x, d_x_stride);
+    int grid  = propr::ceil_div(llt, block);
+
+    propr::detail::cuda::urtRcpp<<<grid, block, 0, context.stream>>>(
+        d_out, nfeats, d_x, d_x_stride
+    );
     PROPR_STREAM_SYNCHRONIZE(context);
     copyToNumericVector(d_out, out, llt);
     PROPR_CUDA_CHECK(cudaFree(d_x));

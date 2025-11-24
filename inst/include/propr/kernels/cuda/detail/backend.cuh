@@ -2496,21 +2496,26 @@ namespace propr {
 
             __global__
             void lltRcpp(
-                     float * out, size_t n,
-                     float * __restrict__ X, 
-                     offset_t x_stride){
-                // TODO: Check f4 perf
-                offset_t total_pairs = (n * (n - 1)) / 2;
+                    float * out,
+                    size_t nfeats,
+                    float * __restrict__ X,
+                    offset_t x_stride)
+            {
+                const offset_t total_pairs = (nfeats * (nfeats - 1)) / 2;
 
-                PROPR_UNROLL
-                for (offset_t k = blockDim.x * blockIdx.x + threadIdx.x; k < total_pairs; k += gridDim.x * blockDim.x) {
+                for (offset_t k = blockDim.x * blockIdx.x + threadIdx.x;
+                    k < total_pairs;
+                    k += gridDim.x * blockDim.x) {
+
                     const double t = sqrt(1.0 + 8.0 * (double)k);
                     const offset_t i = static_cast<offset_t>(floor((1.0 + t) / 2.0));
-                    const offset_t prev = i * (i - 1) / 2; 
+                    const offset_t prev = i * (i - 1) / 2;
                     const offset_t j = static_cast<offset_t>(k - prev);
+
                     out[k] = X[j * x_stride + i];
                 }
-            };
+            }
+
 
             __global__
             void urtRcpp(

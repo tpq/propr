@@ -35,6 +35,7 @@ calculate_theta <-
            weighted = FALSE,
            shrink = FALSE) {
     NVTX_PUSH("calculate_theta", 0)
+
     # count matrix
     ct <- as.matrix(counts)
 
@@ -130,9 +131,9 @@ calculate_theta <-
 
     # calculate logratio variance based on shrunk covariance matrix
     if (shrink) {
-      NVTX_PUSH("lrv_with_shrinkage", 0)
+      NVTX_PUSH("lrv_with_shrinkage_block", 0)
       if (weighted) {
-        NVTX_POP()        # pop "lrv_with_shrinkage"
+        NVTX_POP()        # pop "lrv_with_shrinkage_block"
         NVTX_POP()        # pop "calculate_theta"
         stop("Shrinkage is not available for weighted computation yet.")
       }
@@ -144,7 +145,7 @@ calculate_theta <-
       NVTX_POP()
     } else {
       # Calculate weighted and/or alpha-transformed LRVs -- W not used if weighted = FALSE
-      NVTX_PUSH("lrv", 0)
+      NVTX_PUSH("lrv_block", 0)
       if (firstpass) {
         lrv <- lrv(ct, W, weighted, alpha, ct, W)
       }
@@ -157,7 +158,7 @@ calculate_theta <-
 
     # Calculate LRM (using alpha-based LRM if appropriate)
     if (only == "all") {
-      NVTX_PUSH("lrm", 0)
+      NVTX_PUSH("lrm_block", 0)
       if (firstpass) {
         lrm <- lrm(ct, W, weighted, alpha, ct, W)
       }
