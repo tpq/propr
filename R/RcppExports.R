@@ -161,3 +161,19 @@ Omega <- function(W, use_gpu = FALSE) {
     .Call(`_propr_Omega`, W, use_gpu)
 }
 
+setHostProfile <- function(enable) {
+    .Call(`_propr_setHostProfile`, enable)
+}
+
+consumeHostProfile <- function() {
+    .Call(`_propr_consumeHostProfile`)
+}
+
+setCudaProfile <- function(enable) {
+    .Call(`_propr_setCudaProfile`, enable)
+}
+
+consumeCudaProfile <- function() {
+    .Call(`_propr_consumeCudaProfile`)
+}
+

@@ -16,6 +16,7 @@
 #include <propr/utils/cuda_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
 #include <propr/utils/rcpp_helpers.h>
+#include <propr/utils/cuda_profiler.cuh>
 
 using namespace Rcpp;
 using namespace propr;
@@ -40,9 +41,11 @@ propr::dispatch::cuda::dof_global(NumericVector& out, const NumericMatrix& W, pr
     
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
-    
-    omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    PROPR_STREAM_SYNCHRONIZE(context);
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
+        PROPR_STREAM_SYNCHRONIZE(context);
+    }
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
     PROPR_CUDA_CHECK(cudaMemcpy(
@@ -83,9 +86,11 @@ propr::dispatch::cuda::dof_population(NumericVector& out, const NumericMatrix& W
     dim3 block(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y);
     dim3 grid(nfeats / Config::BLK_M, nfeats / Config::BLK_M);
 
-    // std::cout << "fpt<<<(" << grid.x << "," << grid.y << ")" <<",(" << block.x << "," << block.y << ")>>>" << std::endl;
-    omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
-    PROPR_STREAM_SYNCHRONIZE(context);
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        omega_kernel<Config><<<grid, block, 0, context.stream>>>(d_W, d_out, nfeats, samples);
+        PROPR_STREAM_SYNCHRONIZE(context);
+    }
 
     auto h_full= new std::vector<float> (nfeats * nfeats);
     PROPR_CUDA_CHECK(cudaMemcpy(

@@ -5,6 +5,8 @@
 #include <propr/utils/cuda_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
 #include <propr/utils/cuda_helpers.cuh>
+#include <propr/utils/cuda_profiler.cuh>
+
 
 #include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
 #include <propr/kernels/cuda/detail/ctz.cuh>
@@ -32,11 +34,14 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     PROPR_CUDA_CHECK(cudaMalloc(&d_zeroes, nfeats * sizeof(int)));
 
     const int grid1 = nfeats;
-    detail::cuda::count_per_feature<Config::PHASE_ONE_BLK_X><<<grid1, Config::PHASE_ONE_BLK_X, 0, context.stream>>>(
-        d_X, X_stride, nsubjs, nfeats, d_zeroes
-    );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_STREAM_SYNCHRONIZE(context);
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        detail::cuda::count_per_feature<Config::PHASE_ONE_BLK_X><<<grid1, Config::PHASE_ONE_BLK_X, 0, context.stream>>>(
+            d_X, X_stride, nsubjs, nfeats, d_zeroes
+        );
+        PROPR_CUDA_CHECK(cudaGetLastError());
+        PROPR_STREAM_SYNCHRONIZE(context);
+    }
 
     int* d_result;
     PROPR_CUDA_CHECK(cudaMalloc(&d_result, llt * sizeof(int)));
@@ -44,11 +49,14 @@ dispatch::cuda::ctzRcpp(NumericVector& out,
     dim3 blockDim2(Config::PHASE_TWO_BLK_X, Config::PHASE_TWO_BLK_Y);
     dim3 gridDim2(propr::ceil_div(nfeats, Config::PHASE_TWO_BLK_X), propr::ceil_div(nfeats, Config::PHASE_TWO_BLK_Y));
     
-    detail::cuda::count_joint_zeros<<<gridDim2, blockDim2, 0, context.stream>>>(
-        d_zeroes, 1, nfeats, d_result
-    );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_STREAM_SYNCHRONIZE(context);
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        detail::cuda::count_joint_zeros<<<gridDim2, blockDim2, 0, context.stream>>>(
+            d_zeroes, 1, nfeats, d_result
+        );
+        PROPR_CUDA_CHECK(cudaGetLastError());
+        PROPR_STREAM_SYNCHRONIZE(context);
+    }
 
     copyToNumericVector(d_result, out, llt);
 

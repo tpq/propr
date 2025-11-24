@@ -531,6 +531,48 @@ BEGIN_RCPP
 END_RCPP
 }
 
+// setHostProfile
+void setHostProfile(bool enable);
+RcppExport SEXP _propr_setHostProfile(SEXP enableSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type enable(enableSEXP);
+    setHostProfile(enable);
+    return R_NilValue;
+END_RCPP
+}
+// consumeHostProfile
+DataFrame consumeHostProfile();
+RcppExport SEXP _propr_consumeHostProfile() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(consumeHostProfile());
+    return rcpp_result_gen;
+END_RCPP
+}
+// setCudaProfile
+void setCudaProfile(bool enable);
+RcppExport SEXP _propr_setCudaProfile(SEXP enableSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type enable(enableSEXP);
+    setCudaProfile(enable);
+    return R_NilValue;
+END_RCPP
+}
+// consumeCudaProfile
+DataFrame consumeCudaProfile();
+RcppExport SEXP _propr_consumeCudaProfile() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(consumeCudaProfile());
+    return rcpp_result_gen;
+END_RCPP
+}
+
+
 static const R_CallMethodDef CallEntries[] = {
     {"_propr_wtmRcpp", (DL_FUNC) &_propr_wtmRcpp, 3},
     {"_propr_wtvRcpp", (DL_FUNC) &_propr_wtvRcpp, 3},
@@ -572,6 +614,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_lrv", (DL_FUNC) &_propr_lrv, 7},
     {"_propr_omega", (DL_FUNC) &_propr_omega, 2},
     {"_propr_Omega", (DL_FUNC) &_propr_Omega, 2},
+    {"_propr_setHostProfile", (DL_FUNC) &_propr_setHostProfile, 1},
+    {"_propr_consumeHostProfile", (DL_FUNC) &_propr_consumeHostProfile, 0},
+    {"_propr_setCudaProfile", (DL_FUNC) &_propr_setCudaProfile, 1},
+    {"_propr_consumeCudaProfile", (DL_FUNC) &_propr_consumeCudaProfile, 0},
     {NULL, NULL, 0}
 };
 

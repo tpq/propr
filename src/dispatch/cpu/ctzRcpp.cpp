@@ -2,6 +2,7 @@
 
 #include <propr/utils/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/ctzRcpp.hpp>
+#include <propr/utils/host_profiler.hpp>
 
 
 using namespace Rcpp;
@@ -9,6 +10,7 @@ using namespace propr;
 
 void
 dispatch::cpu::ctzRcpp(NumericVector& out, NumericMatrix & X){
+    PROPR_PROFILE_HOST("kernel"); 
     int nfeats = X.ncol();
     int nsubjs = X.nrow();
     int llt = nfeats * (nfeats - 1) / 2;

@@ -1,12 +1,14 @@
 #include <Rcpp.h>
 #include <propr/kernels/cpu/dispatch/graflex.hpp>
 #include <propr/utils/rcpp_checks.h>
+#include <propr/utils/host_profiler.hpp>
 
 using namespace Rcpp;
 using namespace propr;
 
 void
 dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G) {
+  PROPR_PROFILE_HOST("kernel"); 
   PROPR_CHECK_VECTOR_SIZE(out, 8);
   int ncol = A.ncol();
   double a = 0, b = 0, c = 0, d = 0;
@@ -37,6 +39,7 @@ dispatch::cpu::getOR(NumericVector& out, const IntegerMatrix& A, const IntegerMa
 
 void
 dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const IntegerMatrix& G, const IntegerVector& perm) {
+  PROPR_PROFILE_HOST("kernel"); 
   PROPR_CHECK_VECTOR_SIZE(out, 8); // Check if output vector has correct size
 
   int ncol = A.ncol();
@@ -68,6 +71,7 @@ dispatch::cpu::getORperm(NumericVector& out, const IntegerMatrix& A, const Integ
 
 void
 dispatch::cpu::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const IntegerMatrix& G, int p) {
+  PROPR_PROFILE_HOST("kernel"); 
   PROPR_CHECK_MATRIX_DIMS(out, p, 8);
   int ncol = A.ncol();
   NumericVector or_tmp(8);
@@ -82,6 +86,7 @@ dispatch::cpu::permuteOR(NumericMatrix& out, const IntegerMatrix& A, const Integ
 
 void
 dispatch::cpu::getFDR(List& out, double actual, const NumericVector& permuted) {
+  PROPR_PROFILE_HOST("kernel"); 
   int n = permuted.size();
   int count_over = 0;
   int count_under = 0;
@@ -101,6 +106,7 @@ dispatch::cpu::getFDR(List& out, double actual, const NumericVector& permuted) {
 
 void
 dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
+  PROPR_PROFILE_HOST("kernel"); 
   int n = Gk.size();
   PROPR_CHECK_MATRIX_DIMS(out, n, n);
 
@@ -116,6 +122,7 @@ dispatch::cpu::getG(IntegerMatrix& out, const IntegerVector& Gk) {
 
 void
 dispatch::cpu::graflex(NumericVector& out, const IntegerMatrix& A, const IntegerVector& Gk, int p) {
+  PROPR_PROFILE_HOST("kernel"); 
   IntegerMatrix G_tmp(Gk.size(), Gk.size());
   dispatch::cpu::getG(G_tmp, Gk);
 

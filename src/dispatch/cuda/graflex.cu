@@ -11,6 +11,8 @@
 #include <propr/utils/cuda_checks.h>
 #include <propr/utils/rcpp_checks.h>
 #include <propr/utils/rcpp_cuda.cuh>
+#include <propr/utils/cuda_profiler.cuh>
+
 
 #include <propr/kernels/cuda/detail/graflex.cuh>
 #include <propr/kernels/cuda/dispatch/graflex.cuh>
@@ -62,21 +64,24 @@ propr::dispatch::cuda::getOR(NumericVector& out,
     PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
     PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
-    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
-        tile_state, numBlocks
-    );
-    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    
-    detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
-        tile_state,
-        d_A, a_stride,
-        d_G, g_stride,
-        n,
-        d_acc
-    );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
+            tile_state, numBlocks
+        );
+        PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+        PROPR_CUDA_CHECK(cudaGetLastError());
+
+        detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
+            tile_state,
+            d_A, a_stride,
+            d_G, g_stride,
+            n,
+            d_acc
+        );
+        PROPR_CUDA_CHECK(cudaGetLastError());
+        PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+    }
 
     uint4 h_acc;
     PROPR_CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
@@ -139,22 +144,24 @@ propr::dispatch::cuda::getORperm(NumericVector& out, const IntegerMatrix& A, con
     PROPR_CUDA_CHECK(cudaMalloc(&d_acc, sizeof(uint4)));
     PROPR_CUDA_CHECK(cudaMemset(d_acc, 0, sizeof(uint4)));
 
-    detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
-        tile_state, numBlocks
-    );
-    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
-    PROPR_CUDA_CHECK(cudaGetLastError());
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        detail::cuda::compute_odd_ratio_init<<<numInitBlocks, Config::BLK_X>>>(
+            tile_state, numBlocks
+        );
+        PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+        PROPR_CUDA_CHECK(cudaGetLastError());
     
-    detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
-        tile_state,
-        d_A, a_stride,
-        d_G, g_stride,
-        n,
-        d_acc
-    );
-    PROPR_CUDA_CHECK(cudaGetLastError());
-    PROPR_CUDA_CHECK(cudaDeviceSynchronize());
-
+        detail::cuda::compute_odd_ratio<Config::BLK_X><<<numBlocks, Config::BLK_X>>>(
+            tile_state,
+            d_A, a_stride,
+            d_G, g_stride,
+            n,
+            d_acc
+        );
+        PROPR_CUDA_CHECK(cudaGetLastError());
+        PROPR_CUDA_CHECK(cudaDeviceSynchronize());
+    }
     uint4 h_acc;
     PROPR_CUDA_CHECK(cudaMemcpy(&h_acc, d_acc, sizeof(uint4), cudaMemcpyDeviceToHost));
     PROPR_CUDA_CHECK(cudaFree(d_acc));
@@ -205,20 +212,24 @@ propr::dispatch::cuda::getFDR(List& out, double actual, const NumericVector& per
 
     auto policy = thrust::cuda::par.on(context.stream);
     constexpr int2 init{0,0};
-    int2 result = thrust::transform_reduce(
-        policy,
-        d_permuted,  d_permuted + n,
-        [=] __host__ __device__ (double x) {
-            return int2{ x >= actual, x <= actual };
-        },
-        init,
-        [] __host__ __device__ (const int2& a, const int2& b) {
-            return int2{ a.x + b.x, a.y + b.y };
-        }
-    );
+    int2 result = {0,0};
+    {
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        result = thrust::transform_reduce(
+            policy,
+            d_permuted,  d_permuted + n,
+            [=] __host__ __device__ (double x) {
+                return int2{ x >= actual, x <= actual };
+            },
+            init,
+            [] __host__ __device__ (const int2& a, const int2& b) {
+                return int2{ a.x + b.x, a.y + b.y };
+            }
+        );
 
-    PROPR_STREAM_SYNCHRONIZE(context);
-    PROPR_CUDA_CHECK(cudaFree(d_permuted));
+        PROPR_STREAM_SYNCHRONIZE(context);
+        PROPR_CUDA_CHECK(cudaFree(d_permuted));
+    }
 
     double fdr_over = static_cast<double>(result.x) / n;
     double fdr_under = static_cast<double>(result.y) / n;
@@ -240,17 +251,20 @@ propr::dispatch::cuda::getG(IntegerMatrix& out, const IntegerVector& Gk, propr::
     cublasCreate(&handle);
     float alpha = 1.0f, beta = 0.0f;
 
-    // C = G * G^T
-    PROPR_CUBLAS_CHECK(cublasGemmEx(handle,
-                 CUBLAS_OP_N, CUBLAS_OP_T,
-                 n, n, 1,
-                 &alpha,
-                 d_G, CUDA_R_8I, n,
-                 d_G, CUDA_R_8I, n,
-                 &beta,
-                 d_C, CUDA_R_32F, n,
-                 CUBLAS_COMPUTE_32F,
-                 CUBLAS_GEMM_DEFAULT));
+    {
+        // C = G * G^T
+        PROPR_PROFILE_CUDA("kernel", context.stream);
+        PROPR_CUBLAS_CHECK(cublasGemmEx(handle,
+                    CUBLAS_OP_N, CUBLAS_OP_T,
+                    n, n, 1,
+                    &alpha,
+                    d_G, CUDA_R_8I, n,
+                    d_G, CUDA_R_8I, n,
+                    &beta,
+                    d_C, CUDA_R_32F, n,
+                    CUBLAS_COMPUTE_32F,
+                    CUBLAS_GEMM_DEFAULT));
+    }
 
     
     std::vector<float> h_out;

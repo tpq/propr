@@ -3,6 +3,8 @@
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 #include <propr/kernels/cpu/dispatch/lrm.hpp>
 #include <propr/utils/rcpp_checks.h>
+#include <propr/utils/host_profiler.hpp>
+
 
 using namespace Rcpp;
 using namespace propr;
@@ -12,7 +14,7 @@ dispatch::cpu::lrm(NumericVector& out,
 				   NumericMatrix &Y, NumericMatrix &W,
 				   bool weighted,double a,
 				   NumericMatrix Yfull,NumericMatrix Wfull)
-{
+{ 
 	NumericMatrix X = clone(Y);
 	int nfeats      = X.ncol();
 	int fullfeats   = Yfull.ncol();
@@ -29,23 +31,24 @@ dispatch::cpu::lrm(NumericVector& out,
 		}
 
 		// Raise all of X to the a power
-		for (int i = 0; i < X.nrow(); i++) {
-			for (int j = 0; j < X.ncol(); j++) {
-				X(i, j) = pow(X(i, j), a);
-			}
-		}
-
-		NumericMatrix Xfull = clone(Yfull);
-		int full_X_rows = Xfull.nrow();
-		int full_X_cols = Xfull.ncol();
-
-		// Raise all of Xfull to the a power
-		for (int i = 0; i < full_X_rows; i++) {
-			for (int j = 0; j < full_X_cols; j++) {
-				Xfull(i, j) = pow(Xfull(i, j), a);
-			}
-		}
 		if (weighted) {
+			PROPR_PROFILE_HOST("kernel"); 
+			for (int i = 0; i < X.nrow(); i++) {
+				for (int j = 0; j < X.ncol(); j++) {
+					X(i, j) = pow(X(i, j), a);
+				}
+			}
+
+			NumericMatrix Xfull = clone(Yfull);
+			int full_X_rows = Xfull.nrow();
+			int full_X_cols = Xfull.ncol();
+
+			// Raise all of Xfull to the a power
+			for (int i = 0; i < full_X_rows; i++) {
+				for (int j = 0; j < full_X_cols; j++) {
+					Xfull(i, j) = pow(Xfull(i, j), a);
+				}
+			}
 			if (Wfull.nrow() == NumericMatrix(1, 1).nrow() &&
 				Wfull.ncol() == NumericMatrix(1, 1).ncol()) {
 				stop("User must provide valid Wfull argument for weighted alpha-transformation.");
@@ -81,6 +84,23 @@ dispatch::cpu::lrm(NumericVector& out,
 				}
 			}
 		} else {
+			PROPR_PROFILE_HOST("kernel"); 
+			for (int i = 0; i < X.nrow(); i++) {
+				for (int j = 0; j < X.ncol(); j++) {
+					X(i, j) = pow(X(i, j), a);
+				}
+			}
+
+			NumericMatrix Xfull = clone(Yfull);
+			int full_X_rows = Xfull.nrow();
+			int full_X_cols = Xfull.ncol();
+
+			// Raise all of Xfull to the a power
+			for (int i = 0; i < full_X_rows; i++) {
+				for (int j = 0; j < full_X_cols; j++) {
+					Xfull(i, j) = pow(Xfull(i, j), a);
+				}
+			}
 			// Calculate alpha-transformed mean using the across-group means
 			Rcpp::NumericVector Xz(nfeats);
 			Rcpp::NumericVector Xfullz(fullfeats);
@@ -100,6 +120,7 @@ dispatch::cpu::lrm(NumericVector& out,
 	}
 	else { // Weighted and non-weighted, non-transformed
 		if (weighted) {
+			PROPR_PROFILE_HOST("kernel"); 
 			Rcpp::NumericVector Wij(nfeats);
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
@@ -111,6 +132,7 @@ dispatch::cpu::lrm(NumericVector& out,
 				}
 			}
 		} else {
+			PROPR_PROFILE_HOST("kernel"); 
 			for (int i = 1; i < nfeats; i++) {
 				for (int j = 0; j < i; j++) {
 					out(counter) = mean(log(X(_, i) / X(_, j)));

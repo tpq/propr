@@ -3,6 +3,7 @@
 
 #include <propr/utils/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/omega.hpp>
+#include <propr/utils/host_profiler.hpp>
 
 using namespace Rcpp;
 
@@ -30,7 +31,7 @@ NumericMatrix pad_matrix2(const NumericMatrix& mat,
 
 void
 propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
-
+  PROPR_PROFILE_HOST("kernel"); 
   int nfeats = W.ncol();
   int llt = nfeats * (nfeats - 1) / 2;
   Rcpp::NumericVector result(llt);
@@ -49,17 +50,18 @@ propr::dispatch::cpu::dof_global(NumericVector& out, NumericMatrix & W) {
 
 void
 propr::dispatch::cpu::dof_population(NumericVector& out, const NumericMatrix & W) {
-    int nfeats = W.ncol();
-    int llt    = nfeats * (nfeats - 1) / 2;
-    PROPR_CHECK_VECTOR_SIZE(out, llt);
-    int counter = 0;
+  PROPR_PROFILE_HOST("kernel"); 
+  int nfeats = W.ncol();
+  int llt    = nfeats * (nfeats - 1) / 2;
+  PROPR_CHECK_VECTOR_SIZE(out, llt);
+  int counter = 0;
 
-    NumericVector Wij(nfeats);
-    for(int i = 1; i < nfeats; i++){
-      for(int j = 0; j < i; j++){
-        Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-        out(counter) = sum(Wij);
-        counter += 1;
-      }
+  NumericVector Wij(nfeats);
+  for(int i = 1; i < nfeats; i++){
+    for(int j = 0; j < i; j++){
+      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
+      out(counter) = sum(Wij);
+      counter += 1;
     }
+  }
 }
