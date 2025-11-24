@@ -262,10 +262,6 @@ Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 // [[Rcpp::export]]
 Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, bool use_gpu) {
     Rcpp::NumericMatrix result(n, n);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::results2matRcpp(result, results, n, diagonal);
-    } else {
-        dispatch::cpu::results2matRcpp(result, results, n, diagonal);
-    }
+    dispatch::cpu::results2matRcpp(result, results, n, diagonal);
     return result;
 }

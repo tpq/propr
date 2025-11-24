@@ -866,7 +866,8 @@ dispatch::cuda::lltRcpp(NumericVector& out, const NumericMatrix & X, propr_conte
     PROPR_CUDA_CHECK(cudaFree(d_out));
 }
 
-void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
+void 
+dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_context context){
     using Config = propr::cuda::traits::urtRcpp_config;
     int nfeats = X.nrow();
     int llt    = nfeats * (nfeats - 1) / 2;
@@ -887,7 +888,8 @@ void dispatch::cuda::urtRcpp(NumericVector& out, const NumericMatrix & X, propr_
     PROPR_CUDA_CHECK(cudaFree(d_out));
 }
 
-void dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
+void 
+dispatch::cuda::labRcpp(List & out, int nfeats, propr_context context){
   using Config = propr::cuda::traits::labRcpp_config;
   int llt = nfeats * (nfeats - 1) / 2;
 
