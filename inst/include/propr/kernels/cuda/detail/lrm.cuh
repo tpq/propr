@@ -2,7 +2,7 @@
 
 #include <cuda_runtime.h>
 #include <propr/data/types.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
 
@@ -31,17 +31,17 @@ namespace propr {
                     float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * d_Y_stride]);
                     float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * d_Y_stride]);                    
                     
-                    accum.x = __fmaf_rn(1.0f, __logf(__fdividef(y_i.x, y_j.x)), accum.x);
-                    accum.y = __fmaf_rn(1.0f, __logf(__fdividef(y_i.y, y_j.y)), accum.y);
-                    accum.z = __fmaf_rn(1.0f, __logf(__fdividef(y_i.z, y_j.z)), accum.z);
-                    accum.w = __fmaf_rn(1.0f, __logf(__fdividef(y_i.w, y_j.w)), accum.w);
+                    accum.x = __logf(__fdividef(y_i.x, y_j.x)) +  accum.x;
+                    accum.y = __logf(__fdividef(y_i.y, y_j.y)) +  accum.y;
+                    accum.z = __logf(__fdividef(y_i.z, y_j.z)) +  accum.z;
+                    accum.w = __logf(__fdividef(y_i.w, y_j.w)) +  accum.w;
                 }
 
                 accum.x = accum.x + accum.y + accum.z + accum.w;
                 for (; k < nb_samples; ++k) {
                     float yi = d_Y[k + i * d_Y_stride];
                     float yj = d_Y[k + j * d_Y_stride];
-                    accum.x  = __fmaf_rn(1.0f, __logf(__fdividef(yi, yj)), accum.x);
+                    accum.x  =  __logf(__fdividef(yi, yj)) +  accum.x;
                 }
 
                 float inv_n = __frcp_rn(static_cast<float>(nb_samples));
@@ -336,7 +336,6 @@ namespace propr {
                 if (sum_w_current > 1e-10f) {
                     C_z = (T_current / sum_w_current) + complement_term;
                 } else if (denom_complement > 1e-10f) {
-                    // no "current" part, fall back to full
                     C_z = T_full / sum_w_full;
                 }
 

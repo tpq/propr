@@ -1,26 +1,58 @@
 #! /bin/sh
 
+set -eu
+
 cd "$(dirname "$0")"
 
-ABSOLUE_PATH=$(dirname $(realpath "$0"))
+ABSOLUTE_PATH=$(dirname "$(realpath "$0")")
 
 BUILDING_EXAMPLES="ON"
 BUILDING_TESTS="ON"
 INSTALL_PATH="/usr/local"
 VERBOSE=OFF
-CONFIG_PATH="${ABSOLUE_PATH}/config"
-echo ${ABSOLUE_PATH}
+CONFIG_PATH="${ABSOLUTE_PATH}/config"
+PROPR_ENABLE_CUDA="AUTO"
 
-rm "${ABSOLUE_PATH}/src/propr.so"
+normalize_cuda_flag() {
+  case "$1" in
+    yes|YES|true|TRUE|on|ON|1) echo "ON" ;;
+    no|NO|false|FALSE|off|OFF|0) echo "OFF" ;;
+    auto|AUTO) echo "AUTO" ;;
+    *)
+      echo "Invalid value for --with-cuda: '$1'. Use one of: yes/no/auto." 1>&2
+      exit 1
+      ;;
+  esac
+}
+
+for arg in "$@"; do
+  case "$arg" in
+    --with-cuda)
+      PROPR_ENABLE_CUDA="ON"
+      ;;
+    --without-cuda)
+      PROPR_ENABLE_CUDA="OFF"
+      ;;
+    --with-cuda=*)
+      PROPR_ENABLE_CUDA="$(normalize_cuda_flag "${arg#*=}")"
+      ;;
+  esac
+done
+
+echo "${ABSOLUTE_PATH}"
+echo "PROPR_ENABLE_CUDA=${PROPR_ENABLE_CUDA}"
+
+rm -f "${ABSOLUTE_PATH}/src/propr.so"
 rm -rf bin/
 mkdir bin/
 cmake -DCMAKE_BUILD_TYPE=RELEASE \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DPROPR_BUILD_TESTS=$BUILDING_TESTS \
+  -DPROPR_ENABLE_CUDA=$PROPR_ENABLE_CUDA \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
   -DCMAKE_VERBOSE_MAKEFILE:BOOL=$VERBOSE \
-  -H"${ABSOLUE_PATH}" \
-  -B"${ABSOLUE_PATH}/bin"
+  -H"${ABSOLUTE_PATH}" \
+  -B"${ABSOLUTE_PATH}/bin"
 
 # -DCUTLASS_NVCC_ARCHS=90 \
 # -DCUTLASS_ENABLE_HEADERS_ONLY=ON \
@@ -30,12 +62,12 @@ cd bin/
 make clean
 make all -j$(nproc)
 
-if [ ! -f "${ABSOLUE_PATH}/bin/src/libpropr.so" ]; then
+if [ ! -f "${ABSOLUTE_PATH}/bin/src/libpropr.so" ]; then
     echo "Error: libpropr.so was not created. Check the build log above for errors."
     exit 1
 fi
 
 echo "Copying libpropr.so..."
-cp "${ABSOLUE_PATH}/bin/src/libpropr.so" "${ABSOLUE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
-rm -rf "${ABSOLUE_PATH}/bin/"
+cp "${ABSOLUTE_PATH}/bin/src/libpropr.so" "${ABSOLUTE_PATH}/src/propr.so" || { echo "Failed moving libpropr.so to src"; exit 1; }
+rm -rf "${ABSOLUTE_PATH}/bin/"
 echo "Configure script finished."

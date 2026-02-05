@@ -152,7 +152,7 @@ test_that("check that getFDR works properly GPU", {
   actual <- runif(1)
 
   # compute FDR
-  res <- propr:::getFDR(actual, x, use_gpu=TRUE)
+  res <- propr:::getFDR(actual, x, backend = "cuda")
 
   # check
   expect_equal(res$under, sum(x <= actual) / length(x))
@@ -216,7 +216,7 @@ test_that("check that permuteOR works as the old code", {
   
   # compute permuted odds ratios
   set.seed(0)
-  res1 <- propr:::permuteOR(A, G, 10, use_gpu=TRUE)
+  res1 <- propr:::permuteOR(A, G, 10, backend = "cuda")
   set.seed(0)
   res2 <- permuteOR_old(A, G, 10)
 

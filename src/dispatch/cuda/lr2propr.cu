@@ -3,7 +3,7 @@
 
 #include <propr/kernels/cuda/dispatch/lr2propr.cuh>
 
-#include <propr/utils/cuda_profiler.cuh>
+#include <propr/utils/profilers/cuda_profiler.cuh>
 
 #include <propr/context.h>
 

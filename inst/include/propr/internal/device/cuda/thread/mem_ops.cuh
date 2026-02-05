@@ -4,19 +4,8 @@
 
 #include <cub/cub.cuh>
 
-#include <propr/utils/preprocessor.cuh>
-
-
-
-template <typename> struct vec_scalar_type { using type = void; };
-template <> struct vec_scalar_type<float>  { using type = float;};
-template <> struct vec_scalar_type<float2> { using type = float;};
-template <> struct vec_scalar_type<float3> { using type = float;};
-template <> struct vec_scalar_type<float4> { using type = float;};
-
-template <typename T, typename U>
-static constexpr bool is_vector_of_v = std::is_same_v<typename vec_scalar_type<T>::type, U>;
-
+#include <propr/utils/common/preprocessor.cuh>
+#include <propr/data/traits.cuh>
 
 namespace propr {
     namespace cuda {

@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 #include <propr/kernels/cpu/dispatch/comparison.hpp>
-#include <propr/utils/host_exclusive_profiler.hpp>
+#include <propr/utils/profilers/host_exclusive_profiler.hpp>
 
 using namespace propr;
 

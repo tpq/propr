@@ -73,6 +73,14 @@ set(PROPR_LIB_SOURCES
 
 set(PROPR_BENCHMARK_SOURCES bench/src/main_benchmark.cu )
 
+set(PROPR_TEST_SOURCES
+        tests/cpp_test/test_lrm.cpp
+        tests/cpp_test/test_lrv.cpp
+        tests/cpp_test/test_main.cpp
+        tests/cpp_test/test_omega.cpp
+)
+
+
 add_library(propr SHARED ${PROPR_LIB_SOURCES})
 
 target_compile_features(propr PUBLIC cxx_std_14)
@@ -91,8 +99,9 @@ target_include_directories(propr PUBLIC
         ${CUDAToolkit_INCLUDE_DIRS}
         # Local project headers (e.g., src/include/interface, src/include/kernels etc.)
         inst/include
-        # Prereq headers (if they are part of the main library)
+        # Prereq headers (e.g., Catch2 for tests, if they are part of the main library)
         # The original CMakeLists.txt had `include_directories(prereq)`.
+        # Assuming `prereq` includes `prereq/catch2` and other necessary headers.
         ${CMAKE_CURRENT_SOURCE_DIR}/prereq
 )
 
@@ -120,3 +129,16 @@ set_target_properties(propr_benchmark PROPERTIES
         CUDA_STANDARD 14
         CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}"
 )
+
+add_executable(propr_tests ${PROPR_TEST_SOURCES})
+target_link_libraries(propr_tests PRIVATE propr)
+target_include_directories(propr_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/prereq/catch2
+        inst/include
+)
+
+target_compile_features(propr_tests PUBLIC cxx_std_14)
+set_target_properties(propr_tests PROPERTIES CUDA_STANDARD 14 CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+
+enable_testing()
+add_test(NAME run_propr_cpp_tests COMMAND propr_tests)

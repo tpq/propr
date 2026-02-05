@@ -1,11 +1,11 @@
 #include <Rcpp.h>
 
 #include <propr/data/types.h>
-#include <propr/utils/rcpp_checks.h>
-#include <propr/utils/cuda_checks.h>
-#include <propr/utils/rcpp_cuda.cuh>
-#include <propr/utils/cuda_helpers.cuh>
-#include <propr/utils/cuda_profiler.cuh>
+#include <propr/utils/rcpp/rcpp_checks.h>
+#include <propr/utils/cuda/cuda_checks.h>
+#include <propr/utils/rcpp/rcpp_cuda.cuh>
+#include <propr/utils/common/cuda_helpers.cuh>
+#include <propr/utils/profilers/cuda_profiler.cuh>
 
 
 #include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>

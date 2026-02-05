@@ -6,7 +6,7 @@
 #include <cub/device/device_scan.cuh>
 
 #include <propr/data/types.h>
-#include <propr/utils/constants.h>
+#include <propr/utils/common/constants.h>
 
 namespace propr {
     namespace detail {

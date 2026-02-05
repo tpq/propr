@@ -1,21 +1,19 @@
 #include <Rcpp.h>
-#include <vector>
 
 #include <propr/interface/backend.hpp>
-#include <propr/interface/device_selector.hpp>
-#include <propr/context.h>
-
 #include <propr/kernels/cpu/dispatch/backend.hpp>
-#include <propr/kernels/cuda/dispatch/backend.cuh>
+#include <propr/runtime/cuda_executor.hpp>
+#include <propr/runtime/dispatch.hpp>
 
+#include <cmath>
 
 using namespace propr;
 
 // [[Rcpp::export]]
-double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
-    double result;
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::wtmRcpp(result, x, w);
+double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, Rcpp::String backend = "auto") {
+    double result = 0.0;
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::wtmRcpp(result, x, w);
     } else {
         dispatch::cpu::wtmRcpp(result, x, w);
     }
@@ -23,22 +21,22 @@ double wtmRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, bool use_gpu) {
-    double result;
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::wtvRcpp(result, x, w); 
+double wtvRcpp(Rcpp::NumericVector x, Rcpp::NumericVector w, Rcpp::String backend = "auto") {
+    double result = 0.0;
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::wtvRcpp(result, x, w);
     } else {
-        dispatch::cpu::wtvRcpp(result, x, w); 
+        dispatch::cpu::wtvRcpp(result, x, w);
     }
     return result;
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int nfeats = X.ncol();
+Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::corRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::corRcpp(result, X);
     } else {
         dispatch::cpu::corRcpp(result, X);
     }
@@ -46,12 +44,11 @@ Rcpp::NumericMatrix corRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu) {
-    int nfeats = X.ncol();
+Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::covRcpp(result, X, norm_type);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::covRcpp(result, X, norm_type);
     } else {
         dispatch::cpu::covRcpp(result, X, norm_type);
     }
@@ -59,11 +56,11 @@ Rcpp::NumericMatrix covRcpp(Rcpp::NumericMatrix X, int norm_type, bool use_gpu) 
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int nfeats = X.ncol();
+Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::vlrRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::vlrRcpp(result, X);
     } else {
         dispatch::cpu::vlrRcpp(result, X);
     }
@@ -71,13 +68,12 @@ Rcpp::NumericMatrix vlrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int n_rows = X.nrow();
-    int n_cols = X.ncol();
+Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int n_rows = X.nrow();
+    const int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::clrRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::clrRcpp(result, X);
     } else {
         dispatch::cpu::clrRcpp(result, X);
     }
@@ -85,13 +81,12 @@ Rcpp::NumericMatrix clrRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar, bool use_gpu) {
-    int n_rows = X.nrow();
-    int n_cols = X.ncol();
+Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar, Rcpp::String backend = "auto") {
+    const int n_rows = X.nrow();
+    const int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::alrRcpp(result, X, ivar);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::alrRcpp(result, X, ivar);
     } else {
         dispatch::cpu::alrRcpp(result, X, ivar);
     }
@@ -99,13 +94,12 @@ Rcpp::NumericMatrix alrRcpp(Rcpp::NumericMatrix X, int ivar, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int n_rows = X.nrow();
-    int n_cols = X.ncol();
+Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int n_rows = X.nrow();
+    const int n_cols = X.ncol();
     Rcpp::NumericMatrix result(n_rows, n_cols);
-
-    if (is_gpu_backend() || use_gpu) {        
-        dispatch::cuda::symRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::symRcpp(result, X);
     } else {
         dispatch::cpu::symRcpp(result, X);
     }
@@ -113,12 +107,11 @@ Rcpp::NumericMatrix symRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym, bool use_gpu) {
-    int nfeats = X.ncol();
+Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::phiRcpp(result, X, sym);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::phiRcpp(result, X, sym);
     } else {
         dispatch::cpu::phiRcpp(result, X, sym);
     }
@@ -126,12 +119,11 @@ Rcpp::NumericMatrix phiRcpp(Rcpp::NumericMatrix X, bool sym, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar, bool use_gpu) {
-    int nfeats = X.ncol();
+Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int ivar, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
     Rcpp::NumericMatrix result(nfeats, nfeats);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::rhoRcpp(result, X, lr, ivar);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::rhoRcpp(result, X, lr, ivar);
     } else {
         dispatch::cpu::rhoRcpp(result, X, lr, ivar);
     }
@@ -139,10 +131,10 @@ Rcpp::NumericMatrix rhoRcpp(Rcpp::NumericMatrix X, Rcpp::NumericMatrix lr, int i
 }
 
 // [[Rcpp::export]]
-std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref, bool use_gpu) {
+std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref, Rcpp::String backend = "auto") {
     std::vector<int> result;
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::indexPairs( result, X, op, ref);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::indexPairs(result, X, op, ref);
     } else {
         dispatch::cpu::indexPairs(result, X, op, ref);
     }
@@ -150,10 +142,10 @@ std::vector<int> indexPairs(Rcpp::NumericMatrix X, Rcpp::String op, double ref, 
 }
 
 // [[Rcpp::export]]
-Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N, bool use_gpu) {
+Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N, Rcpp::String backend = "auto") {
     Rcpp::List result;
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::indexToCoord(result, V, N);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::indexToCoord(result, V, N);
     } else {
         dispatch::cpu::indexToCoord(result, V, N);
     }
@@ -161,11 +153,11 @@ Rcpp::List indexToCoord(Rcpp::IntegerVector V, int N, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N, bool use_gpu) {
-    int size = row.length();
+Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector col, int N, Rcpp::String backend = "auto") {
+    const int size = row.length();
     Rcpp::IntegerVector result(size);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::coordToIndex(result, row, col, N);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::coordToIndex(result, row, col, N);
     } else {
         dispatch::cpu::coordToIndex(result, row, col, N);
     }
@@ -173,11 +165,11 @@ Rcpp::IntegerVector coordToIndex(Rcpp::IntegerVector row, Rcpp::IntegerVector co
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, bool use_gpu) {
-    int n_cols = rho.ncol();
+Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, Rcpp::String backend = "auto") {
+    const int n_cols = rho.ncol();
     Rcpp::NumericMatrix result(n_cols, n_cols);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::linRcpp(result, rho, lr);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::linRcpp(result, rho, lr);
     } else {
         dispatch::cpu::linRcpp(result, rho, lr);
     }
@@ -185,12 +177,12 @@ Rcpp::NumericMatrix linRcpp(Rcpp::NumericMatrix rho, Rcpp::NumericMatrix lr, boo
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int nfeats = X.nrow();
-    int llt = nfeats * (nfeats - 1) / 2;
+Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int nfeats = X.nrow();
+    const int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
-     if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::lltRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::lltRcpp(result, X);
     } else {
         dispatch::cpu::lltRcpp(result, X);
     }
@@ -198,12 +190,12 @@ Rcpp::NumericVector lltRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int nfeats = X.nrow();
-    int llt = nfeats * (nfeats - 1) / 2;
+Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int nfeats = X.nrow();
+    const int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericVector result(llt);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::urtRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::urtRcpp(result, X);
     } else {
         dispatch::cpu::urtRcpp(result, X);
     }
@@ -211,10 +203,10 @@ Rcpp::NumericVector urtRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::List labRcpp(int nfeats, bool use_gpu) {
+Rcpp::List labRcpp(int nfeats, Rcpp::String backend = "auto") {
     Rcpp::List result;
-    if (is_gpu_backend() || use_gpu) {
-       dispatch::cuda::labRcpp(result, nfeats);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::labRcpp(result, nfeats);
     } else {
         dispatch::cpu::labRcpp(result, nfeats);
     }
@@ -222,11 +214,11 @@ Rcpp::List labRcpp(int nfeats, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X, bool use_gpu) {
-    int nfeats = round(sqrt(2 * X.length() + 0.25) + 0.5);
+Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X, Rcpp::String backend = "auto") {
+    const int nfeats = static_cast<int>(std::round(std::sqrt(2.0 * X.length() + 0.25) + 0.5));
     Rcpp::NumericMatrix result(nfeats, nfeats);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::half2mat(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::half2mat(result, X);
     } else {
         dispatch::cpu::half2mat(result, X);
     }
@@ -234,10 +226,10 @@ Rcpp::NumericMatrix half2mat(Rcpp::NumericVector X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats, bool use_gpu) {
+Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcpp::IntegerVector j, int nfeats, Rcpp::String backend = "auto") {
     Rcpp::NumericMatrix result(nfeats, nfeats);
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::vector2mat(result, X, i, j, nfeats);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::vector2mat(result, X, i, j, nfeats);
     } else {
         dispatch::cpu::vector2mat(result, X, i, j, nfeats);
     }
@@ -245,14 +237,13 @@ Rcpp::NumericMatrix vector2mat(Rcpp::NumericVector X, Rcpp::IntegerVector i, Rcp
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
-    int nfeats = X.ncol();
-    int nsamps = X.nrow();
-    int llt = nfeats * (nfeats - 1) / 2;
+Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
+    const int nsamps = X.nrow();
+    const int llt = nfeats * (nfeats - 1) / 2;
     Rcpp::NumericMatrix result(nsamps, llt);
-
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::ratiosRcpp(result, X);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::ratiosRcpp(result, X);
     } else {
         dispatch::cpu::ratiosRcpp(result, X);
     }
@@ -260,8 +251,12 @@ Rcpp::NumericMatrix ratiosRcpp(Rcpp::NumericMatrix X, bool use_gpu) {
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, bool use_gpu) {
-    Rcpp::NumericMatrix result(n, n);
-    dispatch::cpu::results2matRcpp(result, results, n, diagonal);
-    return result;
+Rcpp::NumericMatrix results2matRcpp(Rcpp::DataFrame results, int n, double diagonal, Rcpp::String backend = "auto") {
+    Rcpp::NumericMatrix out(n, n);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::results2matRcpp(out, results, n, diagonal);
+    } else {
+        dispatch::cpu::results2matRcpp(out, results, n, diagonal);
+    }
+    return out;
 }

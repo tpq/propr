@@ -6,8 +6,8 @@
 #include <cub/cub.cuh>
 
 #include <propr/data/types.h>
-#include <propr/utils/constants.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/constants.h>
+#include <propr/utils/common/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
 
@@ -35,7 +35,7 @@ namespace propr {
                      float * __restrict__ w,
                      int n){
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
-                using block_reduce_t = cub::BlockReduce<float2, BLK_X>;
+                using block_reduce_t        = cub::BlockReduce<float2, BLK_X>;
                 using block_scan_storage_t  = typename block_reduce_t::TempStorage;
                 
                 __shared__ block_scan_storage_t partials;
@@ -149,7 +149,7 @@ namespace propr {
                     const int tx = threadIdx.x % BLK_X;
                     const int ty = threadIdx.x / BLK_X;
 
-                    const int lane = tx & (PROPR_WARP_SIZE - 1);
+                    const int lane   = tx % PROPR_WARP_SIZE;
                     const int warp_x = tx / PROPR_WARP_SIZE;
 
                     // shared memory holds one partial per warp per col
@@ -328,7 +328,7 @@ namespace propr {
 
                 float* A = x;
                 float* B = x;
-                    float* C = out;
+                float* C = out;
                 
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;

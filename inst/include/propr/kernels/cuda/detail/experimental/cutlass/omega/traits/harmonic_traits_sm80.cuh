@@ -4,8 +4,8 @@
 #include <cute/atom/mma_traits.hpp>
 
 #include <propr/kernels/cuda/detail/cutlass/omega/atoms/harmonic_atom_sm80.cuh>
-#include <propr/utils/constants.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/constants.h>
+#include <propr/utils/common/preprocessor.cuh>
 
 
 namespace cute {

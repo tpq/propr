@@ -7,6 +7,8 @@ set(PROPR_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/lrm.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/lrv.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/omega.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/cuda_available.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/cuda_executor.cu
         ${PROPR_SOURCES}
         PARENT_SCOPE
 )

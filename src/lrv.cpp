@@ -1,42 +1,42 @@
 #include <Rcpp.h>
+
 #include <propr/interface/lrv.hpp>
-#include <propr/interface/device_selector.hpp>
-#include <propr/context.h>
-
 #include <propr/kernels/cpu/dispatch/lrv.hpp>
-#include <propr/kernels/cuda/dispatch/lrv.cuh>
+#include <propr/runtime/cuda_executor.hpp>
+#include <propr/runtime/dispatch.hpp>
 
-using namespace Rcpp;
 using namespace propr;
 
 // [[Rcpp::export]]
-NumericVector lrv(NumericMatrix &Y,
-                  NumericMatrix &W,
-                  bool weighted,
-                  double a,
-                  NumericMatrix Yfull,
-                  NumericMatrix Wfull,
-                  bool use_gpu) {
+Rcpp::NumericVector lrv(
+    Rcpp::NumericMatrix& Y,
+    Rcpp::NumericMatrix& W,
+    bool weighted,
+    double a,
+    Rcpp::NumericMatrix Yfull,
+    Rcpp::NumericMatrix Wfull,
+    Rcpp::String backend = "auto") {
+    const int nfeats = Y.ncol();
+    const int n_pairs = nfeats * (nfeats - 1) / 2;
+    Rcpp::NumericVector result_vec(n_pairs);
 
-    int nfeats = Y.ncol();
-    int N_pairs = nfeats * (nfeats - 1) / 2;
-    NumericVector result_vec(N_pairs);
-    if (is_gpu_backend() || use_gpu) {
-        if (!R_IsNA(a)) { // Alpha-transformed
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        if (!R_IsNA(a)) {
             if (weighted) {
-                dispatch::cuda::lrv_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);
+                runtime::cuda_executor::lrv_alpha_weighted(result_vec, Y, W, a, Yfull, Wfull);
             } else {
-                dispatch::cuda::lrv_alpha(result_vec, Y, a, Yfull);
+                runtime::cuda_executor::lrv_alpha(result_vec, Y, a, Yfull);
             }
-        } else { // Non-transformed (log)
+        } else {
             if (weighted) {
-                dispatch::cuda::lrv_weighted(result_vec, Y, W);
+                runtime::cuda_executor::lrv_weighted(result_vec, Y, W);
             } else {
-                dispatch::cuda::lrv_basic(result_vec, Y);
+                runtime::cuda_executor::lrv_basic(result_vec, Y);
             }
         }
     } else {
         dispatch::cpu::lrv(result_vec, Y, W, weighted, a, Yfull, Wfull);
     }
+
     return result_vec;
 }

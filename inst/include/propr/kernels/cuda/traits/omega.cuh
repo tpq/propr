@@ -2,7 +2,7 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/preprocessor.cuh>
 
 
 namespace propr {
