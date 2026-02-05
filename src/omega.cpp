@@ -1,46 +1,39 @@
 #include <Rcpp.h>
-using namespace Rcpp;
 
-// Calculate lrv weight modifier
+#include <propr/interface/omega.hpp>
+#include <propr/interface/device_selector.hpp>
+#include <propr/context.h>
+
+#include <propr/kernels/cpu/dispatch/omega.hpp>
+#include <propr/kernels/cuda/dispatch/omega.cuh>
+#include <propr/utils/rcpp_helpers.h>
+
+
+using namespace propr;
+
 // [[Rcpp::export]]
-NumericVector omega(NumericMatrix & W){
-
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
-  Rcpp::NumericVector result(llt);
-  Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
-  double n = 0;
-
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
-      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-      n = sum(Wij);
-      result(counter) = n - sum(pow(Wij, 2)) / n;
-      counter += 1;
+Rcpp::NumericVector omega(Rcpp::NumericMatrix & W, bool use_gpu) {
+    size_t nfeats = W.ncol();
+    size_t llt    = nfeats * (nfeats - 1 ) / 2;
+    Rcpp::NumericVector result(llt);
+    if (is_gpu_backend() || use_gpu) {
+        dispatch::cuda::dof_global(result, W);
+    } else {
+        dispatch::cpu::dof_global(result, W);
     }
-  }
-
-  return result;
+    return result;
 }
 
-// Calculate lrv weight modifier (population-level for F-stat and F-mod)
+
 // [[Rcpp::export]]
-NumericVector Omega(NumericMatrix & W){
-
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
-  Rcpp::NumericVector result(llt);
-  Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
-
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
-      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-      result(counter) = sum(Wij);
-      counter += 1;
+Rcpp::NumericVector Omega(Rcpp::NumericMatrix & W, bool use_gpu) {
+    size_t nfeats = W.ncol();
+    size_t llt    = nfeats * (nfeats - 1 ) / 2;
+    Rcpp::NumericVector result(llt);
+    if (is_gpu_backend() || use_gpu) {
+        dispatch::cuda::dof_population(result, W);
+    } else {
+        dispatch::cpu::dof_population(result, W);
     }
-  }
-
-  return result;
+    return result;
 }

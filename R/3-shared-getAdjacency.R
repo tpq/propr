@@ -15,26 +15,36 @@
 #' @export
 getAdjacencyFDR <- 
   function(object, fdr = 0.05, window_size = 1) {
+    NVTX_PUSH("getAdjacencyFDR", 0)
 
     # get matrix
+    NVTX_PUSH("getMatrix", 0)
     mat <- getMatrix(object)
+    NVTX_POP()
 
     # set up some parameters
+    NVTX_PUSH("setup_parameters", 0)
     direct <- FALSE
     if (inherits(object, "propr")) {
       if (object@tails == 'both') mat <- abs(mat)
       direct <- object@direct
     }
+    NVTX_POP()
 
     # create empty matrix
+    NVTX_PUSH("create_adjacency_matrix", 0)
     adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
     rownames(adj) <- rownames(mat)
     colnames(adj) <- colnames(mat)
+    NVTX_POP()
 
     # get cutoff
-    cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
+    NVTX_PUSH("getCutoffFDR", 0)
+    cutoff <- getCutoffFDR(object, fdr = fdr, window_size = window_size)
+    NVTX_POP()
 
     # fill in significant pairs
+    NVTX_PUSH("fill_adjacency", 0)
     if (cutoff) {
       if (direct) {
         adj[mat >= cutoff] <- 1
@@ -42,8 +52,10 @@ getAdjacencyFDR <-
         adj[mat <= cutoff] <- 1
       }
     }
+    NVTX_POP()
 
-  return(adj)
+    NVTX_POP()  # getAdjacencyFDR
+    return(adj)
 }
 
 #' Get Adjacency Matrix as indicated by F-statistics
@@ -61,18 +73,29 @@ getAdjacencyFDR <-
 #' @export
 getAdjacencyFstat <- 
   function(object, pval = 0.05, fdr_adjusted = TRUE) {
+    NVTX_PUSH("getAdjacencyFstat", 0)
   
-  # get matrix
-  mat <- getMatrix(object)
+    # get matrix
+    NVTX_PUSH("getMatrix", 0)
+    mat <- getMatrix(object)
+    NVTX_POP()
 
-  # create empty adjacency matrix
-  adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
-  rownames(adj) <- rownames(mat)
-  colnames(adj) <- colnames(mat)
+    # create empty adjacency matrix
+    NVTX_PUSH("create_adjacency_matrix", 0)
+    adj <- matrix(0, nrow = nrow(mat), ncol = ncol(mat))
+    rownames(adj) <- rownames(mat)
+    colnames(adj) <- colnames(mat)
+    NVTX_POP()
 
-  # fill in significant pairs
-  cutoff <- getCutoffFstat(object, pval, fdr_adjusted = fdr_adjusted)
-  if (cutoff) adj[mat <= cutoff] <- 1
+    # fill in significant pairs
+    NVTX_PUSH("getCutoffFstat", 0)
+    cutoff <- getCutoffFstat(object, pval, fdr_adjusted = fdr_adjusted)
+    NVTX_POP()
 
-  return(adj)  
+    NVTX_PUSH("fill_adjacency", 0)
+    if (cutoff) adj[mat <= cutoff] <- 1
+    NVTX_POP()
+
+    NVTX_POP()  # getAdjacencyFstat
+    return(adj)  
 }

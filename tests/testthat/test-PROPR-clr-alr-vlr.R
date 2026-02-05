@@ -1,3 +1,4 @@
+options(propr.use_gpu = FALSE)
 library(testthat)
 library(propr)
 
@@ -8,6 +9,7 @@ c <- rnorm(N, mean = 10)
 d <- rnorm(N, mean = 10)
 e <- rep(10, N)
 X <- data.frame(a, b, c, d, e)
+tol <- 1e-6
 
 # VLR using propr with CLR ivar
 X.clr <- propr(X, ivar = "clr")@logratio
@@ -64,4 +66,28 @@ test_that("vlr shows subcompositional coherence", {
     VLR.clr,
     VLR.alr
   )
+})
+
+test_that("propr:::clrRcpp CPU vs GPU", {
+  cpu_clr <- tryCatch(
+    propr:::clrRcpp(as.matrix(X[])),
+    error = function(e) skip(paste0("propr:::clrRcpp not available — ", conditionMessage(e)))
+  )
+  gpu_clr <- tryCatch(
+    propr:::clrRcpp(as.matrix(X[]), use_gpu = TRUE),
+    error = function(e) skip(paste0("propr:::clrRcpp GPU variant not available — ", conditionMessage(e)))
+  )
+  expect_equal(cpu_clr, gpu_clr, tolerance = tol)
+})
+
+test_that("propr:::alrRcpp CPU vs GPU", {
+  cpu_alr <- tryCatch(
+    propr:::alrRcpp(as.matrix(X[]), ivar = 5),
+    error = function(e) skip(paste0("propr:::alrRcpp not available — ", conditionMessage(e)))
+  )
+  gpu_alr <- tryCatch(
+    propr:::alrRcpp(as.matrix(X[]), ivar = 5, use_gpu = TRUE),
+    error = function(e) skip(paste0("propr:::alrRcpp GPU variant not available — ", conditionMessage(e)))
+  )
+  expect_equal(cpu_alr, gpu_alr, tolerance = tol)
 })

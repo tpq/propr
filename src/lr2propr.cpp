@@ -1,106 +1,62 @@
 #include <Rcpp.h>
-#include <math.h>
-#include "backend.h"
-using namespace Rcpp;
+#include <propr/interface/lr2propr.hpp>
+#include <propr/interface/device_selector.hpp>
+#include <propr/context.h>
 
-// Function for vlr
+#include <propr/kernels/cpu/dispatch/lr2propr.hpp>
+#include <propr/kernels/cuda/dispatch/lr2propr.cuh>
+
+using namespace propr;
+
+bool gpu_disabled  = true;
+
 // [[Rcpp::export]]
-NumericMatrix lr2vlr(NumericMatrix lr){
+Rcpp::NumericMatrix lr2vlr(Rcpp::NumericMatrix lr, bool use_gpu) {
+    int nfeats = lr.ncol();
+    Rcpp::NumericMatrix result(nfeats, nfeats);
 
-  // Calculate variation matrix
-  NumericMatrix x = clone(lr);
-  NumericMatrix X = covRcpp(x, 0);
-  int nfeats = lr.ncol();
-
-  // Find diagonal
-  NumericVector diag(nfeats);
-  for(int j = 0; j < nfeats; j++){
-    diag[j] = X(j, j);
-  }
-
-  // Calculate vlr
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nfeats; j++){
-      X(i, j) = -2 * X(i, j) + diag[i] + diag[j];
+    if ((is_gpu_backend() || use_gpu) && !gpu_disabled) {
+        dispatch::cuda::lr2vlr(result, lr);
+    } else {
+        dispatch::cpu::lr2vlr(result, lr);
     }
-  }
-
-  return X;
+    return result;
 }
 
-// Function for phi
 // [[Rcpp::export]]
-NumericMatrix lr2phi(NumericMatrix lr){
+Rcpp::NumericMatrix lr2phi(Rcpp::NumericMatrix lr, bool use_gpu) {
+    int nfeats = lr.ncol();
+    Rcpp::NumericMatrix result(nfeats, nfeats);
 
-  // Make vlr from log-ratio data
-  NumericMatrix x = clone(lr);
-  NumericMatrix mat = lr2vlr(x);
-  int nsubjs = lr.nrow();
-
-  // Calculate phi = vlr[i, j] / var[, i]
-  for(int i = 0; i < mat.ncol(); i++){
-
-    double vari = sum(pow(lr(_, i) - mean(lr(_, i)), 2.0)) / (nsubjs - 1);
-    mat(_, i) = mat(_, i) / vari;
-    mat(i, i) = 0; // Force diagonal = 0
-  }
-
-  return mat;
+    if ((is_gpu_backend() || use_gpu) && !gpu_disabled) {
+        dispatch::cuda::lr2phi(result, lr);
+    } else {
+        dispatch::cpu::lr2phi(result, lr);
+    }
+    return result;
 }
 
-// Function for rho
 // [[Rcpp::export]]
-NumericMatrix lr2rho(NumericMatrix lr){
-
-  // Make vlr from log-ratio data
-  NumericMatrix x = clone(lr);
-  NumericMatrix mat = lr2vlr(x);
-  int nsubjs = lr.nrow();
-  int nfeats = lr.ncol();
-
-  // Calculate variance of the i-th lr composition
-  NumericVector vars(nfeats);
-  for(int i = 0; i < nfeats; i++){
-
-    vars[i] = sum(pow(lr(_, i) - mean(lr(_, i)), 2.0)) / (nsubjs - 1);
-  }
-
-  // Calculate rho = 1 - vlr[i, j] / (var[, i] + var[, j])
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nfeats; j++){
-
-      if(i == j){
-        mat(i, j) = 1; // Force diagonal = 1
-      }else{
-        mat(i, j) = 1 - mat(i, j) / (vars[i] + vars[j]);
-      }
+Rcpp::NumericMatrix lr2rho(Rcpp::NumericMatrix lr, bool use_gpu) {
+    int nfeats = lr.ncol();
+    Rcpp::NumericMatrix result(nfeats, nfeats);
+    if ((is_gpu_backend() || use_gpu) && !gpu_disabled ) {
+        dispatch::cuda::lr2rho(result, lr);
+    } else {
+        dispatch::cpu::lr2rho(result, lr);
     }
-  }
-
-  return mat;
+    return result;
 }
 
-// Function for phs
 // [[Rcpp::export]]
-NumericMatrix lr2phs(NumericMatrix lr){
+Rcpp::NumericMatrix lr2phs(Rcpp::NumericMatrix lr, bool use_gpu) {
+    int nfeats = lr.ncol();
+    Rcpp::NumericMatrix result(nfeats, nfeats);
 
-  // Calculate phs = (1 - rho) / (1 + rho)
-  NumericMatrix mat = lr2rho(lr);
-  int nfeats = mat.ncol();
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nfeats; j++){
-
-      if(i == j){
-        mat(i, j) = 0; // Force diagonal = 0
-      }else{
-        if(mat(i, j) == 0){
-          mat(i, j) = R_PosInf;
-        }else{
-          mat(i, j) = (1 - mat(i, j)) / (1 + mat(i, j));
-        }
-      }
+    if ((is_gpu_backend() || use_gpu) && !gpu_disabled ) {
+        dispatch::cuda::lr2phs(result, lr);
+    } else {
+        dispatch::cpu::lr2phs(result, lr);
     }
-  }
-
-  return(mat);
+    return result;
 }

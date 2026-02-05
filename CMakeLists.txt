@@ -1,0 +1,81 @@
+cmake_minimum_required(VERSION 3.20)
+cmake_policy(SET CMP0048 NEW)
+
+project(PROPR CXX)
+
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR ${CMAKE_BUILD_TYPE} STREQUAL "NOMODE")
+    message("WORKING ON NO MODE")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
+    message("WORKING ON RELEASE MODE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_RELEASE} -g")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "DEBUG" OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    message("WORKING ON DEBUG MODE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEBUG}")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
+else ()
+    message(FATAL_ERROR "Unrecognized build type")
+endif ()
+
+include(CheckLanguage)
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+FIND_PACKAGE(R REQUIRED)
+if (${R_FOUND})
+    message("R              : FOUND")
+    list(APPEND LIBS "R")
+else ()
+    message("R              : NOT FOUND")
+endif ()
+
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER)
+    set(USE_CUDA ON)
+    message("Build CUDA Support")
+    set(PROPERTIES CUDA_ARCHITECTURES 90)
+    enable_language(CUDA)
+    include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    set(USE_CUDA ON)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -lineinfo -O3 --use_fast_math --extra-device-vectorization")
+    message("CUDA           : FOUND")
+    find_package(CUDAToolkit REQUIRED)
+    execute_process(
+        COMMAND nvidia-smi --query-gpu=compute_cap --format=csv
+        COMMAND tail -n 1
+        COMMAND tr -d .
+        OUTPUT_VARIABLE NV_CC
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    message("Detected Compute Capability : " ${NV_CC})
+    set(PROPERTIES CUDA_ARCHITECTURES ${NV_CC})
+    set(CMAKE_CUDA_ARCHITECTURES ${NV_CC})
+else ()
+    message(FATAL_ERROR "CUDA           : NOT FOUND")
+endif ()
+
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr")
+endif ()
+message("Install Prefix : " ${CMAKE_INSTALL_PREFIX})
+include_directories(${CMAKE_SOURCE_DIR}/inst/include)
+
+# set(CUTLASS_NVCC_ARCHS "90")
+# add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/cutlass)
+# include_directories(${CMAKE_SOURCE_DIR}/thirdparty/cutlass/include/)
+
+option(PROPR_BUILD_TESTS "Option to enable building tests" OFF)
+
+add_subdirectory(src)
+message("Install Path   : ${CMAKE_INSTALL_PREFIX}")
+message("PROPR Tests    : ${PROPR_BUILD_TESTS}")
+
+install(DIRECTORY inst/include DESTINATION ${CMAKE_INSTALL_PREFIX}/PROPR
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h"
+            PATTERN "*.cuh")

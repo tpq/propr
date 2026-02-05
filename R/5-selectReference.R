@@ -22,16 +22,31 @@
 #'
 #' @export
 selectReference <- function(counts, ivar, alpha) {
+  NVTX_PUSH("selectReference", 0)
+
   # replace zeros
+  NVTX_PUSH("simple_zero_replacement", 0)
   counts <- simple_zero_replacement(counts)
+  NVTX_POP()
+
   # Transform data into log space
+  NVTX_PUSH("logratio", 0)
   lr <- logratio(counts, ivar, alpha)
+  NVTX_POP()
 
   # Calculate var of each component
+  NVTX_PUSH("variance_per_component", 0)
   vars <- apply(lr, 2, stats::var)
-  if (!is.null(colnames(counts))) {
+  NVTX_POP()
+
+  NVTX_PUSH("select_min_var_reference", 0)
+  res <- if (!is.null(colnames(counts))) {
     colnames(counts)[which.min(vars)]
-  } else{
+  } else {
     which.min(vars)
   }
+  NVTX_POP()
+
+  NVTX_POP()  # selectReference
+  return(res)
 }

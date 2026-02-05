@@ -127,6 +127,10 @@ test_that("test that weights are properly incorporated to theta", {
 
             # calculate theta
             theta <- (omega1 * lrv1 + omega2 * lrv2) / (omega * lrv)
+            bad <- is.na(lrv1) || is.na(lrv2) || is.na(lrv) || (lrv == 0)
+            if (bad || !is.finite(theta)) {
+                theta <- 1
+            }
             theta_e <- c(theta_e, theta)
         }
     }

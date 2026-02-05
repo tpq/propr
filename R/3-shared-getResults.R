@@ -95,7 +95,6 @@ getSignificantResultsFDR.propr <-
 #' @export
 getSignificantResultsFDR.propd <- 
   function(object, fdr = 0.05, window_size = 1) {
-
     results <- getResults(object)
     cutoff <- getCutoffFDR(object, fdr=fdr, window_size=window_size)
     if (cutoff) {

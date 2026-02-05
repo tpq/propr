@@ -1,68 +1,48 @@
 #include <Rcpp.h>
-using namespace Rcpp;
+#include <propr/interface/comparsison.hpp>
+#include <propr/interface/device_selector.hpp>
 
-// Count the number of elements in vector `x` that are strictly less than the
-// `cutoff`.
-//
+#include <propr/context.h>
+#include <propr/kernels/cpu/dispatch/comparison.hpp>
+#include <propr/kernels/cuda/dispatch/comparison.cuh>
+
+using namespace propr;
+
 // [[Rcpp::export]]
-int count_less_than(NumericVector x, double cutoff) {
-  // See `?Memory-limits`: R vectors are limited in size to the max value of a
-  // signed int, as they use signed int for their size.  If all values of `x`
-  // are greater than cutoff, then we would get a count of INT_MAX, so the count
-  // shouldn't overflow.
-  int count = 0;
-  int len = x.size();
-
-  for (int i = 0; i < len; ++i) {
-    // Returns 1 if it's less than cutoff, zero otherwise.  Add it to the count.
-    count += x[i] < cutoff;
-  }
-
-  return count;
+int count_less_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
+        return dispatch::cuda::count_less_than(x, cutoff);
+    } else {
+        return dispatch::cpu::count_less_than(x, cutoff);
+    }
 }
 
-// Count the number of elements in vector `x` that are strictly greater than the
-// `cutoff`.
-//
 // [[Rcpp::export]]
-int count_greater_than(NumericVector x, double cutoff) {
-  int count = 0;
-  int len = x.size();
-
-  for (int i = 0; i < len; ++i) {
-    // Returns 1 if it's less than cutoff, zero otherwise.  Add it to the count.
-    count += x[i] > cutoff;
-  }
-
-  return count;
+int count_greater_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
+        auto res = dispatch::cuda::count_greater_than(x, cutoff);
+        return res;
+    } else {
+        return dispatch::cpu::count_greater_than(x, cutoff);
+    }
 }
 
-// Count the number of elements in vector `x` that are less or equal than the
-// `cutoff`.
-//
 // [[Rcpp::export]]
-int count_less_equal_than(NumericVector x, double cutoff) {
-  int count = 0;
-  int len = x.size();
-
-  for (int i = 0; i < len; ++i) {
-    count += x[i] <= cutoff;
-  }
-
-  return count;
+int count_less_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
+        auto res = dispatch::cuda::count_less_equal_than(x, cutoff);
+        return res;
+    } else {
+        return dispatch::cpu::count_less_equal_than(x, cutoff);
+    }
 }
 
-// Count the number of elements in vector `x` that are greater or equal than the
-// `cutoff`.
-//
 // [[Rcpp::export]]
-int count_greater_equal_than(NumericVector x, double cutoff) {
-  int count = 0;
-  int len = x.size();
-
-  for (int i = 0; i < len; ++i) {
-    count += x[i] >= cutoff;
-  }
-
-  return count;
+int count_greater_equal_than(Rcpp::NumericVector x, double cutoff, bool use_gpu) {
+    if (is_gpu_backend() || use_gpu) {
+        auto res = dispatch::cuda::count_greater_equal_than(x, cutoff);
+        return res;
+    } else {
+        return dispatch::cpu::count_greater_equal_than(x, cutoff);
+    }
 }

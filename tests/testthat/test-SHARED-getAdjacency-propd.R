@@ -40,8 +40,14 @@ test_that("getAdjacencyFDR and getSignificantResultsFDR return coherent results"
     results <- getSignificantResultsFDR(pr)
 
     # check that the values are correct
-    for (i in 1:nrow(results)){
-        expect_equal(adj[results[i,1], results[i,2]], 1)
+    for (i in 1:nrow(results)) {
+        r <- results[i, 1]
+        c <- results[i, 2]
+        expect_equal(
+            adj[r, c],
+            1,
+            info = sprintf("adj[%s, %s] = %s (expected 1)", r, c, adj[r, c])
+        )
     }
 })
 

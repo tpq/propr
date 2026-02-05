@@ -45,9 +45,17 @@ test_that("active theta_e matches calculation using theta_d", {
   n1 <- 50
   n2 <- 50
 
+  theta_e_expected <- 1 -
+    pd@results$theta +
+    pmin(
+      (n1 - 1) * pd@results$lrv1,
+      (n2 - 1) * pd@results$lrv2
+    ) / ((n1 + n2 - 1) * pd@results$lrv)
+
+  theta_e_expected[!is.finite(theta_e_expected)] <- 1
   expect_equal(
     setActive(pd, what = "theta_e")@results$theta,
-    1 - pd@results$theta + pmin((n1-1) * pd@results$lrv1, (n2-1) * pd@results$lrv2) / ((n1+n2-1) * pd@results$lrv)
+    theta_e_expected
   )
 
   # when weighted
@@ -69,9 +77,17 @@ test_that("active theta_e matches calculation using theta_d", {
   ps <- lapply(groups, function(g) propr:::omega(W[g,]))
   names(ps) <- paste0("p", 1:ngrp)
   p <- propr:::omega(W)
+  theta_e_expected_w <- 1 -
+    pd_w@results$theta +
+    pmin(
+      ps[[1]] * pd_w@results$lrv1,
+      ps[[2]] * pd_w@results$lrv2
+    ) / (p * pd_w@results$lrv)
+
+  theta_e_expected_w[!is.finite(theta_e_expected_w)] <- 1
   expect_equal(
     setActive(pd_w, what = "theta_e")@results$theta,
-    1 - pd_w@results$theta + pmin(ps[[1]] * pd_w@results$lrv1, ps[[2]] * pd_w@results$lrv2) / (p * pd_w@results$lrv)
+    theta_e_expected_w
   )
 })
 

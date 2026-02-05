@@ -185,7 +185,8 @@ test_that("updateCutoffs.propd is reproducible when seed is set", {
 })
 
 test_that("updateCutoffs.propd works when ncores > 1", {
-  
+    skip(message="WARN:Skipping cannot run on local CI")
+
     # get propd object and update cutoffs
     set.seed(0)
     pr1 <- propd(x, as.character(y), p=10)

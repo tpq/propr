@@ -1,0 +1,12 @@
+set(PROPR_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/comparison.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/ctzRcpp.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/graflex.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/lr2propr.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/backend.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/lrm.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/lrv.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/omega.cu
+        ${PROPR_SOURCES}
+        PARENT_SCOPE
+)
