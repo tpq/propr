@@ -155,21 +155,21 @@ logratio_with_alpha <- function(ct, use, alpha) {
 #' @return A matrix with log-ratio transformed values.
 #' @examples
 #' # Sample counts matrix
-#' counts_matrix <- matrix(c(10, 20, 30, 40, 0, 50, 60, 70, 0), nrow = 3, byrow = TRUE)
+#' counts_matrix <- matrix(c(10, 20, 30, 40, 50, 60, 70, 80, 90), nrow = 3, byrow = TRUE)
 #' colnames(counts_matrix) <- c("A", "B", "C")
 #' rownames(counts_matrix) <- c("Sample1", "Sample2", "Sample3")
 #'
 #' # Perform log-ratio transformation without alpha
-#' logratio_without_alpha(counts_matrix, use = "A")
+#' logratio(counts_matrix, ivar = "A")
 #'
 #' # Perform log-ratio transformation with alpha 0.5
-#' logratio_with_alpha(counts_matrix, use = "A", alpha = 0.5)
+#' logratio(counts_matrix, ivar = "A", alpha = 0.5)
 #'
 #' # Skip log-ratio transformation
 #' logratio(counts_matrix, ivar = NA)
 #'
 #' @export
-logratio <- function(counts, ivar, alpha) {
+logratio <- function(counts, ivar, alpha=NA) {
   counts <- as_safe_matrix(counts)
   if (length(ivar) == 1 && is.na(ivar)) {
     message("Alert: Skipping built-in log-ratio transformation.")

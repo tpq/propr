@@ -23,7 +23,7 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - clr", 
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[abs(pr@matrix) >= getCutoffFDR(pr)] <- 1
+    adj_expected[pr@matrix >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)
@@ -43,7 +43,7 @@ test_that("getAdjacencyFDR returns the expected values for pcor.bshrink - alr", 
 
     # get expected adjacency matrix
     adj_expected <- matrix(0, nrow = ncol(X), ncol = ncol(X))
-    adj_expected[abs(pr@matrix) >= getCutoffFDR(pr)] <- 1
+    adj_expected[pr@matrix >= getCutoffFDR(pr)] <- 1
     adj_expected[diag(adj_expected)] <- 1
     rownames(adj_expected) <- colnames(X)
     colnames(adj_expected) <- colnames(X)

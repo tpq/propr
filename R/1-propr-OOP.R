@@ -8,6 +8,7 @@ setClass(
     metric = "character",
     direct = "logical",
     has_meaningful_negative_values = "logical",
+    permutation_option = "character",
     ivar = "ANY",
     lambda = "ANY",
     logratio = "data.frame",
