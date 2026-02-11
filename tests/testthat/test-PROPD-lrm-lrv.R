@@ -83,4 +83,7 @@ test_that("GPU and CPU propd results are numerically equivalent", {
     tolerance = 1e-3,
     scale     = 1
   )
+
+  # set back to CPU for other tests
+  options(propr.use_gpu = FALSE)
 })
