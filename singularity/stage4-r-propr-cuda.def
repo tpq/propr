@@ -1,0 +1,65 @@
+BootStrap: localimage
+From: stage3-r-packages.sif
+
+%labels
+    Maintainer Ziyad AlBanoby <ziyad.albanoby@bsc.es>
+    R_Version 4.4.3
+    HPC_SDK_Base nvcr.io/nvidia/nvhpc:25.3-devel-cuda_multi-ubuntu22.04
+    Stage r-propr
+
+%environment
+    # Ensure locale is correct (inherited from Ubuntu 22.04)
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+
+    # R version variable (for convenience)
+    export R_VERSION=4.4.3
+
+    # Place for host-installed R packages
+    export R_LIBS_SITE=/library:${R_LIBS_SITE}
+
+%post
+    set -e
+
+    ###############################################
+    # 3) Install R packages
+    ###############################################
+
+    # No GPU available during build, so set target architecture explicitly.
+    # Adjust to match your target GPU (e.g., 70=V100, 75=T4, 80=A100, 90=H100).
+    export CUDAARCHS="90"
+
+    # Create a fake nvidia-smi so propr's CMakeLists.txt detects the right arch.
+    # The CMakeLists.txt runs: nvidia-smi --query-gpu=compute_cap --format=csv
+    # and expects output like "compute_cap\n9.0"
+    mkdir -p /tmp/fake-bin
+    cat > /tmp/fake-bin/nvidia-smi << 'FAKESMI'
+#!/bin/bash
+echo "compute_cap"
+echo "9.0"
+FAKESMI
+    chmod +x /tmp/fake-bin/nvidia-smi
+    export PATH="/tmp/fake-bin:$PATH"
+
+    R -e "devtools::install_github('tpq/propr@dev-cuda')"
+
+    # Clean up fake nvidia-smi
+    rm -rf /tmp/fake-bin
+
+%runscript
+    # By default, if someone does `singularity run this.sif`, we drop into R
+    exec R "${@}"
+
+%apprun R
+    exec R "${@}"
+
+%apprun Rscript
+    exec Rscript "${@}"
+
+%test
+    # Verify R version
+    R --quiet -e "stopifnot(getRversion() == '4.4.3')"
+    # Verify NVIDIA compilers are present (inherited from base image)
+    which nvcc || (echo "nvcc not in PATH" && exit 1)
+    which nvc++ || (echo "nvc++ not in PATH" && exit 1)
+    echo "R and NVIDIA HPC SDK are installed."
