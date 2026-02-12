@@ -64,7 +64,7 @@ get_connectivity <- function(propd, pairwise_fdr = 0.05) {
   data.frame(
     Gene = features,
     connectivity = connectivity,
-    FDR_mean = fdr_mean,
+    FDR = fdr_mean,
     stringsAsFactors = FALSE
   )
 }
@@ -103,7 +103,7 @@ get_weighted_connectivity <- function(propd, pairwise_fdr = 0.05) {
   data.frame(
     Gene = features,
     wconnectivity = wconnectivity,
-    FDR_mean = fdr_mean,
+    FDR = fdr_mean,
     stringsAsFactors = FALSE
   )
 }
