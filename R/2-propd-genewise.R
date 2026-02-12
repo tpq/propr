@@ -56,10 +56,8 @@ get_connectivity <- function(propd, pairwise_fdr = 0.05) {
   # Connectivity: number of significant pairs per gene (row sums of adjacency)
   connectivity <- rowSums(adj)
 
-  # Mean FDR across significant pairs per gene
-  fdr_mat[!adj] <- NA
-  fdr_mean <- rowMeans(fdr_mat, na.rm = TRUE)
-  fdr_mean[connectivity == 0] <- NA
+  # Mean FDR across all pairs per gene
+  fdr_mean <- rowMeans(fdr_mat)
 
   data.frame(
     Gene = features,
@@ -94,11 +92,8 @@ get_weighted_connectivity <- function(propd, pairwise_fdr = 0.05) {
   weight_mat <- ifelse(adj, 1 / theta_mat, 0)
   wconnectivity <- rowSums(weight_mat)
 
-  # Mean FDR across significant pairs per gene
-  connectivity <- rowSums(adj)
-  fdr_mat[!adj] <- NA
-  fdr_mean <- rowMeans(fdr_mat, na.rm = TRUE)
-  fdr_mean[connectivity == 0] <- NA
+  # Mean FDR across all pairs per gene
+  fdr_mean <- rowMeans(fdr_mat)
 
   data.frame(
     Gene = features,
