@@ -14,15 +14,7 @@
 \usage{
 \S4method{show}{propd}(object)
 
-propd(
-  counts,
-  group,
-  alpha = NA,
-  p = 0,
-  weighted = FALSE,
-  weights = as.matrix(NA),
-  shrink = FALSE
-)
+propd(counts, group, alpha = NA, p = 0, weighted = FALSE, shrink = FALSE)
 
 setDisjointed(propd)
 
@@ -30,7 +22,7 @@ setEmergent(propd)
 
 setActive(propd, what = "theta_d")
 
-updateF(propd, moderated = FALSE, ivar = "clr")
+updateF(propd, moderated = TRUE, ivar = "clr")
 }
 \arguments{
 \item{object}{A \code{propd} object.}
@@ -48,8 +40,6 @@ discovery rate (FDR). The default is 0.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed.}
-
-\item{weights}{A custom matrix of weights.}
 
 \item{shrink}{A logical value indicating whether to apply shrinkage}
 

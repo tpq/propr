@@ -26,7 +26,7 @@ test_that("getCutoffFstat gets the correct cutoff when FDR correction is conside
     # get propr object and update cutoffs
     set.seed(0)
     pr <- propd(x, as.character(y), p=10)
-    pr <- updateF(pr)
+    pr <- updateF(pr, moderated=F)
 
     # get cutoff 
     cutoff_expected <- max(pr@results$theta[pr@results$FDR <= 0.05])
@@ -41,7 +41,7 @@ test_that("getCutoffFstat gets the correct cutoff when FDR correction is not con
     # get propr object and update cutoffs
     set.seed(0)
     pr <- propd(x, as.character(y), p=10)
-    pr <- updateF(pr)
+    pr <- updateF(pr, moderated=F)
 
     # get cutoff 
     pval <- 0.05

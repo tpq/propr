@@ -104,7 +104,7 @@ any cutoff. This method can take a while to run, but is parallelizable.
 pr <- updateCutoffs(
         pr,
         number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
-        custom_cutoffs = NULL,  # or specify custom cutoffs
+        custom_cutoffs = NA,  # or specify custom cutoffs
         tails = 'right',  # consider only the positive values ('right') or both sides ('both')
         ncores = 4  # parallelize here
       ) 
@@ -134,7 +134,7 @@ correlations with the built-in permutation approach.
 pr <- updateCutoffs(
         pr,
         number_of_cutoffs = 100,  # number of cutoffs to estimate FDR
-        custom_cutoffs = NULL,  # or specify custom cutoffs
+        custom_cutoffs = NA,  # or specify custom cutoffs
         tails = 'right',  # consider only the positive values ('right') or both sides ('both')
         ncores = 4  # parallelize here
       ) 

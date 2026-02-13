@@ -11,7 +11,6 @@ calculate_theta(
   lrv = NA,
   only = "all",
   weighted = FALSE,
-  weights = as.matrix(NA),
   shrink = FALSE
 )
 }
@@ -30,8 +29,6 @@ assignment of each count to different groups.}
 
 \item{weighted}{A logical value indicating whether weighted calculations
 should be performed.}
-
-\item{weights}{A weight matrix.}
 
 \item{shrink}{A logical value indicating whether to apply shrinkage}
 }
