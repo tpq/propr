@@ -4,33 +4,34 @@
 \alias{propdGenewise}
 \title{Convert pairwise propd results into genewise}
 \usage{
-propdGenewise(
-  propd,
-  metric = c("connectivity", "wconnectivity"),
-  pairwise_fdr = 0.05
-)
+propdGenewise(propd, pairwise_fdr = 0.05)
 }
 \arguments{
 \item{propd}{A \code{\link{propd}} object, with FDR values from updateF. Note:
 for the moment, only theta results with F-stats are supported. Later we will look 
 on the option to get FDR values based on permutations.}
 
-\item{metric}{A character string. The metric to use for genewise results. Options 
-are "connectivity" and "wconnectivity".}
-
-\item{pairwise_fdr}{}
+\item{pairwise_fdr}{FDR threashold to consider a pairwise relationship as significant.
+Default is 0.05.}
 }
 \value{
-A data frame with genewise results.
+A data frame with genewise results that can be used to identify differentially
+expressed genes. It contains the following columns:
+ - "id": gene identifier
+ - "lfc": Log Fold Change of the gene, using the geometric mean of all genes as reference.
+ - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset 
+    of genes as reference (only the ones that are significantly connected to the gene).
+ - "connectivity": number of significant pairwise relationships the gene has.
+ - "wconnectivity": weighted connectivity, which sums the strength of significant pairwise 
+    relationships (defined as 1/theta) for the gene.
+- "FDR_mean": average FDR value across all pairwise comparisons for the gene, which can be 
+    used as a genewise significance statistic. Note that this is a simple average and may 
+    not be the most robust method for determining genewise significance, but it provides a 
+    starting point for identifying genes of interest based on their pairwise relationships. 
+    Future updates may include more sophisticated methods for calculating genewise p-values 
+    or FDR values based on the pairwise results.
 }
 \description{
 This function converts pairwise propd results into genewise results. The resulting
 genewise results are direct indirectors of genes being differentially expressed.
-}
-\details{
-The "connectivity" metric refers to the number of significant pairwise 
-relationships a gene has, while the "wconnectivity" metric weights these 
-relationships by their strength (i.e., theta values). The resulting genewise results 
-can be used to identify genes that are central to the observed proportionality changes 
-across groups (these genes tend to be differentially expressed).
 }

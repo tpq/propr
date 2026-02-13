@@ -54,14 +54,14 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05) {
   adj <- (fdr_mat > 0) & (fdr_mat < pairwise_fdr)
 
   ## ---- Connectivity ----
-  connectivity <- rowSums(adj)
+  connectivity <- rowSums(adj, na.rm = TRUE)
 
   ## ---- Weighted connectivity ----
   weight_mat <- ifelse(adj, 1 / theta_mat, 0)
-  wconnectivity <- rowSums(weight_mat)
+  wconnectivity <- rowSums(weight_mat, na.rm = TRUE)
 
   ## ---- FDR mean ----
-  fdr_mean <- rowMeans(fdr_mat)
+  fdr_mean <- rowMeans(fdr_mat, na.rm = TRUE)
 
   ## ---- Build lrm matrices ----
   lrm1_all <- results_to_matrix(propd@results, what = "lrm1", features = features)
@@ -76,7 +76,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05) {
   # lrm differences represent log fold changes; averaging across all genes as
   # reference is equivalent to using the geometric mean (CLR transformation)
   lrm_diff <- lrm1_all - lrm2_all
-  lfc <- rowMeans(lrm_diff) / log(2)
+  lfc <- rowMeans(lrm_diff, na.rm = TRUE) / log(2)
 
   ## ---- lrmD (LFC using only significant partners as reference) ----
   lrm_diff <- ifelse(adj, lrm_diff, NA) # keep only significant pairwise relationships
