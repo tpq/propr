@@ -18,34 +18,18 @@ test_that("propdGenewise errors without FDR column", {
   )
 })
 
-test_that("propdGenewise errors with invalid metric", {
-  expect_error(
-    propdGenewise(pd, metric = "invalid"),
-    "'arg' should be one of"
-  )
-})
-
-test_that("connectivity returns correct structure", {
-  res <- propdGenewise(pd, metric = "connectivity")
+test_that("propdGenewise returns correct structure", {
+  res <- propdGenewise(pd)
 
   expect_s3_class(res, "data.frame")
-  expect_equal(colnames(res), c("Gene", "connectivity", "FDR"))
+  expect_equal(colnames(res), c("id", "lfc", "lrmD", "connectivity", "wconnectivity", "FDR_mean"))
   expect_equal(nrow(res), ncol(counts))
-  expect_equal(res$Gene, colnames(counts))
-})
-
-test_that("wconnectivity returns correct structure", {
-  res <- propdGenewise(pd, metric = "wconnectivity")
-
-  expect_s3_class(res, "data.frame")
-  expect_equal(colnames(res), c("Gene", "wconnectivity", "FDR"))
-  expect_equal(nrow(res), ncol(counts))
-  expect_equal(res$Gene, colnames(counts))
+  expect_equal(res$id, colnames(counts))
 })
 
 test_that("connectivity counts match manual calculation", {
   fdr_cutoff <- 0.05
-  res <- propdGenewise(pd, metric = "connectivity", pairwise_fdr = fdr_cutoff)
+  res <- propdGenewise(pd, pairwise_fdr = fdr_cutoff)
   features <- colnames(counts)
 
   # manually compute connectivity from the results table
@@ -61,7 +45,7 @@ test_that("connectivity counts match manual calculation", {
 
 test_that("weighted connectivity matches manual calculation", {
   fdr_cutoff <- 0.05
-  res <- propdGenewise(pd, metric = "wconnectivity", pairwise_fdr = fdr_cutoff)
+  res <- propdGenewise(pd, pairwise_fdr = fdr_cutoff)
   features <- colnames(counts)
 
   # manually compute weighted connectivity
@@ -77,33 +61,53 @@ test_that("weighted connectivity matches manual calculation", {
 })
 
 test_that("strict pairwise_fdr yields zero or fewer connections", {
-  res_loose <- propdGenewise(pd, metric = "connectivity", pairwise_fdr = 0.5)
-  res_strict <- propdGenewise(pd, metric = "connectivity", pairwise_fdr = 0.001)
+  res_loose <- propdGenewise(pd, pairwise_fdr = 0.5)
+  res_strict <- propdGenewise(pd, pairwise_fdr = 0.001)
 
   expect_true(all(res_strict$connectivity <= res_loose$connectivity))
 })
 
 test_that("pairwise_fdr of 0 gives zero connectivity for all genes", {
-  res <- propdGenewise(pd, metric = "connectivity", pairwise_fdr = 0)
+  res <- propdGenewise(pd, pairwise_fdr = 0)
   expect_true(all(res$connectivity == 0))
-
-  res_w <- propdGenewise(pd, metric = "wconnectivity", pairwise_fdr = 0)
-  expect_true(all(res_w$wconnectivity == 0))
+  expect_true(all(res$wconnectivity == 0))
 })
 
 test_that("connectivity values are non-negative integers", {
-  res <- propdGenewise(pd, metric = "connectivity")
+  res <- propdGenewise(pd)
   expect_true(all(res$connectivity >= 0))
   expect_equal(res$connectivity, as.integer(res$connectivity))
 })
 
 test_that("wconnectivity values are non-negative", {
-  res <- propdGenewise(pd, metric = "wconnectivity")
+  res <- propdGenewise(pd)
   expect_true(all(res$wconnectivity >= 0))
 })
 
-test_that("default metric is connectivity", {
-  res_default <- propdGenewise(pd)
-  res_conn <- propdGenewise(pd, metric = "connectivity")
-  expect_equal(res_default, res_conn)
+test_that("lfc is computed correctly via CLR", {
+  res <- propdGenewise(pd)
+
+  # manually compute CLR-based LFC
+  ct <- as.matrix(counts)
+  if (any(ct == 0)) ct <- ct + 1
+
+  g1 <- group == "A"
+  g2 <- group == "B"
+
+  clr1 <- propr:::logratio(ct[g1,], 'clr', NA) 
+  clr2 <- propr:::logratio(ct[g2,], 'clr', NA) 
+  manual_lfc <- (colMeans(clr1 - clr2)) / log(2)
+
+  expect_equal(res$lfc, as.numeric(manual_lfc))
+})
+
+test_that("lrmD is NA when gene has no significant connections", {
+  # use very strict cutoff so no pairs are significant
+  res <- propdGenewise(pd, pairwise_fdr = 0)
+  expect_true(all(is.na(res$lrmD)))
+})
+
+test_that("FDR_mean is between 0 and 1", {
+  res <- propdGenewise(pd)
+  expect_true(all(res$FDR_mean >= 0 & res$FDR_mean <= 1))
 })

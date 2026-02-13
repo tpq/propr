@@ -6,99 +6,91 @@
 #' @param propd A \code{\link{propd}} object, with FDR values from updateF. Note:
 #' for the moment, only theta results with F-stats are supported. Later we will look 
 #' on the option to get FDR values based on permutations.
-#' @param metric A character string. The metric to use for genewise results. Options 
-#' are "connectivity" and "wconnectivity".
-#' @param pairwise_fdr 
-#' @return A data frame with genewise results. 
-#' 
-#' @details The "connectivity" metric refers to the number of significant pairwise 
-#' relationships a gene has, while the "wconnectivity" metric weights these 
-#' relationships by their strength (i.e., theta values). The resulting genewise results 
-#' can be used to identify genes that are central to the observed proportionality changes 
-#' across groups (these genes tend to be differentially expressed).
+#' @param pairwise_fdr FDR threashold to consider a pairwise relationship as significant.
+#' Default is 0.05.
+#' @return A data frame with genewise results that can be used to identify differentially
+#' expressed genes. It contains the following columns:
+#'  - "id": gene identifier
+#'  - "lfc": Log Fold Change of the gene, using the geometric mean of all genes as reference.
+#'  - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset 
+#'     of genes as reference (only the ones that are significantly connected to the gene).
+#'  - "connectivity": number of significant pairwise relationships the gene has.
+#'  - "wconnectivity": weighted connectivity, which sums the strength of significant pairwise 
+#'     relationships (defined as 1/theta) for the gene.
+#' - "FDR_mean": average FDR value across all pairwise comparisons for the gene, which can be 
+#'     used as a genewise significance statistic. Note that this is a simple average and may 
+#'     not be the most robust method for determining genewise significance, but it provides a 
+#'     starting point for identifying genes of interest based on their pairwise relationships. 
+#'     Future updates may include more sophisticated methods for calculating genewise p-values 
+#'     or FDR values based on the pairwise results.
 #' 
 #' @rdname propdGenewise
 #' @export
-propdGenewise <- function(propd,
-                          metric = c("connectivity", "wconnectivity"),
-                          pairwise_fdr = 0.05) {
+propdGenewise <- function(propd, pairwise_fdr = 0.05) {
 
-  metric <- match.arg(metric)
-
-  if (!"FDR" %in% colnames(propd@results)) { 
-    stop("Please run updateF on the propd object to get FDR values before running propdGenewise.") 
+  # for the moment it only works with theta results with F-stats,
+  # but later we will look into the option to get FDR values based on permutations.
+  if (!"FDR" %in% colnames(propd@results)) {
+    stop("Please run updateF on the propd object to get FDR values before running propdGenewise.")
   }
 
-  if (metric == "connectivity") {
-    get_connectivity(propd, pairwise_fdr)
-  } else {
-    get_weighted_connectivity(propd, pairwise_fdr)
+  # not working for alpha != NA too
+  if (!is.na(propd@alpha)) {
+    stop("propdGenewise currently only works for alpha = NA. Future updates may include support for other alpha values.")
   }
-}
 
-#' Get connectivity for each gene based on pairwise propd results
-#' 
-#' It computes the per-gene connectivity by counting the number of
-#' significant pairwise relationships each gene has. It also provides
-#' a genewise significance stat (for the moment we provide a fake one
-#' by averaging all the pairwise FDR values for each gene, but later
-#' we will look into more robust methods to get genewise p-values).
-#' @inheritParams propdGenewise
-#' @return A data frame with genewise connectivity results.
-get_connectivity <- function(propd, pairwise_fdr = 0.05) {
+  # not working for more than 2 groups too
+  if (length(unique(propd@group)) > 2) {
+    stop("propdGenewise currently only works for 2 groups. Future updates may include support for more than 2 groups.")
+  }
 
+  # get features and number of features
   features <- colnames(propd@counts)
+  nfeatures <- length(features)
 
-  # Build FDR matrix and adjacency matrix of significant pairs
-  fdr_mat <- results_to_matrix(propd@results, what = "FDR", features = features)
-  adj <- (fdr_mat > 0) & (fdr_mat < pairwise_fdr)
-
-  # Connectivity: number of significant pairs per gene (row sums of adjacency)
-  connectivity <- rowSums(adj)
-
-  # Mean FDR across all pairs per gene
-  fdr_mean <- rowMeans(fdr_mat)
-
-  data.frame(
-    Gene = features,
-    connectivity = connectivity,
-    FDR = fdr_mean,
-    stringsAsFactors = FALSE
-  )
-}
-
-#' Get weighted connectivity for each gene based on pairwise propd results 
-#' 
-#' It computes the per-gene weighted connectivity by summing the strength 
-#' of significant pairwise relationships each gene has. The strength of a 
-#' relationship can be defined #' as the inverse of the theta value (i.e., 1/theta) 
-#' (i.e., 1/theta) for significant pairs, which gives more weight to stronger 
-#' relationships. It also provides a genewise significance stat by averaging 
-#' all the pairwise FDR values for each gene.
-#' @inheritParams propdGenewise
-#' @return A data frame with genewise weighted connectivity results.
-get_weighted_connectivity <- function(propd, pairwise_fdr = 0.05) {
-
-  features <- colnames(propd@counts)
-
-  # Build FDR matrix and theta matrix
+  ## ---- Build matrices needed for connectivity metrics ----
   fdr_mat <- results_to_matrix(propd@results, what = "FDR", features = features)
   theta_mat <- results_to_matrix(propd@results, what = "theta", features = features)
-
-  # Adjacency matrix of significant pairs
   adj <- (fdr_mat > 0) & (fdr_mat < pairwise_fdr)
 
-  # Weighted connectivity: sum of 1/theta for significant pairs per gene
+  ## ---- Connectivity ----
+  connectivity <- rowSums(adj)
+
+  ## ---- Weighted connectivity ----
   weight_mat <- ifelse(adj, 1 / theta_mat, 0)
   wconnectivity <- rowSums(weight_mat)
 
-  # Mean FDR across all pairs per gene
+  ## ---- FDR mean ----
   fdr_mean <- rowMeans(fdr_mat)
 
+  ## ---- Build lrm matrices ----
+  lrm1_all <- results_to_matrix(propd@results, what = "lrm1", features = features)
+  lrm2_all <- results_to_matrix(propd@results, what = "lrm2", features = features)
+  # results_to_matrix returns symmetric matrices, but lrm values are directed:
+  # lrm(Partner, Pair) = mean(log(x_Partner / x_Pair)), with Partner > Pair.
+  # Negate the upper triangle so that mat[g, j] = mean(log(x_g / x_j)) for all g, j.
+  lrm1_all[upper.tri(lrm1_all)] <- -lrm1_all[upper.tri(lrm1_all)]
+  lrm2_all[upper.tri(lrm2_all)] <- -lrm2_all[upper.tri(lrm2_all)]
+
+  ## ---- LFC (CLR-based log fold change) ----
+  # lrm differences represent log fold changes; averaging across all genes as
+  # reference is equivalent to using the geometric mean (CLR transformation)
+  lrm_diff <- lrm1_all - lrm2_all
+  lfc <- rowMeans(lrm_diff) / log(2)
+
+  ## ---- lrmD (LFC using only significant partners as reference) ----
+  lrm_diff <- ifelse(adj, lrm_diff, NA) # keep only significant pairwise relationships
+  lrmD <- apply(lrm_diff, 1, median, na.rm = TRUE) / log(2)
+
+  ## ---- Compile results into a data frame ----
   data.frame(
-    Gene = features,
+    id = features,
+    lfc = lfc,
+    lrmD = lrmD,
+    connectivity = connectivity,
     wconnectivity = wconnectivity,
-    FDR = fdr_mean,
-    stringsAsFactors = FALSE
+    FDR_mean = fdr_mean,
+    stringsAsFactors = FALSE,
+    row.names = NULL
   )
 }
