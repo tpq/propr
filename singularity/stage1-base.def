@@ -1,0 +1,43 @@
+BootStrap: docker
+From: nvcr.io/nvidia/nvhpc:25.3-devel-cuda_multi-ubuntu22.04
+
+%labels
+    Maintainer Ziyad AlBanoby <ziyad.albanoby@bsc.es>
+    Stage base-os-deps
+
+%post
+    set -e
+
+    ############################################################
+    # 1) Install OS-level dependencies & locale (Ubuntu 22.04) #
+    ############################################################
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        wget \
+        software-properties-common \
+        dirmngr \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev \
+        libcairo2-dev \
+        libxt-dev \
+        libopenblas-dev \
+        locales \
+        ca-certificates \
+        gnupg \
+        libharfbuzz-dev \
+        libfribidi-dev \
+        libfreetype6-dev \
+        libpng-dev \
+        libtiff5-dev \
+        libjpeg-dev \
+        libwebp-dev
+
+    # Configure default locale (just in case)
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+    locale-gen en_US.UTF-8
+    /usr/sbin/update-locale LANG=en_US.UTF-8
+
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*

@@ -52,7 +52,6 @@ test_that("active theta_e matches calculation using theta_d", {
       (n2 - 1) * pd@results$lrv2
     ) / ((n1 + n2 - 1) * pd@results$lrv)
 
-  theta_e_expected[!is.finite(theta_e_expected)] <- 1
   expect_equal(
     setActive(pd, what = "theta_e")@results$theta,
     theta_e_expected
@@ -84,7 +83,6 @@ test_that("active theta_e matches calculation using theta_d", {
       ps[[2]] * pd_w@results$lrv2
     ) / (p * pd_w@results$lrv)
 
-  theta_e_expected_w[!is.finite(theta_e_expected_w)] <- 1
   expect_equal(
     setActive(pd_w, what = "theta_e")@results$theta,
     theta_e_expected_w
