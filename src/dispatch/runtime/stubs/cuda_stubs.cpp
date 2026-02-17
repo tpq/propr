@@ -31,6 +31,18 @@ void half2mat(Rcpp::NumericMatrix&, const Rcpp::NumericVector&) { throw_unavaila
 void vector2mat(Rcpp::NumericMatrix&, const Rcpp::NumericVector&, const Rcpp::IntegerVector&, const Rcpp::IntegerVector&, int) { throw_unavailable(); }
 void ratiosRcpp(Rcpp::NumericMatrix&, const Rcpp::NumericMatrix&) { throw_unavailable(); }
 void results2matRcpp(Rcpp::NumericMatrix&, const Rcpp::DataFrame&, int, double) { throw_unavailable(); }
+void genewise_connectivity(
+    Rcpp::IntegerVector&,
+    Rcpp::IntegerVector&,
+    Rcpp::NumericVector&,
+    Rcpp::NumericVector&,
+    const Rcpp::IntegerVector&,
+    const Rcpp::IntegerVector&,
+    const Rcpp::NumericVector&,
+    const Rcpp::NumericVector&,
+    int,
+    double) { throw_unavailable(); }
+void genewise_theta_stats(Rcpp::NumericVector&, Rcpp::NumericVector&, const Rcpp::NumericVector&, int) { throw_unavailable(); }
 
 // lrm ops
 void lrm_basic(Rcpp::NumericVector&, Rcpp::NumericMatrix&) { throw_unavailable(); }

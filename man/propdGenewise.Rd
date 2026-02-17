@@ -4,7 +4,7 @@
 \alias{propdGenewise}
 \title{Convert pairwise propd results into genewise}
 \usage{
-propdGenewise(propd, pairwise_fdr = 0.05)
+propdGenewise(propd, pairwise_fdr = 0.05, backend = "auto")
 }
 \arguments{
 \item{propd}{A \code{\link{propd}} object, with FDR values from updateF. Note:
@@ -13,6 +13,8 @@ on the option to get FDR values based on permutations.}
 
 \item{pairwise_fdr}{FDR threashold to consider a pairwise relationship as significant.
 Default is 0.05.}
+
+\item{backend}{Backend to use for connectivity statistics (\code{"auto"}, \code{"cpu"}, or \code{"cuda"}).}
 }
 \value{
 A data frame with genewise results that can be used to identify differentially

@@ -4,6 +4,7 @@
 #include <propr/kernels/cuda/dispatch/comparison.cuh>
 #include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
 #include <propr/kernels/cuda/dispatch/graflex.cuh>
+#include <propr/kernels/cuda/dispatch/genewise.cuh>
 #include <propr/kernels/cuda/dispatch/lr2propr.cuh>
 #include <propr/kernels/cuda/dispatch/lrm.cuh>
 #include <propr/kernels/cuda/dispatch/lrv.cuh>
@@ -99,6 +100,38 @@ void ratiosRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix& X) {
 
 void results2matRcpp(Rcpp::NumericMatrix& out, const Rcpp::DataFrame& results, int n, double diagonal) {
     dispatch::cuda::results2matRcpp(out, results, n, diagonal);
+}
+
+void genewise_connectivity(
+    Rcpp::IntegerVector& per_gene_count,
+    Rcpp::IntegerVector& per_gene_conn,
+    Rcpp::NumericVector& per_gene_wconn,
+    Rcpp::NumericVector& per_gene_fdr_sum,
+    const Rcpp::IntegerVector& partner,
+    const Rcpp::IntegerVector& pair,
+    const Rcpp::NumericVector& theta,
+    const Rcpp::NumericVector& fdr,
+    int num_genes,
+    double fdr_thresh) {
+    dispatch::cuda::genewise_connectivity(
+        per_gene_count,
+        per_gene_conn,
+        per_gene_wconn,
+        per_gene_fdr_sum,
+        partner,
+        pair,
+        theta,
+        fdr,
+        num_genes,
+        fdr_thresh);
+}
+
+void genewise_theta_stats(
+    Rcpp::NumericVector& out_mean,
+    Rcpp::NumericVector& out_median,
+    const Rcpp::NumericVector& theta_edges,
+    int num_genes) {
+    dispatch::cuda::genewise_theta_stats(out_mean, out_median, theta_edges, num_genes);
 }
 
 void lrm_basic(Rcpp::NumericVector& out, Rcpp::NumericMatrix& Y) {

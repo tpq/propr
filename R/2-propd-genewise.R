@@ -8,6 +8,7 @@
 #' on the option to get FDR values based on permutations.
 #' @param pairwise_fdr FDR threashold to consider a pairwise relationship as significant.
 #' Default is 0.05.
+#' @param backend Backend to use for connectivity statistics (`"auto"`, `"cpu"`, or `"cuda"`).
 #' @return A data frame with genewise results that can be used to identify differentially
 #' expressed genes. It contains the following columns:
 #'  - "id": gene identifier
@@ -26,7 +27,7 @@
 #' 
 #' @rdname propdGenewise
 #' @export
-propdGenewise <- function(propd, pairwise_fdr = 0.05) {
+propdGenewise <- function(propd, pairwise_fdr = 0.05, backend='auto') {
 
   # for the moment it only works with theta results with F-stats,
   # but later we will look into the option to get FDR values based on permutations.
@@ -48,20 +49,35 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05) {
   features <- colnames(propd@counts)
   nfeatures <- length(features)
 
-  ## ---- Build matrices needed for connectivity metrics ----
+  pair <- propd@results$Pair
+  partner <- propd@results$Partner
+
+  if (!is.numeric(pair) || !is.numeric(partner)) {
+    pair <- match(pair, features)
+    partner <- match(partner, features)
+    if (any(is.na(pair)) || any(is.na(partner))) {
+      stop("Some features in Pair/Partner are not present in propd@counts.")
+    }
+  }
+
+  ## ---- Connectivity + weighted connectivity + FDR mean (CPU/CUDA dispatch) ----
+  stats <- genewiseConnectivityRcpp(
+      partner = as.integer(partner),
+      pair = as.integer(pair),
+      theta = as.numeric(propd@results$theta),
+      fdr = as.numeric(propd@results$FDR),
+      num_genes = nfeatures,
+      pairwise_fdr = pairwise_fdr,
+      backend = backend
+  )
+
+  connectivity <- as.integer(stats$connectivity)
+  wconnectivity <- as.numeric(stats$wconnectivity)
+  fdr_mean <- as.numeric(stats$FDR_mean)
+
+  ## ---- Build FDR adjacency for lrmD ----
   fdr_mat <- results_to_matrix(propd@results, what = "FDR", features = features)
-  theta_mat <- results_to_matrix(propd@results, what = "theta", features = features)
   adj <- (fdr_mat > 0) & (fdr_mat < pairwise_fdr)
-
-  ## ---- Connectivity ----
-  connectivity <- rowSums(adj, na.rm = TRUE)
-
-  ## ---- Weighted connectivity ----
-  weight_mat <- ifelse(adj, 1 / theta_mat, 0)
-  wconnectivity <- rowSums(weight_mat, na.rm = TRUE)
-
-  ## ---- FDR mean ----
-  fdr_mean <- rowMeans(fdr_mat, na.rm = TRUE)
 
   ## ---- Build lrm matrices ----
   lrm1_all <- results_to_matrix(propd@results, what = "lrm1", features = features)

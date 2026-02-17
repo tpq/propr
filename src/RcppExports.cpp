@@ -364,6 +364,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// genewiseConnectivityRcpp
+Rcpp::List genewiseConnectivityRcpp(const Rcpp::IntegerVector& partner, const Rcpp::IntegerVector& pair, const Rcpp::NumericVector& theta, const Rcpp::NumericVector& fdr, int num_genes, double pairwise_fdr, Rcpp::String backend);
+RcppExport SEXP _propr_genewiseConnectivityRcpp(SEXP partnerSEXP, SEXP pairSEXP, SEXP thetaSEXP, SEXP fdrSEXP, SEXP num_genesSEXP, SEXP pairwise_fdrSEXP, SEXP backendSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type partner(partnerSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type pair(pairSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type fdr(fdrSEXP);
+    Rcpp::traits::input_parameter< int >::type num_genes(num_genesSEXP);
+    Rcpp::traits::input_parameter< double >::type pairwise_fdr(pairwise_fdrSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type backend(backendSEXP);
+    rcpp_result_gen = Rcpp::wrap(genewiseConnectivityRcpp(partner, pair, theta, fdr, num_genes, pairwise_fdr, backend));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getOR
 Rcpp::NumericVector getOR(const Rcpp::IntegerMatrix& A, const Rcpp::IntegerMatrix& G, Rcpp::String backend);
 RcppExport SEXP _propr_getOR(SEXP ASEXP, SEXP GSEXP, SEXP backendSEXP) {
@@ -600,6 +617,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 2},
     {"_propr_setCudaProfile", (DL_FUNC) &_propr_setCudaProfile, 1},
     {"_propr_consumeCudaProfile", (DL_FUNC) &_propr_consumeCudaProfile, 0},
+    {"_propr_genewiseConnectivityRcpp", (DL_FUNC) &_propr_genewiseConnectivityRcpp, 7},
     {"_propr_getOR", (DL_FUNC) &_propr_getOR, 3},
     {"_propr_getORperm", (DL_FUNC) &_propr_getORperm, 4},
     {"_propr_permuteOR", (DL_FUNC) &_propr_permuteOR, 4},

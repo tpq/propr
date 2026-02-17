@@ -18,9 +18,10 @@ namespace propr {
         namespace internal {
             namespace warp {
                 template<typename ReduceOp, typename T>
-                PROPR_NO_DISCARD
+                PROPR_NO_DISCARD 
+                PROPR_FORCE_INLINE 
                 PROPR_DEVICE 
-                PROPR_FORCE_INLINE T warp_reduce(T v, unsigned mask, ReduceOp op = ReduceOp()) {
+                T warp_reduce(T v, unsigned mask, ReduceOp op = ReduceOp()) {
                     const int lane = static_cast<int>(threadIdx.x) & (PROPR_WARP_SIZE - 1);
                     PROPR_UNROLL
                     for (int offset = PROPR_WARP_SIZE / 2; offset > 0; offset >>= 1) {
@@ -34,8 +35,8 @@ namespace propr {
 
                 template<typename ReduceOp, typename T>
                 PROPR_NO_DISCARD
-                PROPR_DEVICE
-                PROPR_FORCE_INLINE T warp_reduce(T v, ReduceOp op = ReduceOp()) {
+                PROPR_FORCE_INLINE 
+                PROPR_DEVICE T warp_reduce(T v, ReduceOp op = ReduceOp()) {
                     return warp_reduce(v, __activemask(), op);
                 }
 

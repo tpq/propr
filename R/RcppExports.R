@@ -113,6 +113,10 @@ consumeCudaProfile <- function() {
     .Call(`_propr_consumeCudaProfile`)
 }
 
+genewiseConnectivityRcpp <- function(partner, pair, theta, fdr, num_genes, pairwise_fdr, backend) {
+    .Call(`_propr_genewiseConnectivityRcpp`, partner, pair, theta, fdr, num_genes, pairwise_fdr, backend)
+}
+
 getOR <- function(A, G, backend = "auto") {
     .Call(`_propr_getOR`, A, G, backend)
 }

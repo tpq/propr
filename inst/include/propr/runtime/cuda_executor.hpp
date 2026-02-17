@@ -33,6 +33,22 @@ namespace propr {
                 int nfeats);
             void ratiosRcpp(Rcpp::NumericMatrix& out, const Rcpp::NumericMatrix& X);
             void results2matRcpp(Rcpp::NumericMatrix& out, const Rcpp::DataFrame& results, int n, double diagonal);
+            void genewise_connectivity(
+                Rcpp::IntegerVector& per_gene_count,
+                Rcpp::IntegerVector& per_gene_conn,
+                Rcpp::NumericVector& per_gene_wconn,
+                Rcpp::NumericVector& per_gene_fdr_sum,
+                const Rcpp::IntegerVector& partner,
+                const Rcpp::IntegerVector& pair,
+                const Rcpp::NumericVector& theta,
+                const Rcpp::NumericVector& fdr,
+                int num_genes,
+                double fdr_thresh);
+            void genewise_theta_stats(
+                Rcpp::NumericVector& out_mean,
+                Rcpp::NumericVector& out_median,
+                const Rcpp::NumericVector& theta_edges,
+                int num_genes);
 
             void lrm_basic(Rcpp::NumericVector& out, Rcpp::NumericMatrix& Y);
             void lrm_weighted(Rcpp::NumericVector& out, Rcpp::NumericMatrix& Y, Rcpp::NumericMatrix& W);
