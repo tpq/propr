@@ -12,7 +12,7 @@ namespace propr {
             };
 
             template <typename T>
-            struct genewise_theta_stats_config_for : thread_layout_1d<256> {
+            struct genewise_theta_stats_config_for : thread_layout_1d<1024> {
                 static constexpr int RADIX_BITS = 4;
                 static constexpr int RADIX_SIZE = 1 << RADIX_BITS;
                 static constexpr int RADIX_MASK = RADIX_SIZE - 1;

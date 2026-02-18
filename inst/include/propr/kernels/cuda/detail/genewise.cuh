@@ -98,6 +98,7 @@ namespace propr {
                         if (has_fdr && fdr_ > 0.0f && fdr_ < fdr_thresh) {
                             sig = 1; 
                             const float theta_ = theta[e];
+                            // I am not sure to be honest if it is divide or - lets wait for them
                             if (!isnan(theta_)) {
                                 w = 1.0f - theta_;
                             }

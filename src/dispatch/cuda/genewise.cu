@@ -16,17 +16,14 @@ using namespace Rcpp;
 using namespace propr;
 
 namespace {
-int sort_end_bit_for_keys(const int num_genes) {
-    if (num_genes <= 1) return 1;
+    int sort_end_bit_for_keys(const int num_genes) {
+        if (num_genes <= 1) return 1;
 
-    unsigned int v = static_cast<unsigned int>(num_genes - 1);
-    int bits = 0;
-    while (v > 0) {
-        ++bits;
-        v >>= 1;
+        unsigned int v = static_cast<unsigned int>(num_genes - 1);
+        int bits = 0;
+        while (v > 0) { ++bits; v >>= 1; }
+        return bits;
     }
-    return bits;
-}
 }  // namespace
 
 void propr::dispatch::cuda::genewise_connectivity(
