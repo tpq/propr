@@ -24,7 +24,7 @@ Backend resolve_backend(const Rcpp::String& requested) {
         }
     }
 
-    if (req == "cuda") {
+    if (req == "cuda" || req == "gpu" ) {
         if (cuda_is_available()) return Backend::CUDA;
         static bool warned = false;
         if (!warned) {

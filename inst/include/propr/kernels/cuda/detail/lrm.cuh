@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <limits>
 #include <propr/data/types.h>
 #include <propr/utils/common/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
@@ -16,39 +17,84 @@ namespace propr {
             template <class Config>
             __global__
             void
-            lrm_basic(float* __restrict__ d_Y, offset_t d_Y_stride,
-                      float* __restrict__ d_mean,
-                      int nb_samples,
-                      int nb_genes) {
-                int i = blockIdx.x * blockDim.x + threadIdx.x;
-                int j = blockIdx.y * blockDim.y + threadIdx.y;
-                if (i >= nb_genes || j >= i) return;
+            lrm_basic_phase_1(float* __restrict__ d_Y,
+                               offset_t d_Y_stride,
+                               float* __restrict__ d_mean_log,
+                               int nb_samples,
+                               int nb_genes) {
+                const auto EPS = std::numeric_limits<float>::epsilon();
+                const int g = blockIdx.x * blockDim.x + threadIdx.x;
+                if (g >= nb_genes) return;
 
-                float4 accum = {0.0f, 0.0f, 0.0f, 0.0f};
+                const offset_t g_offset = static_cast<offset_t>(g) * d_Y_stride;
+
+                float s0 = 0.0;
+                float s1 = 0.0;
+                float s2 = 0.0;
+                float s3 = 0.0;
                 int k = 0;
+
                 PROPR_UNROLL
-                for (; k < (nb_samples/4)*4; k += 4) {
-                    float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * d_Y_stride]);
-                    float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * d_Y_stride]);                    
-                    
-                    accum.x = __logf(__fdividef(y_i.x, y_j.x)) +  accum.x;
-                    accum.y = __logf(__fdividef(y_i.y, y_j.y)) +  accum.y;
-                    accum.z = __logf(__fdividef(y_i.z, y_j.z)) +  accum.z;
-                    accum.w = __logf(__fdividef(y_i.w, y_j.w)) +  accum.w;
+                for (; k < (nb_samples / 4) * 4; k += 4) {
+                    const float4 y = thread::load<Config::LoadModifer, float4>(&d_Y[g_offset + k]);
+                    s0 += __logf(fmaxf(y.x, EPS));
+                    s1 += __logf(fmaxf(y.y, EPS));
+                    s2 += __logf(fmaxf(y.z, EPS));
+                    s3 += __logf(fmaxf(y.w, EPS));
                 }
 
-                accum.x = accum.x + accum.y + accum.z + accum.w;
+                double sum = (s0 + s1) + (s2 + s3);
                 for (; k < nb_samples; ++k) {
-                    float yi = d_Y[k + i * d_Y_stride];
-                    float yj = d_Y[k + j * d_Y_stride];
-                    accum.x  =  __logf(__fdividef(yi, yj)) +  accum.x;
+                    const float y = thread::load<Config::LoadModifer, float>(&d_Y[g_offset + k]);
+                    sum += static_cast<double>(__logf(fmaxf(y, EPS)));
                 }
 
-                float inv_n = __frcp_rn(static_cast<float>(nb_samples));
-                float mean  = accum.x * inv_n;
-                int pair_index = (i * (i - 1)) / 2 + j;
-                d_mean[pair_index] = mean;
+                const float mean_log = static_cast<float>(sum / static_cast<double>(nb_samples));
+                thread::store<Config::StoreModifer, float>(&d_mean_log[g], mean_log);
             }
+
+            template <class Config>
+            __global__
+            void
+            lrm_basic_phase_2(float* __restrict__ d_mean_log,
+                              float* __restrict__ d_mean,
+                              int nb_genes) {
+                using P2_Layout = typename Config::P2_Layout;
+                static_assert(P2_Layout::BLK_X == P2_Layout::BLK_Y, "Tile size must be square");
+                constexpr int TILE_G = P2_Layout::BLK_X;
+
+                const int li = threadIdx.x;
+                const int lj = threadIdx.y;
+
+                const int gi = blockIdx.x * TILE_G + li;
+                const int gj = blockIdx.y * TILE_G + lj;
+
+                if (blockIdx.y > blockIdx.x) return;
+
+                __shared__ float sh_i[TILE_G], sh_j[TILE_G];
+
+                if (lj == 0) {
+                    sh_i[li] = (gi < nb_genes)
+                        ? thread::load<Config::LoadModifer, float>(&d_mean_log[gi])
+                        : 0.0f;
+                }
+
+                if (li == 0) {
+                    sh_j[lj] = (gj < nb_genes)
+                        ? thread::load<Config::LoadModifer, float>(&d_mean_log[gj])
+                        : 0.0f;
+                }
+
+                __syncthreads();
+
+                if (gi < nb_genes && gj < nb_genes && gj < gi) {
+                    const offset_t pair_index =
+                        (static_cast<offset_t>(gi) * static_cast<offset_t>(gi - 1)) / 2 +
+                        static_cast<offset_t>(gj);
+                    thread::store<Config::StoreModifer, float>(&d_mean[pair_index], sh_i[li] - sh_j[lj]);
+                }
+            }
+
 
             template<class Config>
             __global__
@@ -120,79 +166,119 @@ namespace propr {
             template<class Config>
             __global__
             void
-            lrm_alpha(float* __restrict__     d_Y,         size_t d_Y_stride,
-                    float* __restrict__     d_Yfull,     size_t d_Yfull_stride,
-                    int                      N1,
-                    int                      NT,
-                    float                    a,
-                    float* __restrict__     d_means,
-                    int                      nb_samples,
-                    int                      nb_genes) {
-                int i = blockIdx.x * blockDim.x + threadIdx.x;
-                int j = blockIdx.y * blockDim.y + threadIdx.y;
-                if (i >= nb_genes || j >= i) return;
+            lrm_alpha_phase_1(float* __restrict__ d_Y,
+                              offset_t d_Y_stride,
+                              float* __restrict__ d_Yfull,
+                              offset_t d_Yfull_stride,
+                              int N1,
+                              int NT,
+                              float a,
+                              float* __restrict__ d_h,
+                              int nb_genes) {
+                const auto EPS = std::numeric_limits<float>::epsilon();
+                const int g = blockIdx.x * blockDim.x + threadIdx.x;
+                if (g >= nb_genes) return;
 
-                float mu_full_i = 0.0f, mu_full_j = 0.0f;
-                float S_i = 0.0f, S_j = 0.0f;
+                const offset_t y_offset = static_cast<offset_t>(g) * d_Y_stride;
+                const offset_t yfull_offset = static_cast<offset_t>(g) * d_Yfull_stride;
 
-                float T = 0.0f, D = 0.0f;
-                int N = 0, k = 0;
+                float U = 0.0;
+                float S = 0.0;
+                int k = 0;
 
-                // --- full-group running means + T sum ---
                 PROPR_UNROLL
                 for (; k + 3 < NT; k += 4) {
-                    float4 yfull_i = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + i * d_Yfull_stride]);
-                    float4 yfull_j = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + j * d_Yfull_stride]);
-                    PROPR_UNROLL
-                    for (int m = 0; m < 4; ++m) {
-                        float inv_N    = __frcp_rn(static_cast<float>(++N));
-                        float X_full_i = __powf(reinterpret_cast<float*>(&yfull_i)[m], a);
-                        float X_full_j = __powf(reinterpret_cast<float*>(&yfull_j)[m], a);
-                        mu_full_i = __fmaf_rn(X_full_i - mu_full_i, inv_N, mu_full_i);
-                        mu_full_j = __fmaf_rn(X_full_j - mu_full_j, inv_N, mu_full_j);
-                        T += (X_full_i - X_full_j);
-                    }
+                    const float4 y = thread::load<Config::LoadModifer, float4>(&d_Yfull[yfull_offset + k]);
+
+                    const float y0 = fmaxf(y.x, EPS);
+                    const float y1 = fmaxf(y.y, EPS);
+                    const float y2 = fmaxf(y.z, EPS);
+                    const float y3 = fmaxf(y.w, EPS);
+
+                    U += powf(y0, a);
+                    U += powf(y1, a);
+                    U += powf(y2, a);
+                    U += powf(y3, a);
                 }
+
                 for (; k < NT; ++k) {
-                    float inv_N    = __frcp_rn(static_cast<float>(++N));
-                    float X_full_i = __powf(d_Yfull[k + i * d_Yfull_stride], a);
-                    float X_full_j = __powf(d_Yfull[k + j * d_Yfull_stride], a);
-                    mu_full_i = __fmaf_rn(X_full_i - mu_full_i, inv_N, mu_full_i);
-                    mu_full_j = __fmaf_rn(X_full_j - mu_full_j, inv_N, mu_full_j);
-                    T += (X_full_i - X_full_j);
+                    const float y = fmaxf(thread::load<Config::LoadModifer, float>(&d_Yfull[yfull_offset + k]), EPS);
+                    U += static_cast<double>(powf(y, a));
                 }
 
                 k = 0;
                 PROPR_UNROLL
                 for (; k + 3 < N1; k += 4) {
-                    float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * d_Y_stride]);
-                    float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * d_Y_stride]);
-                    PROPR_UNROLL
-                    for (int m = 0; m < 4; ++m) {
-                        float X_i = __powf(reinterpret_cast<float*>(&y_i)[m], a);
-                        float X_j = __powf(reinterpret_cast<float*>(&y_j)[m], a);
-                        S_i += X_i; 
-                        S_j += X_j;
-                        D   += (X_i - X_j);
-                    }
+                    const float4 y = thread::load<Config::LoadModifer, float4>(&d_Y[y_offset + k]);
+
+                    const float y0 = fmaxf(y.x, EPS);
+                    const float y1 = fmaxf(y.y, EPS);
+                    const float y2 = fmaxf(y.z, EPS);
+                    const float y3 = fmaxf(y.w, EPS);
+
+                    S += powf(y0, a);
+                    S += powf(y1, a);
+                    S += powf(y2, a);
+                    S += powf(y3, a);
                 }
+
                 for (; k < N1; ++k) {
-                    float X_i = __powf(d_Y[k + i * d_Y_stride], a);
-                    float X_j = __powf(d_Y[k + j * d_Y_stride], a);
-                    S_i += X_i; 
-                    S_j += X_j;
-                    D   += (X_i - X_j);
+                    const float y = fmaxf(thread::load<Config::LoadModifer, float>(&d_Y[y_offset + k]), EPS);
+                    S += powf(y, a);
                 }
 
-                // --- final combination using n == N1 ---
-                float complement_term = float((N1 < NT)) * (T - D) / (NT - N1);
-                float C_z = D / float(N1) + complement_term;
-                float M_z = (S_i/mu_full_i - S_j/mu_full_j) / float(N1);
+                const float inv_N1 = 1.0 / N1;
 
-                int pair_index = (i * (i - 1)) / 2 + j;
-                d_means[pair_index] = ((C_z / 2) + M_z) / a;
+                float A = S * inv_N1;
+                if (N1 < NT) {
+                    A += (U - S) / (NT - N1);
+                }
+
+                const float U_safe = (EPS > 0.0f) ? fmax(U, EPS) : U;
+                const float B = (NT * S) / (N1 * U_safe);
+
+                const float h = (0.5 * A + B) / a;
+                thread::store<Config::StoreModifer, float>(&d_h[g], static_cast<float>(h));
             }
 
+            template<class Config>
+            __global__
+            void
+            lrm_alpha_phase_2(float* __restrict__ d_h,
+                              float* __restrict__ d_means,
+                              int nb_genes) {
+                using P2_Layout = typename Config::P2_Layout;
+                static_assert(P2_Layout::BLK_X == P2_Layout::BLK_Y, "Tile size must be square");
+                constexpr int TILE_G = P2_Layout::BLK_X;
+
+                const int li = threadIdx.x;
+                const int lj = threadIdx.y;
+
+                const int gi = blockIdx.x * TILE_G + li;
+                const int gj = blockIdx.y * TILE_G + lj;
+
+                if (blockIdx.y > blockIdx.x) return;
+
+                __shared__ float sh_i[TILE_G];
+                __shared__ float sh_j[TILE_G];
+
+                if (lj == 0) {
+                    sh_i[li] = (gi < nb_genes) ? thread::load<Config::LoadModifer, float>(&d_h[gi]) : 0.0f;
+                }
+
+                if (li == 0) {
+                    sh_j[lj] = (gj < nb_genes)? thread::load<Config::LoadModifer, float>(&d_h[gj]) : 0.0f;
+                }
+
+                __syncthreads();
+
+                if (gi < nb_genes && gj < nb_genes && gj < gi) {
+                    const offset_t pair_index =
+                        (static_cast<offset_t>(gi) * static_cast<offset_t>(gi - 1)) / 2 +
+                        static_cast<offset_t>(gj);
+                    thread::store<Config::StoreModifer, float>(&d_means[pair_index], sh_i[li] - sh_j[lj]);
+                }
+            }
 
             template<class Config>
             __global__
