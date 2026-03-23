@@ -406,7 +406,8 @@ namespace propr {
                     // Attempt compaction into shared memory at every global-memory pass 
                     // and not just the first. Each 4-bit digit narrows the bucket by 16x, 
                     // so after the first pass the bucket is typically N/256 which is very 
-                    // well within the 2048-value cache for gene counts up to 500k.
+                    // well within the 2048-value cache for gene counts up to 500k
+                    // (Even more for the now larger shared memory cache)
                     // The condition (digit_pos >= 2*RADIX_BITS) ensures at least 2 passes remain 
                     // as the compact itself costs one full global read of N-1 edges, 
                     // so we need the saved cache-passes to outweigh that cost
