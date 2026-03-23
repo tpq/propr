@@ -106,7 +106,7 @@ namespace propr {
                     }
 
                     keys[2*j + 0]       = a;
-                    vals[2*j + 0].count = (a != INVALID_KEY && has_fdr)  ?   1     : 0;
+                    vals[2*j + 0].count = (a != INVALID_KEY && has_fdr)  ? 1 : 0;
                     vals[2*j + 0].conn  = (a != INVALID_KEY)  ? sig     : 0;
                     vals[2*j + 0].fdr   = (a != INVALID_KEY && has_fdr) ? fdr_ : 0.0f;
                     vals[2*j + 0].wconn = (a != INVALID_KEY && sig) ? w : 0.0f;
@@ -315,15 +315,40 @@ namespace propr {
                 return out;
             }
 
-            template <typename T, typename Config = typename propr::cuda::traits::genewise_theta_stats_config_for<T>>
-            __device__ void radix_select(
-                int k_1based, // 1-based
+            template <typename T>
+            __device__ void load_all_edges_to_cache(
+                T *cache,
                 int num_edges,
                 int gene_id,
                 int num_genes,
-                int *smem_counts, // shared [RADIX_SIZE]
-                T *smem_sum, // shared scalar
-                T *cache, // dynamic shared cache
+                const T *__restrict__ theta_edges,
+                T *smem_sum) // shared scalar
+            {
+                if (threadIdx.x == 0) *smem_sum = T(0);
+                __syncthreads();
+
+                T local_sum = T(0);
+                for (int pos = threadIdx.x; pos < num_edges; pos += blockDim.x) {
+                    T fv = load_theta_incident<T>(gene_id, pos, num_genes, theta_edges);
+                    local_sum += fv;
+                    cache[pos] = fv;
+                }
+
+                int lane = threadIdx.x % PROPR_WARP_SIZE;
+                local_sum = propr::cuda::internal::warp::warp_reduce(local_sum, propr::ReduceSum<T>{});
+                if (lane == 0) atomicAdd(smem_sum, local_sum);
+                __syncthreads();
+            }
+
+            template <typename T, typename Config = typename propr::cuda::traits::genewise_theta_stats_config_for<T>>
+            __device__ void radix_select(
+                int k_1based,       // 1-based
+                int num_edges,
+                int gene_id,
+                int num_genes,
+                int *smem_counts,   // shared [RADIX_SIZE]
+                T *smem_sum,        // shared scalar
+                T *cache,           // dynamic shared cache
                 int cache_cap,
                 int *s_compact_out, // shared scalar
                 const T *__restrict__ theta_edges,
@@ -340,19 +365,28 @@ namespace propr {
 
                 bool use_cache = false;
                 int cache_n = 0;
-                int digit_index = 0;
+
+                // If all edges fit in the shared-memory cache, load them once
+                // and compute the sum in our single global-memory pass. Every
+                // subsequent radix pass then counts from shared memory, reducing
+                // total global memory traffic to exactly once ( at the start of the computation)
+                if (num_edges > 0 && num_edges <= cache_cap && cache_cap > 0) {
+                    load_all_edges_to_cache<T>(cache, num_edges, gene_id, num_genes, theta_edges, smem_sum);
+                    cache_n = num_edges;
+                    if (threadIdx.x == 0) *theta_sum = *smem_sum;
+                    use_cache = true;
+                }
 
                 for (int digit_pos = RADIX_TOTAL_BITS - Config::RADIX_BITS; digit_pos >= 0; digit_pos -= Config::RADIX_BITS) {
                     if (!use_cache) {
-                        //we only compute the sum on the first pass
                         bool compute_sum = (digit_pos == RADIX_TOTAL_BITS - Config::RADIX_BITS);
-                        count_radix_using_mask<T>( counts, smem_counts, desired, desired_mask, 
-                                                   digit_pos, 
-                                                   num_edges, gene_id, num_genes, 
+                        count_radix_using_mask<T>( counts, smem_counts, desired, desired_mask,
+                                                   digit_pos,
+                                                   num_edges, gene_id, num_genes,
                                                    theta_edges, smem_sum, /*compute_sum=*/compute_sum);
                         if (compute_sum && threadIdx.x == 0) *theta_sum = *smem_sum;
                     } else {
-                        count_radix_contiguous<T>( counts, smem_counts, desired, desired_mask,digit_pos, cache_n, cache);
+                        count_radix_contiguous<T>( counts, smem_counts, desired, desired_mask, digit_pos, cache_n, cache);
                     }
 
                     int chosen_digit = 0;
@@ -369,7 +403,14 @@ namespace propr {
                     desired = set_bitfield<RadixT>(desired, static_cast<RadixT>(chosen_digit), digit_pos, Config::RADIX_BITS);
                     desired_mask = set_bitfield<RadixT>(desired_mask, static_cast<RadixT>(Config::RADIX_MASK), digit_pos, Config::RADIX_BITS);
 
-                    if (!use_cache && digit_index == 0) {
+                    // Attempt compaction into shared memory at every global-memory pass 
+                    // and not just the first. Each 4-bit digit narrows the bucket by 16x, 
+                    // so after the first pass the bucket is typically N/256 which is very 
+                    // well within the 2048-value cache for gene counts up to 500k.
+                    // The condition (digit_pos >= 2*RADIX_BITS) ensures at least 2 passes remain 
+                    // as the compact itself costs one full global read of N-1 edges, 
+                    // so we need the saved cache-passes to outweigh that cost
+                    if (!use_cache && digit_pos >= 2 * Config::RADIX_BITS) {
                         int bucket_count = counts[chosen_digit];
                         if (bucket_count > 0 && bucket_count <= cache_cap && cache_cap > 0) {
                             cache_n = compact_masked_bucket_to_shared<T>(cache, cache_cap, s_compact_out,
@@ -378,7 +419,6 @@ namespace propr {
                             use_cache = (cache_n > 0);
                         }
                     }
-                    ++digit_index;
                 }
 
                 *median_val = radix::radix_deconvert<T>(desired);

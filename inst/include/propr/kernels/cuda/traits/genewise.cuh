@@ -16,7 +16,7 @@ namespace propr {
                 static constexpr int RADIX_BITS = 4;
                 static constexpr int RADIX_SIZE = 1 << RADIX_BITS;
                 static constexpr int RADIX_MASK = RADIX_SIZE - 1;
-                static constexpr int CACHE_CAP_VALUES = 2048;
+                static constexpr int CACHE_CAP_VALUES = 8192;
             };
         }
     }
