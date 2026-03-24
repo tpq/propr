@@ -98,7 +98,7 @@ centerNumericMatrix(NumericMatrix& out, const NumericMatrix & X, propr_context c
       nrows * d_out_stride * sizeof(float),
       cudaMemcpyDeviceToHost
   ));
-
+  // It would be nicer if we avoid this
   double *outptr = REAL(out);
   for (size_t j = 0; j < ncols; ++j) {
     for (size_t i = 0; i < nrows; ++i) {
@@ -163,6 +163,7 @@ dispatch::cuda::corRcpp(NumericMatrix& out, const NumericMatrix & X, propr_conte
   );
 
   double *outptr = REAL(out);
+  // TODO: Maybe better make a call to a transpose cpu kernel?
   for (int i = 0; i < M; ++i) {
     for (int j = 0; j < M; ++j) {
       outptr[i + j * M] = h_full[i * M + j];

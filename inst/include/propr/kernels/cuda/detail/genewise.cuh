@@ -450,8 +450,8 @@ namespace propr {
                 int num_edges = num_genes - 1;
                 if (num_edges <= 0) {
                     if (threadIdx.x == 0) {
-                        out_mean[gene_id]   = std::numeric_limits<T>::quiet_NaN();
-                        out_median[gene_id] = std::numeric_limits<T>::quiet_NaN();
+                        out_mean[gene_id]   = std::numeric_limits<T>::quiet_NaN(); // i think best replace with R's nans
+                        out_median[gene_id] = std::numeric_limits<T>::quiet_NaN(); // i think best replace with R's nans
                     }
                     return;
                 }

@@ -48,7 +48,7 @@ if (PROPR_ENABLE_CUDA STREQUAL "ON" OR PROPR_ENABLE_CUDA STREQUAL "AUTO")
         include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         set(CMAKE_CUDA_STANDARD 17)
         set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -lineinfo -O3 --use_fast_math --extra-device-vectorization")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda --expt-relaxed-constexpr -lineinfo -O3 --extra-device-vectorization") #--use_fast_math 
         message("CUDA           : FOUND")
         find_package(CUDAToolkit REQUIRED)
 

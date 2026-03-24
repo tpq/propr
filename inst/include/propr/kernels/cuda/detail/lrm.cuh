@@ -37,19 +37,19 @@ namespace propr {
                 PROPR_UNROLL
                 for (; k < (nb_samples / 4) * 4; k += 4) {
                     const float4 y = thread::load<Config::LoadModifer, float4>(&d_Y[g_offset + k]);
-                    s0 += __logf(fmaxf(y.x, EPS));
-                    s1 += __logf(fmaxf(y.y, EPS));
-                    s2 += __logf(fmaxf(y.z, EPS));
-                    s3 += __logf(fmaxf(y.w, EPS));
+                    s0 += logf(fmaxf(y.x, EPS));
+                    s1 += logf(fmaxf(y.y, EPS));
+                    s2 += logf(fmaxf(y.z, EPS));
+                    s3 += logf(fmaxf(y.w, EPS));
                 }
 
-                double sum = (s0 + s1) + (s2 + s3);
+                float sum = (s0 + s1) + (s2 + s3);
                 for (; k < nb_samples; ++k) {
                     const float y = thread::load<Config::LoadModifer, float>(&d_Y[g_offset + k]);
-                    sum += static_cast<double>(__logf(fmaxf(y, EPS)));
+                    sum += logf(fmaxf(y, EPS));
                 }
 
-                const float mean_log = static_cast<float>(sum / static_cast<double>(nb_samples));
+                const float mean_log = sum / static_cast<float>(nb_samples);
                 thread::store<Config::StoreModifer, float>(&d_mean_log[g], mean_log);
             }
 
@@ -129,12 +129,12 @@ namespace propr {
                         float denom = w_im + w_jm;
                         float w     = (denom > 0.0f) ? (2.0f * w_im * w_jm / denom) : 0.0f;
 
-                        accum.x = __fmaf_rn(1.0f, w, accum.x);
+                        accum.x += w;
 
-                        float log_val = __logf(__fdividef((&y_i.x)[m], (&y_j.x)[m]));
+                        float log_val = logf((&y_i.x)[m] / (&y_j.x)[m]);
                         float delta   = log_val - mean_old;
-                        float w_ratio = __fdividef(w, accum.x);
-                        accum.y       = __fmaf_rn(w_ratio, delta, mean_old);
+                        float w_ratio = w / accum.x;
+                        accum.y       = fmaf(w_ratio, delta, mean_old);
                     }
                 }
 
@@ -148,8 +148,7 @@ namespace propr {
                     float denom = w_ik + w_jk;
                     float w_k   = (denom > 0.0f) ? (2.0f * w_ik * w_jk / denom) : 0.0f;
 
-                    float ratio    = __fdividef(y_ik, y_jk);
-                    float log_val  = __logf(ratio);
+                    float log_val  = logf(y_ik / y_jk);
                     float mean_old = accum.y;
 
                     accum.x += w_k;
@@ -203,7 +202,7 @@ namespace propr {
 
                 for (; k < NT; ++k) {
                     const float y = fmaxf(thread::load<Config::LoadModifer, float>(&d_Yfull[yfull_offset + k]), EPS);
-                    U += static_cast<double>(powf(y, a));
+                    U += powf(y, a);
                 }
 
                 k = 0;
@@ -227,7 +226,7 @@ namespace propr {
                     S += powf(y, a);
                 }
 
-                const float inv_N1 = 1.0 / N1;
+                const float inv_N1 = 1.0f / N1;
 
                 float A = S * inv_N1;
                 if (N1 < NT) {
@@ -237,8 +236,8 @@ namespace propr {
                 const float U_safe = (EPS > 0.0f) ? fmax(U, EPS) : U;
                 const float B = (NT * S) / (N1 * U_safe);
 
-                const float h = (0.5 * A + B) / a;
-                thread::store<Config::StoreModifer, float>(&d_h[g], static_cast<float>(h));
+                const float h = (0.5f * A + B) / a;
+                thread::store<Config::StoreModifer, float>(&d_h[g], h);
             }
 
             template<class Config>
@@ -290,7 +289,7 @@ namespace propr {
                                 int N1, int NT,
                                 float a,
                                 float* __restrict__ d_means,
-                                int nb_genes) 
+                                int nb_genes)
             {
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -322,8 +321,8 @@ namespace propr {
                         float denom = w_i + w_j;
                         float w_ij  = (denom > 0.0f) ? (2.0f * w_i * w_j / denom) : 0.0f;
 
-                        float X_i = __powf(y_i, a);
-                        float X_j = __powf(y_j, a);
+                        float X_i = powf(y_i, a);
+                        float X_j = powf(y_j, a);
 
                         sum_w_full    += w_ij;
                         sum_wx_full_i += w_ij * X_i;
@@ -340,8 +339,8 @@ namespace propr {
                     float denom = w_i + w_j;
                     float w_ij  = (denom > 0.0f) ? (2.0f * w_i * w_j / denom) : 0.0f;
 
-                    float X_i = __powf(y_i, a);
-                    float X_j = __powf(y_j, a);
+                    float X_i = powf(y_i, a);
+                    float X_j = powf(y_j, a);
 
                     sum_w_full    += w_ij;
                     sum_wx_full_i += w_ij * X_i;
@@ -382,8 +381,8 @@ namespace propr {
                         float denom = w_i + w_j;
                         float w_ij  = (denom > 0.0f) ? (2.0f * w_i * w_j / denom) : 0.0f;
 
-                        float X_i = __powf(y_i, a);
-                        float X_j = __powf(y_j, a);
+                        float X_i = powf(y_i, a);
+                        float X_j = powf(y_j, a);
 
                         sum_w_current    += w_ij;
                         sum_wx_current_i += w_ij * X_i;
@@ -400,8 +399,8 @@ namespace propr {
                     float denom = w_i + w_j;
                     float w_ij  = (denom > 0.0f) ? (2.0f * w_i * w_j / denom) : 0.0f;
 
-                    float X_i = __powf(y_i, a);
-                    float X_j = __powf(y_j, a);
+                    float X_i = powf(y_i, a);
+                    float X_j = powf(y_j, a);
 
                     sum_w_current    += w_ij;
                     sum_wx_current_i += w_ij * X_i;

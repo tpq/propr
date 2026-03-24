@@ -6,6 +6,7 @@ namespace propr {
     namespace cuda {
         namespace traits {
 
+            // TODO: use the thread_layout trait
             struct genewise_connectivity_stats_config {
                 static constexpr int THREADS_PER_BLOCK = 256;
                 static constexpr int PAIRS_PER_THREAD  = 4;
