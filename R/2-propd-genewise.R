@@ -57,6 +57,18 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   features <- colnames(propd@counts)
   nfeatures <- length(features)
 
+  # warn for small datasets with only few genes.
+  if (nfeatures < 50) {
+    warning(sprintf(
+      paste0("propdGenewise: only %d genes detected. \n",
+             "Permutation p-values from fgsea are unreliable at this scale. \n" ,
+             "Results are for testing purposes only. \n",
+             "Using connnectivity is prefered. "
+      ),
+      nfeatures
+    ))
+  }
+
   ## ---- Build matrices needed for connectivity metrics ----
   fdr_mat <- results_to_matrix(propd@results, what = "FDR", features = features)
   theta_mat <- results_to_matrix(propd@results, what = "theta", features = features)
@@ -438,9 +450,8 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 
   if (total_dropped > 0L) {
     warning(sprintf(
-      "%d / %d genes (%.1f%%) dropped by fgseaSimple and filled with ES=0, pval=1. ",
-      total_dropped, G, total_dropped / G * 100,
-      "Consider increasing partner_fraction or nperm."
+      "%d / %d genes (%.1f%%) dropped by fgseaSimple and filled with ES=0, pval=1. Consider increasing partner_fraction or nperm.",
+      total_dropped, G, total_dropped / G * 100
     ))
   }
 
