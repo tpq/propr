@@ -2,36 +2,84 @@
 % Please edit documentation in R/2-propd-genewise.R
 \name{propdGenewise}
 \alias{propdGenewise}
+\alias{.compute_fgsea_padj_batches}
 \title{Convert pairwise propd results into genewise}
 \usage{
-propdGenewise(propd, pairwise_fdr = 0.05)
+propdGenewise(
+  propd,
+  pairwise_fdr = 0.05,
+  partner_fraction = 0.017,
+  n_iter = 5L,
+  ...
+)
+
+.compute_fgsea_padj_batches(
+  propd,
+  partner_fraction = 0.017,
+  n_iter = 5L,
+  nperm = 1000L,
+  seed = 42L,
+  scoreType = "pos"
+)
 }
 \arguments{
-\item{propd}{A \code{\link{propd}} object, with FDR values from updateF. Note:
-for the moment, only theta results with F-stats are supported. Later we will look 
-on the option to get FDR values based on permutations.}
+\item{propd}{A \code{\link{propd}} object.}
 
-\item{pairwise_fdr}{FDR threashold to consider a pairwise relationship as significant.
+\item{pairwise_fdr}{FDR threshold to consider a pairwise relationship as significant.
 Default is 0.05.}
+
+\item{partner_fraction}{Numeric in (0, 1). Fraction of all other genes to
+use as partners for each focal gene per batch. Default 0.017 (~1.7\%),
+giving ~300 partners at G=18080. A minimum of 100 partners is enforced.}
+
+\item{n_iter}{Integer. Number of independent iterations to run and aggregate.
+Default 5. Higher values give more stable ES and p-values at the cost of
+proportionally more compute time.}
+
+\item{...}{Additional arguments passed to \code{.compute_fgsea_padj_batches},
+such as \code{nperm}, \code{seed}, or \code{scoreType}.}
+
+\item{nperm}{Integer. Number of permutations per fgseaSimple call. Default 1000.}
+
+\item{seed}{Integer. Base random seed. Each iteration uses seed + i for
+reproducibility. Default 42.}
+
+\item{scoreType}{Character. Passed to fgseaSimple. "pos" (default) tests
+enrichment at the low-theta end only. "std" tests both ends.}
 }
 \value{
 A data frame with genewise results that can be used to identify differentially
 expressed genes. It contains the following columns:
  - "id": gene identifier
  - "lfc": Log Fold Change of the gene, using the geometric mean of all genes as reference.
- - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset 
+ - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset
     of genes as reference (only the ones that are significantly connected to the gene).
  - "connectivity": number of significant pairwise relationships the gene has.
- - "wconnectivity": weighted connectivity, which sums the strength of significant pairwise 
-    relationships (defined as 1/theta) for the gene.
-- "FDR_mean": average FDR value across all pairwise comparisons for the gene, which can be 
-    used as a genewise significance statistic. Note that this is a simple average and may 
-    not be the most robust method for determining genewise significance, but it provides a 
-    starting point for identifying genes of interest based on their pairwise relationships. 
-    Future updates may include more sophisticated methods for calculating genewise p-values 
-    or FDR values based on the pairwise results.
+ - "ES": Enrichment Score of the gene.
+ - "padj": adjusted p-value of the gene, based on the Enrichment Score.
+
+A data frame with one row per gene and columns:
+  - "id": gene identifier
+  - "ES_batch": median enrichment score across iterations (subsampled pairs)
+  - "pval": median p-value across iterations
+  - "padj": BH-adjusted median p-value (global, across all genes)
 }
 \description{
 This function converts pairwise propd results into genewise results. The resulting
-genewise results are direct indirectors of genes being differentially expressed.
+genewise results are direct indicators of genes being differentially expressed.
+
+This function extends \code{\link{propdGenewise}} by adding permutation-based
+p-values via a batched GSEA strategy. Because all gene-pair sets overlap
+(every pair is shared by two genes), running fgsea naively would violate
+the independence assumption of the permutation test. The solution is to
+process genes in batches: within each batch, each focal gene is assigned a
+disjoint random subset of partner genes, so the resulting pair sets are
+independent by construction. fgsea is then run on this reduced, independent
+score vector, yielding valid p-values.
+}
+\details{
+To reduce variance from the random partner assignment, the procedure is
+repeated \code{n_iter} times with different seeds. The final ES is the mean
+across iterations and the final p-value is the median (robust to outlier
+iterations). Global BH correction is applied to the median p-values.
 }

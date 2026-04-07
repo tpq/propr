@@ -273,7 +273,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'   - "padj": BH-adjusted median p-value (global, across all genes)
 #'
 #' @importFrom fgsea fgseaSimple
-#' @rdname propdGenewisePval
+#' @rdname propdGenewise
 #' @export
 .compute_fgsea_padj_batches <- function(propd,
                                    partner_fraction = 0.017,
