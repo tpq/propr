@@ -274,7 +274,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'
 #' @importFrom fgsea fgseaSimple
 #' @rdname propdGenewise
-#' @export
+#' @keywords internal
 .compute_fgsea_padj_batches <- function(propd,
                                    partner_fraction = 0.017,
                                    n_iter           = 5L,
