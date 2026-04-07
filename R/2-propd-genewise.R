@@ -284,6 +284,14 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   if (!requireNamespace("fgsea", quietly = TRUE)) {
     stop("Package 'fgsea' is required. Install with: BiocManager::install('fgsea')")
   }
+
+  # Validate assumption that Partner > Pair on a random sample
+  sample_idx <- sample(nrow(results), min(1000L, nrow(results)))
+  if (any(results$Partner[sample_idx] <= results$Pair[sample_idx])) {
+    stop("results$Partner must always be greater than results$Pair. ",
+         "This is expected propd convention but appears to be violated.")
+  }
+
   if (partner_fraction <= 0 || partner_fraction >= 1) {
     stop("partner_fraction must be in (0, 1).")
   }
