@@ -15,8 +15,8 @@ propdGenewise(
 
 .compute_fgsea_padj_batches(
   propd,
-  partner_fraction = 0.017,
-  n_iter = 5L,
+  partner_fraction,
+  n_iter,
   nperm = 1000L,
   seed = 42L,
   scoreType = "pos"
@@ -56,6 +56,7 @@ expressed genes. It contains the following columns:
     of genes as reference (only the ones that are significantly connected to the gene).
  - "connectivity": number of significant pairwise relationships the gene has.
  - "ES": Enrichment Score of the gene.
+ - "ES_batch": median Enrichment Score across batch iterations
  - "padj": adjusted p-value of the gene, based on the Enrichment Score.
 
 A data frame with one row per gene and columns:
@@ -83,3 +84,4 @@ repeated \code{n_iter} times with different seeds. The final ES is the mean
 across iterations and the final p-value is the median (robust to outlier
 iterations). Global BH correction is applied to the median p-values.
 }
+\keyword{internal}

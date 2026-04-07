@@ -23,6 +23,7 @@
 #'     of genes as reference (only the ones that are significantly connected to the gene).
 #'  - "connectivity": number of significant pairwise relationships the gene has.
 #'  - "ES": Enrichment Score of the gene.
+#'  - "ES_batch": median Enrichment Score across batch iterations
 #'  - "padj": adjusted p-value of the gene, based on the Enrichment Score.
 #'
 #' @rdname propdGenewise
@@ -271,7 +272,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'   - "pval": median p-value across iterations
 #'   - "padj": BH-adjusted median p-value (global, across all genes)
 #'
-#' @importFrom fgsea fgseaSimple
+#' @importFrom fgsea fgsea
 #' @rdname propdGenewise
 #' @keywords internal
 .compute_fgsea_padj_batches <- function(propd,
@@ -418,11 +419,11 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 
     batch_scores <- sort(batch_scores, decreasing = TRUE)
 
-    fgsea_res <- fgsea::fgseaSimple(
-      pathways  = pathways,
-      stats     = batch_scores,
-      scoreType = scoreType,
-      nperm     = nperm
+    fgsea_res <- fgsea::fgsea(
+      pathways   = pathways,
+      stats      = batch_scores,
+      scoreType  = scoreType,
+      nPermSimple = nperm
     )
 
     fgsea_res$gene_id <- as.integer(sub("^gene_", "", fgsea_res$pathway))
