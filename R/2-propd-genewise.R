@@ -81,9 +81,8 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   es_scores <- .compute_es(propd@results, features)
 
   ## ---- Estimate significance of ES via permutation ----
-  fgsea_batches <- .compute_fgsea_padj_batches(propd, partner_fraction = 0.017,
-                                               n_iter = 5L, nperm = 1000L,
-                                               seed = 42L, scoreType = "pos")
+  fgsea_batches <- .compute_fgsea_padj_batches(propd, partner_fraction = partner_fraction,
+                                               n_iter = n_iter, ...)
 
 
   ## ---- Build lrm matrices ----
@@ -276,8 +275,8 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #' @rdname propdGenewise
 #' @keywords internal
 .compute_fgsea_padj_batches <- function(propd,
-                                   partner_fraction = 0.017,
-                                   n_iter           = 5L,
+                                   partner_fraction,
+                                   n_iter,
                                    nperm            = 1000L,
                                    seed             = 42L,
                                    scoreType        = "pos") {
