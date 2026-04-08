@@ -3,7 +3,7 @@
 \name{propdGenewise}
 \alias{propdGenewise}
 \alias{.compute_fgsea_padj_batches}
-\title{Convert pairwise propd results into genewise}
+\title{Convert pairwise propd results into genewise results}
 \usage{
 propdGenewise(
   propd,
@@ -25,8 +25,8 @@ propdGenewise(
 \arguments{
 \item{propd}{A \code{\link{propd}} object.}
 
-\item{pairwise_fdr}{FDR threshold to consider a pairwise relationship as significant.
-Default is 0.05.}
+\item{pairwise_fdr}{FDR threshold to consider a pairwise relationship as
+significant. Controls connectivity and lrmD. Default is 0.05.}
 
 \item{partner_fraction}{Numeric in (0, 1). Fraction of all other genes to
 use as partners for each focal gene per batch. Default 0.017 (~1.7\%),
@@ -37,7 +37,9 @@ Default 5. Higher values give more stable ES and p-values at the cost of
 proportionally more compute time.}
 
 \item{...}{Additional arguments passed to \code{.compute_fgsea_padj_batches},
-such as \code{nperm}, \code{seed}, or \code{scoreType}.}
+such as \code{nperm} (number of permutations, default 1000),
+\code{seed} (random seed, default 42), or \code{scoreType} (default
+\code{"pos"}, testing enrichment at the low-theta end only).}
 
 \item{nperm}{Integer. Number of permutations per fgseaSimple call. Default 1000.}
 
@@ -48,16 +50,20 @@ reproducibility. Default 42.}
 enrichment at the low-theta end only. "std" tests both ends.}
 }
 \value{
-A data frame with genewise results that can be used to identify differentially
-expressed genes. It contains the following columns:
- - "id": gene identifier
- - "lfc": Log Fold Change of the gene, using the geometric mean of all genes as reference.
- - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset
-    of genes as reference (only the ones that are significantly connected to the gene).
- - "connectivity": number of significant pairwise relationships the gene has.
- - "ES": Enrichment Score of the gene.
- - "ES_batch": median Enrichment Score across batch iterations
- - "padj": adjusted p-value of the gene, based on the Enrichment Score.
+A data frame with one row per gene and the following columns:
+ \describe{
+   \item{id}{gene identifier}
+   \item{lfc}{CLR-based log fold change, using the geometric mean of all
+     genes as reference.}
+   \item{lrmD}{log fold change using only significantly connected partners
+     as reference. NA if the gene has no significant connections.}
+   \item{connectivity}{number of significant pairwise relationships.}
+   \item{ES}{GSEA-inspired enrichment score. Higher values indicate the
+     gene is systematically involved in differentially proportional pairs.}
+   \item{ES_batch}{median ES across batch iterations, used internally for
+     concordance checking.}
+   \item{padj}{BH-adjusted permutation p-value for the ES.}
+ }
 
 A data frame with one row per gene and columns:
   - "id": gene identifier
@@ -66,8 +72,9 @@ A data frame with one row per gene and columns:
   - "padj": BH-adjusted median p-value (global, across all genes)
 }
 \description{
-This function converts pairwise propd results into genewise results. The resulting
-genewise results are direct indicators of genes being differentially expressed.
+This function summarises pairwise differential proportionality results at
+the gene level, producing metrics that can be used to rank and identify
+differentially expressed genes.
 
 This function extends \code{\link{propdGenewise}} by adding permutation-based
 p-values via a batched GSEA strategy. Because all gene-pair sets overlap
@@ -79,6 +86,54 @@ independent by construction. fgsea is then run on this reduced, independent
 score vector, yielding valid p-values.
 }
 \details{
+## What this function computes
+
+**Connectivity** counts how many significant pairwise relationships each
+gene has (controlled by \code{pairwise_fdr}). A highly connected gene is
+one whose log-ratio with many other genes changes between groups.
+
+**LFC** is a CLR-based log fold change, computed by averaging log-ratios
+across all other genes as reference (equivalent to using the geometric mean
+as reference). This is the standard compositionally-aware fold change.
+
+**lrmD** is similar to LFC but uses only significantly connected partners
+as reference, making it more robust when only a subset of genes are
+differentially proportional.
+
+**ES (Enrichment Score)** is a GSEA-inspired score. Pairs are ranked by
+theta ascending (most differentially proportional first). For each gene,
+its "gene set" is all pairs it participates in. The ES measures how much
+those pairs are enriched at the top of the ranking (i.e. among the most
+differentially proportional pairs). A high ES means the gene is
+systematically involved in differentially proportional relationships.
+
+## Permutation p-values and the batch procedure
+
+Because gene-pair sets overlap (every pair belongs to two genes),
+standard GSEA permutation tests are invalid. To solve this, genes are
+processed in batches where each focal gene is assigned a disjoint random
+subset of partners. This ensures independence within each batch, yielding
+valid permutation p-values.
+
+The procedure is repeated \code{n_iter} times with different random seeds
+and results are aggregated (median ES and median p-value across iterations)
+to reduce variance from the random partner assignment.
+
+## How to tune the parameters
+
+- \code{partner_fraction}: controls how many partners each gene gets per
+  batch (as a fraction of all genes). Higher values give more stable ES
+  at the cost of compute time. If you see the ES concordance warning,
+  try increasing this first.
+- \code{n_iter}: more iterations give more stable p-values. Increase if
+  results vary between runs. Each extra iteration adds proportional
+  compute time.
+- \code{nperm} (passed via \code{...}): number of permutations per fgsea
+  call. Increase for more precise p-values, especially for very small
+  p-values. Default is 1000.
+- \code{seed} (passed via \code{...}): random seed for reproducibility.
+  Default is 42.
+
 To reduce variance from the random partner assignment, the procedure is
 repeated \code{n_iter} times with different seeds. The final ES is the mean
 across iterations and the final p-value is the median (robust to outlier
