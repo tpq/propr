@@ -331,10 +331,10 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #' @param n_iter Integer. Number of independent iterations to run and aggregate.
 #'   Default 5. Higher values give more stable ES and p-values at the cost of
 #'   proportionally more compute time.
-#' @param nperm Integer. Number of permutations per fgseaSimple call. Default 1000.
+#' @param nperm Integer. Number of permutations per fgsea call. Default 1000.
 #' @param seed Integer. Base random seed. Each iteration uses seed + i for
 #'   reproducibility. Default 42.
-#' @param scoreType Character. Passed to fgseaSimple. "pos" (default) tests
+#' @param scoreType Character. Passed to fgsea. "pos" (default) tests
 #'   enrichment at the low-theta end only. "std" tests both ends.
 #' @return A data frame with one row per gene and columns:
 #'   - "id": gene identifier
@@ -356,13 +356,6 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
     stop("Package 'fgsea' is required. Install with: BiocManager::install('fgsea')")
   }
 
-  # Validate assumption that Partner > Pair on a random sample
-  sample_idx <- sample(nrow(results), min(1000L, nrow(results)))
-  if (any(results$Partner[sample_idx] <= results$Pair[sample_idx])) {
-    stop("results$Partner must always be greater than results$Pair. ",
-         "This is expected propd convention but appears to be violated.")
-  }
-
   if (partner_fraction <= 0 || partner_fraction >= 1) {
     stop("partner_fraction must be in (0, 1).")
   }
@@ -373,8 +366,15 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   G        <- length(features)
   results  <- propd@results
 
+  # Validate assumption that Partner > Pair on a random sample
+  sample_idx <- sample(nrow(results), min(1000L, nrow(results)))
+  if (any(results$Partner[sample_idx] <= results$Pair[sample_idx])) {
+    stop("results$Partner must always be greater than results$Pair. ",
+         "This is expected propd convention but appears to be violated.")
+  }
+
   # ---- Derive max_partners ----
-  max_partners <- max(100L, floor((G - 1L) * partner_fraction))
+  max_partners <- max(10L, floor((G - 1L) * partner_fraction))
   max_partners <- as.integer(min(max_partners, G - 1L))
 
   batch_size <- floor(G / (1L + max_partners))
@@ -382,8 +382,8 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   n_batches <- ceiling(G / batch_size)
 
   message(sprintf(
-    "G=%d | partner_fraction=%.3f | max_partners=%d (%.1f%%) | batch_size=%d | n_batches=%d | n_iter=%d",
-    G, partner_fraction, max_partners,
+    "G=%d | used partner_fraction=%.3f | max_partners=%d (%.1f%%) | batch_size=%d | n_batches=%d | n_iter=%d",
+    G, max_partners/G, max_partners,
     max_partners / (G - 1) * 100,
     batch_size, n_batches, n_iter
   ))
@@ -439,7 +439,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'
 #' Internal helper called by \code{propdGenewisePval}. Processes all genes
 #' in batches, assigning disjoint partner subsets per focal gene, running
-#' fgseaSimple per batch, and returning a per-gene data frame of ES and pval.
+#' fgsea per batch, and returning a per-gene data frame of ES and pval.
 #'
 #' @keywords internal
 .run_batches_once <- function(results, G, global_scores, max_partners,
@@ -466,18 +466,21 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
     }
 
     pathways        <- vector("list", n_focal)
-    names(pathways) <- paste0("gene_", focal_ids)
 
     # vectorized replacement for the for loop
     partner_matrix <- matrix(available[seq_len(n_focal * effective_partners)],
                              nrow = effective_partners, ncol = n_focal)
 
-    higher <- pmax(focal_ids[col(partner_matrix)], partner_matrix)
-    lower  <- pmin(focal_ids[col(partner_matrix)], partner_matrix)
+    higher <- matrix(pmax(focal_ids[col(partner_matrix)], partner_matrix),
+                     nrow = nrow(partner_matrix), ncol = ncol(partner_matrix))
+    lower  <- matrix(pmin(focal_ids[col(partner_matrix)], partner_matrix),
+                     nrow = nrow(partner_matrix), ncol = ncol(partner_matrix))
 
     pathways <- lapply(seq_len(n_focal), function(i) {
       paste(higher[, i], lower[, i], sep = ",")
     })
+
+    names(pathways) <- paste0("gene_", focal_ids)
 
     batch_pair_names <- unique(unlist(pathways))
     batch_scores     <- global_scores[batch_pair_names]
@@ -490,6 +493,8 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
     }
 
     batch_scores <- sort(batch_scores, decreasing = TRUE)
+
+    #message("batch ", b, ": n_focal=", n_focal, " n_pairs=", length(batch_scores))
 
     fgsea_res <- fgsea::fgsea(
       pathways   = pathways,
@@ -530,7 +535,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 
   if (total_dropped > 0L) {
     warning(sprintf(
-      "%d / %d genes (%.1f%%) dropped by fgseaSimple and filled with ES=0, pval=1. Consider increasing partner_fraction or nperm.",
+      "%d / %d genes (%.1f%%) dropped by fgsea and filled with ES=0 (conservative), pval=1. Consider increasing partner_fraction or nperm.",
       total_dropped, G, total_dropped / G * 100
     ))
   }

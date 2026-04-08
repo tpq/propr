@@ -1,10 +1,32 @@
 library(testthat)
 library(propr)
 
-# ---- shared test data ----
-keep <- iris$Species %in% c("setosa", "versicolor")
-counts <- iris[keep, 1:4] * 10
-group  <- ifelse(iris[keep, "Species"] == "setosa", "A", "B")
+# ---- shared test data (simulated, for genewise tests) ----
+set.seed(42)
+
+# simulate 100 genes, 40 samples, 2 groups
+n_samples <- 40
+n_genes   <- 100
+group     <- rep(c("A", "B"), each = n_samples / 2)
+
+# base counts with some differential proportionality signal
+counts_base <- matrix(rnbinom(n_samples * n_genes, mu = 100, size = 10),
+                      nrow = n_samples, ncol = n_genes)
+colnames(counts_base) <- paste0("gene", seq_len(n_genes))
+rownames(counts_base) <- paste0("sample", seq_len(n_samples))
+
+# add signal: make a few genes differentially proportional in group B
+signal_genes <- sample(seq(100))[1:10]
+counts_base[group == "B", signal_genes] <- matrix(
+  rnbinom(sum(group == "B") * length(signal_genes), mu = 300, size = 5),
+  nrow = sum(group == "B"))
+
+propd_testdata <- list(counts = counts_base, group = group)
+
+# ---- Generate propd object ------------
+
+counts <- propd_testdata$counts
+group  <- propd_testdata$group
 
 pd        <- propd(counts, group)
 pd_with_f <- updateF(pd)
