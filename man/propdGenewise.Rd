@@ -41,12 +41,12 @@ such as \code{nperm} (number of permutations, default 1000),
 \code{seed} (random seed, default 42), or \code{scoreType} (default
 \code{"pos"}, testing enrichment at the low-theta end only).}
 
-\item{nperm}{Integer. Number of permutations per fgseaSimple call. Default 1000.}
+\item{nperm}{Integer. Number of permutations per fgsea call. Default 1000.}
 
 \item{seed}{Integer. Base random seed. Each iteration uses seed + i for
 reproducibility. Default 42.}
 
-\item{scoreType}{Character. Passed to fgseaSimple. "pos" (default) tests
+\item{scoreType}{Character. Passed to fgsea. "pos" (default) tests
 enrichment at the low-theta end only. "std" tests both ends.}
 }
 \value{

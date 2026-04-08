@@ -18,6 +18,6 @@
 \description{
 Internal helper called by \code{propdGenewisePval}. Processes all genes
 in batches, assigning disjoint partner subsets per focal gene, running
-fgseaSimple per batch, and returning a per-gene data frame of ES and pval.
+fgsea per batch, and returning a per-gene data frame of ES and pval.
 }
 \keyword{internal}

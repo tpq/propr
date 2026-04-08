@@ -462,6 +462,12 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 
     if (effective_partners < 1L) {
       warning(sprintf("Batch %d: not enough available partners, skipping.", b))
+      batch_results[[b]] <- data.frame(
+        gene_id  = focal_ids,
+        ES_batch = 0,
+        pval     = 1,
+        stringsAsFactors = FALSE
+      )
       next
     }
 
