@@ -10,7 +10,6 @@
   global_scores,
   max_partners,
   batch_size,
-  n_batches,
   nperm,
   seed,
   scoreType

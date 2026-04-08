@@ -336,7 +336,6 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
       global_scores = global_scores,
       max_partners  = max_partners,
       batch_size    = batch_size,
-      n_batches     = n_batches,
       nperm         = nperm,
       seed          = seed + iter - 1L,
       scoreType     = scoreType
@@ -374,10 +373,10 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'
 #' @keywords internal
 .run_batches_once <- function(results, G, global_scores, max_partners,
-                              batch_size, n_batches, nperm, seed, scoreType) {
+                              batch_size, nperm, seed, scoreType) {
 
   set.seed(seed)
-  all_gene_ids  <- seq_len(G)
+  all_gene_ids  <- sample(seq_len(G)) # Randomize the order
   batch_starts  <- seq(1L, G, by = batch_size)
   batch_results <- vector("list", length(batch_starts))
   total_dropped <- 0L
