@@ -64,7 +64,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
       paste0("propdGenewise: only %d genes detected. \n",
              "Permutation p-values from fgsea are unreliable at this scale. \n" ,
              "Results are for testing purposes only. \n",
-             "Using connnectivity is prefered. "
+             "Using connectivity is preferred. "
       ),
       nfeatures
     ))
@@ -119,9 +119,23 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
   )
 
   ## ---- Warn if full and batch ES are poorly concordant (overall) ----
+
+  # Diagnostic thresholds for ES concordance warnings.
+  # Not exposed as parameters since these are internal quality checks,
+  # not analysis tuning parameters.
+  # These thresholds are heuristic and not formally benchmarked.
+  # 0.7 is a commonly used minimum for acceptable Spearman correlation.
+  # 0.5 relative difference flags cases where batch ES deviates substantially from full ES.
+  # Both values may be revisited with further benchmark in the future.
+
+  es_cor_threshold   <- 0.7   # minimum acceptable Spearman rho between full and batch ES
+  es_diff_threshold  <- 0.5   # maximum acceptable relative difference for significant genes
+  padj_threshold <- 0.05
+
   es_cor <- cor(es_scores$es_pos, fgsea_batches$ES_batch,
                 method = "spearman", use = "complete.obs")
-  if (is.na(es_cor) || es_cor < 0.7) {
+
+  if (is.na(es_cor) || es_cor < es_cor_threshold) {
     warning(sprintf(
       paste0(
         "Low concordance between full ES and batch ES (Spearman rho = %.2f). ",
@@ -136,8 +150,7 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
     message(sprintf("ES concordance (Spearman rho = %.2f): OK.", es_cor))
   }
 
-  es_diff_threshold <- 0.5
-  padj_threshold <- 0.05
+
   sig_mask <- result$padj < padj_threshold & !is.na(result$padj)
   relative_diff <- abs(result$ES - result$ES_batch) / (abs(result$ES) + 1e-9)
   discordant_sig <- sig_mask & (relative_diff > es_diff_threshold)
