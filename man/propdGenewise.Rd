@@ -2,36 +2,104 @@
 % Please edit documentation in R/2-propd-genewise.R
 \name{propdGenewise}
 \alias{propdGenewise}
-\title{Convert pairwise propd results into genewise}
+\title{Convert pairwise propd results into genewise results}
 \usage{
-propdGenewise(propd, pairwise_fdr = 0.05)
+propdGenewise(
+  propd,
+  pairwise_fdr = 0.05,
+  partner_fraction = 0.017,
+  n_iter = 5L,
+  ...
+)
 }
 \arguments{
-\item{propd}{A \code{\link{propd}} object, with FDR values from updateF. Note:
-for the moment, only theta results with F-stats are supported. Later we will look 
-on the option to get FDR values based on permutations.}
+\item{propd}{A \code{\link{propd}} object with FDR values from
+\code{\link{updateF}}.}
 
-\item{pairwise_fdr}{FDR threashold to consider a pairwise relationship as significant.
-Default is 0.05.}
+\item{pairwise_fdr}{FDR threshold to consider a pairwise relationship as
+significant. Controls connectivity and lrmD. Default is 0.05.}
+
+\item{partner_fraction}{Numeric in (0, 1). Fraction of all genes to use
+as partners per focal gene per batch. Higher values give more stable ES
+at the cost of compute time. Default 0.017 (~1.7\%, giving ~300 partners
+at G=18000). Increase to 0.05-0.1 if you see concordance warnings.}
+
+\item{n_iter}{Integer. Number of independent iterations to run and
+aggregate. Higher values give more stable results. Default 5.}
+
+\item{...}{Additional arguments passed to \code{.compute_fgsea_padj_batches},
+such as \code{nperm} (number of permutations, default 1000),
+\code{seed} (random seed, default 42), or \code{scoreType} (default
+\code{"pos"}, testing enrichment at the low-theta end only).}
 }
 \value{
-A data frame with genewise results that can be used to identify differentially
-expressed genes. It contains the following columns:
- - "id": gene identifier
- - "lfc": Log Fold Change of the gene, using the geometric mean of all genes as reference.
- - "lrmD": Log Ratio Mean Difference of the gene. Equivalent to the LFC, but using a subset 
-    of genes as reference (only the ones that are significantly connected to the gene).
- - "connectivity": number of significant pairwise relationships the gene has.
- - "wconnectivity": weighted connectivity, which sums the strength of significant pairwise 
-    relationships (defined as 1/theta) for the gene.
-- "FDR_mean": average FDR value across all pairwise comparisons for the gene, which can be 
-    used as a genewise significance statistic. Note that this is a simple average and may 
-    not be the most robust method for determining genewise significance, but it provides a 
-    starting point for identifying genes of interest based on their pairwise relationships. 
-    Future updates may include more sophisticated methods for calculating genewise p-values 
-    or FDR values based on the pairwise results.
+A data frame with one row per gene and the following columns:
+ \describe{
+   \item{id}{gene identifier}
+   \item{lfc}{CLR-based log fold change, using the geometric mean of all
+     genes as reference.}
+   \item{lrmD}{log fold change using only significantly connected partners
+     as reference. NA if the gene has no significant connections.}
+   \item{connectivity}{number of significant pairwise relationships.}
+   \item{ES}{GSEA-inspired enrichment score. Higher values indicate the
+     gene is systematically involved in differentially proportional pairs.}
+   \item{ES_batch}{median ES across batch iterations, used internally for
+     concordance checking.}
+   \item{padj}{BH-adjusted permutation p-value for the ES.}
+ }
 }
 \description{
-This function converts pairwise propd results into genewise results. The resulting
-genewise results are direct indirectors of genes being differentially expressed.
+This function summarises pairwise differential proportionality results at
+the gene level, producing metrics that can be used to rank and identify
+differentially expressed genes.
+}
+\details{
+\strong{What this function computes}
+
+\strong{Connectivity} counts how many significant pairwise relationships each
+gene has (controlled by \code{pairwise_fdr}). A highly connected gene is
+one whose log-ratio with many other genes changes between groups. Use
+connectivity for ranking of DE genes.
+
+\strong{LFC} is a CLR-based log fold change, computed by averaging log-ratios
+across all other genes as reference (equivalent to using the geometric mean
+as reference). This is the standard compositionally-aware fold change.
+
+\strong{lrmD} is similar to LFC but uses only significantly connected partners
+as reference, making it more robust when only a subset of genes are
+differentially proportional.
+
+\strong{ES (Enrichment Score)} is a GSEA-inspired score. Pairs are ranked by
+theta ascending (most differentially proportional first). For each gene,
+its "gene set" is all pairs it participates in. The ES measures how much
+those pairs are enriched at the top of the ranking (i.e. among the most
+differentially proportional pairs). A high ES means the gene is
+systematically involved in differentially proportional relationships.
+
+\strong{Permutation p-values and the batch procedure}
+
+Because gene-pair sets overlap (every pair belongs to two genes),
+standard GSEA permutation tests are invalid. To solve this, genes are
+processed in batches where each focal gene is assigned a disjoint random
+subset of partners. This ensures independence within each batch, yielding
+valid permutation p-values.
+
+The procedure is repeated \code{n_iter} times with different random seeds
+and results are aggregated (median ES and median p-value across iterations)
+to reduce variance from the random partner assignment.
+
+\strong{How to tune the parameters}
+
+- \code{partner_fraction}: controls how many partners each gene gets per
+  batch (as a fraction of all genes). Higher values give more stable ES
+  at the cost of compute time. If you see the ES concordance warning,
+  try increasing this first.
+- \code{n_iter}: more iterations give more stable p-values. Increase if
+  results vary between runs. Each extra iteration adds proportional
+  compute time.
+- \code{nperm} (passed via \code{...}): number of permutations per fgsea
+  call. Increase for more precise p-values, especially for very small
+  p-values. Default is 1000.
+- \code{seed} (passed via \code{...}): random seed for reproducibility.
+  Default is 42.
 }

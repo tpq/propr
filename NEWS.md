@@ -1,3 +1,8 @@
+# propr 5.1.9
+* Added `propdGenewise()` to convert pairwise propd results into genewise
+  results, including CLR-based log fold change, connectivity, and GSEA-inspired
+  enrichment scores with permutation-based p-values via `fgsea`.
+  
 # propr 5.1.8
 ---------------------
 * Use feature-wise permutation for propr()
