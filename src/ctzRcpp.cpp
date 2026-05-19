@@ -1,19 +1,19 @@
 #include <Rcpp.h>
-#include <propr/interface/ctzRcpp.hpp>
-#include <propr/interface/device_selector.hpp>
 
+#include <propr/interface/ctzRcpp.hpp>
 #include <propr/kernels/cpu/dispatch/ctzRcpp.hpp>
-#include <propr/kernels/cuda/dispatch/ctzRcpp.cuh>
+#include <propr/runtime/cuda_executor.hpp>
+#include <propr/runtime/dispatch.hpp>
 
 using namespace propr;
 
 // [[Rcpp::export]]
-Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix & X, bool use_gpu=false) {
-    int nfeats = X.ncol();
-    int llt = nfeats * (nfeats - 1) / 2;
-    Rcpp::NumericVector result(llt);    
-    if (is_gpu_backend() || use_gpu) {
-        dispatch::cuda::ctzRcpp(result, X);
+Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix& X, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
+    const int llt = nfeats * (nfeats - 1) / 2;
+    Rcpp::NumericVector result(llt);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::ctzRcpp(result, X);
     } else {
         dispatch::cpu::ctzRcpp(result, X);
     }

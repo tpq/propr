@@ -3,7 +3,7 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
 
@@ -19,7 +19,7 @@ void omega_kernel(
     const int M,
     const int K) {
 
-    static_assert((Config::BLK_K % 4)             == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
+    static_assert((Config::BLK_K % 4)            == 0, "Config::BLK_K must be multiple of 4 (float4 gmem loads).");
     static_assert((Config::BLK_M % Config::TH_Y) == 0, "Config::BLK_M % Config::TH_Y == 0");
     static_assert((Config::BLK_M % Config::TH_X) == 0, "Config::BLK_M % Config::TH_X == 0");
 
@@ -204,32 +204,33 @@ void omega_kernel(
     const int c_block_col = b_tile_index;
 
     for (int i = 0; i < 4; ++i) {
+
         float4 tmp0 = make_float4(
-            Config::finalize(i,0, accum),
-            Config::finalize(i,1, accum),
-            Config::finalize(i,2, accum),
-            Config::finalize(i,3, accum)
+            Config::finalize(0, i, accum),
+            Config::finalize(1, i, accum),
+            Config::finalize(2, i, accum),
+            Config::finalize(3, i, accum)
         );
 
         float4 tmp1 = make_float4(
-            Config::finalize(i, 4, accum),
-            Config::finalize(i, 5, accum),
-            Config::finalize(i, 6, accum),
-            Config::finalize(i, 7, accum)
+            Config::finalize(4, i, accum),
+            Config::finalize(5, i, accum),
+            Config::finalize(6, i, accum),
+            Config::finalize(7, i, accum)
         );
 
         float4 tmp2 = make_float4(
-            Config::finalize(i + 4, 0, accum),
-            Config::finalize(i + 4, 1, accum),
-            Config::finalize(i + 4, 2, accum),
-            Config::finalize(i + 4, 3, accum)
+            Config::finalize(0, i + 4, accum),
+            Config::finalize(1, i + 4, accum),
+            Config::finalize(2, i + 4, accum),
+            Config::finalize(3, i + 4, accum)
         );
 
         float4 tmp3 = make_float4(
-            Config::finalize(i + 4, 4, accum),
-            Config::finalize(i + 4, 5, accum),
-            Config::finalize(i + 4, 6, accum),
-            Config::finalize(i + 4, 7, accum)
+            Config::finalize(4, i + 4, accum),
+            Config::finalize(5, i + 4, accum),
+            Config::finalize(6, i + 4, accum),
+            Config::finalize(7, i + 4, accum)
         );
 
         thread::store<Config::StoreModifer,float4>(&C[OFFSET(Config::BLK_M * by + c_block_row + i,      Config::BLK_M * bx + c_block_col,      M)], thread::load<Config::LoadModifer,float4>(&tmp0));

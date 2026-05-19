@@ -1,8 +1,8 @@
 #include <Rcpp.h>
 
-#include <propr/utils/rcpp_checks.h>
+#include <propr/utils/rcpp/rcpp_checks.h>
 #include <propr/kernels/cpu/dispatch/ctzRcpp.hpp>
-#include <propr/utils/host_exclusive_profiler.hpp>
+#include <propr/utils/profilers/host_exclusive_profiler.hpp>
 
 
 using namespace Rcpp;

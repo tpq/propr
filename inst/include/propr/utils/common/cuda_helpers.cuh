@@ -1,0 +1,33 @@
+#pragma once
+
+#include <type_traits>
+#include <propr/utils/common/preprocessor.cuh>
+
+
+namespace propr {
+    template <class A, class B, class = std::enable_if_t<std::is_integral_v<A> && std::is_integral_v<B>>>
+    PROPR_HOST_DEVICE
+    PROPR_FORCE_INLINE
+    constexpr std::make_unsigned_t<std::common_type_t<A,B>>
+    ceil_div(A a, B b) {
+        using R = std::make_unsigned_t<std::common_type_t<A,B>>;
+        R ra = static_cast<R>(a);
+        R rb = static_cast<R>(b);
+        if (rb == 0 || ra == 0) return 0;
+        return 1 + ((ra - 1) / rb);
+    }
+
+
+    template <class A, class B, class = std::enable_if_t<std::is_integral_v<A> && std::is_integral_v<B>>>
+    PROPR_HOST_DEVICE
+    PROPR_FORCE_INLINE
+    constexpr std::make_unsigned_t<std::common_type_t<A,B>>
+    round_up(A a, B b) {
+        using R = std::make_unsigned_t<std::common_type_t<A,B>>;
+        R ra = static_cast<R>(a);
+        R rb = static_cast<R>(b);
+        if (rb == 0 || ra == 0) return 0;
+        return ((ra + rb - 1) / rb) * rb;
+    }
+}
+

@@ -8,10 +8,10 @@
 #include <thrust/transform_reduce.h>
 
 #include <propr/data/types.h>
-#include <propr/utils/cuda_checks.h>
-#include <propr/utils/rcpp_checks.h>
-#include <propr/utils/rcpp_cuda.cuh>
-#include <propr/utils/cuda_profiler.cuh>
+#include <propr/utils/cuda/cuda_checks.h>
+#include <propr/utils/rcpp/rcpp_checks.h>
+#include <propr/utils/rcpp/rcpp_cuda.cuh>
+#include <propr/utils/profilers/cuda_profiler.cuh>
 
 
 #include <propr/kernels/cuda/detail/graflex.cuh>

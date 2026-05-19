@@ -3,7 +3,8 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
-#include <propr/utils/constants.h>
+#include <propr/utils/common/constants.h>
+#include <propr/data/types.h>
 
 
 

@@ -6,8 +6,8 @@
 #include <cub/cub.cuh>
 
 #include <propr/data/types.h>
-#include <propr/utils/constants.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/constants.h>
+#include <propr/utils/common/preprocessor.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
 
@@ -27,15 +27,16 @@ namespace propr {
     namespace detail {
         namespace cuda {
 
+            // TODO: move to traits object
             template<int BLK_X>
             __global__
-            //__launch_bounds__(BLK_X, 1)
+            //__launch_bounds__(BLK_X, 1, 1)
             void wtm(float * out,
                      float * __restrict__ x, 
                      float * __restrict__ w,
                      int n){
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
-                using block_reduce_t = cub::BlockReduce<float2, BLK_X>;
+                using block_reduce_t        = cub::BlockReduce<float2, BLK_X>;
                 using block_scan_storage_t  = typename block_reduce_t::TempStorage;
                 
                 __shared__ block_scan_storage_t partials;
@@ -60,6 +61,7 @@ namespace propr {
                 }
             };
 
+            // TODO: move to traits object
             template<int BLK_X>
             __global__
             void wtv(float * out,
@@ -124,10 +126,10 @@ namespace propr {
                 }
             };
 
-
+            // TODO: move to traits object
             template<int BLK_X, int BLK_Y=1, bool row_major=false>
             __global__
-            //__launch_bounds__(BLK_X, BLK_Y)
+            //__launch_bounds__(BLK_X * BLK_Y, 1, 1)
             void col_means(
                      float * __restrict__ out, offset_t out_stride,
                      float * __restrict__   x, offset_t x_stride,
@@ -149,7 +151,7 @@ namespace propr {
                     const int tx = threadIdx.x % BLK_X;
                     const int ty = threadIdx.x / BLK_X;
 
-                    const int lane = tx & (PROPR_WARP_SIZE - 1);
+                    const int lane   = tx % PROPR_WARP_SIZE;
                     const int warp_x = tx / PROPR_WARP_SIZE;
 
                     // shared memory holds one partial per warp per col
@@ -328,7 +330,7 @@ namespace propr {
 
                 float* A = x;
                 float* B = x;
-                    float* C = out;
+                float* C = out;
                 
                 const int bx = blockIdx.x;
                 const int by = blockIdx.y;
@@ -918,8 +920,8 @@ namespace propr {
                     if ((size_t)col >= cols) return;
 
                     for (size_t r = 0; r < rows; ++r) {
-                        float num = __logf(x[r * x_stride + col]);
-                        float den = __logf(x[r * x_stride + ivar0]);
+                        float num = logf(x[r * x_stride + col]);
+                        float den = logf(x[r * x_stride + ivar0]);
                         out[r * out_stride + col] = (num - den);
                     }
                 } else {
@@ -938,8 +940,8 @@ namespace propr {
 
                         if (active_col) {
                             for (int r = tx; r < (int)rows; r += BLK_X) {
-                                float num = __logf(x[r + col   * x_stride]);
-                                float den = __logf(x[r + ivar0 * x_stride]);
+                                float num = logf(x[r + col   * x_stride]);
+                                float den = logf(x[r + ivar0 * x_stride]);
                                 out[r + col * out_stride] = (num - den);
                             }
                         }
@@ -950,7 +952,7 @@ namespace propr {
             
             template <class Config>
             __global__
-            //__launch_bounds__(Config::TILE, Config::BLK_N)
+            //__launch_bounds__(Config::TILE * Config::BLK_N, 1, 1)
             void symRcpp(      float* __restrict__ out, offset_t out_stride,
                          const float* __restrict__   x, offset_t x_stride,
                          int rows, int cols){
@@ -973,7 +975,7 @@ namespace propr {
 
             template <class Config>
             __global__
-            //__launch_bounds__(Config::BLK_M / Config::TH_X, Config::BLK_M / Config::TH_Y)
+            //__launch_bounds__((Config::BLK_M / Config::TH_X)* (Config::BLK_M / Config::TH_Y), 1, 1)
             void phiRcpp(const bool sym,
                         float* __restrict__ out, offset_t out_stride,
                         const float* __restrict__   x, offset_t x_stride,
@@ -1043,7 +1045,7 @@ namespace propr {
 
 
                 auto ld_or_zero = [](const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) {
-                    return (r < max_r && c < max_c) ? __logf(p[OFFSET(r, c, ld)]) : 0.0f;
+                    return (r < max_r && c < max_c) ? logf(p[OFFSET(r, c, ld)]) : 0.0f;
                 };
 
 
@@ -1357,7 +1359,7 @@ namespace propr {
                 const int b_tile_index =  (warp_id % 2) * 32 + (lane_id % 8) * 4;
 
                 auto ld_or_zero = [](const float* __restrict__ p, int r, int c, int ld, int max_r, int max_c) {
-                    return (r < max_r && c < max_c) ? __logf(p[OFFSET(r, c, ld)]) : 0.0f;
+                    return (r < max_r && c < max_c) ? logf(p[OFFSET(r, c, ld)]) : 0.0f;
                 };
 
                 // --- load first A/B tiles into shared memory ---
@@ -1754,10 +1756,10 @@ namespace propr {
                         const int m   = a_m0 + i;
                         const int idx = (i / A_TILE_ROW_STRIDE) * 4;
                         thread::store<Config::StoreModifer,float4>(&ldg_a_reg[idx], thread::load<Config::LoadModifer,float4>(&A_base[OFFSET(m, a_k4, x_stride)]));
-                        As[0][a_k4 + 0][m] = __logf(ldg_a_reg[idx + 0]);
-                        As[0][a_k4 + 1][m] = __logf(ldg_a_reg[idx + 1]);
-                        As[0][a_k4 + 2][m] = __logf(ldg_a_reg[idx + 2]);
-                        As[0][a_k4 + 3][m] = __logf(ldg_a_reg[idx + 3]);
+                        As[0][a_k4 + 0][m] = logf(ldg_a_reg[idx + 0]);
+                        As[0][a_k4 + 1][m] = logf(ldg_a_reg[idx + 1]);
+                        As[0][a_k4 + 2][m] = logf(ldg_a_reg[idx + 2]);
+                        As[0][a_k4 + 3][m] = logf(ldg_a_reg[idx + 3]);
                     }
                 }
                 {
@@ -1769,10 +1771,10 @@ namespace propr {
                         const int n   = b_n0 + i;
                         const int idx = (i / B_TILE_ROW_STRIDE) * 4;
                         thread::store<Config::StoreModifer,float4>(&ldg_b_reg[idx],thread::load<Config::LoadModifer,float4>(&B_base[OFFSET(n, b_k4, x_stride)]));
-                        Bs[0][b_k4 + 0][n] = __logf(ldg_b_reg[idx + 0]);
-                        Bs[0][b_k4 + 1][n] = __logf(ldg_b_reg[idx + 1]);
-                        Bs[0][b_k4 + 2][n] = __logf(ldg_b_reg[idx + 2]);
-                        Bs[0][b_k4 + 3][n] = __logf(ldg_b_reg[idx + 3]);
+                        Bs[0][b_k4 + 0][n] = logf(ldg_b_reg[idx + 0]);
+                        Bs[0][b_k4 + 1][n] = logf(ldg_b_reg[idx + 1]);
+                        Bs[0][b_k4 + 2][n] = logf(ldg_b_reg[idx + 2]);
+                        Bs[0][b_k4 + 3][n] = logf(ldg_b_reg[idx + 3]);
                     }
                 }
                 __syncthreads();
@@ -1849,10 +1851,10 @@ namespace propr {
                         for (int i = 0; i < Config::BLK_M; i += A_TILE_ROW_STRIDE) {
                             const int m   = a_m0 + i;
                             const int idx = (i / A_TILE_ROW_STRIDE) * 4;
-                            As[write_stage_idx][a_k4 + 0][m] = __logf(ldg_a_reg[idx + 0]);
-                            As[write_stage_idx][a_k4 + 1][m] = __logf(ldg_a_reg[idx + 1]);
-                            As[write_stage_idx][a_k4 + 2][m] = __logf(ldg_a_reg[idx + 2]);
-                            As[write_stage_idx][a_k4 + 3][m] = __logf(ldg_a_reg[idx + 3]);
+                            As[write_stage_idx][a_k4 + 0][m] = logf(ldg_a_reg[idx + 0]);
+                            As[write_stage_idx][a_k4 + 1][m] = logf(ldg_a_reg[idx + 1]);
+                            As[write_stage_idx][a_k4 + 2][m] = logf(ldg_a_reg[idx + 2]);
+                            As[write_stage_idx][a_k4 + 3][m] = logf(ldg_a_reg[idx + 3]);
                         }
 
                         const int b_n0 = tid / B_THREADS_PER_ROW;
@@ -1862,10 +1864,10 @@ namespace propr {
                         for (int i = 0; i < Config::BLK_M; i += B_TILE_ROW_STRIDE) {
                             const int n   = b_n0 + i;
                             const int idx = (i / B_TILE_ROW_STRIDE) * 4;
-                            Bs[write_stage_idx][b_k4 + 0][n] = __logf(ldg_b_reg[idx + 0]);
-                            Bs[write_stage_idx][b_k4 + 1][n] = __logf(ldg_b_reg[idx + 1]);
-                            Bs[write_stage_idx][b_k4 + 2][n] = __logf(ldg_b_reg[idx + 2]);
-                            Bs[write_stage_idx][b_k4 + 3][n] = __logf(ldg_b_reg[idx + 3]);
+                            Bs[write_stage_idx][b_k4 + 0][n] = logf(ldg_b_reg[idx + 0]);
+                            Bs[write_stage_idx][b_k4 + 1][n] = logf(ldg_b_reg[idx + 1]);
+                            Bs[write_stage_idx][b_k4 + 2][n] = logf(ldg_b_reg[idx + 2]);
+                            Bs[write_stage_idx][b_k4 + 3][n] = logf(ldg_b_reg[idx + 3]);
                         }
 
                         __syncthreads();
@@ -1990,16 +1992,16 @@ namespace propr {
                     for (int i = 0; i < Config::BLK_M; i += ROW_STRIDE) {
                         const int m = m0 + i;
                         float4 xa = *(const float4*)&A_base[OFFSET(m, tile_base + k4, x_stride)];
-                        As  [k4 + 0][m] = __logf(xa.x);
-                        As  [k4 + 1][m] = __logf(xa.y);
-                        As  [k4 + 2][m] = __logf(xa.z);
-                        As  [k4 + 3][m] = __logf(xa.w);
+                        As  [k4 + 0][m] = logf(xa.x);
+                        As  [k4 + 1][m] = logf(xa.y);
+                        As  [k4 + 2][m] = logf(xa.z);
+                        As  [k4 + 3][m] = logf(xa.w);
 
                         float4 xb = *(const float4*)&B_base[OFFSET(m, tile_base + k4, x_stride)];
-                        Bs  [k4 + 0][m] = __logf(xb.x);
-                        Bs  [k4 + 1][m] = __logf(xb.y);
-                        Bs  [k4 + 2][m] = __logf(xb.z);
-                        Bs  [k4 + 3][m] = __logf(xb.w);
+                        Bs  [k4 + 0][m] = logf(xb.x);
+                        Bs  [k4 + 1][m] = logf(xb.y);
+                        Bs  [k4 + 2][m] = logf(xb.z);
+                        Bs  [k4 + 3][m] = logf(xb.w);
 
                         // LR arrays: no log
                         float4 la = *(const float4*)&LR_A_base[OFFSET(m, tile_base + k4, lr_stride)];

@@ -22,7 +22,7 @@ call_cpu_gpu <- function(funname, cpu_call, gpu_call) {
   )
   gpu_val <- tryCatch(
     gpu_call(),
-    error = function(e) skip(paste0(funname, " GPU call not available or use_gpu flag missing: ", e$message))
+    error = function(e) skip(paste0(funname, " GPU call not available or backend argument missing: ", e$message))
   )
   list(cpu = cpu_val, gpu = gpu_val)
 }
@@ -34,7 +34,7 @@ test_that("wtmRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "wtmRcpp",
     function() propr:::wtmRcpp(matX[,1], w),
-    function() propr:::wtmRcpp(matX[,1], w, use_gpu = TRUE)
+    function() propr:::wtmRcpp(matX[,1], w, backend = "cuda")
   )
   expect_equal(as.numeric(vals$cpu), as.numeric(vals$gpu), tolerance = tol)
 })
@@ -46,7 +46,7 @@ test_that("wtvRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "wtvRcpp",
     function() propr:::wtvRcpp(matX[,1], w),
-    function() propr:::wtvRcpp(matX[,1], w, use_gpu = TRUE)
+    function() propr:::wtvRcpp(matX[,1], w, backend = "cuda")
   )
   expect_equal(as.numeric(vals$cpu), as.numeric(vals$gpu), tolerance = tol)
 })
@@ -57,7 +57,7 @@ test_that("centerNumericMatrix CPU vs GPU", {
   vals <- call_cpu_gpu(
     "centerNumericMatrix",
     function() propr:::centerNumericMatrix(matX),
-    function() propr:::centerNumericMatrix(matX, use_gpu = TRUE)
+    function() propr:::centerNumericMatrix(matX, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -68,7 +68,7 @@ test_that("corRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "corRcpp",
     function() propr:::corRcpp(matX),
-    function() propr:::corRcpp(matX, use_gpu = TRUE)
+    function() propr:::corRcpp(matX, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -79,7 +79,7 @@ test_that("covRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "covRcpp",
     function() propr:::covRcpp(matX, 0),
-    function() propr:::covRcpp(matX, 0, use_gpu = TRUE)
+    function() propr:::covRcpp(matX, 0, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -90,7 +90,7 @@ test_that("vlrRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "vlrRcpp",
     function() { m <- propr:::vlrRcpp(matX); as.matrix(m) },
-    function() { m <- propr:::vlrRcpp(matX, use_gpu = TRUE); as.matrix(m) }
+    function() { m <- propr:::vlrRcpp(matX, backend = "cuda"); as.matrix(m) }
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -101,7 +101,7 @@ test_that("clrRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "clrRcpp",
     function() propr:::clrRcpp(matX),
-    function() propr:::clrRcpp(matX, use_gpu = TRUE)
+    function() propr:::clrRcpp(matX, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -112,7 +112,7 @@ test_that("alrRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "alrRcpp",
     function() propr:::alrRcpp(matX, ivar = 5),
-    function() propr:::alrRcpp(matX, ivar = 5, use_gpu = TRUE)
+    function() propr:::alrRcpp(matX, ivar = 5, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -124,7 +124,7 @@ test_that("symRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "symRcpp",
     function() propr:::symRcpp(M),
-    function() propr:::symRcpp(M, use_gpu = TRUE)
+    function() propr:::symRcpp(M, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -135,7 +135,7 @@ test_that("phiRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "phiRcpp",
     function() propr:::phiRcpp(matX, sym = TRUE),
-    function() propr:::phiRcpp(matX, sym = TRUE, use_gpu = TRUE)
+    function() propr:::phiRcpp(matX, sym = TRUE, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -147,7 +147,7 @@ test_that("rhoRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "rhoRcpp",
     function() propr:::rhoRcpp(matX, lr, ivar = 5),
-    function() propr:::rhoRcpp(matX, lr, ivar = 5, use_gpu = TRUE)
+    function() propr:::rhoRcpp(matX, lr, ivar = 5, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -158,7 +158,7 @@ test_that("indexPairs CPU vs GPU", {
   vals <- call_cpu_gpu(
     "indexPairs",
     function() propr:::indexPairs(matX, "all", 0),
-    function() propr:::indexPairs(matX, "all", 0, use_gpu = TRUE)
+    function() propr:::indexPairs(matX, "all", 0, backend = "cuda")
   )
   expect_equal(as.integer(vals$cpu), as.integer(vals$gpu))
 })
@@ -171,7 +171,7 @@ test_that("indexToCoord CPU vs GPU", {
   vals <- call_cpu_gpu(
     "indexToCoord",
     function() propr:::indexToCoord(V, N = Nfeats),
-    function() propr:::indexToCoord(V, N = Nfeats, use_gpu = TRUE)
+    function() propr:::indexToCoord(V, N = Nfeats, backend = "cuda")
   )
   expect_equal(names(vals$cpu), names(vals$gpu))
   expect_equal(vals$cpu$feat1, vals$gpu$feat1)
@@ -187,7 +187,7 @@ test_that("coordToIndex CPU vs GPU", {
   vals <- call_cpu_gpu(
     "coordToIndex",
     function() propr:::coordToIndex(rowv, colv, N = Nfeats),
-    function() propr:::coordToIndex(rowv, colv, N = Nfeats, use_gpu = TRUE)
+    function() propr:::coordToIndex(rowv, colv, N = Nfeats, backend = "cuda")
   )
   expect_equal(as.integer(vals$cpu), as.integer(vals$gpu))
 })
@@ -200,7 +200,7 @@ test_that("linRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "linRcpp",
     function() propr:::linRcpp(rho, lr),
-    function() propr:::linRcpp(rho, lr, use_gpu = TRUE)
+    function() propr:::linRcpp(rho, lr, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -223,7 +223,7 @@ test_that("lltRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "lltRcpp",
     function() propr:::lltRcpp(rho),
-    function() propr:::lltRcpp(rho, use_gpu = TRUE)
+    function() propr:::lltRcpp(rho, backend = "cuda")
   )
   expect_equal(as.numeric(vals$cpu), as.numeric(vals$gpu), tolerance = tol)
 })
@@ -246,7 +246,7 @@ test_that("urtRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "urtRcpp",
     function() propr:::urtRcpp(S),
-    function() propr:::urtRcpp(S, use_gpu = TRUE)
+    function() propr:::urtRcpp(S, backend = "cuda")
   )
   expect_equal(as.numeric(vals$cpu), as.numeric(vals$gpu), tolerance = tol)
 })
@@ -258,7 +258,7 @@ test_that("labRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "labRcpp",
     function() propr:::labRcpp(nfeats),
-    function() propr:::labRcpp(nfeats, use_gpu = TRUE)
+    function() propr:::labRcpp(nfeats, backend = "cuda")
   )
   expect_equal(names(vals$cpu), names(vals$gpu))
   expect_equal(as.integer(vals$cpu$Partner), as.integer(vals$gpu$Partner))
@@ -272,7 +272,7 @@ test_that("half2mat CPU vs GPU", {
   vals <- call_cpu_gpu(
     "half2mat",
     function() propr:::half2mat(vec),
-    function() propr:::half2mat(vec, use_gpu = TRUE)
+    function() propr:::half2mat(vec, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -287,7 +287,7 @@ test_that("vector2mat CPU vs GPU", {
   vals <- call_cpu_gpu(
     "vector2mat",
     function() propr:::vector2mat(Xvals, i, j, nfeats),
-    function() propr:::vector2mat(Xvals, i, j, nfeats, use_gpu = TRUE)
+    function() propr:::vector2mat(Xvals, i, j, nfeats, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -298,7 +298,7 @@ test_that("ratiosRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "ratiosRcpp",
     function() propr:::ratiosRcpp(matX),
-    function() propr:::ratiosRcpp(matX, use_gpu = TRUE)
+    function() propr:::ratiosRcpp(matX, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })
@@ -311,7 +311,7 @@ test_that("results2matRcpp CPU vs GPU", {
   vals <- call_cpu_gpu(
     "results2matRcpp",
     function() propr:::results2matRcpp(n, results, diagonal = 0),
-    function() propr:::results2matRcpp(n, results, diagonal = 0, use_gpu = TRUE)
+    function() propr:::results2matRcpp(n, results, diagonal = 0, backend = "cuda")
   )
   expect_equal(as.matrix(vals$cpu), as.matrix(vals$gpu), tolerance = tol)
 })

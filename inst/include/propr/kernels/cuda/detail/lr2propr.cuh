@@ -5,8 +5,8 @@
 #include <cub/cub.cuh>
 
 #include <propr/data/types.h>
-#include <propr/utils/constants.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/constants.h>
+#include <propr/utils/common/preprocessor.cuh>
 
 
 namespace propr {

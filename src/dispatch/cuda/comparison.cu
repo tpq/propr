@@ -8,9 +8,9 @@
 
 #include <propr/kernels/cuda/dispatch/comparison.cuh>
 
-#include <propr/utils/rcpp_checks.h>
-#include <propr/utils/cuda_checks.h>
-#include <propr/utils/cuda_profiler.cuh>
+#include <propr/utils/rcpp/rcpp_checks.h>
+#include <propr/utils/cuda/cuda_checks.h>
+#include <propr/utils/profilers/cuda_profiler.cuh>
 
 
 using namespace Rcpp;

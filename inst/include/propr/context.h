@@ -1,6 +1,6 @@
 #pragma once
 #include <cuda_runtime.h>
-#include <propr/utils/cuda_checks.h>
+#include <propr/utils/cuda/cuda_checks.h>
 
 namespace propr {
     typedef struct context {

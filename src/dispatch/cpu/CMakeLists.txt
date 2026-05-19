@@ -1,4 +1,3 @@
-
 set(PROPR_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/comparison.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ctzRcpp.cpp
@@ -8,6 +7,7 @@ set(PROPR_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/lrm.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/lrv.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/omega.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/genewise.cpp
         ${PROPR_SOURCES}
         PARENT_SCOPE
 )

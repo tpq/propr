@@ -2,8 +2,8 @@
 #include <cmath>
 #include <propr/kernels/cpu/dispatch/backend.hpp>
 #include <propr/kernels/cpu/dispatch/lrv.hpp>
-#include <propr/utils/rcpp_checks.h>
-#include <propr/utils/host_exclusive_profiler.hpp>
+#include <propr/utils/rcpp/rcpp_checks.h>
+#include <propr/utils/profilers/host_exclusive_profiler.hpp>
 
 using namespace Rcpp;
 using namespace propr;

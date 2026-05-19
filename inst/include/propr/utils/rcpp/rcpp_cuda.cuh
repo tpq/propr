@@ -1,36 +1,11 @@
+#pragma once
+
 #include <Rcpp.h>
-#include <cuda_fp16.h>
 
+#include <propr/data/numeric_conversion.cuh>
 #include <propr/data/types.h>
-#include <propr/utils/cuda_checks.h>
-
-template<typename OutT, typename InT>
-struct CastOperator {
-    OutT operator()(InT x) const { return static_cast<OutT>(x); }
-};
-
-template<> struct CastOperator<__half,float> {
-    __half operator()(const float x) const { return __float2half(x); }
-};
-template<> struct CastOperator<float,__half> {
-    float operator()(const __half h) const { return __half2float(h); }
-};
-
-
-template<> struct CastOperator<__half,double> {
-    __half operator()(const double x) const { return __float2half(static_cast<float>(x)); }
-};
-template<> struct CastOperator<double,__half> {
-    double operator()(const __half h) const { return static_cast<double>(__half2float(h)); }
-};
-
-
-
-inline void check_alignment(const void* ptr, int alignment) {
-    if (reinterpret_cast<uintptr_t>(ptr) % (alignment * sizeof(float)) != 0) {
-        printf("ERROR: Misaligned access at %p, required alignment: %d bytes\n",  ptr, alignment * (int)sizeof(float));
-    }
-}
+#include <propr/utils/cuda/cuda_checks.h>
+#include <propr/utils/cuda/alignment.h>
 
 template <
   typename OutT,
@@ -42,7 +17,7 @@ inline OutT* RcppMatrixToDevice(
     offset_t&                  memory_stride,
     int                        alignment = 16) {
 
-    CastOperator<OutT, typename Rcpp::Matrix<RTYPE>::stored_type> CastOp;
+    propr::convert::NumericConverter<OutT, typename Rcpp::Matrix<RTYPE>::stored_type> CastOp;
 
     const offset_t nrows = mat.nrow();
     const offset_t ncols = mat.ncol();
@@ -83,7 +58,7 @@ inline OutT* RcppMatrixToDevice(
     std::free(h_buf);
 
     memory_stride = slow_padded;
-    check_alignment(d_ptr, alignment);
+    propr::cuda::check_pointer_alignment(d_ptr, alignment);
     return d_ptr;
 }
 
@@ -95,7 +70,7 @@ inline OutT* RcppMatrixPermToDevice(
     int alignment = 16
 ) {
 
-    CastOperator<OutT, typename Rcpp::Matrix<RTYPE>::stored_type> CastOp;
+    propr::convert::NumericConverter<OutT, typename Rcpp::Matrix<RTYPE>::stored_type> CastOp;
 
     const offset_t nrows = mat.nrow();
     const offset_t ncols = mat.ncol();
@@ -137,7 +112,7 @@ inline OutT* RcppMatrixPermToDevice(
     std::free(h_buf);
 
     memory_stride = slow_padded;
-    check_alignment(d_ptr, alignment);
+    propr::cuda::check_pointer_alignment(d_ptr, alignment);
     return d_ptr;
 }
 
@@ -165,7 +140,7 @@ void copyToNumericVector(
 template<typename T, int RTYPE>
 T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, size_t size) {
     using SrcType = typename Rcpp::traits::storage_type<RTYPE>::type;
-    CastOperator<T, typename Rcpp::Vector<RTYPE>::stored_type> CastOp;
+    propr::convert::NumericConverter<T, typename Rcpp::Vector<RTYPE>::stored_type> CastOp;
     T* d_ptr     = nullptr;
     const size_t bytes = size * sizeof(T);
     PROPR_CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_ptr), bytes));
@@ -176,7 +151,7 @@ T* RcppVectorToDevice(const Rcpp::Vector<RTYPE>& h_src, size_t size) {
                               cudaMemcpyHostToDevice));
     } else {
         T* h_temp = static_cast<T*>(std::malloc(bytes));
-        for (int i = 0; i < size; ++i) h_temp[i] = static_cast<T>(h_src[i]);
+        for (int i = 0; i < size; ++i) h_temp[i] = CastOp(h_src[i]);
         PROPR_CUDA_CHECK(cudaMemcpy(d_ptr, h_temp, bytes, cudaMemcpyHostToDevice));
         std::free(h_temp);
     }

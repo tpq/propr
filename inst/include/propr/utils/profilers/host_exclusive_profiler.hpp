@@ -3,7 +3,7 @@
 #include <chrono>
 #include <string>
 
-#include <propr/utils/host_profiler.hpp>
+#include <propr/utils/profilers/host_profiler.hpp>
 
 namespace propr {
     namespace profiler {

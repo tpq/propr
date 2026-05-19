@@ -1,7 +1,7 @@
 #pragma once 
 #include <cute/tensor.hpp>
-#include <propr/utils/constants.h>
-#include <propr/utils/preprocessor.cuh>
+#include <propr/utils/common/constants.h>
+#include <propr/utils/common/preprocessor.cuh>
 
 
 __device__ int Ag[128][201] = {0};

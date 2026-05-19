@@ -1,50 +1,54 @@
 #include <Rcpp.h>
 #include <cuda_runtime.h>
 
-#include <propr/utils/cuda_profiler.cuh>
+#include <propr/utils/profilers/cuda_profiler.cuh>
 
 #include <atomic>
 #include <mutex>
 
 namespace propr {
-    namespace profiler {
+namespace profiler {
 
-    namespace {
-        std::atomic<bool> g_enabled{false};
-        thread_local std::vector<record> g_records;
-    }
+namespace cuda_profiler_detail {
+std::atomic<bool> g_enabled{false};
+thread_local std::vector<record> g_records;
+}  // namespace cuda_profiler_detail
 
-    void set_enabled(bool on) { g_enabled.store(on, std::memory_order_relaxed); }
+void set_enabled(bool on) {
+    cuda_profiler_detail::g_enabled.store(on, std::memory_order_relaxed);
+}
 
-    bool is_enabled() { return g_enabled.load(std::memory_order_relaxed); }
+bool is_enabled() {
+    return cuda_profiler_detail::g_enabled.load(std::memory_order_relaxed);
+}
 
-    std::vector<record> consume_records() {
-        std::vector<record> out;
-        out.swap(g_records);
-        return out;
-    }
+std::vector<record> consume_records() {
+    std::vector<record> out;
+    out.swap(cuda_profiler_detail::g_records);
+    return out;
+}
 
-    cuda_scope_timer::cuda_scope_timer(const char* name, cudaStream_t stream)
-        : enabled_(is_enabled()), name_(name), stream_(stream) {
-        if (!enabled_) return;
-        cudaEventCreate(&start_);
-        cudaEventCreate(&stop_);
-        cudaEventRecord(start_, stream_);
-    }
+cuda_scope_timer::cuda_scope_timer(const char* name, cudaStream_t stream)
+    : enabled_(is_enabled()), name_(name), stream_(stream) {
+    if (!enabled_) return;
+    cudaEventCreate(&start_);
+    cudaEventCreate(&stop_);
+    cudaEventRecord(start_, stream_);
+}
 
-    cuda_scope_timer::~cuda_scope_timer() {
-        if (!enabled_) return;
-        cudaEventRecord(stop_, stream_);
-        cudaEventSynchronize(stop_);
-        float ms = 0.0f;
-        cudaEventElapsedTime(&ms, start_, stop_);
-        g_records.push_back(record{std::move(name_), static_cast<double>(ms)});
-        cudaEventDestroy(start_);
-        cudaEventDestroy(stop_);
-    }
+cuda_scope_timer::~cuda_scope_timer() {
+    if (!enabled_) return;
+    cudaEventRecord(stop_, stream_);
+    cudaEventSynchronize(stop_);
+    float ms = 0.0f;
+    cudaEventElapsedTime(&ms, start_, stop_);
+    cuda_profiler_detail::g_records.push_back(record{std::move(name_), static_cast<double>(ms)});
+    cudaEventDestroy(start_);
+    cudaEventDestroy(stop_);
+}
 
-    } 
-} 
+}  // namespace profiler
+}  // namespace propr
 
 using namespace Rcpp;
 

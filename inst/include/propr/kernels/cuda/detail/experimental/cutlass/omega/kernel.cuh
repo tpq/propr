@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cute/tensor.hpp>
-#include <propr/utils/constants.h>
+#include <propr/utils/common/constants.h>
 
 namespace propr {
     namespace kernels {

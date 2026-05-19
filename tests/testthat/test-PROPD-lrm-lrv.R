@@ -37,7 +37,6 @@ if (length(unique(group)) != 2)    stop("Only two groups are allowed for contras
 
 test_that("GPU and CPU propd results are numerically equivalent", {
   ## --- CPU run ---
-  options(propr.use_gpu = FALSE)
   pd_cpu <- propd(
     counts,
     group    = group,
@@ -46,7 +45,6 @@ test_that("GPU and CPU propd results are numerically equivalent", {
   )
 
   ## --- GPU run ---
-  options(propr.use_gpu = TRUE)
   pd_gpu <- propd(
     counts,
     group    = group,
@@ -83,4 +81,7 @@ test_that("GPU and CPU propd results are numerically equivalent", {
     tolerance = 1e-3,
     scale     = 1
   )
+
+  # set back to CPU for other tests
+  options(propr.use_gpu = FALSE)
 })

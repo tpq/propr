@@ -1,4 +1,3 @@
-options(propr.use_gpu = FALSE)
 library(testthat)
 library(propr)
 
@@ -74,7 +73,7 @@ test_that("propr:::clrRcpp CPU vs GPU", {
     error = function(e) skip(paste0("propr:::clrRcpp not available — ", conditionMessage(e)))
   )
   gpu_clr <- tryCatch(
-    propr:::clrRcpp(as.matrix(X[]), use_gpu = TRUE),
+    propr:::clrRcpp(as.matrix(X[]), backend = "cuda"),
     error = function(e) skip(paste0("propr:::clrRcpp GPU variant not available — ", conditionMessage(e)))
   )
   expect_equal(cpu_clr, gpu_clr, tolerance = tol)
@@ -86,7 +85,7 @@ test_that("propr:::alrRcpp CPU vs GPU", {
     error = function(e) skip(paste0("propr:::alrRcpp not available — ", conditionMessage(e)))
   )
   gpu_alr <- tryCatch(
-    propr:::alrRcpp(as.matrix(X[]), ivar = 5, use_gpu = TRUE),
+    propr:::alrRcpp(as.matrix(X[]), ivar = 5, backend = "cuda"),
     error = function(e) skip(paste0("propr:::alrRcpp GPU variant not available — ", conditionMessage(e)))
   )
   expect_equal(cpu_alr, gpu_alr, tolerance = tol)
