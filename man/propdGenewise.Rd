@@ -2,7 +2,6 @@
 % Please edit documentation in R/2-propd-genewise.R
 \name{propdGenewise}
 \alias{propdGenewise}
-\alias{.compute_fgsea_padj_batches}
 \title{Convert pairwise propd results into genewise results}
 \usage{
 propdGenewise(
@@ -12,42 +11,26 @@ propdGenewise(
   n_iter = 5L,
   ...
 )
-
-.compute_fgsea_padj_batches(
-  propd,
-  partner_fraction,
-  n_iter,
-  nperm = 1000L,
-  seed = 42L,
-  scoreType = "pos"
-)
 }
 \arguments{
-\item{propd}{A \code{\link{propd}} object.}
+\item{propd}{A \code{\link{propd}} object with FDR values from
+\code{\link{updateF}}.}
 
 \item{pairwise_fdr}{FDR threshold to consider a pairwise relationship as
 significant. Controls connectivity and lrmD. Default is 0.05.}
 
-\item{partner_fraction}{Numeric in (0, 1). Fraction of all other genes to
-use as partners for each focal gene per batch. Default 0.017 (~1.7\%),
-giving ~300 partners at G=18080. A minimum of 100 partners is enforced.}
+\item{partner_fraction}{Numeric in (0, 1). Fraction of all genes to use
+as partners per focal gene per batch. Higher values give more stable ES
+at the cost of compute time. Default 0.017 (~1.7\%, giving ~300 partners
+at G=18000). Increase to 0.05-0.1 if you see concordance warnings.}
 
-\item{n_iter}{Integer. Number of independent iterations to run and aggregate.
-Default 5. Higher values give more stable ES and p-values at the cost of
-proportionally more compute time.}
+\item{n_iter}{Integer. Number of independent iterations to run and
+aggregate. Higher values give more stable results. Default 5.}
 
 \item{...}{Additional arguments passed to \code{.compute_fgsea_padj_batches},
 such as \code{nperm} (number of permutations, default 1000),
 \code{seed} (random seed, default 42), or \code{scoreType} (default
 \code{"pos"}, testing enrichment at the low-theta end only).}
-
-\item{nperm}{Integer. Number of permutations per fgsea call. Default 1000.}
-
-\item{seed}{Integer. Base random seed. Each iteration uses seed + i for
-reproducibility. Default 42.}
-
-\item{scoreType}{Character. Passed to fgsea. "pos" (default) tests
-enrichment at the low-theta end only. "std" tests both ends.}
 }
 \value{
 A data frame with one row per gene and the following columns:
@@ -64,50 +47,36 @@ A data frame with one row per gene and the following columns:
      concordance checking.}
    \item{padj}{BH-adjusted permutation p-value for the ES.}
  }
-
-A data frame with one row per gene and columns:
-  - "id": gene identifier
-  - "ES_batch": median enrichment score across iterations (subsampled pairs)
-  - "pval": median p-value across iterations
-  - "padj": BH-adjusted median p-value (global, across all genes)
 }
 \description{
 This function summarises pairwise differential proportionality results at
 the gene level, producing metrics that can be used to rank and identify
 differentially expressed genes.
-
-This function extends \code{\link{propdGenewise}} by adding permutation-based
-p-values via a batched GSEA strategy. Because all gene-pair sets overlap
-(every pair is shared by two genes), running fgsea naively would violate
-the independence assumption of the permutation test. The solution is to
-process genes in batches: within each batch, each focal gene is assigned a
-disjoint random subset of partner genes, so the resulting pair sets are
-independent by construction. fgsea is then run on this reduced, independent
-score vector, yielding valid p-values.
 }
 \details{
-## What this function computes
+\strong{What this function computes}
 
-**Connectivity** counts how many significant pairwise relationships each
+\strong{Connectivity} counts how many significant pairwise relationships each
 gene has (controlled by \code{pairwise_fdr}). A highly connected gene is
-one whose log-ratio with many other genes changes between groups.
+one whose log-ratio with many other genes changes between groups. Use
+connectivity for ranking of DE genes.
 
-**LFC** is a CLR-based log fold change, computed by averaging log-ratios
+\strong{LFC} is a CLR-based log fold change, computed by averaging log-ratios
 across all other genes as reference (equivalent to using the geometric mean
 as reference). This is the standard compositionally-aware fold change.
 
-**lrmD** is similar to LFC but uses only significantly connected partners
+\strong{lrmD} is similar to LFC but uses only significantly connected partners
 as reference, making it more robust when only a subset of genes are
 differentially proportional.
 
-**ES (Enrichment Score)** is a GSEA-inspired score. Pairs are ranked by
+\strong{ES (Enrichment Score)} is a GSEA-inspired score. Pairs are ranked by
 theta ascending (most differentially proportional first). For each gene,
 its "gene set" is all pairs it participates in. The ES measures how much
 those pairs are enriched at the top of the ranking (i.e. among the most
 differentially proportional pairs). A high ES means the gene is
 systematically involved in differentially proportional relationships.
 
-## Permutation p-values and the batch procedure
+\strong{Permutation p-values and the batch procedure}
 
 Because gene-pair sets overlap (every pair belongs to two genes),
 standard GSEA permutation tests are invalid. To solve this, genes are
@@ -119,7 +88,7 @@ The procedure is repeated \code{n_iter} times with different random seeds
 and results are aggregated (median ES and median p-value across iterations)
 to reduce variance from the random partner assignment.
 
-## How to tune the parameters
+\strong{How to tune the parameters}
 
 - \code{partner_fraction}: controls how many partners each gene gets per
   batch (as a fraction of all genes). Higher values give more stable ES
@@ -133,10 +102,4 @@ to reduce variance from the random partner assignment.
   p-values. Default is 1000.
 - \code{seed} (passed via \code{...}): random seed for reproducibility.
   Default is 42.
-
-To reduce variance from the random partner assignment, the procedure is
-repeated \code{n_iter} times with different seeds. The final ES is the mean
-across iterations and the final p-value is the median (robust to outlier
-iterations). Global BH correction is applied to the median p-values.
 }
-\keyword{internal}

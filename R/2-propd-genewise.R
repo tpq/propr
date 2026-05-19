@@ -5,28 +5,29 @@
 #' differentially expressed genes.
 #'
 #' @details
-#' ## What this function computes
+#' \strong{What this function computes}
 #'
-#' **Connectivity** counts how many significant pairwise relationships each
+#' \strong{Connectivity} counts how many significant pairwise relationships each
 #' gene has (controlled by \code{pairwise_fdr}). A highly connected gene is
-#' one whose log-ratio with many other genes changes between groups.
+#' one whose log-ratio with many other genes changes between groups. Use
+#' connectivity for ranking of DE genes.
 #'
-#' **LFC** is a CLR-based log fold change, computed by averaging log-ratios
+#' \strong{LFC} is a CLR-based log fold change, computed by averaging log-ratios
 #' across all other genes as reference (equivalent to using the geometric mean
 #' as reference). This is the standard compositionally-aware fold change.
 #'
-#' **lrmD** is similar to LFC but uses only significantly connected partners
+#' \strong{lrmD} is similar to LFC but uses only significantly connected partners
 #' as reference, making it more robust when only a subset of genes are
 #' differentially proportional.
 #'
-#' **ES (Enrichment Score)** is a GSEA-inspired score. Pairs are ranked by
+#' \strong{ES (Enrichment Score)} is a GSEA-inspired score. Pairs are ranked by
 #' theta ascending (most differentially proportional first). For each gene,
 #' its "gene set" is all pairs it participates in. The ES measures how much
 #' those pairs are enriched at the top of the ranking (i.e. among the most
 #' differentially proportional pairs). A high ES means the gene is
 #' systematically involved in differentially proportional relationships.
 #'
-#' ## Permutation p-values and the batch procedure
+#' \strong{Permutation p-values and the batch procedure}
 #'
 #' Because gene-pair sets overlap (every pair belongs to two genes),
 #' standard GSEA permutation tests are invalid. To solve this, genes are
@@ -38,7 +39,7 @@
 #' and results are aggregated (median ES and median p-value across iterations)
 #' to reduce variance from the random partner assignment.
 #'
-#' ## How to tune the parameters
+#' \strong{How to tune the parameters}
 #'
 #' - \code{partner_fraction}: controls how many partners each gene gets per
 #'   batch (as a fraction of all genes). Higher values give more stable ES
@@ -343,7 +344,6 @@ propdGenewise <- function(propd, pairwise_fdr = 0.05,
 #'   - "padj": BH-adjusted median p-value (global, across all genes)
 #'
 #' @importFrom fgsea fgsea
-#' @rdname propdGenewise
 #' @keywords internal
 .compute_fgsea_padj_batches <- function(propd,
                                    partner_fraction,
