@@ -34,7 +34,7 @@ Imports:
     corpcor,
     ppcor,
     Rcpp,
-    stats
+    stats,
 Suggests:
     ALDEx2,
     fastcluster,
@@ -43,7 +43,8 @@ Suggests:
     parallel,
     rmarkdown,
     testthat (>= 3.0.0),
-    vegan
+    vegan,
+    nvtxR
 LinkingTo:
     Rcpp
 Config/testthat/edition: 3

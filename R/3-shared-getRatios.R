@@ -14,13 +14,19 @@
 #'
 #' @export
 getRatios <- function(object, switch = TRUE) {
+  NVTX_PUSH("getRatios", 0)
+
   # run ratios()
+  NVTX_PUSH("ratios()", 0)
   ct <- object@counts
   alpha <- object@alpha
   lr <- ratios(ct, alpha)
+  NVTX_POP()
 
   # For propd objects, define ratio so Group 1 is at top
   if (inherits(object, "propd") & switch) {
+    NVTX_PUSH("propd_switch_orientation", 0)
+
     switchRatio <- function(x) {
       text <- unlist(strsplit(x, "/"))
       paste0(text[2], "/", text[1])
@@ -33,8 +39,11 @@ getRatios <- function(object, switch = TRUE) {
         colnames(lr)[i] <- switchRatio(colnames(lr)[i])
       }
     }
+
+    NVTX_POP()
   }
 
+  NVTX_POP()  # getRatios
   return(lr)
 }
 
@@ -54,28 +63,39 @@ getRatios <- function(object, switch = TRUE) {
 #'
 #' @export
 ratios <- function(matrix, alpha = NA) {
+  NVTX_PUSH("ratios", 0)
+
+  NVTX_PUSH("labRcpp", 0)
   lab <- labRcpp(ncol(matrix))
+  NVTX_POP()
 
   # Replace count zeros if appropriate
   if (any(as.matrix(matrix) == 0) & is.na(alpha)) {
+    NVTX_PUSH("simple_zero_replacement", 0)
     matrix <- simple_zero_replacement(matrix)
+    NVTX_POP()
   }
 
   # Get (log-)ratios [based on alpha]
+  NVTX_PUSH("compute_ratios", 0)
   if (is.na(alpha)) {
     ratios <- log(matrix[, lab$Partner] / matrix[, lab$Pair])
-  } else{
+  } else {
     message("Alert: Using alpha transformation to approximate log-ratios.")
     ratios <-
       (matrix[, lab$Partner] ^ alpha - matrix[, lab$Pair] ^ alpha) / alpha
   }
+  NVTX_POP()
 
   # Name columns
   if (!is.null(colnames(matrix))) {
+    NVTX_PUSH("name_columns", 0)
     colnames(ratios) <-
       paste0(colnames(matrix)[lab$Partner],
              "/", colnames(matrix)[lab$Pair])
+    NVTX_POP()
   }
 
+  NVTX_POP()  # ratios
   return(ratios)
 }

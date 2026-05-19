@@ -1,0 +1,46 @@
+BootStrap: localimage
+From: stage3-r-packages.sif
+
+%labels
+    Maintainer Ziyad AlBanoby <ziyad.albanoby@bsc.es>
+    R_Version 4.4.3
+    HPC_SDK_Base nvcr.io/nvidia/nvhpc:25.3-devel-cuda_multi-ubuntu22.04
+    Stage r-propr
+
+%environment
+    # Ensure locale is correct (inherited from Ubuntu 22.04)
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+
+    # R version variable (for convenience)
+    export R_VERSION=4.4.3
+
+    # Place for host-installed R packages
+    export R_LIBS_SITE=/library:${R_LIBS_SITE}
+
+%post
+    set -e
+
+    ###############################################
+    # 3) Install R packages
+    ###############################################
+
+    R -e "devtools::install_github('tpq/propr@master')"
+
+%runscript
+    # By default, if someone does `singularity run this.sif`, we drop into R
+    exec R "${@}"
+
+%apprun R
+    exec R "${@}"
+
+%apprun Rscript
+    exec Rscript "${@}"
+
+%test
+    # Verify R version
+    R --quiet -e "stopifnot(getRversion() == '4.4.3')"
+    # Verify NVIDIA compilers are present (inherited from base image)
+    which nvcc || (echo "nvcc not in PATH" && exit 1)
+    which nvc++ || (echo "nvc++ not in PATH" && exit 1)
+    echo "R and NVIDIA HPC SDK are installed."

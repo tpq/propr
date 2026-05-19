@@ -70,6 +70,7 @@ propr <- function(counts,
                   alpha = NA,
                   p = 0,
                   permutation_option = c("feature-wise", "sample-wise")) {
+  NVTX_PUSH("propr", 0)
   ##############################################################################
   ### CLEAN UP ARGS
   ##############################################################################
@@ -141,46 +142,57 @@ propr <- function(counts,
   lambda <- NULL
 
   if (metric == "rho") {
+    NVTX_PUSH("metric == rho", 0)
     mat <- lr2rho(lr)
-
+    NVTX_POP()
   } else if (metric == "phi") {
+    NVTX_PUSH("metric == phi", 0)
     mat <- lr2phi(lr)
-    if (symmetrize)
-      symRcpp(mat) # optionally force symmetry
-
+    if (symmetrize) symRcpp(mat) # optionally force symmetry
+    NVTX_POP()
   } else if (metric == "phs") {
+    NVTX_PUSH("metric == phs", 0)
     mat <- lr2phs(lr)
-
+    NVTX_POP()
   } else if (metric == "cor") {
+    NVTX_PUSH("metric == cor", 0)
     mat <- stats::cor(lr)
-
+    NVTX_POP()
   } else if (metric == "vlr") {
     mat <- lrv
 
   } else if (metric == "ppcor") {
     packageCheck("ppcor")
+    NVTX_PUSH("metric == ppcor", 0)
     mat <- ppcor::pcor(lr)$estimate
-
+    NVTX_POP()
   } else if (metric == "pcor") {
     packageCheck("corpcor")
+
+    NVTX_PUSH("metric == pcor")
     cov <- cov(lr)
     mat <- corpcor::cor2pcor(cov)
     class(mat) <- "matrix"
-
+    NVTX_POP()
   } else if (metric == "pcor.shrink") {
     packageCheck("corpcor")
+
+    NVTX_PUSH("metric == pcor.shrink", 0)
     cov <- corpcor::cov.shrink(lr)
     mat <- corpcor::cor2pcor(cov)
     mat <- matrix(mat, ncol=ncol(lr), nrow=ncol(lr))
     class(mat) <- "matrix"
     lambda <- attr(cov, "lambda")
+    NVTX_POP()
 
   } else if (metric == "pcor.bshrink") {
+    NVTX_PUSH("metric == pcor.bshrink", 0)
+
     with(pcor.bshrink(ct, outtype = ivar_pcor), {
       mat <<- matrix
       lambda <<- lambda
     })
-
+    NVTX_POP()
   } else {
     stop("Provided 'metric' not recognized.")
   }
@@ -232,6 +244,6 @@ propr <- function(counts,
   ##############################################################################
 
   message("Alert: Use 'updateCutoffs' to calculate FDR.")
-
+  NVTX_POP()
   return(result)
 }

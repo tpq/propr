@@ -144,6 +144,21 @@ test_that("check that getFDR works properly", {
   expect_equal(res$over, sum(x >= actual) / length(x))
 })
 
+
+test_that("check that getFDR works properly GPU", {
+
+  # create a vector of values between 0 and 1
+  x <- runif(100)
+  actual <- runif(1)
+
+  # compute FDR
+  res <- propr:::getFDR(actual, x, backend = "cuda")
+
+  # check
+  expect_equal(res$under, sum(x <= actual) / length(x))
+  expect_equal(res$over, sum(x >= actual) / length(x))
+})
+
 test_that("check if runGraflex produce the expected contingency table and odds ratio values", {
   
   Astar <- A[lower.tri(A)]
@@ -201,10 +216,13 @@ test_that("check that permuteOR works as the old code", {
   
   # compute permuted odds ratios
   set.seed(0)
-  res1 <- propr:::permuteOR(A, G, 10)
+  res1 <- propr:::permuteOR(A, G, 10, backend = "cuda")
   set.seed(0)
   res2 <- permuteOR_old(A, G, 10)
-  
+
+  df1 <- as.data.frame(res1[, 1:6])
+  colnames(df1) <- c("Neither", "G.only", "A.only", "Both", "Odds", "LogOR")
+    
   # check
   expect_true(all(res1[,-c(7,8)] == res2))
 })
@@ -226,7 +244,7 @@ test_that("check if same results are obtained compared to old code", {
 })
 
 test_that("check that when ncores > 1 works", {
-
+  skip(message="WARN:Skipping cannot run on local CI")
   pp <- 100
 
   # compute graflex

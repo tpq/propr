@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 inst/doc
+.r-lib
+.ci
+ci_artifacts
+bin

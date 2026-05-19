@@ -42,3 +42,12 @@ test_that("lrv_with_shrinkage and lrv match for within group", {
     lrv2 <- propr:::lrv_with_shrinkage(ct[groups[[2]],], shrink=FALSE)
     expect_equal(lrv1, lrv2)
 })
+
+test_that("lrv using gpu and lrv match", {
+    # calculate lrv 
+    lrv1 <- propr:::lrv(counts, counts, FALSE, NA, counts, counts, backend = "cuda")
+    lrv2 <- propr:::lrv(counts, counts, FALSE, NA, counts, counts, backend = "cpu")
+    # check if they are equal
+    # skip()
+    expect_equal(lrv1, lrv2, tolerance = 1e-5)
+})

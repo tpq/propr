@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DEF="$REPO_ROOT/.singularity/singularity-r.def"
+SIF="$REPO_ROOT/.singularity/singularity-r.sif"
+LOGDIR="$REPO_ROOT/.ci"
+LOG="$LOGDIR/last-test.log"
+mkdir -p "$LOGDIR" "$(dirname "$SIF")"
+
+ENGINE="$(command -v apptainer || true)"
+[[ -z "$ENGINE" ]] && ENGINE="$(command -v singularity || true)"
+if [[ -z "$ENGINE" ]]; then
+  echo "ERROR: Apptainer/Singularity not found in PATH." >&2
+  exit 1
+fi
+
+# Enable GPU passthrough only if NVIDIA detected (safe if not used)
+EXTRA=""
+if command -v nvidia-smi >/dev/null 2>&1; then
+  EXTRA="--nv"
+fi
+
+echo "🧪 Running R tests inside container..."
+set +e
+"$ENGINE" exec $EXTRA \
+  --env R_LIBS_USER=/work/.r-lib \
+  --bind "$REPO_ROOT:/work" \
+  "$SIF" Rscript /work/ci/run-tests.R | tee "$LOG"
+rc=${PIPESTATUS[0]}
+set -e
+
+if [[ $rc -ne 0 ]]; then
+  echo
+  echo "❌ Push blocked: tests failed. See log: $LOG"
+  echo "   (override with: git push --no-verify)"
+  exit 1
+else
+  echo "✅ Tests passed - proceeding with push."
+  exit 0
+fi
+

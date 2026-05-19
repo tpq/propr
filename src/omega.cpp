@@ -1,46 +1,38 @@
 #include <Rcpp.h>
-using namespace Rcpp;
 
-// Calculate lrv weight modifier
+#include <propr/interface/omega.hpp>
+#include <propr/kernels/cpu/dispatch/omega.hpp>
+#include <propr/runtime/cuda_executor.hpp>
+#include <propr/runtime/dispatch.hpp>
+
+using namespace propr;
+
 // [[Rcpp::export]]
-NumericVector omega(NumericMatrix & W){
+Rcpp::NumericVector omega(Rcpp::NumericMatrix& W, Rcpp::String backend = "auto") {
+    const std::size_t nfeats = W.ncol();
+    const std::size_t llt = nfeats * (nfeats - 1) / 2;
+    Rcpp::NumericVector result(llt);
 
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
-  Rcpp::NumericVector result(llt);
-  Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
-  double n = 0;
-
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
-      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-      n = sum(Wij);
-      result(counter) = n - sum(pow(Wij, 2)) / n;
-      counter += 1;
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::dof_global(result, W);
+    } else {
+        dispatch::cpu::dof_global(result, W);
     }
-  }
 
-  return result;
+    return result;
 }
 
-// Calculate lrv weight modifier (population-level for F-stat and F-mod)
 // [[Rcpp::export]]
-NumericVector Omega(NumericMatrix & W){
+Rcpp::NumericVector Omega(Rcpp::NumericMatrix& W, Rcpp::String backend = "auto") {
+    const std::size_t nfeats = W.ncol();
+    const std::size_t llt = nfeats * (nfeats - 1) / 2;
+    Rcpp::NumericVector result(llt);
 
-  int nfeats = W.ncol();
-  int llt = nfeats * (nfeats - 1) / 2;
-  Rcpp::NumericVector result(llt);
-  Rcpp::NumericVector Wij(nfeats);
-  int counter = 0;
-
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
-      Wij = 2 * W(_, i) * W(_, j) / (W(_, i) + W(_, j));
-      result(counter) = sum(Wij);
-      counter += 1;
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::dof_population(result, W);
+    } else {
+        dispatch::cpu::dof_population(result, W);
     }
-  }
 
-  return result;
+    return result;
 }

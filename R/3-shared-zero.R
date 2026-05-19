@@ -12,12 +12,22 @@
 #' data <- matrix(c(0, 2, 3, 4, 5, 0), nrow = 2, byrow = TRUE)
 #' @export
 simple_zero_replacement <- function(ct) {
+  NVTX_PUSH("simple_zero_replacement", 0)
+  
   if (any(ct == 0)) {
+    NVTX_PUSH("zero_replacement_branch", 0)
     message("Alert: replacing zeros with minimun value.")
     zeros <- ct == 0
+    NVTX_PUSH("compute_min_nonzero", 0)
     ct[zeros] <- min(ct[!zeros])
-  } else{
+    NVTX_POP()  # compute_min_nonzero
+    NVTX_POP()  # zero_replacement_branch
+  } else {
+    NVTX_PUSH("no_zero_branch", 0)
     message("Alert: No 0s found that need replacement.")
+    NVTX_POP()  # no_zero_branch
   }
+  
+  NVTX_POP()  # simple_zero_replacement
   return(ct)
 }

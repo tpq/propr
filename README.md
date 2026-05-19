@@ -213,3 +213,8 @@ setActive(pd, "theta_mod")
 ## Ratio Methods
 
 COMING SOON!!
+
+
+
+## For Local Developement
+For local developement install the pre-push script `./scripts/git/pre-push` to run the tests.

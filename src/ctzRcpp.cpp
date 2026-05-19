@@ -1,33 +1,21 @@
 #include <Rcpp.h>
-using namespace Rcpp;
 
-// Function to count joint zero frequency
+#include <propr/interface/ctzRcpp.hpp>
+#include <propr/kernels/cpu/dispatch/ctzRcpp.hpp>
+#include <propr/runtime/cuda_executor.hpp>
+#include <propr/runtime/dispatch.hpp>
+
+using namespace propr;
+
 // [[Rcpp::export]]
-NumericVector ctzRcpp(NumericMatrix & X){
-
-  int nfeats = X.ncol();
-  int nsubjs = X.nrow();
-  int llt = nfeats * (nfeats - 1) / 2;
-
-  // Count zero frequency per feature
-  Rcpp::NumericVector zeroes(nfeats);
-  for(int i = 0; i < nfeats; i++){
-    for(int j = 0; j < nsubjs; j++){
-      if(X(j, i) == 0){
-        zeroes(i) += 1;
-      }
+Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix& X, Rcpp::String backend = "auto") {
+    const int nfeats = X.ncol();
+    const int llt = nfeats * (nfeats - 1) / 2;
+    Rcpp::NumericVector result(llt);
+    if (runtime::resolve_backend(backend) == runtime::Backend::CUDA) {
+        runtime::cuda_executor::ctzRcpp(result, X);
+    } else {
+        dispatch::cpu::ctzRcpp(result, X);
     }
-  }
-
-  // Count joint zero frequency
-  Rcpp::NumericVector result(llt);
-  int counter = 0;
-  for(int i = 1; i < nfeats; i++){
-    for(int j = 0; j < i; j++){
-      result(counter) = zeroes(i) + zeroes(j);
-      counter += 1;
-    }
-  }
-
-  return result;
+    return result;
 }
