@@ -202,6 +202,22 @@ int count_greater_equal_than(Rcpp::NumericVector& x, double cutoff) {
     return dispatch::cuda::count_greater_equal_than(x, cutoff);
 }
 
+void* count_values_beyond_thresholds_begin(Rcpp::NumericVector& cutoffs, bool direct) {
+    return dispatch::cuda::count_values_beyond_thresholds_begin(cutoffs, direct);
+}
+
+void count_values_beyond_thresholds_accumulate(void* counter, Rcpp::NumericVector& values) {
+    dispatch::cuda::count_values_beyond_thresholds_accumulate(counter, values);
+}
+
+Rcpp::NumericVector count_values_beyond_thresholds_end(void* counter) {
+    return dispatch::cuda::count_values_beyond_thresholds_end(counter);
+}
+
+void count_values_beyond_thresholds_destroy(void* counter) {
+    dispatch::cuda::count_values_beyond_thresholds_destroy(counter);
+}
+
 void ctzRcpp(Rcpp::NumericVector& out, Rcpp::NumericMatrix& X) {
     dispatch::cuda::ctzRcpp(out, X);
 }

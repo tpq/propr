@@ -101,6 +101,18 @@ count_greater_equal_than <- function(x, cutoff, backend = "auto") {
     .Call(`_propr_count_greater_equal_than`, x, cutoff, backend)
 }
 
+count_values_beyond_thresholds_begin <- function(cutoffs, direct, backend = "auto") {
+    .Call(`_propr_count_values_beyond_thresholds_begin`, cutoffs, direct, backend)
+}
+
+count_values_beyond_thresholds_accumulate <- function(counter, values) {
+    invisible(.Call(`_propr_count_values_beyond_thresholds_accumulate`, counter, values))
+}
+
+count_values_beyond_thresholds_end <- function(counter) {
+    .Call(`_propr_count_values_beyond_thresholds_end`, counter)
+}
+
 ctzRcpp <- function(X, backend = "auto") {
     .Call(`_propr_ctzRcpp`, X, backend)
 }
@@ -180,4 +192,3 @@ omega <- function(W, backend = "auto") {
 Omega <- function(W, backend = "auto") {
     .Call(`_propr_Omega`, W, backend)
 }
-

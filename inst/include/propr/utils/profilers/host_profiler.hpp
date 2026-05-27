@@ -33,8 +33,12 @@ namespace propr {
                 std::chrono::high_resolution_clock::time_point start_;
         };
 
-        #define PROPR_PROFILE_HOST_CONCAT(a, b) a##b
-        #define PROPR_PROFILE_HOST_MAKE_NAME(a, b) PROPR_PROFILE_HOST_CONCAT(a, b)
-        #define PROPR_PROFILE_HOST(NAME) ::propr::profiler::host_scope_timer PROPR_PROFILE_HOST_MAKE_NAME(_propr_profile_scope_, __LINE__)(NAME)
+        #if 0
+            #define PROPR_PROFILE_HOST_CONCAT(a, b) a##b
+            #define PROPR_PROFILE_HOST_MAKE_NAME(a, b) PROPR_PROFILE_HOST_CONCAT(a, b)
+            #define PROPR_PROFILE_HOST(NAME) ::propr::profiler::host_scope_timer PROPR_PROFILE_HOST_MAKE_NAME(_propr_profile_scope_, __LINE__)(NAME)
+        #else
+            #define PROPR_PROFILE_HOST(NAME)
+        #endif
     } 
 }
