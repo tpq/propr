@@ -1,8 +1,12 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <propr/data/math.cuh>
+#include <propr/data/traits.cuh>
 #include <propr/data/types.h>
+#include <propr/utils/common/cuda_helpers.cuh>
 #include <propr/utils/common/preprocessor.cuh>
+#include <propr/internal/device/cuda/thread/indexing.cuh>
 #include <propr/internal/device/cuda/thread/mem_ops.cuh>
 
 
@@ -12,27 +16,29 @@ namespace propr{
     namespace detail {
         namespace cuda {
 
-            template <class Config>
+            template <typename Real, class Config>
             __global__
-            void lrv_basic(float* __restrict__ d_Y, offset_t stride,
-                           float* __restrict__ d_variances,
+            void lrv_basic(Real* __restrict__ d_Y, offset_t stride,
+                           Real* __restrict__ d_variances,
                            int nb_samples, int nb_genes) {
+                using Wide = cuda_wide_vector_t<Real>;
+                constexpr int Lanes = cuda_wide_lanes_v<Real>;
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i >= nb_genes || j >= i) return;
 
-                float sum_log_ratios  = 0.0f;
-                float sum_log_ratios2 = 0.0f;
+                Real sum_log_ratios  = Real(0);
+                Real sum_log_ratios2 = Real(0);
 
                 int k = 0;
                 PROPR_UNROLL
-                for (; k < (nb_samples / 4) * 4; k += 4) {
-                    float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * stride]);
-                    float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * stride]);
+                for (; k < (nb_samples / Lanes) * Lanes; k += Lanes) {
+                    Wide y_i = thread::load<Config::LoadModifer, Wide>(&d_Y[k + i * stride]);
+                    Wide y_j = thread::load<Config::LoadModifer, Wide>(&d_Y[k + j * stride]);
 
                     PROPR_UNROLL
-                    for (int m = 0; m < 4; m++) {
-                        float log_val   = logf((&y_i.x)[m] / (&y_j.x)[m]);
+                    for (int m = 0; m < Lanes; m++) {
+                        Real log_val = propr::math::log_t(lane_at(y_i, m) / lane_at(y_j, m));
                         sum_log_ratios  += log_val;
                         sum_log_ratios2 += log_val * log_val;
                     }
@@ -40,133 +46,117 @@ namespace propr{
 
                 PROPR_UNROLL
                 for (; k < nb_samples; ++k) {
-                    const float yi = d_Y[k + i * stride];
-                    const float yj = d_Y[k + j * stride];
+                    const Real yi = d_Y[k + i * stride];
+                    const Real yj = d_Y[k + j * stride];
 
-                    const float log_val = logf(yi / yj);
+                    const Real log_val = propr::math::log_t(yi / yj);
                     sum_log_ratios  += log_val;
                     sum_log_ratios2 += log_val * log_val;
                 }
 
-                float inv_n    = 1.0f / static_cast<float>(nb_samples);
-                float mean     = sum_log_ratios * inv_n;
-                float variance = (sum_log_ratios2 - nb_samples * mean * mean) / static_cast<float>(nb_samples - 1);
+                Real inv_n    = Real(1) / static_cast<Real>(nb_samples);
+                Real mean     = sum_log_ratios * inv_n;
+                Real variance = (sum_log_ratios2 - static_cast<Real>(nb_samples) * mean * mean) / static_cast<Real>(nb_samples - 1);
 
                 int pair_index = (i * (i - 1)) / 2 + j;
                 d_variances[pair_index] = variance;
             }
 
 
-            template <class Config>
+            template <typename Real, class Config>
             __global__
-            void lrv_weighted(float* __restrict__ d_Y, offset_t Y_stride,
-                            float* __restrict__ d_W, offset_t W_stride,
-                            float* __restrict__ d_variances,
+            void lrv_weighted(Real* __restrict__ d_Y, offset_t Y_stride,
+                            Real* __restrict__ d_W, offset_t W_stride,
+                            Real* __restrict__ d_variances,
                             int nb_samples, int nb_genes) {
+                using Wide = cuda_wide_vector_t<Real>;
+                constexpr int Lanes = cuda_wide_lanes_v<Real>;
                 int i = blockIdx.x * blockDim.x + threadIdx.x;
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i >= nb_genes || j >= i) return;
 
-                // accum.x = S_w      (sum of weights)
-                // accum.y = S_w2     (sum of squared weights)
-                // accum.z = mean     (weighted mean of log-ratio)
-                // accum.w = M2       (sum w * (z - mean)^2)
-                float4 accum = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+                Real sum_w = Real(0);
+                Real sum_w2 = Real(0);
+                Real mean = Real(0);
+                Real M2 = Real(0);
                 int k = 0;
 
                 PROPR_UNROLL
-                for (; k < (nb_samples / 4) * 4; k += 4) {
-                    float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * Y_stride]);
-                    float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * Y_stride]);
-                    float4 w_i = thread::load<Config::LoadModifer,float4>(&d_W[k + i * W_stride]);
-                    float4 w_j = thread::load<Config::LoadModifer,float4>(&d_W[k + j * W_stride]);
+                for (; k < (nb_samples / Lanes) * Lanes; k += Lanes) {
+                    Wide y_i = thread::load<Config::LoadModifer, Wide>(&d_Y[k + i * Y_stride]);
+                    Wide y_j = thread::load<Config::LoadModifer, Wide>(&d_Y[k + j * Y_stride]);
+                    Wide w_i = thread::load<Config::LoadModifer, Wide>(&d_W[k + i * W_stride]);
+                    Wide w_j = thread::load<Config::LoadModifer, Wide>(&d_W[k + j * W_stride]);
 
                     PROPR_UNROLL
-                    for (int m = 0; m < 4; ++m) {
-                        float yi = (&y_i.x)[m];
-                        float yj = (&y_j.x)[m];
-                        float wi = (&w_i.x)[m];
-                        float wj = (&w_j.x)[m];
+                    for (int m = 0; m < Lanes; ++m) {
+                        Real yi = lane_at(y_i, m);
+                        Real yj = lane_at(y_j, m);
+                        Real wi = lane_at(w_i, m);
+                        Real wj = lane_at(w_j, m);
 
-                        float w_sum = wi + wj;
-                        if (w_sum <= 0.0f) continue;  // skip if degenerate
+                        Real w_sum = wi + wj;
+                        if (w_sum <= Real(0)) continue;
 
-                        // Harmonic weight: 2 wi wj / (wi + wj)
-                        float w = 2.0f * wi * wj / w_sum;
+                        Real w = Real(2) * wi * wj / w_sum;
 
-                        float log_val = logf(yi / yj);
+                        Real log_val = propr::math::log_t(yi / yj);
 
-                        float mean_old = accum.z;
+                        Real mean_old = mean;
 
-                        // Update S_w and S_w2
-                        accum.x += w;              // S_w += w
-                        accum.y += w * w;          // S_w2 += w^2
+                        sum_w += w;
+                        sum_w2 += w * w;
 
-                        // Update mean
-                        float delta   = log_val - mean_old;
-                        float w_ratio = w / accum.x;          // w / S_w
-                        accum.z       = fmaf(w_ratio, delta, mean_old);
+                        Real delta = log_val - mean_old;
+                        mean += (w / sum_w) * delta;
 
-                        // Update M2
-                        float delta_new = log_val - accum.z;
-                        accum.w = fmaf(w, delta * delta_new, accum.w);
+                        Real delta_new = log_val - mean;
+                        M2 += w * delta * delta_new;
                     }
                 }
 
                 // Tail loop
                 PROPR_UNROLL
                 for (; k < nb_samples; ++k) {
-                    float y_ik = d_Y[k + i * Y_stride];
-                    float y_jk = d_Y[k + j * Y_stride];
-                    float w_ik = d_W[k + i * W_stride];
-                    float w_jk = d_W[k + j * W_stride];
+                    Real y_ik = d_Y[k + i * Y_stride];
+                    Real y_jk = d_Y[k + j * Y_stride];
+                    Real w_ik = d_W[k + i * W_stride];
+                    Real w_jk = d_W[k + j * W_stride];
 
-                    float w_sum = w_ik + w_jk;
-                    if (w_sum <= 0.0f) continue;
+                    Real w_sum = w_ik + w_jk;
+                    if (w_sum <= Real(0)) continue;
 
-                    // Harmonic combined weight
-                    float w_k = 2.0f * w_ik * w_jk / w_sum;
-                    float log_val = logf(y_ik / y_jk);
-                    float mean_old = accum.z;
+                    Real w_k = Real(2) * w_ik * w_jk / w_sum;
+                    Real log_val = propr::math::log_t(y_ik / y_jk);
+                    Real mean_old = mean;
 
-                    // Update S_w and S_w2
-                    accum.x += w_k;           // S_w
-                    accum.y += w_k * w_k;     // S_w2
+                    sum_w += w_k;
+                    sum_w2 += w_k * w_k;
 
-                    // Update mean
-                    float delta   = log_val - mean_old;
-                    float w_ratio = w_k / accum.x;   // w_k / S_w
-                    accum.z      += w_ratio * delta;
+                    Real delta = log_val - mean_old;
+                    mean += (w_k / sum_w) * delta;
 
-                    // Update M2
-                    float delta_new = log_val - accum.z;
-                    accum.w += w_k * delta * delta_new;
+                    Real delta_new = log_val - mean;
+                    M2 += w_k * delta * delta_new;
                 }
 
-                float S_total   = accum.x;   // S_w
-                float S_total2  = accum.y;   // S_w2
-                float M2        = accum.w;
-
-                float lrv = 0.0f;
-                float denom   = S_total * S_total - S_total2;
-                int   valid_i = (S_total > 0.0f) & (denom > 0.0f);
-                float valid   = (float)valid_i;
-                float safe_denom = valid * denom + (1.0f - valid) * (1.0f + fabsf(denom));
-
-                float factor = S_total / safe_denom;
-                lrv = M2 * factor * valid;
+                Real lrv = Real(0);
+                Real denom = sum_w * sum_w - sum_w2;
+                if (sum_w > Real(0) && denom > Real(0)) {
+                    lrv = M2 * sum_w / denom;
+                }
 
                 int pair_index = (i * (i - 1)) / 2 + j;
                 d_variances[pair_index] = lrv;
             }
 
 
-            template <class Config>
+            template <typename Real, class Config>
             __global__
-            void lrv_alpha(float* __restrict__ d_Y    , offset_t Y_stride,
-                           float* __restrict__ d_Yfull, offset_t Yfull_stride,
-                           float a,
-                           float* __restrict__ d_variances,
+            void lrv_alpha(Real* __restrict__ d_Y    , offset_t Y_stride,
+                           Real* __restrict__ d_Yfull, offset_t Yfull_stride,
+                           Real a,
+                           Real* __restrict__ d_variances,
                            int nb_samples,
                            int nb_samples_full,
                            int nb_genes) {
@@ -175,120 +165,83 @@ namespace propr{
                     int j = blockIdx.y * blockDim.y + threadIdx.y;
                     if (i >= nb_genes || j >= i) return;
 
-                    float2 sum_full = make_float2(0.0f,0.0f); //compute mean of Yfull^a for columns i and j ---
+                    Real sum_full_i = Real(0);
+                    Real sum_full_j = Real(0);
                     int k = 0;
 
-                    PROPR_UNROLL
-                    for (; k + 4 <= nb_samples_full; k += 4) {
-                        float4 yfull_i = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + i * Yfull_stride]);
-                        float4 yfull_j = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + j * Yfull_stride]);
-                        PROPR_UNROLL
-                        for (int m=0;m<4;++m) {
-                            float Xf_i = powf(reinterpret_cast<float*>(&yfull_i)[m], a);
-                            float Xf_j = powf(reinterpret_cast<float*>(&yfull_j)[m], a);
-                            sum_full.x += Xf_i;
-                            sum_full.y += Xf_j;
-                        }
-                    }
-
                     for (; k < nb_samples_full; ++k) {
-                        float Xf_i = powf(d_Yfull[k + i * Yfull_stride], a);
-                        float Xf_j = powf(d_Yfull[k + j * Yfull_stride], a);
-                        sum_full.x += Xf_i;
-                        sum_full.y += Xf_j;
+                        Real Xf_i = propr::math::pow_t(d_Yfull[k + i * Yfull_stride], a);
+                        Real Xf_j = propr::math::pow_t(d_Yfull[k + j * Yfull_stride], a);
+                        sum_full_i += Xf_i;
+                        sum_full_j += Xf_j;
                     }
 
-                    float mu_full_i = (nb_samples_full > 0) ? (sum_full.x / static_cast<float>(nb_samples_full)) : 0.0f;
-                    float mu_full_j = (nb_samples_full > 0) ? (sum_full.y / static_cast<float>(nb_samples_full)) : 0.0f;
+                    Real mu_full_i = (nb_samples_full > 0) ? (sum_full_i / static_cast<Real>(nb_samples_full)) : Real(0);
+                    Real mu_full_j = (nb_samples_full > 0) ? (sum_full_j / static_cast<Real>(nb_samples_full)) : Real(0);
 
-                    float a_i = (mu_full_i != 0.0f) ? (1.0f / mu_full_i) : 0.0f;
-                    float a_j = (mu_full_j != 0.0f) ? (1.0f / mu_full_j) : 0.0f;
-                    float ai_sq = a_i * a_i;
-                    float aj_sq = a_j * a_j;
-                    float aij   = a_i * a_j;
+                    Real a_i = (mu_full_i != Real(0)) ? (Real(1) / mu_full_i) : Real(0);
+                    Real a_j = (mu_full_j != Real(0)) ? (Real(1) / mu_full_j) : Real(0);
+                    Real ai_sq = a_i * a_i;
+                    Real aj_sq = a_j * a_j;
+                    Real aij   = a_i * a_j;
 
-                    float4 mu_m = make_float4(0.0f, 0.0f, 0.0f, 0.0f); // mu_m.x = mean Xi, mu_m.y = mean Xj
-                    float C = 0.0f;
-                    float acc_x = 0.0f; // sum of Xi^2
-                    float acc_y = 0.0f; // sum of Xj^2
+                    Real mu_i = Real(0);
+                    Real mu_j = Real(0);
+                    Real C = Real(0);
+                    Real acc_x = Real(0);
+                    Real acc_y = Real(0);
                     int n = 0;
                     k = 0;
-                    PROPR_UNROLL
-                    for (; k + 4 <= nb_samples; k += 4) {
-                        float4 y_i = *reinterpret_cast<float4*>(&d_Y[k + i * Y_stride]);
-                        float4 y_j = *reinterpret_cast<float4*>(&d_Y[k + j * Y_stride]);
-                        for (int m=0;m<4;++m) {
-                            n++;
-                            float inv_n = 1.0f / static_cast<float>(n);
-                            float X_i = powf(reinterpret_cast<float*>(&y_i)[m], a);
-                            float X_j = powf(reinterpret_cast<float*>(&y_j)[m], a);
-
-                            float prev_mu_i = mu_m.x;
-                            float dx_i = X_i - prev_mu_i;
-                            mu_m.x = fmaf(dx_i, inv_n, prev_mu_i);
-
-                            float prev_mu_j = mu_m.y;
-                            float dx_j = X_j - prev_mu_j;
-                            mu_m.y = fmaf(dx_j, inv_n, prev_mu_j);
-
-                            float dxj_muj = X_j - mu_m.y;
-                            C = fmaf(dx_i, dxj_muj, C);
-
-                            acc_x = fmaf(X_i, X_i, acc_x);
-                            acc_y = fmaf(X_j, X_j, acc_y);
-                        }
-                    }
 
                     for (; k < nb_samples; ++k) {
                         n++;
-                        float inv_n = 1.0f / static_cast<float>(n);
-                        float X_i = powf(d_Y[k + i * Y_stride], a);
-                        float X_j = powf(d_Y[k + j * Y_stride], a);
+                        Real inv_n = Real(1) / static_cast<Real>(n);
+                        Real X_i = propr::math::pow_t(d_Y[k + i * Y_stride], a);
+                        Real X_j = propr::math::pow_t(d_Y[k + j * Y_stride], a);
 
-                        float prev_mu_i = mu_m.x;
-                        float dx_i = X_i - prev_mu_i;
-                        mu_m.x = fmaf(dx_i, inv_n, prev_mu_i);
+                        Real prev_mu_i = mu_i;
+                        Real dx_i = X_i - prev_mu_i;
+                        mu_i += dx_i * inv_n;
 
-                        float prev_mu_j = mu_m.y;
-                        float dx_j = X_j - prev_mu_j;
-                        mu_m.y = fmaf(dx_j, inv_n, prev_mu_j);
+                        Real prev_mu_j = mu_j;
+                        Real dx_j = X_j - prev_mu_j;
+                        mu_j += dx_j * inv_n;
 
-                        float dxj_muj = X_j - mu_m.y;
-                        C = fmaf(dx_i, dxj_muj, C);
+                        Real dxj_muj = X_j - mu_j;
+                        C += dx_i * dxj_muj;
 
-                        acc_x = fmaf(X_i, X_i, acc_x);
-                        acc_y = fmaf(X_j, X_j, acc_y);
+                        acc_x += X_i * X_i;
+                        acc_y += X_j * X_j;
                     }
 
-                    float n_mui_sq = n * mu_m.x * mu_m.x;
-                    float n_muj_sq = n * mu_m.y * mu_m.y;
-                    float sum_sq_i = acc_x - n_mui_sq;
-                    float sum_sq_j = acc_y - n_muj_sq;
+                    Real n_mui_sq = static_cast<Real>(n) * mu_i * mu_i;
+                    Real n_muj_sq = static_cast<Real>(n) * mu_j * mu_j;
+                    Real sum_sq_i = acc_x - n_mui_sq;
+                    Real sum_sq_j = acc_y - n_muj_sq;
 
-                    // combined numerator S = sum_sq_i/ mu_full_i^2 + sum_sq_j/mu_full_j^2 - 2*C/(mu_full_i*mu_full_j)
-                    float term1 = sum_sq_i * ai_sq;
-                    float term2 = sum_sq_j * aj_sq;
-                    float term3 = 2.0f * aij * C;
-                    float S         = term1 + term2 - term3;
-                    float a_sq      = a * a;
-                    float denom     = (n > 1) ? (a_sq * static_cast<float>(n - 1)) : 1.0f;
-                    float lrv_value = S / denom;
+                    Real term1 = sum_sq_i * ai_sq;
+                    Real term2 = sum_sq_j * aj_sq;
+                    Real term3 = Real(2) * aij * C;
+                    Real S         = term1 + term2 - term3;
+                    Real a_sq      = a * a;
+                    Real denom     = (n > 1) ? (a_sq * static_cast<Real>(n - 1)) : Real(1);
+                    Real lrv_value = S / denom;
 
                     int pair_index = (i * (i - 1)) / 2 + j;
                     d_variances[pair_index] = lrv_value;
             }
 
 
-            template <class Config>
+            template <typename Real, class Config>
             __global__
             void
             lrv_alpha_weighted(
-                float* __restrict__ d_Y    , offset_t Y_stride,
-                float* __restrict__ d_Yfull, offset_t Yfull_stride,
-                float* __restrict__ d_W    , offset_t W_stride,
-                float* __restrict__ d_Wfull, offset_t Wfull_stride,
-                float a,
-                float* __restrict__ d_variances,
+                Real* __restrict__ d_Y    , offset_t Y_stride,
+                Real* __restrict__ d_Yfull, offset_t Yfull_stride,
+                Real* __restrict__ d_W    , offset_t W_stride,
+                Real* __restrict__ d_Wfull, offset_t Wfull_stride,
+                Real a,
+                Real* __restrict__ d_variances,
                 int nb_samples,
                 int nb_samples_full,
                 int nb_genes)
@@ -297,182 +250,101 @@ namespace propr{
                 int j = blockIdx.y * blockDim.y + threadIdx.y;
                 if (i >= nb_genes || j >= i) return;
 
-                // -------------------------
-                // 1) compute weighted sums on Yfull^a with harmonic weights Wfull_ij
-                // -------------------------
-                float sum_w_full = 0.0f;
-                float sum_w_full_X_full_i = 0.0f;
-                float sum_w_full_X_full_j = 0.0f;
+                Real sum_w_full = Real(0);
+                Real sum_w_full_X_full_i = Real(0);
+                Real sum_w_full_X_full_j = Real(0);
 
                 int k = 0;
-                PROPR_UNROLL
-                for (; k + 4 <= nb_samples_full; k += 4) {
-                    float4 yfull_i = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + i * Yfull_stride]);
-                    float4 yfull_j = thread::load<Config::LoadModifer,float4>(&d_Yfull[k + j * Yfull_stride]);
-                    float4 wfull_i = thread::load<Config::LoadModifer,float4>(&d_Wfull[k + i * Wfull_stride]);
-                    float4 wfull_j = thread::load<Config::LoadModifer,float4>(&d_Wfull[k + j * Wfull_stride]);
-
-                    PROPR_UNROLL
-                    for (int m = 0; m < 4; ++m) {
-                        float X_full_i = powf(reinterpret_cast<float*>(&yfull_i)[m], a);
-                        float X_full_j = powf(reinterpret_cast<float*>(&yfull_j)[m], a);
-
-                        float wi_full = reinterpret_cast<float*>(&wfull_i)[m];
-                        float wj_full = reinterpret_cast<float*>(&wfull_j)[m];
-                        float wsum_full = wi_full + wj_full;
-
-                        // harmonic combined weight: 2 * wi * wj / (wi + wj)
-                        float w_full = (2.0f * wi_full * wj_full) /
-                            (wsum_full + FLT_MIN);  // avoid /0
-
-                        sum_w_full += w_full;
-                        sum_w_full_X_full_i = fmaf(w_full, X_full_i, sum_w_full_X_full_i);
-                        sum_w_full_X_full_j = fmaf(w_full, X_full_j, sum_w_full_X_full_j);
-                    }
-                }
-
                 for (; k < nb_samples_full; ++k) {
-                    float X_full_i = powf(d_Yfull[k + i * Yfull_stride], a);
-                    float X_full_j = powf(d_Yfull[k + j * Yfull_stride], a);
+                    Real X_full_i = propr::math::pow_t(d_Yfull[k + i * Yfull_stride], a);
+                    Real X_full_j = propr::math::pow_t(d_Yfull[k + j * Yfull_stride], a);
 
-                    float wi_full = d_Wfull[k + i * Wfull_stride];
-                    float wj_full = d_Wfull[k + j * Wfull_stride];
-                    float wsum_full = wi_full + wj_full;
+                    Real wi_full = d_Wfull[k + i * Wfull_stride];
+                    Real wj_full = d_Wfull[k + j * Wfull_stride];
+                    Real wsum_full = wi_full + wj_full;
 
-                    float w_full = (2.0f * wi_full * wj_full) /
-                        (wsum_full + FLT_MIN);
+                    Real w_full = (wsum_full > Real(0)) ? (Real(2) * wi_full * wj_full / wsum_full) : Real(0);
 
                     sum_w_full += w_full;
-                    sum_w_full_X_full_i = fmaf(w_full, X_full_i, sum_w_full_X_full_i);
-                    sum_w_full_X_full_j = fmaf(w_full, X_full_j, sum_w_full_X_full_j);
+                    sum_w_full_X_full_i += w_full * X_full_i;
+                    sum_w_full_X_full_j += w_full * X_full_j;
                 }
 
-                // inv_sum_w_full = 1/(sum_w_full + FLT_MIN)
-                float inv_sum_w_full = 1.0f / (sum_w_full + FLT_MIN);
-                float mu_full_i = sum_w_full_X_full_i * inv_sum_w_full;
-                float mu_full_j = sum_w_full_X_full_j * inv_sum_w_full;
+                const Real eps = propr::math::eps<Real>();
+                Real inv_sum_w_full = (sum_w_full > eps) ? Real(1) / sum_w_full : Real(0);
+                Real mu_full_i = sum_w_full_X_full_i * inv_sum_w_full;
+                Real mu_full_j = sum_w_full_X_full_j * inv_sum_w_full;
 
-                // mu_mask ~ mu/(mu + FLT_MIN) => ~1 if mu >> FLT_MIN, ~0 if mu==0
-                float mu_mask_i = mu_full_i / (mu_full_i + FLT_MIN);
-                float mu_mask_j = mu_full_j / (mu_full_j + FLT_MIN);
+                Real sum_w = Real(0);
+                Real sum_w_sq = Real(0);
 
-                // -------------------------
-                // 2) pass over Y/W to compute weighted sums for X = Y^a (within-group)
-                // -------------------------
-                float sum_w = 0.0f;
-                float sum_w_sq = 0.0f;
+                Real sum_wX_i = Real(0);
+                Real sum_wX_j = Real(0);
 
-                float sum_wX_i = 0.0f;
-                float sum_wX_j = 0.0f;
+                Real sum_wX_i_sq = Real(0);
+                Real sum_wX_j_sq = Real(0);
 
-                float sum_wX_i_sq = 0.0f;
-                float sum_wX_j_sq = 0.0f;
-
-                float sum_wX_iX_j = 0.0f;
+                Real sum_wX_iX_j = Real(0);
 
                 k = 0;
-                for (; k + 4 <= nb_samples; k += 4) {
-                    float4 y_i = thread::load<Config::LoadModifer,float4>(&d_Y[k + i * Y_stride]);
-                    float4 y_j = thread::load<Config::LoadModifer,float4>(&d_Y[k + j * Y_stride]);
-                    float4 w_i = thread::load<Config::LoadModifer,float4>(&d_W[k + i * W_stride]);
-                    float4 w_j = thread::load<Config::LoadModifer,float4>(&d_W[k + j * W_stride]);
-
-                    for (int m = 0; m < 4; ++m) {
-                        float X_i = powf(reinterpret_cast<float*>(&y_i)[m], a);
-                        float X_j = powf(reinterpret_cast<float*>(&y_j)[m], a);
-
-                        float wi = reinterpret_cast<float*>(&w_i)[m];
-                        float wj = reinterpret_cast<float*>(&w_j)[m];
-                        float wsum = wi + wj;
-
-                        // harmonic combined weight: 2 * wi * wj / (wi + wj)
-                        float w = (2.0f * wi * wj) /
-                            (wsum + FLT_MIN);
-
-                        float X_i_sq = X_i * X_i;
-                        float X_j_sq = X_j * X_j;
-                        float X_iX_j = X_i * X_j;
-
-                        sum_w    += w;
-                        sum_w_sq = fmaf(w, w, sum_w_sq);
-
-                        sum_wX_i = fmaf(w, X_i, sum_wX_i);
-                        sum_wX_j = fmaf(w, X_j, sum_wX_j);
-
-                        sum_wX_i_sq  = fmaf(w, X_i_sq, sum_wX_i_sq);
-                        sum_wX_j_sq  = fmaf(w, X_j_sq, sum_wX_j_sq);
-
-                        sum_wX_iX_j = fmaf(w, X_iX_j, sum_wX_iX_j);
-                    }
-                }
-                // tail
                 for (; k < nb_samples; ++k) {
-                    float X_i = powf(d_Y[k + i * Y_stride], a);
-                    float X_j = powf(d_Y[k + j * Y_stride], a);
+                    Real X_i = propr::math::pow_t(d_Y[k + i * Y_stride], a);
+                    Real X_j = propr::math::pow_t(d_Y[k + j * Y_stride], a);
 
-                    float wi = d_W[k + i * W_stride];
-                    float wj = d_W[k + j * W_stride];
-                    float wsum = wi + wj;
+                    Real wi = d_W[k + i * W_stride];
+                    Real wj = d_W[k + j * W_stride];
+                    Real wsum = wi + wj;
 
-                    float w = (2.0f * wi * wj) /
-                        (wsum + FLT_MIN);
+                    Real w = (wsum > Real(0)) ? (Real(2) * wi * wj / wsum) : Real(0);
 
-                    float X_i_sq = X_i * X_i;
-                    float X_j_sq = X_j * X_j;
-                    float X_iX_j = X_i * X_j;
+                    Real X_i_sq = X_i * X_i;
+                    Real X_j_sq = X_j * X_j;
+                    Real X_iX_j = X_i * X_j;
 
                     sum_w    += w;
-                    sum_w_sq = fmaf(w, w, sum_w_sq);
+                    sum_w_sq += w * w;
 
-                    sum_wX_i = fmaf(w, X_i, sum_wX_i);
-                    sum_wX_j = fmaf(w, X_j, sum_wX_j);
+                    sum_wX_i += w * X_i;
+                    sum_wX_j += w * X_j;
 
-                    sum_wX_i_sq  = fmaf(w, X_i_sq, sum_wX_i_sq);
-                    sum_wX_j_sq  = fmaf(w, X_j_sq, sum_wX_j_sq);
+                    sum_wX_i_sq += w * X_i_sq;
+                    sum_wX_j_sq += w * X_j_sq;
 
-                    sum_wX_iX_j = fmaf(w, X_iX_j, sum_wX_iX_j);
+                    sum_wX_iX_j += w * X_iX_j;
                 }
 
-                // -------------------------
-                // weighted central sums and denominator
-                // -------------------------
-                float inv_sum_w = 1.0f / (sum_w + FLT_MIN);
+                Real inv_sum_w = (sum_w > eps) ? Real(1) / sum_w : Real(0);
 
-                // central sums
-                float sum_sq_i = sum_wX_i_sq - sum_wX_i * sum_wX_i * inv_sum_w;
-                float sum_sq_j = sum_wX_j_sq - sum_wX_j * sum_wX_j * inv_sum_w;
-                float C = sum_wX_iX_j - sum_wX_i * sum_wX_j * inv_sum_w;
+                Real sum_sq_i = sum_wX_i_sq - sum_wX_i * sum_wX_i * inv_sum_w;
+                Real sum_sq_j = sum_wX_j_sq - sum_wX_j * sum_wX_j * inv_sum_w;
+                Real C = sum_wX_iX_j - sum_wX_i * sum_wX_j * inv_sum_w;
 
-                // effective degrees-of-freedom term (weighted)
-                float denom_term = sum_w - sum_w_sq * inv_sum_w;
+                Real denom_term = sum_w - sum_w_sq * inv_sum_w;
 
-                // positive-part
-                float denom_pos = fmaxf(denom_term, 0.0f);
-                float denom_mask = denom_pos / (denom_pos + FLT_MIN);
+                Real denom_pos = propr::math::max_t(denom_term, Real(0));
 
-                // mu masks: mu_mask_i, mu_mask_j from above
-                float valid_mask = mu_mask_i * mu_mask_j * denom_mask;
+                if (mu_full_i <= eps || mu_full_j <= eps || denom_pos <= eps) {
+                    d_variances[(i * (i - 1)) / 2 + j] = Real(0);
+                    return;
+                }
 
-                // inverses for scaled numerator
-                float inv_mu_full_i = 1.0f / (mu_full_i + FLT_MIN);
-                float inv_mu_full_j = 1.0f / (mu_full_j + FLT_MIN);
+                Real inv_mu_full_i = Real(1) / mu_full_i;
+                Real inv_mu_full_j = Real(1) / mu_full_j;
 
-                float inv_mu_full_i_sq = inv_mu_full_i * inv_mu_full_i;
-                float inv_mu_full_j_sq = inv_mu_full_j * inv_mu_full_j;
-                float inv_mu_full_ij   = inv_mu_full_i * inv_mu_full_j;
+                Real inv_mu_full_i_sq = inv_mu_full_i * inv_mu_full_i;
+                Real inv_mu_full_j_sq = inv_mu_full_j * inv_mu_full_j;
+                Real inv_mu_full_ij   = inv_mu_full_i * inv_mu_full_j;
 
-                float term1 = sum_sq_i * inv_mu_full_i_sq;
-                float term2 = sum_sq_j * inv_mu_full_j_sq;
-                float term3 = 2.0f * inv_mu_full_ij * C;
-                float numerator = term1 + term2 - term3;
+                Real term1 = sum_sq_i * inv_mu_full_i_sq;
+                Real term2 = sum_sq_j * inv_mu_full_j_sq;
+                Real term3 = Real(2) * inv_mu_full_ij * C;
+                Real numerator = term1 + term2 - term3;
 
-                float a_sq = a * a;
+                Real a_sq = a * a;
 
-                // denom = a^2 * (denom_pos + FLT_MIN)
-                float denom = a_sq * (denom_pos + FLT_MIN);
+                Real denom = a_sq * denom_pos;
 
-                float raw = numerator / denom;
-                float lrv_value = raw * valid_mask;
+                Real lrv_value = numerator / denom;
 
                 int pair_index = (i * (i - 1)) / 2 + j;
                 d_variances[pair_index] = lrv_value;

@@ -60,18 +60,14 @@ namespace propr {
 
             template <class Config>
             inline void validate_threshold_config() {
-                static_assert(std::is_floating_point_v<typename Config::value_t>,
-                              "Config::value_t must be a floating point type.");
-                static_assert(std::is_floating_point_v<typename Config::cutoff_t>,
-                              "Config::cutoff_t must be a floating point type.");
-                static_assert(std::is_unsigned_v<typename Config::block_count_t>,
-                              "Config::block_count_t must be an unsigned integer type.");
-                static_assert(std::is_unsigned_v<typename Config::accumulator_t>,
-                              "Config::accumulator_t must be an unsigned integer type.");
-                static_assert(Config::BLK_X > 0, "Config::BLK_X must be positive.");
-                static_assert(Config::BLOCKS_PER_SM > 0, "Config::BLOCKS_PER_SM must be positive.");
-                static_assert(Config::SHARED_CUTOFF_PAD_INTERVAL > 0,
-                              "Config::SHARED_CUTOFF_PAD_INTERVAL must be positive.");
+                static_assert(std::is_floating_point_v<typename Config::value_t>,  "Config::value_t must be a floating point type.");
+                static_assert(std::is_floating_point_v<typename Config::cutoff_t>, "Config::cutoff_t must be a floating point type.");
+                static_assert(std::is_unsigned_v<typename Config::block_count_t>,  "Config::block_count_t must be an unsigned integer type.");
+                static_assert(std::is_unsigned_v<typename Config::accumulator_t>,  "Config::accumulator_t must be an unsigned integer type.");
+
+                static_assert(Config::BLK_X > 0,                                   "Config::BLK_X must be positive.");
+                static_assert(Config::BLOCKS_PER_SM > 0,                           "Config::BLOCKS_PER_SM must be positive.");
+                static_assert(Config::SHARED_CUTOFF_PAD_INTERVAL > 0,              "Config::SHARED_CUTOFF_PAD_INTERVAL must be positive.");
             }
 
             template <class Config>
@@ -90,19 +86,15 @@ namespace propr {
                 }
 
                 uniform.step = cutoffs[1] - cutoffs[0];
-                if (!(std::isfinite(static_cast<double>(uniform.step)) &&
-                      uniform.step > static_cast<cutoff_t>(0))) {
+                if (!(std::isfinite(static_cast<double>(uniform.step)) && uniform.step > static_cast<cutoff_t>(0))) {
                     return uniform;
                 }
 
                 uniform.inv_step = static_cast<cutoff_t>(1) / uniform.step;
 
                 for (size_t i = 2; i < cutoffs.size(); ++i) {
-                    const cutoff_t expected =
-                        uniform.first + uniform.step * static_cast<cutoff_t>(i);
-                    if (!propr::math::nearly_equal(
-                            static_cast<double>(cutoffs[i]),
-                            static_cast<double>(expected))) {
+                    const cutoff_t expected = uniform.first + uniform.step * static_cast<cutoff_t>(i);
+                    if (!propr::math::nearly_equal( static_cast<double>(cutoffs[i]), static_cast<double>(expected))) {
                         return uniform;
                     }
                 }
@@ -117,22 +109,19 @@ namespace propr {
 
             template <class Config>
             inline size_t bucket_shared_bytes(int ncutoffs) {
-                return static_cast<size_t>(ncutoffs + 1) *
-                       sizeof(typename Config::accumulator_t);
+                return static_cast<size_t>(ncutoffs + 1) * sizeof(typename Config::accumulator_t);
             }
 
             template <class Config>
             inline size_t bucket_and_cutoff_shared_bytes(int ncutoffs) {
-                return bucket_shared_bytes<Config>(ncutoffs) +
-                       static_cast<size_t>(ncutoffs) * sizeof(typename Config::cutoff_t);
+                return bucket_shared_bytes<Config>(ncutoffs) + static_cast<size_t>(ncutoffs) * sizeof(typename Config::cutoff_t);
             }
 
             template <class Config>
             inline size_t bucket_and_cutoff_block_shared_bytes(int ncutoffs) {
                 using block_count_t = typename Config::block_count_t;
                 using cutoff_t = typename Config::cutoff_t;
-                const size_t bucket_bytes =
-                    static_cast<size_t>(ncutoffs + 1) * sizeof(block_count_t);
+                const size_t bucket_bytes = static_cast<size_t>(ncutoffs + 1) * sizeof(block_count_t);
                 const size_t cutoff_offset = align_up_bytes(bucket_bytes, alignof(cutoff_t));
                 return cutoff_offset + static_cast<size_t>(ncutoffs) * sizeof(cutoff_t);
             }
@@ -141,14 +130,14 @@ namespace propr {
             inline size_t bucket_and_cutoff_block_padded_shared_bytes(int ncutoffs) {
                 using block_count_t = typename Config::block_count_t;
                 using cutoff_t = typename Config::cutoff_t;
-                const size_t bucket_bytes =
-                    static_cast<size_t>(ncutoffs + 1) * sizeof(block_count_t);
+                const size_t bucket_bytes = static_cast<size_t>(ncutoffs + 1) * sizeof(block_count_t);
                 const size_t cutoff_offset = align_up_bytes(bucket_bytes, alignof(cutoff_t));
                 const size_t padded_cutoffs = ncutoffs == 0 ? 0  : static_cast<size_t>(ncutoffs) +
                                                                    static_cast<size_t>(ncutoffs - 1) / Config::SHARED_CUTOFF_PAD_INTERVAL;
                 return cutoff_offset + padded_cutoffs * sizeof(cutoff_t);
             }
 
+            // begin: move outside this file
             inline size_t dynamic_shared_capacity(const cudaDeviceProp& prop) {
                 return std::max(
                     static_cast<size_t>(prop.sharedMemPerBlock),
@@ -165,6 +154,7 @@ namespace propr {
                 PROPR_CUDA_CHECK(cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize,  static_cast<int>(shared_bytes)));
                 PROPR_CUDA_CHECK(cudaFuncSetAttribute(kernel, cudaFuncAttributePreferredSharedMemoryCarveout, cudaSharedmemCarveoutMaxShared));
             }
+            // end: move outside this file
 
             template <class Config>
             inline void 
@@ -196,6 +186,7 @@ namespace propr {
                 PROPR_CUDA_CHECK(cudaMemsetAsync(group.d_buckets, 0, (group.values.size() + 1) * sizeof(accumulator_t), stream));
             }
 
+             // begin: move outside this file
             template <class Config>
             inline void 
             destroy_group(cuda_threshold_group<Config>& group) {
@@ -293,6 +284,7 @@ namespace propr {
                 }
                 return lo;
             }
+            // end: move outside this file
 
             template <class Config, threshold_direction direction>
             PROPR_DEVICE 

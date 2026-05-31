@@ -8,6 +8,7 @@
 #include <thrust/transform_reduce.h>
 
 #include <propr/data/types.h>
+#include <propr/runtime/dispatch.hpp>
 #include <propr/utils/cuda/cuda_checks.h>
 #include <propr/utils/rcpp/rcpp_checks.h>
 #include <propr/utils/rcpp/rcpp_cuda.cuh>
@@ -202,39 +203,40 @@ propr::dispatch::cuda::permuteOR(NumericMatrix& out, const IntegerMatrix& A, con
 
 void
 propr::dispatch::cuda::getFDR(List& out, double actual, const NumericVector& permuted, propr::propr_context context) {
-    const int n = permuted.size();
-    double* d_permuted;
-    PROPR_CUDA_CHECK(cudaMalloc(&d_permuted, n * sizeof(double)));
-    PROPR_CUDA_CHECK(cudaMemcpy(
-        d_permuted, permuted.begin(), n * sizeof(double),
-        cudaMemcpyHostToDevice
-    ));
+    propr::runtime::with_precision([&](auto tag) {
+        using Real = typename std::decay_t<decltype(tag)>::type;
+        const int n = permuted.size();
+        Real* d_permuted = RcppVectorToDevice<Real>(permuted, n);
+        const Real typed_actual = static_cast<Real>(actual);
+        auto policy = thrust::cuda::par.on(context.stream);
+        using Pack = unsigned long long;
+        Pack packed = 0;
+        {
+            PROPR_PROFILE_CUDA("kernel", context.stream);
 
-    auto policy = thrust::cuda::par.on(context.stream);
-    constexpr int2 init{0,0};
-    int2 result = {0,0};
-    {
-        PROPR_PROFILE_CUDA("kernel", context.stream);
-        result = thrust::transform_reduce(
-            policy,
-            d_permuted,  d_permuted + n,
-            [=] __host__ __device__ (double x) {
-                return int2{ x >= actual, x <= actual };
-            },
-            init,
-            [] __host__ __device__ (const int2& a, const int2& b) {
-                return int2{ a.x + b.x, a.y + b.y };
-            }
-        );
+            const auto encode =
+                ((1ULL << 32) * (thrust::placeholders::_1 >= typed_actual)) +
+                ( 1ULL        * (thrust::placeholders::_1 <= typed_actual));
 
-        PROPR_STREAM_SYNCHRONIZE(context);
-        PROPR_CUDA_CHECK(cudaFree(d_permuted));
-    }
+            packed = thrust::transform_reduce(
+                policy,
+                d_permuted,
+                d_permuted + n,
+                encode,
+                Pack{0},
+                thrust::plus<Pack>{}
+            );
 
-    double fdr_over = static_cast<double>(result.x) / n;
-    double fdr_under = static_cast<double>(result.y) / n;
-    out["over"] = fdr_over;
-    out["under"] = fdr_under;
+            PROPR_STREAM_SYNCHRONIZE(context);
+            PROPR_CUDA_CHECK(cudaFree(d_permuted));
+        }
+
+        const int over  = static_cast<int>(packed >> 32);
+        const int under = static_cast<int>(packed & 0xffffffffULL);
+
+        out["over"]  = static_cast<double>(over)  / n;
+        out["under"] = static_cast<double>(under) / n;
+    });
 }
 
 void

@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 
 #include <propr/context.h>
+#include <propr/runtime/dispatch.hpp>
 
 #include <propr/kernels/cuda/dispatch/genewise.cuh>
 #include <propr/kernels/cuda/detail/genewise.cuh>
@@ -38,8 +39,6 @@ void propr::dispatch::cuda::genewise_connectivity(
     int num_genes,
     double fdr_thresh,
     propr_context context) {
-    using Config = propr::cuda::traits::genewise_connectivity_stats_config;
-
     if (num_genes < 0) {
         Rcpp::stop("num_genes must be non-negative.");
     }
@@ -56,91 +55,97 @@ void propr::dispatch::cuda::genewise_connectivity(
 
     if (num_genes == 0) return;
 
-    IntegerVector partner_zero(num_edges);
-    IntegerVector pair_zero(num_edges);
+    propr::runtime::with_precision([&](auto tag) {
+        using Real = typename decltype(tag)::type;
+        using Config = typename propr::cuda::traits::genewise_connectivity_stats_config_for<Real>;
 
-    for (int i = 0; i < num_edges; ++i) {
-        const int p = partner[i];
-        const int q = pair[i];
+        IntegerVector partner_zero(num_edges);
+        IntegerVector pair_zero(num_edges);
 
-        if (p == NA_INTEGER || q == NA_INTEGER) {
-            Rcpp::stop("partner/pair cannot contain NA values.");
+        for (int i = 0; i < num_edges; ++i) {
+            const int p = partner[i];
+            const int q = pair[i];
+
+            if (p == NA_INTEGER || q == NA_INTEGER) {
+                Rcpp::stop("partner/pair cannot contain NA values.");
+            }
+            if (p < 1 || p > num_genes || q < 1 || q > num_genes) {
+                Rcpp::stop("partner/pair indices must be in [1, num_genes].");
+            }
+
+            partner_zero[i] = p - 1;
+            pair_zero[i] = q - 1;
         }
-        if (p < 1 || p > num_genes || q < 1 || q > num_genes) {
-            Rcpp::stop("partner/pair indices must be in [1, num_genes].");
+
+        int* d_partner = nullptr;
+        int* d_pair = nullptr;
+        Real* d_theta = nullptr;
+        Real* d_fdr = nullptr;
+
+        if (num_edges > 0) {
+            d_partner = RcppVectorToDevice<int>(partner_zero, num_edges);
+            d_pair = RcppVectorToDevice<int>(pair_zero, num_edges);
+            d_theta = RcppVectorToDevice<Real>(theta, num_edges);
+            d_fdr = RcppVectorToDevice<Real>(fdr, num_edges);
         }
 
-        partner_zero[i] = p - 1;
-        pair_zero[i] = q - 1;
-    }
+        int* d_count = nullptr;
+        int* d_conn = nullptr;
+        Real* d_wconn = nullptr;
+        Real* d_fdr_sum = nullptr;
 
-    int* d_partner = nullptr;
-    int* d_pair = nullptr;
-    float* d_theta = nullptr;
-    float* d_fdr = nullptr;
+        PROPR_CUDA_CHECK(cudaMalloc(&d_count, static_cast<size_t>(num_genes) * sizeof(int)));
+        PROPR_CUDA_CHECK(cudaMalloc(&d_conn, static_cast<size_t>(num_genes) * sizeof(int)));
+        PROPR_CUDA_CHECK(cudaMalloc(&d_wconn, static_cast<size_t>(num_genes) * sizeof(Real)));
+        PROPR_CUDA_CHECK(cudaMalloc(&d_fdr_sum, static_cast<size_t>(num_genes) * sizeof(Real)));
 
-    if (num_edges > 0) {
-        d_partner = RcppVectorToDevice<int>(partner_zero, num_edges);
-        d_pair = RcppVectorToDevice<int>(pair_zero, num_edges);
-        d_theta = RcppVectorToDevice<float>(theta, num_edges);
-        d_fdr = RcppVectorToDevice<float>(fdr, num_edges);
-    }
+        PROPR_CUDA_CHECK(cudaMemsetAsync(d_count, 0, static_cast<size_t>(num_genes) * sizeof(int), context.stream));
+        PROPR_CUDA_CHECK(cudaMemsetAsync(d_conn, 0, static_cast<size_t>(num_genes) * sizeof(int), context.stream));
+        PROPR_CUDA_CHECK(cudaMemsetAsync(d_wconn, 0, static_cast<size_t>(num_genes) * sizeof(Real), context.stream));
+        PROPR_CUDA_CHECK(cudaMemsetAsync(d_fdr_sum, 0, static_cast<size_t>(num_genes) * sizeof(Real), context.stream));
 
-    int* d_count = nullptr;
-    int* d_conn = nullptr;
-    float* d_wconn = nullptr;
-    float* d_fdr_sum = nullptr;
+        if (num_edges > 0) {
+            const int edges_per_block = Config::THREADS_PER_BLOCK * Config::PAIRS_PER_THREAD;
+            const int grid = propr::ceil_div(num_edges, edges_per_block);
+            const int sort_end_bit = sort_end_bit_for_keys(num_genes);
 
-    PROPR_CUDA_CHECK(cudaMalloc(&d_count, static_cast<size_t>(num_genes) * sizeof(int)));
-    PROPR_CUDA_CHECK(cudaMalloc(&d_conn, static_cast<size_t>(num_genes) * sizeof(int)));
-    PROPR_CUDA_CHECK(cudaMalloc(&d_wconn, static_cast<size_t>(num_genes) * sizeof(float)));
-    PROPR_CUDA_CHECK(cudaMalloc(&d_fdr_sum, static_cast<size_t>(num_genes) * sizeof(float)));
-
-    PROPR_CUDA_CHECK(cudaMemsetAsync(d_count, 0, static_cast<size_t>(num_genes) * sizeof(int), context.stream));
-    PROPR_CUDA_CHECK(cudaMemsetAsync(d_conn, 0, static_cast<size_t>(num_genes) * sizeof(int), context.stream));
-    PROPR_CUDA_CHECK(cudaMemsetAsync(d_wconn, 0, static_cast<size_t>(num_genes) * sizeof(float), context.stream));
-    PROPR_CUDA_CHECK(cudaMemsetAsync(d_fdr_sum, 0, static_cast<size_t>(num_genes) * sizeof(float), context.stream));
-
-    if (num_edges > 0) {
-        const int edges_per_block = Config::THREADS_PER_BLOCK * Config::PAIRS_PER_THREAD;
-        const int grid = propr::ceil_div(num_edges, edges_per_block);
-        const int sort_end_bit = sort_end_bit_for_keys(num_genes);
-
-        {
-            PROPR_PROFILE_CUDA("kernel", context.stream);
-            propr::dispatch::cuda::genewise_connectivity_stats<
-                Config::THREADS_PER_BLOCK,
-                Config::PAIRS_PER_THREAD><<<grid, Config::THREADS_PER_BLOCK, 0, context.stream>>>(
-                d_partner,
-                d_pair,
-                d_theta,
-                d_fdr,
-                num_edges,
-                static_cast<float>(fdr_thresh),
-                sort_end_bit,
-                d_count,
-                d_conn,
-                d_wconn,
-                d_fdr_sum);
-            PROPR_CUDA_CHECK(cudaGetLastError());
-            PROPR_STREAM_SYNCHRONIZE(context);
+            {
+                PROPR_PROFILE_CUDA("kernel", context.stream);
+                propr::dispatch::cuda::genewise_connectivity_stats<
+                    Real,
+                    Config::THREADS_PER_BLOCK,
+                    Config::PAIRS_PER_THREAD><<<grid, Config::THREADS_PER_BLOCK, 0, context.stream>>>(
+                    d_partner,
+                    d_pair,
+                    d_theta,
+                    d_fdr,
+                    num_edges,
+                    static_cast<Real>(fdr_thresh),
+                    sort_end_bit,
+                    d_count,
+                    d_conn,
+                    d_wconn,
+                    d_fdr_sum);
+                PROPR_CUDA_CHECK(cudaGetLastError());
+                PROPR_STREAM_SYNCHRONIZE(context);
+            }
         }
-    }
 
-    copyToNumericVector(d_count, per_gene_count, num_genes);
-    copyToNumericVector(d_conn, per_gene_conn, num_genes);
-    copyToNumericVector(d_wconn, per_gene_wconn, num_genes);
-    copyToNumericVector(d_fdr_sum, per_gene_fdr_sum, num_genes);
+        copyToNumericVector(d_count, per_gene_count, num_genes);
+        copyToNumericVector(d_conn, per_gene_conn, num_genes);
+        copyToNumericVector(d_wconn, per_gene_wconn, num_genes);
+        copyToNumericVector(d_fdr_sum, per_gene_fdr_sum, num_genes);
 
-    PROPR_CUDA_CHECK(cudaFree(d_partner));
-    PROPR_CUDA_CHECK(cudaFree(d_pair));
-    PROPR_CUDA_CHECK(cudaFree(d_theta));
-    PROPR_CUDA_CHECK(cudaFree(d_fdr));
+        PROPR_CUDA_CHECK(cudaFree(d_partner));
+        PROPR_CUDA_CHECK(cudaFree(d_pair));
+        PROPR_CUDA_CHECK(cudaFree(d_theta));
+        PROPR_CUDA_CHECK(cudaFree(d_fdr));
 
-    PROPR_CUDA_CHECK(cudaFree(d_count));
-    PROPR_CUDA_CHECK(cudaFree(d_conn));
-    PROPR_CUDA_CHECK(cudaFree(d_wconn));
-    PROPR_CUDA_CHECK(cudaFree(d_fdr_sum));
+        PROPR_CUDA_CHECK(cudaFree(d_count));
+        PROPR_CUDA_CHECK(cudaFree(d_conn));
+        PROPR_CUDA_CHECK(cudaFree(d_wconn));
+        PROPR_CUDA_CHECK(cudaFree(d_fdr_sum));
+    });
 }
 
 void propr::dispatch::cuda::genewise_theta_stats(
@@ -149,8 +154,6 @@ void propr::dispatch::cuda::genewise_theta_stats(
     const NumericVector& theta_edges,
     int num_genes,
     propr_context context) {
-    using Config = propr::cuda::traits::genewise_theta_stats_config_for<float>;
-
     if (num_genes < 0) {
         Rcpp::stop("num_genes must be non-negative.");
     }
@@ -166,36 +169,41 @@ void propr::dispatch::cuda::genewise_theta_stats(
 
     if (num_genes == 0) return;
 
-    float* d_theta = nullptr;
-    float* d_mean = nullptr;
-    float* d_median = nullptr;
+    propr::runtime::with_precision([&](auto tag) {
+        using Real = typename decltype(tag)::type;
+        using Config = propr::cuda::traits::genewise_theta_stats_config_for<Real>;
 
-    d_theta = RcppVectorToDevice<float>(theta_edges, expected_edges);
+        Real* d_theta = nullptr;
+        Real* d_mean = nullptr;
+        Real* d_median = nullptr;
 
-    PROPR_CUDA_CHECK(cudaMalloc(&d_mean, static_cast<size_t>(num_genes) * sizeof(float)));
-    PROPR_CUDA_CHECK(cudaMalloc(&d_median, static_cast<size_t>(num_genes) * sizeof(float)));
+        d_theta = RcppVectorToDevice<Real>(theta_edges, expected_edges);
 
-    const int block = Config::BLK_X;
-    const int grid = num_genes;
-    const int cache_cap = Config::CACHE_CAP_VALUES;
-    const size_t shared_bytes = static_cast<size_t>(cache_cap) * sizeof(float);
+        PROPR_CUDA_CHECK(cudaMalloc(&d_mean, static_cast<size_t>(num_genes) * sizeof(Real)));
+        PROPR_CUDA_CHECK(cudaMalloc(&d_median, static_cast<size_t>(num_genes) * sizeof(Real)));
 
-    {
-        PROPR_PROFILE_CUDA("kernel", context.stream);
-        propr::dispatch::cuda::genewise_theta_stats<float><<<grid, block, shared_bytes, context.stream>>>(
-            d_theta,
-            num_genes,
-            d_mean,
-            d_median,
-            cache_cap);
-        PROPR_CUDA_CHECK(cudaGetLastError());
-        PROPR_STREAM_SYNCHRONIZE(context);
-    }
+        const int block = Config::BLK_X;
+        const int grid = num_genes;
+        const int cache_cap = Config::CACHE_CAP_VALUES;
+        const size_t shared_bytes = static_cast<size_t>(cache_cap) * sizeof(Real);
 
-    copyToNumericVector(d_mean, out_mean, num_genes);
-    copyToNumericVector(d_median, out_median, num_genes);
+        {
+            PROPR_PROFILE_CUDA("kernel", context.stream);
+            propr::dispatch::cuda::genewise_theta_stats<Real><<<grid, block, shared_bytes, context.stream>>>(
+                d_theta,
+                num_genes,
+                d_mean,
+                d_median,
+                cache_cap);
+            PROPR_CUDA_CHECK(cudaGetLastError());
+            PROPR_STREAM_SYNCHRONIZE(context);
+        }
 
-    PROPR_CUDA_CHECK(cudaFree(d_theta));
-    PROPR_CUDA_CHECK(cudaFree(d_mean));
-    PROPR_CUDA_CHECK(cudaFree(d_median));
+        copyToNumericVector(d_mean, out_mean, num_genes);
+        copyToNumericVector(d_median, out_median, num_genes);
+
+        PROPR_CUDA_CHECK(cudaFree(d_theta));
+        PROPR_CUDA_CHECK(cudaFree(d_mean));
+        PROPR_CUDA_CHECK(cudaFree(d_median));
+    });
 }

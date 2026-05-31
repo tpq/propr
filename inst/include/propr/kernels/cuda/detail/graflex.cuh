@@ -76,8 +76,8 @@ namespace propr {
                 scan_op_t scan_op{};
                 uint4 blk_acc = BlockReduce(block_partials).Reduce(values, scan_op);
 
-                tile_prefix_op prefix(tile_state, device_partials, scan_op);
-                const int tile_idx = prefix.GetTileIdx();
+                const int tile_idx = bid;
+                tile_prefix_op prefix(tile_state, device_partials, scan_op, tile_idx);
                 if(gridDim.x > 1){
                     if (tile_idx == 0) {
                         if (tid == 0) tile_state.SetInclusive(tile_idx, blk_acc);

@@ -21,9 +21,9 @@ namespace propr {
                 }
             }
             
-            template<int BLK_X>
+            template<typename Real, int BLK_X>
             __global__
-            void count_per_feature(const float* __restrict__ X, offset_t X_stride, int nsubjs, int nfeats, int* result) {
+            void count_per_feature(const Real* __restrict__ X, offset_t X_stride, int nsubjs, int nfeats, int* result) {
                 static_assert(IS_POWER_OF_2(BLK_X), "BLK_X must be a power of 2");
                 using BlockReduce = cub::BlockReduce<int, BLK_X>;
                 using block_scan_storage_t  = typename BlockReduce::TempStorage;
@@ -35,7 +35,7 @@ namespace propr {
                 __shared__ block_scan_storage_t partials;
                 for(int i = 0; i < nsubj_padded; i += BLK_X) {
                     if(tidx + i < nsubjs) {
-                        z_count += static_cast<int>(X[(tidx + i)  + col*X_stride] == 0);
+                        z_count += static_cast<int>(X[(tidx + i)  + col*X_stride] == Real(0));
                     }
                 }
                 const int val = BlockReduce(partials).Sum(z_count);

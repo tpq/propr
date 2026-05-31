@@ -5,7 +5,7 @@
 
 namespace propr {
     namespace convert {
-
+        // I think thias as it is written is and any to any converter, too slack
         template<typename OutT, typename InT>
         struct NumericConverter {
             PROPR_HOST_DEVICE
