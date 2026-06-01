@@ -103,7 +103,9 @@ propd <- function(counts,
 
   NVTX_PUSH("post_theta_annotate", 0)
   result@results$Zeros <- ctzRcpp(counts) # count number of zeros
+  NVTX_PUSH("round(result@results$theta)", 0)
   result@results$theta <- round(result@results$theta, 14) # round floats to 1
+  NVTX_POP()  # round
   NVTX_POP()  # post_theta_annotate
   NVTX_POP()  # calculate_theta_block
 

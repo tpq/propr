@@ -12,6 +12,16 @@ namespace propr {
                 static constexpr int PAIRS_PER_THREAD  = 4;
             };
 
+            // same as compare for now: keeping this for now as it is the default
+            template <typename T>
+            struct genewise_connectivity_stats_config_for : genewise_connectivity_stats_config {};
+
+            template <>
+            struct genewise_connectivity_stats_config_for<double> {
+                static constexpr int THREADS_PER_BLOCK = 256;
+                static constexpr int PAIRS_PER_THREAD  = 2;
+            };
+
             template <typename T>
             struct genewise_theta_stats_config_for : thread_layout_1d<1024> {
                 static constexpr int RADIX_BITS = 4;

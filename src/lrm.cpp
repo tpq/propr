@@ -29,7 +29,7 @@ Rcpp::NumericVector lrm(
             }
         } else {
             if (weighted) {
-                runtime::cuda_executor::lrm_weighted(result_vec, Y, Wfull);
+                runtime::cuda_executor::lrm_weighted(result_vec, Y, W);
             } else {
                 runtime::cuda_executor::lrm_basic(result_vec, Y);
             }

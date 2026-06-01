@@ -332,6 +332,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// count_values_beyond_thresholds_begin
+SEXP count_values_beyond_thresholds_begin(Rcpp::NumericVector cutoffs, bool direct, Rcpp::String backend);
+RcppExport SEXP _propr_count_values_beyond_thresholds_begin(SEXP cutoffsSEXP, SEXP directSEXP, SEXP backendSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type cutoffs(cutoffsSEXP);
+    Rcpp::traits::input_parameter< bool >::type direct(directSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type backend(backendSEXP);
+    rcpp_result_gen = count_values_beyond_thresholds_begin(cutoffs, direct, backend);
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_values_beyond_thresholds_accumulate
+void count_values_beyond_thresholds_accumulate(SEXP counter, Rcpp::NumericVector values);
+RcppExport SEXP _propr_count_values_beyond_thresholds_accumulate(SEXP counterSEXP, SEXP valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    SEXP counter = counterSEXP;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type values(valuesSEXP);
+    count_values_beyond_thresholds_accumulate(counter, values);
+    return R_NilValue;
+END_RCPP
+}
+// count_values_beyond_thresholds_end
+Rcpp::NumericVector count_values_beyond_thresholds_end(SEXP counter);
+RcppExport SEXP _propr_count_values_beyond_thresholds_end(SEXP counterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    SEXP counter = counterSEXP;
+    rcpp_result_gen = Rcpp::wrap(count_values_beyond_thresholds_end(counter));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ctzRcpp
 Rcpp::NumericVector ctzRcpp(Rcpp::NumericMatrix& X, Rcpp::String backend);
 RcppExport SEXP _propr_ctzRcpp(SEXP XSEXP, SEXP backendSEXP) {
@@ -614,6 +649,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_propr_count_greater_than", (DL_FUNC) &_propr_count_greater_than, 3},
     {"_propr_count_less_equal_than", (DL_FUNC) &_propr_count_less_equal_than, 3},
     {"_propr_count_greater_equal_than", (DL_FUNC) &_propr_count_greater_equal_than, 3},
+    {"_propr_count_values_beyond_thresholds_begin", (DL_FUNC) &_propr_count_values_beyond_thresholds_begin, 3},
+    {"_propr_count_values_beyond_thresholds_accumulate", (DL_FUNC) &_propr_count_values_beyond_thresholds_accumulate, 2},
+    {"_propr_count_values_beyond_thresholds_end", (DL_FUNC) &_propr_count_values_beyond_thresholds_end, 1},
     {"_propr_ctzRcpp", (DL_FUNC) &_propr_ctzRcpp, 2},
     {"_propr_setCudaProfile", (DL_FUNC) &_propr_setCudaProfile, 1},
     {"_propr_consumeCudaProfile", (DL_FUNC) &_propr_consumeCudaProfile, 0},

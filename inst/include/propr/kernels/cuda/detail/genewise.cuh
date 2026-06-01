@@ -21,19 +21,19 @@
 namespace propr {
     namespace dispatch {
         namespace cuda {
-            template <int THREADS_PER_BLOCK, int PAIRS_PER_THREAD>
+            template <typename Real, int THREADS_PER_BLOCK, int PAIRS_PER_THREAD>
             __global__ void genewise_connectivity_stats(
                 const int*   __restrict__ partner,
                 const int*   __restrict__ pair,
-                const float* __restrict__ theta,
-                const float* __restrict__ fdr,
+                const Real* __restrict__ theta,
+                const Real* __restrict__ fdr,
                 int          num_edges,
-                float        fdr_thresh,
+                Real         fdr_thresh,
                 int          sort_end_bit,
                 int*         __restrict__ per_gene_count,
                 int*         __restrict__ per_gene_conn,
-                float*       __restrict__ per_gene_wconn,
-                float*       __restrict__ per_mean_fdr
+                Real*        __restrict__ per_gene_wconn,
+                Real*        __restrict__ per_mean_fdr
             ){
                 static_assert(THREADS_PER_BLOCK % 32 == 0, "THREADS_PER_BLOCK must be a multiple of warpSize");
                 constexpr int GENES_PER_THREAD = 2 * PAIRS_PER_THREAD;
@@ -42,8 +42,8 @@ namespace propr {
                 struct __align__(16) Stats {
                     int   count = 0;   // total occurrences
                     int   conn  = 0;   // significant occurrences
-                    float wconn = 0;   // sum(1 - theta) for significant occurrences
-                    float fdr   = 0;
+                    Real  wconn = 0;   // sum(1 - theta) for significant occurrences
+                    Real  fdr   = 0;
                 };
 
                 struct SegItem {
@@ -86,8 +86,8 @@ namespace propr {
 
                     int   a    = INVALID_KEY, b = INVALID_KEY;
                     int   sig  = 0;
-                    float w    = 0.0f;
-                    float fdr_ = 0.0f;
+                    Real  w    = Real(0);
+                    Real  fdr_ = Real(0);
                     int   has_fdr = 0;
 
                     if (e < num_edges) {
@@ -95,12 +95,12 @@ namespace propr {
                         b    = pair[e];
                         fdr_ = fdr[e];
                         has_fdr = !isnan(fdr_);
-                        if (has_fdr && fdr_ > 0.0f && fdr_ < fdr_thresh) {
+                        if (has_fdr && fdr_ > Real(0) && fdr_ < fdr_thresh) {
                             sig = 1; 
-                            const float theta_ = theta[e];
+                            const Real theta_ = theta[e];
                             // I am not sure to be honest if it is divide or - lets wait for them
                             if (!isnan(theta_)) {
-                                w = 1.0f - theta_;
+                                w = Real(1) - theta_;
                             }
                         }
                     }
@@ -108,14 +108,14 @@ namespace propr {
                     keys[2*j + 0]       = a;
                     vals[2*j + 0].count = (a != INVALID_KEY && has_fdr)  ? 1 : 0;
                     vals[2*j + 0].conn  = (a != INVALID_KEY)  ? sig     : 0;
-                    vals[2*j + 0].fdr   = (a != INVALID_KEY && has_fdr) ? fdr_ : 0.0f;
-                    vals[2*j + 0].wconn = (a != INVALID_KEY && sig) ? w : 0.0f;
+                    vals[2*j + 0].fdr   = (a != INVALID_KEY && has_fdr) ? fdr_ : Real(0);
+                    vals[2*j + 0].wconn = (a != INVALID_KEY && sig) ? w : Real(0);
 
                     keys[2*j + 1]       = b;
                     vals[2*j + 1].count = (b != INVALID_KEY && has_fdr) ?   1      : 0;
                     vals[2*j + 1].conn  = (b != INVALID_KEY) ? sig      : 0;
-                    vals[2*j + 1].fdr   = (b != INVALID_KEY && has_fdr) ? fdr_ : 0.0f;
-                    vals[2*j + 1].wconn = (b != INVALID_KEY && sig) ? w : 0.0f;
+                    vals[2*j + 1].fdr   = (b != INVALID_KEY && has_fdr) ? fdr_ : Real(0);
+                    vals[2*j + 1].wconn = (b != INVALID_KEY && sig) ? w : Real(0);
                 }
 
                 BlockSortT(temp.sort).Sort(keys, vals, 0, sort_end_bit);
@@ -147,7 +147,7 @@ namespace propr {
                         atomicAdd(&per_gene_count[k], items[i].stat.count);
                         atomicAdd(&per_mean_fdr[k],   items[i].stat.fdr);
                         if (items[i].stat.conn)          atomicAdd(&per_gene_conn[k],  items[i].stat.conn);
-                        if (items[i].stat.wconn != 0.0f) atomicAdd(&per_gene_wconn[k], items[i].stat.wconn);
+                        if (items[i].stat.wconn != Real(0)) atomicAdd(&per_gene_wconn[k], items[i].stat.wconn);
                     }
                 }
             }

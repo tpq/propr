@@ -30,4 +30,3 @@ namespace propr {
         return ((ra + rb - 1) / rb) * rb;
     }
 }
-

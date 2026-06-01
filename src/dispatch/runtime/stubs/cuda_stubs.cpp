@@ -67,6 +67,10 @@ int count_less_than(Rcpp::NumericVector&, double) { throw_unavailable(); }
 int count_greater_than(Rcpp::NumericVector&, double) { throw_unavailable(); }
 int count_less_equal_than(Rcpp::NumericVector&, double) { throw_unavailable(); }
 int count_greater_equal_than(Rcpp::NumericVector&, double) { throw_unavailable(); }
+void* count_values_beyond_thresholds_begin(Rcpp::NumericVector&, bool) { throw_unavailable(); }
+void count_values_beyond_thresholds_accumulate(void*, Rcpp::NumericVector&) { throw_unavailable(); }
+Rcpp::NumericVector count_values_beyond_thresholds_end(void*) { throw_unavailable(); }
+void count_values_beyond_thresholds_destroy(void*) { throw_unavailable(); }
 
 // ctzRcpp ops
 void ctzRcpp(Rcpp::NumericVector&, Rcpp::NumericMatrix&) { throw_unavailable(); }

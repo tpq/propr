@@ -2,6 +2,7 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
+#include <propr/data/math.cuh>
 #include <propr/utils/common/preprocessor.cuh>
 
 
@@ -20,25 +21,27 @@ namespace propr {
                     constexpr static inline cub::CacheLoadModifier  LoadModifer  = cub::LOAD_CG;
                     constexpr static inline cub::CacheStoreModifier StoreModifer = cub::STORE_CG;
 
+                    template <typename Real>
                     PROPR_DEVICE 
                     static 
                     PROPR_INLINE 
-                    void update(const int tidx,const int tidy, 
-                                float acc[NUM_ACC][TH_Y][TH_X], 
-                                const float& a,const float& b) {
-                        float n = 2.0f * (a / (a + b + FLT_EPSILON)) * b;
+                    void update(const int tidx,const int tidy,
+                                Real acc[NUM_ACC][TH_Y][TH_X],
+                                const Real& a,const Real& b) {
+                        Real n = Real(2) * (a / (a + b + propr::math::eps<Real>())) * b;
                         acc[0][tidy][tidx] += n; 
                         acc[1][tidy][tidx] += n * n;
                     }
 
+                    template <typename Real>
                     PROPR_DEVICE 
                     static 
                     PROPR_INLINE 
-                    float finalize(const int tidx,const int tidy,
-                                    const float acc[NUM_ACC][TH_Y][TH_X]) {
-                        float n = acc[0][tidy][tidx];
-                        float s = acc[1][tidy][tidx];
-                        return n - s / (n + FLT_EPSILON);
+                    Real finalize(const int tidx,const int tidy,
+                                    const Real acc[NUM_ACC][TH_Y][TH_X]) {
+                        Real n = acc[0][tidy][tidx];
+                        Real s = acc[1][tidy][tidx];
+                        return n - s / (n + propr::math::eps<Real>());
                     }
                 };
 
@@ -55,21 +58,23 @@ namespace propr {
                     static const cub::CacheLoadModifier  LoadModifer  = cub::LOAD_CG;
                     static const cub::CacheStoreModifier StoreModifer = cub::STORE_CG;
 
+                    template <typename Real>
                     PROPR_DEVICE 
                     static 
                     PROPR_INLINE 
                     void  update(const int tidx, const int tidy,
-                                float acc[NUM_ACC][TH_Y][TH_X], 
-                                const float& a, const float& b) {
-                        float n = 2.0f * (a / (a + b + FLT_EPSILON)) * b;
+                                Real acc[NUM_ACC][TH_Y][TH_X],
+                                const Real& a, const Real& b) {
+                        Real n = Real(2) * (a / (a + b + propr::math::eps<Real>())) * b;
                         acc[0][tidy][tidx] += n;
                     }
 
+                    template <typename Real>
                     PROPR_DEVICE 
                     static 
                     PROPR_INLINE 
-                    float finalize(const int tidx, const int tidy,
-                                    const float acc[NUM_ACC][TH_Y][TH_X]) {
+                    Real finalize(const int tidx, const int tidy,
+                                    const Real acc[NUM_ACC][TH_Y][TH_X]) {
                         return acc[0][tidy][tidx];
                     }
                 };
